@@ -39,6 +39,18 @@ Building Bridges: Viewing Active Learning from the Multi-Armed Bandit Lens
 Ravi Ganti, Alexander G. Gray
 UAI 2013
 
+From Theories to Queries: Active Learning in Practice
+Burr Settles
+JMLR W&CP, NIPS 2011 Workshop on Active Learning and Experimental Design
+
+Contextual Gaussian Process Bandit Optimization.
+Andreas Krause, Cheng Soon Ong
+NIPS 2011
+
+Contextual Bandit for Active Learning: Active Thompson Sampling.
+Djallel Bouneffouf, Romain Laroche, Tanguy Urvoy, Raphael Feraud, Robin Allesiardo.
+NIPS 2014
+
 
 ## Notes on UCB for graphs
 
