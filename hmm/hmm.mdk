@@ -1,11 +1,11 @@
-Title         : My Academic Paper
-Author        : You
-Affiliation   : Research institute
-Email         : you@bar.com
+Title         : GP-UCB for HMMs
+Author        : Lexing Xie
+Affiliation   : Australian National University
+Email         : lexing.xie@anu.edu.au
 
-Author        : My co-author
-Affiliation   : Other institute
-Email         : other@bar.com
+Author        : Cheng Soon Ong
+Affiliation   : NICTA
+Email         : chengsoon.ong@anu.edu.au
 
 Colorizer     : javascript
 Bib style     : plainnat
