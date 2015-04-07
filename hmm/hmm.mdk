@@ -25,15 +25,24 @@ mauris condimentum nibh, ut fermentum massa justo sit amet.
 
 # Introduction     { #sec-intro }
 
-Figure [#fig-butterfly] in Section [#sec-intro] shows a monarch butterfly.
-Note that you can drag&drop images into the editor pane to include them in
-the document, and similarly with bibtex files, latex style files, etc.
+We consider two graphical models.
 
-~ Figure { #fig-butterfly caption="A Monarch butterfly" page-align=here }
-![butterfly]
+The first is a multiple output hidden markov model (MOHMM) and is shown in Figure [#fig-mohmm].
+
+~ Figure { #fig-mohmm caption="multiple output hidden markov model" page-align=here }
+![gm-mohmm]
 ~
 
-[butterfly]: images/butterfly.png "butterfly"  { width=4em }
+The second is a markov chain where at each time point, there is a diamond.
+We refer to this as the diamond hidden markov model (DIAHMM) and it is shown in Figure [#fig-diahmm].
+
+~ Figure { #fig-diahmm caption="diamond hidden markov model" page-align=here }
+![gm-diahmm]
+~
+
+
+[gm-mohmm]: images/mohmm.pdf "mohmm"  { width=4em }
+[gm-diahmm]: images/diahmm.pdf "diahmm"  { width=4em }
 
 Our contributions are:
 
