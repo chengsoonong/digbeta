@@ -41,8 +41,8 @@ We refer to this as the diamond hidden markov model (DIAHMM) and it is shown in 
 ~
 
 
-[gm-mohmm]: images/mohmm.pdf "mohmm"  { width=4em }
-[gm-diahmm]: images/diahmm.pdf "diahmm"  { width=4em }
+[gm-mohmm]: images/mohmm.png "mohmm"  { width=4em }
+[gm-diahmm]: images/diahmm.png "diahmm"  { width=4em }
 
 Our contributions are:
 
