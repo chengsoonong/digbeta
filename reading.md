@@ -51,6 +51,22 @@ Contextual Bandit for Active Learning: Active Thompson Sampling.
 Djallel Bouneffouf, Romain Laroche, Tanguy Urvoy, Raphael Feraud, Robin Allesiardo.
 NIPS 2014
 
+Towards Anytime Active Learning: Interrupting Experts to Reduce Annotation Costs
+Maria Ramirez-Loaiza, Aron Culotta, Mustafa Bilgic
+SIGKDD 2013
+
+## Active Learning for Data Integration
+
+Actively Learning Ontology Matching via User Interaction
+Feng Shi, Juanzi Li, Jie Tang, Guotong Xie, Hanyu Li
+ISWC 2009
+
+A Novel Method for Measuring Semantic Similarity for XML Schema Matching
+Buhwan Jeong, Daewon Lee, Hyunbo Cho, Jaewook Lee
+Expert Systems with Applications 2008
+
+Tamr Product White Paper
+http://www.tamr.com/tamr-technical-overview/
 
 ## Notes on UCB for graphs
 
