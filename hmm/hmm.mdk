@@ -12,7 +12,7 @@ Bib style     : plainnat
 Bibliography  : example
 Heading base  : 2
 
-Doc class     : [10pt]article
+Doc class     : [11pt]article
 
 [TITLE]
 
@@ -28,6 +28,8 @@ mauris condimentum nibh, ut fermentum massa justo sit amet.
 We consider two graphical models.
 
 The first is a multiple output hidden markov model (MOHMM) and is shown in Figure [#fig-mohmm].
+This is also a convenient way to represent mixed output types, 
+e.g. $p(a_t|z_t) \sim N(\mu_a, \sigma^2_a)$, $p(b_t|z_t) \sim \text{multinomial}(m_b)$.
 
 ~ Figure { #fig-mohmm caption="multiple output hidden markov model" page-align=here }
 ![gm-mohmm]
@@ -44,6 +46,41 @@ We refer to this as the diamond hidden markov model (DIAHMM) and it is shown in 
 [gm-mohmm]: images/mohmm.png "mohmm"  { width=10 }
 [gm-diahmm]: images/diahmm.png "diahmm"  { width=10 }
 
+
+# *Bandit* setting for (plain-vanilla) HMMs     { #sec-intro }
+
+Assume there is a *prototypical* user $u$, whose behavior follows an HMM with parameter set $\Theta^*$. 
+We don't know $\Theta^*$, therefore the system _guesses_ a series of HMMs 
+$\Theta_t, t=1,2,\ldots T$, and uses them to (1) recommend actions $a_t$ to user $u$ and 
+(2) observe _rewards_ $r_t$ so as to update the current guess $\Theta_t$.  
+
+A good strategy for generating action sequence $a_{1:T}$ and updating $\Theta_{1:T}$ needs to:
+
+ Maximize *reward* e.g.
+  ~ Equation
+  \max {\mathbb E} \sum_{t=1}^T r_t
+  ~ 
+  OR *minimize regret*, make it as close to the *optimal* reward as possible
+  ~ Equation
+  \min {\mathbb E}\sum_{t=1}^T r^*_t - {\mathbb E} \sum_{t=1}^T r_t
+  ~
+
+
+Here defining *reward* is important, and *reward* does not seem *iid*. 
+
+Given model $\Theta^*$, we can use the likelihood of 
+the sequence $a_{1:t}$ as the *sum of the reward sequence*. 
+
+~ Equation 
+\sum_{1:t} r^*_t = P(a_{1:t} | \Theta^*) = \sum_{z_{1:t}} P(a_{1:t} | z_{1:t},  \Theta^*) 
+~
+
+**Question** if we knew $\Theta^*$, can we generate one action sequence $a*_{1:t}$ such that the total reward is maximized? 
+~ Equation
+{\mathbb R}^*_t = \max_{a_{1:t}} P(a_{1:t} | \Theta^*)
+~
+
+--------- 
 Our contributions are:
 
 * A figure of a _butterfly_;
