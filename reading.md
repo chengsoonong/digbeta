@@ -66,3 +66,18 @@ This is an unsorted list of references.
 * Tamr Product White Paper
   http://www.tamr.com/tamr-technical-overview/
 
+* Design of Experiments in Nonlinear Models
+  Luc Pronzato, Andrej Pazman
+  Springer 2013
+
+* Optimisation in space of measures and optimal design
+  Ilya Molchanov and Sergei Zuyev
+  ESAIM: Probability and Statistics, Vol. 8, pp. 12-24, 2004
+
+* Active Learning for logistic regression: an evaluation
+  Andrew I. Schein and Lyle H. Ungar
+  Machine Learning, 2007, 68: 235-265
+
+* Learning to Optimize Via Information-Directed Sampling
+  Daniel Russo and Benjamin Van Roy
+
