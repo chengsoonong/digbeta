@@ -81,3 +81,13 @@ This is an unsorted list of references.
 * Learning to Optimize Via Information-Directed Sampling
   Daniel Russo and Benjamin Van Roy
 
+* The KL-UCB Algorithm for Bounded Stochastic Bandits and Beyond  Aurelien Garivier and Olivier Cappe
+  COLT 2011
+  
+* A Finite-Time Analysis of Multi-armed Bandits Problems with Kullback-Leibler Divergences
+  Odalric-Ambrym Maillard, Remi Munos, Gilles Stoltz
+  COLT 2011
+  
+* Kullback-Leibler Upper Confidence Bounds for Optimal Sequential Allocation
+  Olivier Cappe, Aurelien Garivier, Odalric-Ambrym Maillard, Remi Munos, Gilles Stoltz
+  Annals of Statistics, 2013

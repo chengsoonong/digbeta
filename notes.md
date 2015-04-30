@@ -66,6 +66,10 @@ variables.
 
 ## Upper Confidence Bound
 
+### Notes on UCB for binary rewards
+
+In the special case when the rewards of the arms are {0,1}, we can get much tighter analysis. See [pymaBandits](http://mloss.org/software/view/415/).
+
 
 ### Notes on UCB for graphs
 
