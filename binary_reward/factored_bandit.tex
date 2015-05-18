@@ -1,0 +1,121 @@
+\documentclass[a4paper,11pt]{article}
+
+\usepackage{fullpage}
+\usepackage{natbib}
+\usepackage{amssymb,amsmath}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+
+\newcommand{\NN}{\mathbb{N}}
+\newcommand{\RR}{\mathbb{R}}
+\DeclareMathOperator{\argmax}{\mathrm{argmax}}
+
+\newcommand{\vhat}{\widehat{v}}
+\newcommand{\muhat}{\widehat{\mu}}
+\newcommand{\Dcal}{\mathcal{D}}
+
+\title{Factored Bandits}
+\author{Cheng Soon Ong, Lexing Xie}
+
+\begin{document}
+\maketitle
+
+\section{Literature}
+
+Recent work~\cite{garivier11kluabs,maillard11finama,cappe13kulucb} has
+given analysis of bandit algorithms with bounded rewards or rewards
+from exponential families with a single parameter.
+
+For the special case of binary rewards, we can use the Clopper-Pearson
+confidence interval to obtain CP-UCB~\cite{garivier11kluabs}.
+
+Analysis of binary distributions from the Bayesian paradigm has been
+done in the UCB setting and also the Thompson sampling
+setting~\cite{kaufmann12bayucb,kaufmann12thosao,korda13thosde}.
+
+
+\section{Setting}
+
+\begin{itemize}
+\item We consider a bandit problem with finitely many arms
+  $a\in\{1,\ldots,K\}$.
+\item Assume that each arm has an unknown probability distribution
+  $v_a\in\Dcal$ with expectation $\mu_a$.
+\item The number of times each arm $a$ is pulled between rounds $1$
+  and $T$ is referred to as $N_a(T)$.
+\end{itemize}
+
+\begin{algorithm}
+  \label{alg:kl-UCB}
+  \caption{The \texttt{kl-UCB} algorithm \cite[Algorithm 2]{cappe13kulucb}}
+  \begin{algorithmic}
+    \Require A nondecreasing function $f:\NN\to\RR$
+    \State Pull each arm of $\{1, \ldots, K\}$ once
+    \For{$t = K$ to $T-1$}
+    \State compute for each arm $a$ the quantity
+    \begin{equation}
+      \label{eq:ucb}
+      U_a(t) = \sup\left\{
+        \mu\in\bar{I}: d(\muhat_a(t), \mu) \leqslant \frac{f(t)}{N_a(t)}
+      \right\}      
+    \end{equation}
+    \State pick an arm 
+    $A_{t+1}\in \argmax_{a\in\{1,\ldots,L\}} U_a(t)$
+    \EndFor
+  \end{algorithmic}
+\end{algorithm}
+
+\begin{itemize}
+\item $d(\mu,\mu') = KL(v_\theta, v_{\theta'})$ is the
+  Kullback-Leibler (KL) divergence between two distributions
+  $v_\theta,v_{\theta'}\in\Dcal$.
+\item The interval $\bar{I}$ is the extension of $I$ to include the limits of
+  the expectation under the KL divergence.
+\item $\vhat_a(t)$ is the empirical distribution of arm $a$ for the
+  global time $t$, with the corresponding sufficient statistic
+  $\muhat_a(t)$.
+\end{itemize}
+
+\section{Bandits with Binary Rewards}
+
+\subsection{KL-bin-UCB}
+
+This is the special case of applying the kl-UCB algorithm
+from~\cite{cappe13kulucb} on the Binomial distribution.
+
+
+
+When considering the Binomial distribution for $n$-samples, we obtain
+that the natural parameter $\theta = \log\left(\frac{\mu}{n-\mu}\right)$, the natural
+parameter space $\Theta = \RR$,
+the log partition function $b(\theta) = n\log(1+\exp(\theta))$, and
+the interval containing all expectations is $I=(0,n)$.
+\[
+d(\mu, \mu') = \mu \log \frac{\mu}{\mu'} + (n-\mu) \log\frac{n-\mu}{n-\mu'}.
+\]
+The case $n=1$ corresponds to the Bernoulli distribution.
+
+The supremum in \eqref{eq:ucb} is achieved.
+
+\begin{itemize}
+\item We may want to initialise the problem by pulling each arm a few
+  times and use Hoeffding's to estimate an initial upper bound.
+\item What happens when we use the opposite KL divergence ($d(\mu, \muhat_a(t))$)?
+\item Following~\cite[Theorem 1]{cappe13kulucb} we set $f(t) = \log(t)
+  + 3\log\log(t)$. 
+\end{itemize}
+
+In this settting, for a given arm $a$, the value of $U_a(t)$ in equation \eqref{eq:ucb} becomes
+\begin{equation}
+  \label{eq:ucb-binomial}
+  \max_{\mu\in (0,n)} \muhat_a(t) \log \frac{\muhat_a(t)}{\mu} +
+  (n-\muhat_a(t)) \log\frac{n-\muhat_a(t)}{n-\mu} 
+  \leqslant \frac{\log(t)+3\log\log(t)}{N_a(t)}
+\end{equation}
+
+
+
+\bibliographystyle{plainnat}
+\bibliography{../abcde}
+
+\end{document}

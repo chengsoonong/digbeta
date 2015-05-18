@@ -31,10 +31,17 @@ This is an unsorted list of references.
   Kevin Small, Dan Roth
   International Journal of Machine Learning and Cybernetics, 2010, 1:3-25
 
+* Emilie Kaufmann, Nathaniel Korda and Remi Munos
+  Thompson Sampling: An Asymptotically Optimal Finite Time Analysis, ALT 2012
+
 * Thompson Sampling for 1-Dimensional Exponential Family Bandits
   Nathaniel Korda, Emilie Kaufmann, Remi Munos
   NIPS 2013
 
+* On Bayesian Upper Confidence Bounds for Bandit Problems
+  Emilie Kaufmann, Olivier Cappe, Aurelien Garivier
+  AISTATS 2012
+  
 * Building Bridges: Viewing Active Learning from the Multi-Armed Bandit Lens
   Ravi Ganti, Alexander G. Gray
   UAI 2013
