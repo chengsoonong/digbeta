@@ -1,8 +1,21 @@
 
 This file contains the practical aspects of bandit for recommendations -- settings for recommending trajectories and evaluations (for now). 
 
+Discussion on 21 May, 2015
+Gaps in the current problems / approaches include
 
-* (one of many) recommender formulation for trajectories
+* next location recommendation
+	*  active setting
+	*  factored attributes
+
+* routing / TSP
+	*  active setting
+	*  TSP +  learning the objective function (using rec-sys)
+
+
+----------- 
+
+* (one of many) recommender formulation for trajectories -- predicting next location 
 
 	Chen Cheng, Haiqin Yang, Michael R. Lyu, Irwin King:
   Where You Like to Go Next: Successive Point-of-Interest Recommendation. IJCAI 2013
