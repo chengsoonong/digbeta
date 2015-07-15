@@ -339,11 +339,11 @@ class PersTour:
                                 'SubTourElimination_' + str(pi) + '_' + str(pj) # TSP sub-tour elimination
 
         # write problem data to an .lp file
-        prob.writeLP('TourRecommend.lp')
+        #prob.writeLP('TourRecommend.lp')
 
         # solve problem using PuLP's default solver
         #prob.solve()
-        prob.solve(pulp.PULP_CBC_CMD(options=['-threads', '4']))
+        prob.solve(pulp.PULP_CBC_CMD(options=['-threads', '6', '-randomi', 'on']))
 
         # print the status of the solution
         print('status:', pulp.LpStatus[prob.status])
@@ -373,23 +373,34 @@ class PersTour:
                     pi = pj
                     tour.append(pi)
                     if pi == pN:
-                        return tour
+                        return [int(px) for px in tour]
                     else:
                         break
 
 
-    def recommend(self):
+    def recommend(self, dirname, fout, eta):
         """Trajectory Recommendation"""
-
+        assert(0<= eta <= 1)
+        
+        fname = dirname + '/' + fout
         for seq in range(len(self.sequences)):
-            if len(self.sequences[seq]) < 3:
-                self.recommendSeqs[seq] = []
-                continue
+            if len(self.sequences[seq]) >= 3:
+                tour = self.MIP_recommend(seq, eta);
 
-            tour = self.MIP_recommend(seq, 0.5);
-            self.recommendSeqs[seq] = [int(x) for x in tour]
+                with open(fname, 'a') as f:
+                    f.write(str(seq) + '|')
+                    for i, s in enumerate(self.sequences[seq]):
+                        if i > 0:
+                            f.write(',')
+                        f.write(str(s))
+                    f.write('|')
+                    for i, s in enumerate(tour):
+                        if i > 0:
+                            f.write(',')
+                        f.write(str(s))
+                    f.write('\n')
 
-            print('REAL:', self.sequences[seq])
-            print('RECO:', self.recommendSeqs[seq])
-            print('-'*30)
+                    print('REAL:', self.sequences[seq])
+                    print('RECO:', tour)
+                    print('-'*30)
 
