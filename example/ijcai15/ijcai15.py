@@ -1,18 +1,20 @@
 import math
-import pulp
 import numpy as np
+import pulp
+import re
 #from datetime import date
 
 class PersTour:
     """Reproduce the IJCAI'15 paper"""
 
 
-    def __init__(self, dirname, fname):
+    def __init__(self, dirname, fname, writeFile=True):
         """Class Initialization"""
         # load records from file
         # each record contains tuples ("photoID";"userID";"dateTaken";"poiID";"poiTheme";"poiFreq";"seqID")
+        self.dirname = dirname
         self.records = [] 
-        self.load_records(dirname + '/' + fname)
+        self.load_records(self.dirname + '/' + fname)
         #idx = 9000
         #ousr = self.records[idx, 1]
         #opoi = self.records[idx, 3]
@@ -27,7 +29,9 @@ class PersTour:
         self.usrmap = dict()
         self.catmap = dict()
         self.build_maps()
-        self.save_maps(dirname)
+        
+        if writeFile:
+            self.save_maps()
 
         # replace id in each record
         # (photoID, userID, dateTaken, poiID, poiTheme, poiFreq, seqID)
@@ -62,13 +66,15 @@ class PersTour:
         # expand sequences
         self.sequences = dict()
         self.expand_sequences()
-        with open(dirname + '/' + 'seq.list', 'w') as f:
-            for seq in range(len(self.seqmap)):
-                f.write(str(seq) + ' ' + str(self.sequences[seq]) + '\n')
+        
+        if writeFile:
+            with open(self.dirname + '/' + 'seq.list', 'w') as f:
+                for seq in range(len(self.seqmap)):
+                    f.write(str(seq) + ' ' + str(self.sequences[seq]) + '\n')
 
         # calculate travel time
         self.traveltime = np.zeros((len(self.poimap), len(self.poimap)), dtype=np.float64)   # travel costs
-        poicoordsfile = dirname + '/' + fname + '.coord'
+        poicoordsfile = self.dirname + '/' + fname + '.coord'
         self.calc_traveltime(poicoordsfile)
 
         # recommended sequences
@@ -112,17 +118,17 @@ class PersTour:
         self.seqmap = {k: i for i, k in enumerate(sorted(seqset))}
 
 
-    def save_maps(self, dirname):
+    def save_maps(self):
         """Save Mapped POI ID, Sequence ID, User ID and Category ID"""
         assert(len(self.usrmap)  > 0)
         assert(len(self.poimap)  > 0)
         assert(len(self.catmap)  > 0)
         assert(len(self.seqmap)  > 0)
 
-        fusrmap = dirname + '/usr.map'
-        fpoimap = dirname + '/poi.map'
-        fcatmap = dirname + '/cat.map'
-        fseqmap = dirname + '/seq.map'
+        fusrmap = self.dirname + '/usr.map'
+        fpoimap = self.dirname + '/poi.map'
+        fcatmap = self.dirname + '/cat.map'
+        fseqmap = self.dirname + '/seq.map'
 
         with open(fpoimap, 'w') as f:
             #for k, v in self.poimap.items():
@@ -280,7 +286,7 @@ class PersTour:
                 self.traveltime[poi2, poi1] = self.traveltime[poi1, poi2] # symmetrical
 
 
-    def MIP_recommend(self, seq, eta, time_based=True):
+    def MIP_recommend(self, seq, eta, lpFilename, time_based=True):
         """Recommend a trajectory given an existing travel sequence S_N, 
            the first/last POI and travel budget are calculated based on S_N
         """
@@ -310,17 +316,6 @@ class PersTour:
             budget += self.traveltime[px, py]
             cat = self.poicat[py]
             budget += usr_interest[usr, cat] * self.avg_poi_visit[py]
-
-        # round float numbers
-        #budget = round(budget, 3)
-        #for poi in range(len(self.poimap)):
-        #    self.avg_poi_visit[poi] = round(self.avg_poi_visit[poi], 3)
-        #for usr in range(len(self.usrmap)):
-        #    for cat in range(len(self.catmap)):
-        #        usr_interest[usr, cat] = round(usr_interest[usr, cat], 3)
-        #for px in range(len(self.poimap)):
-        #    for py in range(len(self.poimap)):
-        #        self.traveltime[px, py] = round(self.traveltime[px, py], 3)
 
         # The MIP problem
         # REF: pythonhosted.org/PuLP/index.html
@@ -368,73 +363,144 @@ class PersTour:
                                 'SubTourElimination_' + str(pi) + '_' + str(pj) # TSP sub-tour elimination
 
         # write problem data to an .lp file
-        prob.writeLP('TourRecommend.lp')
+        prob.writeLP(lpFilename)
 
-        # solve problem using PuLP's default solver
+        # TOO slow for large sequences!
+        # solve problem using PuLP's default solver 
         #prob.solve()
-        prob.solve(pulp.PULP_CBC_CMD(options=['-threads', '6', '-strong', '10', '-randomi', 'on']))
+        #strategy = 1
+        #if len(self.sequences[seq]) > 3: strategy = 2
+        #prob.solve(pulp.PULP_CBC_CMD(options=['-threads', '6', '-strategy', str(strategy), '-maxIt', '10000000']))
 
         # print the status of the solution
-        print('status:', pulp.LpStatus[prob.status])
+        #print('status:', pulp.LpStatus[prob.status])
 
         # print each variable with it's resolved optimum value
         #for v in prob.variables():
         #   print(v.name, '=', v.varValue)
-        #   if v.varValue != 0:
-        #      print(v.name, '=', v.varValue)
+        #   if v.varValue != 0: print(v.name, '=', v.varValue)
 
-        visitMat = np.zeros((len(pois), len(pois)), dtype=np.bool)
-        for pi in pois:
-            for pj in pois:
-                visitMat[int(pi), int(pj)] = visit_vars[pi][pj].varValue
-        #        if visitMat[int(pi), int(pj)]:
-        #            print(pi, pj)
+        #visitMat = np.zeros((len(pois), len(pois)), dtype=np.bool)
+        #for pi in pois:
+        #    for pj in pois:
+        #        visitMat[int(pi), int(pj)] = visit_vars[pi][pj].varValue
+        #        if visitMat[int(pi), int(pj)]: print(pi, pj)
 
         # print the optimised objective function value
-        print('obj:', pulp.value(prob.objective))
+        #print('obj:', pulp.value(prob.objective))
 
         # build the recommended trajectory
-        tour = [p0]
-        while True:
-            pi = tour[-1]
-            for pj in pois:
-                if visitMat[int(pi), int(pj)]:
-                    pi = pj
-                    tour.append(pi)
-                    if pi == pN:
-                        return [int(px) for px in tour]
-                    else:
-                        break
+        #tour = [p0]
+        #while True:
+        #    pi = tour[-1]
+        #    for pj in pois:
+        #        if visitMat[int(pi), int(pj)]:
+        #            pi = pj
+        #            tour.append(pi)
+        #            if pi == pN:
+        #                return [int(px) for px in tour]
+        #            else:
+        #                break
 
 
-    def recommend(self, dirname, fout, eta):
+    def recommend(self, eta, time_based=True):
         """Trajectory Recommendation"""
-        assert(0<= eta <= 1)
+        assert(0.0 <= eta <= 1.0)
+
+        lpFileDir = self.dirname + '/eta'
+        if   round(eta, 1) == 0.0: lpFileDir += '00'
+        elif round(eta, 1) == 0.5: lpFileDir += '05'
+        elif round(eta, 1) == 1.0: lpFileDir += '10'
+
+        if time_based:
+            if eta > 0.0: lpFileDir += '_time'
+        else:
+            if eta > 0.0: lpFileDir += '_freq'
+
+        for seq in range(len(self.sequences)):
+            if len(self.sequences[seq]) < 3: continue
+            lpFileName = lpFileDir + '/' + str(seq) + '.lp'
+            timebased = True
+            if time_based == False and eta > 0.0: timebased = False
+            self.MIP_recommend(seq, eta, lpFileName, timebased)
         
-        fname = dirname + '/' + fout
-        seqIdx = list(range(len(self.sequences)))
-        seqIdx.sort(key=lambda seq:len(self.sequences[seq]))
+#        seqIdx = list(range(len(self.sequences)))
+#        seqIdx.sort(key=lambda seq:len(self.sequences[seq]))
+#        for seq in seqIdx:
+#            if len(self.sequences[seq]) >= 3:
+#                print('REAL:', self.sequences[seq])
+#                tour = self.MIP_recommend(seq, eta);
+#                print('RECO:', tour)
+#                print('-'*30)
+#                with open(fname, 'a') as f:
+#                    f.write(str(seq) + '|')
+#                    for i, s in enumerate(self.sequences[seq]):
+#                        if i > 0: f.write(',')
+#                        f.write(str(s))
+#                    f.write('|')
+#                    for i, s in enumerate(tour):
+#                        if i > 0: f.write(',')
+#                        f.write(str(s))
+#                    f.write('\n')
 
-        for seq in seqIdx:
-            if len(self.sequences[seq]) >= 3:
-                print('REAL:', self.sequences[seq])
 
-                tour = self.MIP_recommend(seq, eta);
+    def load_recommend(self, origseq, fsol):
+        """Load recommended itinerary from MIP solution file"""
+        seqterm = []
+        with open(fsol, 'r') as f:
+            for line in f:
+                if re.search('^visit_', line):      # e.g. visit_0_7              1 \t(obj:0)\n
+                    item = line.split(' ')          #      visit_21_16            1.56406801399038e-09 \t(obj:125)\n
+                    #item = re.sub('\t', ' ', line).split(' ')
+                    words = []
+                    for i in range(len(item)):
+                        if len(item[i]) > 0: 
+                            words.append(item[i])
+                            if len(words) >= 2: break
+                    if int(float(words[1])) == 1:
+                        dummy = words[0].split('_')
+                        seqterm.append((int(dummy[1]), int(dummy[2])))
+        p0 = origseq[0]
+        pN = origseq[-1]
+        recseq = [p0]
+    
+        while True:
+            px = recseq[-1]
+            for term in seqterm:
+                if term[0] == px:
+                    recseq.append(term[1])
+                    if term[1] == pN: return recseq
+                    seqterm.remove(term)
 
-                print('RECO:', tour)
-                print('-'*30)
 
-                with open(fname, 'a') as f:
-                    f.write(str(seq) + '|')
-                    for i, s in enumerate(self.sequences[seq]):
-                        if i > 0:
-                            f.write(',')
-                        f.write(str(s))
-                    f.write('|')
-                    for i, s in enumerate(tour):
-                        if i > 0:
-                            f.write(',')
-                        f.write(str(s))
-                    f.write('\n')
+    def load_sequences(self, fseqlist, subdir):
+        """Load original and recommended sequences from file"""
+        sequences = dict()
+        with open(fseqlist, 'r') as f:
+            for line in f:
+                item = line.split('[')
+                assert(len(item) == 2)
+                k = int(item[0])
+                v = [int(x) for x in list(item[1].strip()[:-1].split(','))]  # e.g. 0 [1, 2, 3, 4, 5]\n
+                sequences[k] = v
 
+        # check consistency
+        for k, v in sequences.items():
+            assert(v == self.sequences[k])
+
+        # load recommended itineraries from MIP solution files
+        for k, v in self.sequences.keys():
+            if len(v) >= 3:
+                fsol = self.dirname + '/' + subdir + '/' + str(k) + '.lp.sol'
+                self.recommendSeqs[k] = self.load_recommend(v, fsol)
+
+
+    def calc_evalmetrics(self):
+        """Calculate evaluation metrics: 
+           Tour Recall, Tour Precision, Tour F1-score, RMSE of POI visit duration
+           Tour Popularity, Tour Interest, Popularity and Interest Rank
+        """
+        assert(len(self.recommendSeqs) > 0)
+
+        pass
 
