@@ -1,6 +1,3 @@
-   - 1-2 sentence content summary
-   - 2-3 bullet points on my views of its pro/con/practical feasibility/other noteable points
-
 Topic: Active recommendation of trajectories over time (and space)
 =========== 
 
