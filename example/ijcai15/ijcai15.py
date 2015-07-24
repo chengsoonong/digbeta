@@ -1,8 +1,9 @@
 import math
-import numpy as np
 import pulp
 import re
-#from datetime import date
+import numpy as np
+import matplotlib.pyplot as plt
+#from datetime import datetime
 
 class PersTour:
     """Reproduce the IJCAI'15 paper"""
@@ -284,6 +285,84 @@ class PersTour:
                                             ))
                 self.traveltime[poi1, poi2] = distance / speed            # hour
                 self.traveltime[poi2, poi1] = self.traveltime[poi1, poi2] # symmetrical
+
+
+    def plot_metrics(self):
+        """Plot histogram POI popularity and time-based user interest for each POI category"""
+        nrows = math.ceil(len(self.catmap) / 2)
+        y_pop = [list([self.poi_pop[j] for j in range(len(self.poimap)) if self.poicat[j] == i]) for i in range(len(self.catmap))]
+        #y_pop = []
+        #for i in range(len(self.catmap)):
+        #    y_pop.append(list([self.poi_pop[j] for j in range(len(self.poimap)) if self.poicat[j] == i]))
+        xmax = round(max(self.poi_pop), -2) + 100
+        fig1 = plt.figure(1)
+        fig1.text(0.3, 0.96, 'Histogram of POI Popularity by Category', fontsize=18)
+        for r in range(nrows):
+            for c in range(2):
+                idx = r*2 + c
+                if idx >= len(y_pop): continue
+                plt.subplot(nrows, 2, idx+1)
+                plt.axis([-200, xmax, 0, 5])
+                plt.xlabel('Popularity')
+                plt.ylabel('Frequency')
+                if len(y_pop[idx]) == 1: # this is a bug of matplotlib v1.4.2, https://github.com/matplotlib/matplotlib/issues/3882
+                    v = y_pop[idx][0]
+                    rmin = max(-200, v-30)
+                    rmax = min(v+30, xmax)
+                    plt.hist(y_pop[idx], bins=1, range=[rmin, rmax], histtype='step')
+                else:
+                    plt.hist(y_pop[idx], bins=10, histtype='step')
+                title = ''
+                for k, v in self.catmap.items():
+                    if v == idx: title = k; break
+                plt.title(title, color='g')
+        fig1.show()
+        #fig1name = self.dirname + '/' + 'poi_pop.svg'
+        #fig1.savefig(fig1name, dpi=1000)
+
+        xmax = round(np.max(self.time_usr_interest), -2) + 100
+        fig2 = plt.figure(2)
+        fig2.text(0.23, 0.96, 'Histogram of Time-based User Interest by POI Category', fontsize=18)
+        for r in range(nrows):
+            for c in range(2):
+                idx = r*2 + c
+                if idx >= np.shape(self.time_usr_interest)[1]: continue
+                plt.subplot(nrows, 2, idx+1)
+                plt.axis([-200, xmax, 0, 20])
+                plt.xlabel('User Interest')
+                plt.ylabel('Frequency')
+                plt.hist(self.time_usr_interest[:, idx], bins=10, histtype='step', color='r')
+                title = ''
+                for k, v in self.catmap.items():
+                    if v == idx: title = k; break
+                plt.title(title, color='g')
+        fig2.show()
+ 
+        xmax = round(np.max(self.freq_usr_interest), -2) + 100
+        fig3 = plt.figure(3)
+        fig3.text(0.23, 0.96, 'Histogram of Frequency-based User Interest by POI Category', fontsize=18)
+        for r in range(nrows):
+            for c in range(2):
+                idx = r*2 + c
+                if idx >= np.shape(self.freq_usr_interest)[1]: continue
+                plt.subplot(nrows, 2, idx+1)
+                plt.axis([-200, xmax, 0, 20])
+                plt.xlabel('User Interest')
+                plt.ylabel('Frequency')
+                plt.hist(self.freq_usr_interest[:, idx], bins=10, histtype='step', color='r')
+                title = ''
+                for k, v in self.catmap.items():
+                    if v == idx: title = k; break
+                plt.title(title, color='g')
+        fig3.show()
+        
+
+
+
+
+
+
+
 
 
     def MIP_recommend(self, seq, eta, lpFilename, time_based=True):
