@@ -38,7 +38,7 @@ Explain the theory behind libFM, some practical tips of applying libFM are also 
 (2) TSP formulations for trajectory recommentation.
 -----------
 
-**Aristides Gionis, Theodoros Lappas, Konstantinos Pelechrinis, Evimaria Terzi
+**Aristides Gionis, Theodoros Lappas, Konstantinos Pelechrinis, Evimaria Terzi.
 Customized tour recommendations in urban areas. 
 WSDM 2014: 313-322**
 
@@ -46,20 +46,22 @@ The authors proposed a framework to recommend customized tours (venue's type, vi
 They investigated two variants of user statisfaction, i.e. additive benefits and attraction coverage, 
 proved that problems using both user satisfaction functions are NP-hard (reduce TSP to these problems) firstly 
 and then designed two algorithms to solve the two recommendation problems using dynamic programming paradigm,
-both the time and space complexity of the algorithms are pseudo polynomial/expernential, 
-but they are fast here as the scale of the input in the experimental datasets is small.
-They also designed an (1-epsilon) approximation algorithm, proposed extensions of their framework, 
+both the time and space complexity of the algorithms are pseudo polynomial/exponential, 
+but they are fast here as the scale of the input in the experimental dataset is small.
+They also designed an ($1-\epsilon$) approximation algorithm, proposed extensions of their framework, 
 though without evaluating both of them in experiments.
 
 Pros:
  * take into account both venue's type and user's visit order
  * formal proof of problem hardness
  * designed both exact and approximate algorithms
- * extend framework to incorporate factors appears in real scenarios
+ * extend framework to incorporate factors appear in real scenarios
 
 Cons:
- * algorithms evaluated in experiments are still expernential, though efficient in small input scales
- * dataset used in experiments are a part of another [dataset 2010-2011](http://infolab.tamu.edu/data/) which could be requested, newer and similar [dataset 2011-2012](https://sites.google.com/site/yangdingqi/home/foursquare-dataset) are freely available
+ * algorithms evaluated in experiments are still exponential, though efficient in small input scales
+ * dataset used in experiments is not available 
+   (a part of another [dataset 2010-2011](http://infolab.tamu.edu/data/) which could be requested,
+   newer and similar [datasets 2011-2012](https://sites.google.com/site/yangdingqi/home/foursquare-dataset) are freely available)
 
 
 (3) In-between -- TSP problem with a flavor of 'cutomized' preference objective. 
