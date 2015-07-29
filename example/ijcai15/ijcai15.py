@@ -2,7 +2,9 @@ import math
 import pulp
 import re
 import numpy as np
+import statistics as stat
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import axes3d
 #from datetime import datetime
 
 class PersTour:
@@ -523,8 +525,55 @@ class PersTour:
 #                    f.write('\n')
 
 
-    def load_recommend(self, origseq, fsol):
-        """Load recommended itinerary from MIP solution file"""
+    def evaluate(self, fseqlist, subdir):
+        """Evaluate the recommended itinerary"""
+        self.load_sequences(fseqlist, subdir)
+
+        # plot POI category for each sequence: (poi_order, cat, seq_order)
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        for i, k in enumerate(self.recommendSeqs.keys()):
+            #X = X1 = Y = Y1 = Z = Z1 = []  #ERROR: the reference of the same object
+            X = []; Y = []; Z = []; X1 = []; Y1 = []; Z1 = []
+            for j, poi in enumerate(self.recommendSeqs[k]):
+                X.append(j); Y.append(self.poicat[poi]); Z.append(i)
+            for j, poi in enumerate(self.sequences[k]):
+                X1.append(j); Y1.append(self.poicat[poi]); Z1.append(i)
+            ax.plot(X,  Y,  Z,  'g')  # recommended
+            ax.plot(X1, Y1, Z1, 'r')  # actual
+        plt.show()
+        self.calc_evalmetrics()
+
+
+    def load_sequences(self, fseqlist, subdir):
+        """Load original and recommended sequences from file"""
+        fname = self.dirname + '/' + fseqlist
+        sequences = dict()
+        with open(fname, 'r') as f:
+            for line in f:
+                item = line.split('[')
+                assert(len(item) == 2)
+                k = int(item[0])
+                v = [int(x) for x in list(item[1].strip()[:-1].split(','))]  # e.g. 0 [1, 2, 3, 4, 5]\n
+                sequences[k] = v
+
+        # check consistency
+        for k, v in sequences.items():
+            assert(v == self.sequences[k])
+
+        # load recommended itineraries from MIP solution files
+        for k, v in self.sequences.items():
+            if len(v) >= 3:
+                fsol = self.dirname + '/' + subdir + '/' + str(k) + '.lp.sol'
+                #self.recommendSeqs[k] = self.load_recommend_scip(v, fsol)
+                self.recommendSeqs[k] = self.load_recommend_gurobi(v, fsol)
+                if len(v) != len(self.recommendSeqs[k]):
+                    print(k, ':', v)
+                    print(k, ':', self.recommendSeqs[k])
+
+
+    def load_recommend_scip(self, origseq, fsol):
+        """Load recommended itinerary from MIP solution file by SCIP"""
         seqterm = []
         with open(fsol, 'r') as f:
             for line in f:
@@ -536,7 +585,7 @@ class PersTour:
                         if len(item[i]) > 0: 
                             words.append(item[i])
                             if len(words) >= 2: break
-                    if int(float(words[1])) == 1:
+                    if round(float(words[1])) == 1:
                         dummy = words[0].split('_')
                         seqterm.append((int(dummy[1]), int(dummy[2])))
         p0 = origseq[0]
@@ -552,26 +601,28 @@ class PersTour:
                     seqterm.remove(term)
 
 
-    def load_sequences(self, fseqlist, subdir):
-        """Load original and recommended sequences from file"""
-        sequences = dict()
-        with open(fseqlist, 'r') as f:
+    def load_recommend_gurobi(self, origseq, fsol):
+        """Load recommended itinerary from MIP solution file by GUROBI"""
+        seqterm = []
+        with open(fsol, 'r') as f:
             for line in f:
-                item = line.split('[')
-                assert(len(item) == 2)
-                k = int(item[0])
-                v = [int(x) for x in list(item[1].strip()[:-1].split(','))]  # e.g. 0 [1, 2, 3, 4, 5]\n
-                sequences[k] = v
+                if re.search('^visit_', line):      # e.g. visit_0_7 1\n
+                    item = line.strip().split(' ')  #      visit_21_16 1.56406801399038e-09\n, remove '\n' using strip()
+                    if round(float(item[1])) == 1:
+                        dummy = item[0].split('_')
+                        seqterm.append((int(dummy[1]), int(dummy[2])))
+        p0 = origseq[0]
+        pN = origseq[-1]
+        recseq = [p0]
+    
+        while True:
+            px = recseq[-1]
+            for term in seqterm:
+                if term[0] == px:
+                    recseq.append(term[1])
+                    if term[1] == pN: return recseq
+                    seqterm.remove(term)
 
-        # check consistency
-        for k, v in sequences.items():
-            assert(v == self.sequences[k])
-
-        # load recommended itineraries from MIP solution files
-        for k, v in self.sequences.keys():
-            if len(v) >= 3:
-                fsol = self.dirname + '/' + subdir + '/' + str(k) + '.lp.sol'
-                self.recommendSeqs[k] = self.load_recommend(v, fsol)
 
 
     def calc_evalmetrics(self):
@@ -581,5 +632,36 @@ class PersTour:
         """
         assert(len(self.recommendSeqs) > 0)
 
-        pass
+        # calculate intersection size of recommended POI set and real POI set
+        intersize = dict()
+        for k, v in self.recommendSeqs.items():
+            intersize[k] = len(set(v) & set(self.sequences[k]))
+
+        # calculate tour recall
+        recalls = []
+        for k, v in intersize.items():
+            recalls.append(v / len(self.sequences[k]))
+
+        # calculate tour precision
+        precisions = []
+        for k, v in intersize.items():
+            precisions.append(v / len(self.recommendSeqs[k]))
+
+        # calculate F1-score
+        f1scores = []
+        assert(len(recalls) == len(precisions))
+        for i in range(len(recalls)):
+            f1scores.append(2 * precisions[i] * recalls[i] / (precisions[i] + recalls[i]))
+
+        print('Recall:   ', stat.mean(recalls),    stat.stdev(recalls))
+        print('Precision:', stat.mean(precisions), stat.stdev(precisions))
+        print('F1-score: ', stat.mean(f1scores),   stat.stdev(f1scores))
+
+        # calculate Root Mean Square Error of POI visit duration
+
+        # calculate tour popularity
+
+        # calculate tour interest
+
+        # calculate popularity and interest rank
 
