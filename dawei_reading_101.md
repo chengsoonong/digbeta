@@ -9,14 +9,22 @@ Factorizing personalized Markov chains for next-basket recommendation.
 In Proceedings of the 19th international conference on World wide web (WWW '10). ACM, New York, NY, USA, 811-820.**
 
 The authors proposed a model (FPMC) which captures both sequence effects (temporal) likes MC as well as user preferences like MF,
-basically, it is a transition cube where each slice is a user-specific transition matrix of a MC.
-To estimate transition probabilities, they introduced a factorization model which allows information propagation between users, items and
-transitions besides deals with sparsity of data. 
-The factorization approach results in less parameters which leads better generalization than full parameterized models
+basically, it is a transition cube/tensor where each slice is a user-specific transition matrix of a MC.
+To estimate transition probabilities, they factorized the transition cube/tensor by using a special case of Canonical Decomposition 
+that can model pairwise interactions(user-item, item-item) to deal with high sparsity of data. 
+The factorization approach results in less parameters which leads better generalization (by preventing overfitting) 
+than full parameterization, i.e. estimates all transition probabilities by counting/MLE 
+(too much independent parameters result in overfitting)
 
-* insteresting: combine ideas from both successful MF and MC approaches
-* estimate parameters using factorization approach is an extension of MF
-* empirical study based on a reasonable sized dataset which unfortunately seems not available to others
+Pros:
+* use dataset with basket (a set of items) to conduct recommendation
+* insteresting: combine ideas from both MF and MC approaches
+* estimate parameters by factorization instead of counting/MLE to prevents overfitting
+* empirical study based on a reasonable sized dataset 
+
+Cons:
+* assuming independence of both users and baskets (in recommendation/inference) is somewhat too strong
+* dataset seems not available to other researchers
 
 
 (if you need background reading on recommender systems)
