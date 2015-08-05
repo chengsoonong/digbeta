@@ -1,6 +1,7 @@
 import math
 import pulp
 import re
+import random
 import numpy as np
 import statistics as stat
 import matplotlib.pyplot as plt
@@ -290,6 +291,74 @@ class PersTour:
 
 
     def plot_metrics(self):
+        """Plot POI popularity and time-based user interest for each POI category"""
+        city = self.dirname.split('/')[-1]
+        nrows = math.ceil(len(self.catmap) / 2)
+        y_pop = [list([self.poi_pop[j] for j in range(len(self.poimap)) if self.poicat[j] == i]) for i in range(len(self.catmap))]
+        xmax = max(list([len(x) for x in y_pop]))
+        ymax = round(max(self.poi_pop), -2) + 100
+        fig1 = plt.figure(1)
+        fig1.text(0.3, 0.96, city + ': POI Popularity by Category', fontsize=18)
+        for r in range(nrows):
+            for c in range(2):
+                idx = r*2 + c
+                if idx >= len(y_pop): continue
+                plt.subplot(nrows, 2, idx+1)
+                plt.axis([-1, xmax, -50, ymax])
+                #plt.xlabel('POI')
+                plt.ylabel('Popularity')
+                plt.plot(sorted(y_pop[idx]), 's-c', label='popularity')
+                xx = np.arange(-1, xmax, 1)
+                #yy = np.ones(len(xx), dtype=np.float32) * stat.mean(y_pop[idx]) 
+                #TypeError: can't convert type 'int32' to numerator/denominator
+                #http://bugs.python.org/issue20481
+                yy = np.ones(len(xx), dtype=np.float32) * sum(y_pop[idx])/len(y_pop[idx])
+                plt.plot(xx, yy, '-g', label='mean')
+                plt.legend()
+                for k, v in self.catmap.items():
+                    if v == idx: plt.title(k, color='g'); break
+        fig1.show()
+
+        xmax = len(self.usrmap) + 50
+        ymax = round(np.max(self.time_usr_interest), -2) + 100
+        fig2 = plt.figure(2)
+        fig2.text(0.23, 0.96, city + ': Time-based User Interest by POI Category', fontsize=18)
+        for r in range(nrows):
+            for c in range(2):
+                idx = r*2 + c
+                if idx >= np.shape(self.time_usr_interest)[1]: continue
+                plt.subplot(nrows, 2, idx+1)
+                plt.axis([-50, xmax, -50, ymax])
+                #plt.xlabel('User')
+                plt.ylabel('User Interest')
+                plt.plot(sorted(self.time_usr_interest[:, idx], reverse=True), 's-g')
+                #plt.loglog(sorted(self.time_usr_interest[:, idx], reverse=True), 's-g', basey=2)
+                #print(sorted(self.time_usr_interest[:, idx], reverse=True))
+                #yy = [math.log2(x) for x in sorted(self.time_usr_interest[:, idx], reverse=True)]
+                plt.plot(yy, 's-g')
+                for k, v in self.catmap.items():
+                    if v == idx: plt.title(k, color='g')
+        fig2.show()
+ 
+        ymax = round(np.max(self.freq_usr_interest), -2) + 100
+        fig3 = plt.figure(3)
+        fig3.text(0.23, 0.96, city + ': Frequency-based User Interest by POI Category', fontsize=18)
+        for r in range(nrows):
+            for c in range(2):
+                idx = r*2 + c
+                if idx >= np.shape(self.freq_usr_interest)[1]: continue
+                plt.subplot(nrows, 2, idx+1)
+                plt.axis([-50, xmax, -50, ymax])
+                #plt.xlabel('User')
+                plt.ylabel('User Interest')
+                plt.plot(sorted(self.freq_usr_interest[:, idx], reverse=True), 's-g')
+                #plt.plot(sorted(self.freq_usr_interest[:, idx]), 's-g')
+                for k, v in self.catmap.items():
+                    if v == idx: plt.title(k, color='g')
+        fig3.show()
+
+
+    def plot_histograms(self):
         """Plot histogram POI popularity and time-based user interest for each POI category"""
         nrows = math.ceil(len(self.catmap) / 2)
         y_pop = [list([self.poi_pop[j] for j in range(len(self.poimap)) if self.poicat[j] == i]) for i in range(len(self.catmap))]
@@ -298,7 +367,7 @@ class PersTour:
         #    y_pop.append(list([self.poi_pop[j] for j in range(len(self.poimap)) if self.poicat[j] == i]))
         xmax = round(max(self.poi_pop), -2) + 100
         fig1 = plt.figure(1)
-        fig1.text(0.3, 0.96, 'Histogram of POI Popularity by Category', fontsize=18)
+        fig1.text(0.23, 0.96, 'Histogram of POI Popularity by Category', fontsize=18)
         for r in range(nrows):
             for c in range(2):
                 idx = r*2 + c
@@ -358,14 +427,6 @@ class PersTour:
                 plt.title(title, color='g')
         fig3.show()
         
-
-
-
-
-
-
-
-
 
     def MIP_recommend(self, seq, eta, lpFilename, time_based=True):
         """Recommend a trajectory given an existing travel sequence S_N, 
@@ -528,21 +589,8 @@ class PersTour:
     def evaluate(self, fseqlist, subdir):
         """Evaluate the recommended itinerary"""
         self.load_sequences(fseqlist, subdir)
-
-        # plot POI category for each sequence: (poi_order, cat, seq_order)
-        fig = plt.figure()
-        ax = fig.gca(projection='3d')
-        for i, k in enumerate(self.recommendSeqs.keys()):
-            #X = X1 = Y = Y1 = Z = Z1 = []  #ERROR: the reference of the same object
-            X = []; Y = []; Z = []; X1 = []; Y1 = []; Z1 = []
-            for j, poi in enumerate(self.recommendSeqs[k]):
-                X.append(j); Y.append(self.poicat[poi]); Z.append(i)
-            for j, poi in enumerate(self.sequences[k]):
-                X1.append(j); Y1.append(self.poicat[poi]); Z1.append(i)
-            ax.plot(X,  Y,  Z,  'g')  # recommended
-            ax.plot(X1, Y1, Z1, 'r')  # actual
-        plt.show()
         self.calc_evalmetrics()
+        self.poicat_stat()
 
 
     def load_sequences(self, fseqlist, subdir):
@@ -665,3 +713,59 @@ class PersTour:
 
         # calculate popularity and interest rank
 
+
+    def plot_recommend(self):
+        """Plot the categories of both actual and recommended itineraries"""
+        assert(len(self.recommendSeqs) > 0)
+
+        # plot POI category for each sequence: (poi_order, cat, seq_order)
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        for i, k in enumerate(self.recommendSeqs.keys()):
+            #X = X1 = Y = Y1 = Z = Z1 = []  #ERROR: the reference of the same object
+            X = []; Y = []; Z = []; X1 = []; Y1 = []; Z1 = []
+            for j, poi in enumerate(self.recommendSeqs[k]):
+                X.append(j); Y.append(self.poicat[poi]); Z.append(i)
+            for j, poi in enumerate(self.sequences[k]):
+                X1.append(j); Y1.append(self.poicat[poi]); Z1.append(i)
+            ax.plot(X,  Y,  Z,  'g')  # recommended
+            ax.plot(X1, Y1, Z1, 'r')  # actual
+        plt.show()
+
+
+    def poicat_stat(self):
+        """Calculate the transition matrix of POI category for both actual and recommended itineraries"""
+        assert(len(self.recommendSeqs) > 0)
+        catstat_visit = np.zeros((len(self.catmap), len(self.catmap)), dtype=np.float) # for actual itineraries
+        catstat_rec   = np.zeros((len(self.catmap), len(self.catmap)), dtype=np.float) # for recommended itineraries
+
+        print('#visit-actual:', len(self.sequences))
+        print('#visit-recomm:', len(self.recommendSeqs))
+        
+        for k, v in self.recommendSeqs.items():
+            for pi in range(len(v)-1):
+                cati = self.poicat[v[pi]]
+                catj = self.poicat[v[pi+1]]
+                catstat_rec[cati, catj] += 1
+            #for pj in range(len(self.sequences[k])-1):  # ignore actual sequences whose length is less than 3
+            #     cati = self.poicat[self.sequences[k][pj]]
+            #     catj = self.poicat[self.sequences[k][pj+1]]
+        for k, v in self.sequences.items(): # do NOT ignore actual sequences whose length is less than 3
+            for pj in range(len(v)-1):
+                cati = self.poicat[v[pj]]
+                catj = self.poicat[v[pj+1]]
+                catstat_visit[cati, catj] += 1
+        # normalize each row to get the transition probability from cati to catj
+        for r in range(np.shape(catstat_rec)[0]):
+            total = np.sum(catstat_rec[r])
+            for c in range(np.shape(catstat_rec)[1]):
+                catstat_rec[r, c] /= total
+        for r in range(np.shape(catstat_visit)[0]):
+            total = np.sum(catstat_visit[r])
+            for c in range(np.shape(catstat_visit)[1]):
+                catstat_visit[r, c] /= total
+        print('transition matrix for recommended sequences:')
+        print(catstat_rec)
+        print('transition matrix for actual sequences:')
+        print(catstat_visit)
+ 
