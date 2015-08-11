@@ -55,20 +55,17 @@ class PersTour:
             self.poicat[item[3]] = item[4]
             self.sequsr[item[6]] = item[1]
 
-        # calculate arrival and departure time for each (usr, poi, seq)
-        self.adtime = dict()
-        self.calc_adtime()
-
-        # calculate metrics
+        self.adtime = dict() # arrival and departure time for each (usr, poi, seq)
         self.poi_pop           = np.zeros(len(self.poimap), dtype=np.int32)                     # POI popularity
         self.avg_poi_visit     = np.zeros(len(self.poimap), dtype=np.float64)                   # average POI visit duration
         self.pers_poi_visit    = np.zeros((len(self.usrmap), len(self.poimap)), dtype=np.float64) # Personalized POI visit duration
         self.time_usr_interest = np.zeros((len(self.usrmap), len(self.catmap)), dtype=np.float64) # Time-based user interest
         self.freq_usr_interest = np.zeros((len(self.usrmap), len(self.catmap)), dtype=np.int32)   # Frequency-based user interest
-        self.calc_metrics()
-
+        
         # expand sequences
         self.sequences = dict()
+        seqset = {x for x in range(len(self.seqmap))}
+        self.calc_adtime(seqset)
         self.expand_sequences()
         
         if writeFile:
@@ -152,7 +149,7 @@ class PersTour:
                 f.write(str(k) + ':' + str(self.catmap[k]) + '\n')
 
 
-    def calc_adtime(self):
+    def calc_adtime(self, trainseqset):
         """Calculate arrival and departure time for each (poi, seq)"""
         assert(len(self.records) > 0)
         assert(len(self.poimap)  > 0)
@@ -168,6 +165,7 @@ class PersTour:
             usr = item[1]
             poi = item[3]
             seq = item[6]
+            if seq not in trainseqset: continue
 
             if (usr, seq, poi) not in self.adtime:
                 self.adtime[usr, seq, poi] = np.zeros(2, dtype=np.int64)
@@ -179,52 +177,6 @@ class PersTour:
             # departure time, pick the latest one
             if self.adtime[usr, seq, poi][1] == 0 or self.adtime[usr, seq, poi][1] < item[2]:
                 self.adtime[usr, seq, poi][1] = item[2]
-
-
-    def calc_metrics(self):
-        """Calculate various metrics"""
-        # calculate the popularity of each POI
-        for item in self.records:
-            poi  = item[3]
-            freq = item[5]
-            self.poi_pop[poi] = freq
-
-        # calculate average POI visit duration
-        for item in self.records:
-            usr = item[1]
-            poi = item[3]
-            seq = item[6]
-            self.avg_poi_visit[poi] += self.adtime[usr, seq, poi][1] - self.adtime[usr, seq, poi][0]
-        for poi in range(len(self.poimap)):
-            visit_cnt = self.poi_pop[poi]
-            assert(visit_cnt > 0)
-            #if self.avg_poi_visit[poi] == 0: print(poi) # just one photo taken at this POI for each visited user
-            self.avg_poi_visit[poi] /= visit_cnt
-
-        # calculate Time-based user interest
-        for item in self.records:
-            usr = item[1]
-            poi = item[3]
-            cat = item[4]
-            seq = item[6]
-            term = 0
-            if self.avg_poi_visit[poi] == 0: # if the average POI visit duration is 0 and a user visits this POI
-                term = 2 # set his/her time-based interest as a constant
-            else:
-                term = (self.adtime[usr, seq, poi][1] - self.adtime[usr, seq, poi][0]) / self.avg_poi_visit[poi]
-            self.time_usr_interest[usr, cat] += term
-
-        # calculate Personalized POI visit duration
-        for usr in range(len(self.usrmap)):
-            for poi in range(len(self.poimap)):
-                cat = self.poicat[poi]
-                self.pers_poi_visit[usr, poi] = self.time_usr_interest[usr, cat] * self.avg_poi_visit[poi]
-
-        # calculate Frequency-based user interest
-        for item in self.records:
-            usr = item[1]
-            cat = item[4]
-            self.freq_usr_interest[usr, cat] += 1
 
 
     def expand_sequences(self):
@@ -272,6 +224,11 @@ class PersTour:
             longitudes[poi] /= photo_cnt[poi]
             latitudes [poi] /= photo_cnt[poi]
 
+        # convert degrees to radians
+        for poi in range(len(self.poimap)):
+            longitudes[poi] = math.radians(longitudes[poi])
+            latitudes [poi] = math.radians(latitudes [poi])
+
         # calculate travel time between two POIs
         speed = 4.        # 4km/h according to paper
         radius = 6371.009 # mean earth radius is 6371.009km, en.wikipedia.org/wiki/Earth_radius#Mean_radius
@@ -288,6 +245,72 @@ class PersTour:
                                             ))
                 self.traveltime[poi1, poi2] = distance / speed            # hour
                 self.traveltime[poi2, poi1] = self.traveltime[poi1, poi2] # symmetrical
+        #np.savetxt('dist.txt', self.traveltime, delimiter=',')
+
+
+    def init_params(self):
+        """Initialize parameters"""
+        self.adtime.clear()
+        for idx in range(len(self.poi_pop)): self.poi_pop[idx] = 0
+        for idx in range(len(self.avg_poi_visit)): self.avg_poi_visit[idx] = 0
+        for r in range(np.shape(self.pers_poi_visit)[0]):
+            for c in range(np.shape(self.pers_poi_visit)[1]): self.pers_poi_visit[r, c] = 0
+        for r in range(np.shape(self.time_usr_interest)[0]):
+            for c in range(np.shape(self.time_usr_interest)[1]): self.time_usr_interest[r, c] = 0
+        for r in range(np.shape(self.freq_usr_interest)[0]):
+            for c in range(np.shape(self.freq_usr_interest)[1]): self.freq_usr_interest[r, c] = 0
+
+
+    def calc_metrics(self, trainseqset):
+        """Calculate various metrics"""
+        # calculate the popularity of each POI
+        for item in self.records:
+            poi  = item[3]
+            freq = item[5]
+            seq  = item[6]
+            if seq not in trainseqset: continue
+            self.poi_pop[poi] = freq
+
+        # calculate average POI visit duration
+        for item in self.records:
+            usr = item[1]
+            poi = item[3]
+            seq = item[6]
+            if seq not in trainseqset: continue
+            self.avg_poi_visit[poi] += self.adtime[usr, seq, poi][1] - self.adtime[usr, seq, poi][0]
+        for poi in range(len(self.poimap)):
+            visit_cnt = self.poi_pop[poi]
+            assert(visit_cnt > 0)
+            #if self.avg_poi_visit[poi] == 0: print(poi) # just one photo taken at this POI for each visited user
+            self.avg_poi_visit[poi] /= visit_cnt
+
+        # calculate Time-based user interest
+        for item in self.records:
+            usr = item[1]
+            poi = item[3]
+            cat = item[4]
+            seq = item[6]
+            if seq not in trainseqset: continue
+            term = 0
+            if self.avg_poi_visit[poi] == 0: # if the average POI visit duration is 0 and a user visits this POI
+                term = 2 # set his/her time-based interest as a constant
+            else:
+                term = (self.adtime[usr, seq, poi][1] - self.adtime[usr, seq, poi][0]) / self.avg_poi_visit[poi]
+            self.time_usr_interest[usr, cat] += term
+
+        # calculate Personalized POI visit duration
+        for usr in range(len(self.usrmap)):
+            for poi in range(len(self.poimap)):
+                cat = self.poicat[poi]
+                self.pers_poi_visit[usr, poi] = self.time_usr_interest[usr, cat] * self.avg_poi_visit[poi]
+
+        # calculate Frequency-based user interest
+        for item in self.records:
+            usr = item[1]
+            cat = item[4]
+            seq = item[6]
+            if seq not in trainseqset: continue
+            self.freq_usr_interest[usr, cat] += 1
 
 
     def plot_metrics(self):
@@ -428,21 +451,21 @@ class PersTour:
         fig3.show()
         
 
-    def MIP_recommend(self, seq, eta, lpFilename, time_based=True):
+    def MIP_recommend(self, testseq, eta, lpFilename, time_based=True):
         """Recommend a trajectory given an existing travel sequence S_N, 
            the first/last POI and travel budget are calculated based on S_N
         """
-        assert(0 <= seq < len(self.seqmap))
+        assert(0 <= testseq < len(self.seqmap))
         assert(0 <= eta <= 1)
 
-        if (len(self.sequences[seq]) < 3):
+        if (len(self.sequences[testseq]) < 3):
             print('WARN: Given sequence is too short! NO recommendation!')
             return
         
-        usr = self.sequsr[seq]       # user of this sequence
-        p0 = str(self.sequences[seq][0])   # the first POI
-        pN = str(self.sequences[seq][-1])  # the last  POI
-        N  = len(self.sequences[seq]) # number of POIs in the given sequence
+        usr = self.sequsr[testseq]       # user of this sequence
+        p0 = str(self.sequences[testseq][0])   # the first POI
+        pN = str(self.sequences[testseq][-1])  # the last  POI
+        N  = len(self.sequences[testseq]) # number of POIs in the given sequence
         
         # reference to either self.time_usr_interest or self.freq_usr_interest
         usr_interest = []            
@@ -452,9 +475,9 @@ class PersTour:
             usr_interest = self.freq_usr_interest
 
         budget = 0. # travel budget
-        for i in range(len(self.sequences[seq])-1):
-            px = self.sequences[seq][i]
-            py = self.sequences[seq][i+1]
+        for i in range(len(self.sequences[testseq])-1):
+            px = self.sequences[testseq][i]
+            py = self.sequences[testseq][i+1]
             budget += self.traveltime[px, py]
             cat = self.poicat[py]
             budget += usr_interest[usr, cat] * self.avg_poi_visit[py]
@@ -562,9 +585,13 @@ class PersTour:
         for seq in range(len(self.sequences)):
             if len(self.sequences[seq]) < 3: continue
             lpFileName = lpFileDir + '/' + str(seq) + '.lp'
-            timebased = True
-            if time_based == False and eta > 0.0: timebased = False
-            self.MIP_recommend(seq, eta, lpFileName, timebased)
+
+            trainseqset = {x for x in range(len(self.sequences)) if x != seq}
+            self.init_params()
+            self.calc_adtime(trainseqset)
+            self.calc_metrics(trainseqset)
+
+            self.MIP_recommend(seq, eta, lpFileName, time_based)
         
 #        seqIdx = list(range(len(self.sequences)))
 #        seqIdx.sort(key=lambda seq:len(self.sequences[seq]))
