@@ -22,9 +22,13 @@ from ijcai15 import PersTour
 #algo.recommend(1.0, time_based=False)
 
 #algo = PersTour('./Toronto', 'userVisits-Toro.csv')
-algo = PersTour('./Toronto2', 'userVisits-Toro.csv')
-algo.recommend(0.0)
+#algo = PersTour('./Toronto2', 'userVisits-Toro.csv')
+#algo.recommend(0.0)
 #algo.recommend(0.5)
 #algo.recommend(0.5, time_based=False)
 #algo.recommend(1.0)
 #algo.recommend(1.0, time_based=False)
+
+algo = PersTour('./Melbourne', 'userVisits-Melb.csv', fpoi='poi.coord')
+algo.recommend(0.5)
+
