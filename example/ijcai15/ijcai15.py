@@ -12,7 +12,7 @@ class PersTour:
     """Reproduce the IJCAI'15 paper"""
 
 
-    def __init__(self, dirname, fname, writeFile=True):
+    def __init__(self, dirname, fname, fpoi=None, writeFile=True):
         """Class Initialization"""
         # load records from file
         # each record contains tuples ("photoID";"userID";"dateTaken";"poiID";"poiTheme";"poiFreq";"seqID")
@@ -75,8 +75,8 @@ class PersTour:
 
         # calculate travel time
         self.traveltime = np.zeros((len(self.poimap), len(self.poimap)), dtype=np.float64)   # travel costs
-        poicoordsfile = self.dirname + '/' + fname + '.coord'
-        self.calc_traveltime(poicoordsfile)
+        coordsfile = self.dirname + '/' + fname + '.coord'
+        self.calc_traveltime(coordsfile, self.dirname + '/' + fpoi)
 
         # recommended sequences
         self.recommendSeqs = dict()
@@ -193,12 +193,12 @@ class PersTour:
             self.sequences[seq].sort(key=lambda poi:self.adtime[usr, seq, poi][0]) # sort POI by arrival time
 
 
-    def calc_traveltime(self, poicoordsfile):
+    def calc_traveltime(self, coordsfile, fpoi=None):
         """Calculate travel time between each pair of POIs"""
-        # load POI coordinates
+        # load photo coordinates
         coord_records = []
         apoiset = set()
-        with open(poicoordsfile, 'r') as f:
+        with open(coordsfile, 'r') as f:
             for line in f:
                 item = line.split(':')  # (poiID, photoID, longitude, latitude)
                 assert len(item) == 4
@@ -210,19 +210,31 @@ class PersTour:
 
         assert(len(apoiset) == len(self.poimap))
 
-        # calculate POI coordinate as the average of coordinates of all photos taking
-        photo_cnt  = np.zeros(len(self.poimap), dtype=np.int32)
+        # load or calculate POI coordinate (as the average of coordinates of all photos assigned)
         longitudes = np.zeros(len(self.poimap), dtype=np.float64)
         latitudes  = np.zeros(len(self.poimap), dtype=np.float64)
-        for item in coord_records:
-            poi = self.poimap[item[0]]
-            photo_cnt [poi] += 1
-            longitudes[poi] += item[1]
-            latitudes [poi] += item[2]
-        for poi in range(len(self.poimap)):
-            assert(photo_cnt[poi] > 0)
-            longitudes[poi] /= photo_cnt[poi]
-            latitudes [poi] /= photo_cnt[poi]
+        if fpoi:
+            with open(fpoi, 'r') as f:
+                for line in f:
+                    item = line.split(',')
+                    poiId = int(item[0])
+                    lng = float(item[1])
+                    lat = float(item[2])
+                    assert(poiId in self.poimap)
+                    poi = self.poimap[poiId]
+                    longitudes[poi] = lng
+                    latitudes [poi] = lat
+        else:
+            photo_cnt  = np.zeros(len(self.poimap), dtype=np.int32)
+            for item in coord_records:
+                poi = self.poimap[item[0]]
+                photo_cnt [poi] += 1
+                longitudes[poi] += item[1]
+                latitudes [poi] += item[2]
+            for poi in range(len(self.poimap)):
+                assert(photo_cnt[poi] > 0)
+                longitudes[poi] /= photo_cnt[poi]
+                latitudes [poi] /= photo_cnt[poi]
 
         # convert degrees to radians
         for poi in range(len(self.poimap)):
@@ -585,6 +597,7 @@ class PersTour:
         for seq in range(len(self.sequences)):
             if len(self.sequences[seq]) < 3: continue
             lpFileName = lpFileDir + '/' + str(seq) + '.lp'
+            print('write', lpFileName)
 
             trainseqset = {x for x in range(len(self.sequences)) if x != seq}
             self.init_params()
@@ -728,9 +741,19 @@ class PersTour:
         for i in range(len(recalls)):
             f1scores.append(2 * precisions[i] * recalls[i] / (precisions[i] + recalls[i]))
 
+        print(len(recalls), len(precisions), len(f1scores))
         print('Recall:   ', stat.mean(recalls),    stat.stdev(recalls))
         print('Precision:', stat.mean(precisions), stat.stdev(precisions))
         print('F1-score: ', stat.mean(f1scores),   stat.stdev(f1scores))
+
+        fig = plt.figure()
+        plt.ylim(-0.05, 1.05)
+        plt.boxplot([recalls, precisions, f1scores], labels=['Recall', 'Precision', 'F1-score'])
+        fig.show()
+
+        print(recalls)
+        print(precisions)
+        print(f1scores)
 
         # calculate Root Mean Square Error of POI visit duration
 
