@@ -113,7 +113,9 @@ practical considerations (more details in the dedicated paper below) etc.
   JMLR W&CP, NIPS 2011 Workshop on Active Learning and Experimental Design.**
 
 This is an expanded version of a chapter in the above survey, with much detailed description of problems occurred when applying
-active learning in practice as well as recent efforts to address these challenges.
+active learning in practice 
+(e.g. batch query, noisy labeling, labeling cost, feature querying, query for multi-task and non-iid training set when change models)
+as well as recent efforts to address these challenges.
 
 
 
