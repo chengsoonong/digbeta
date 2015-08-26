@@ -99,7 +99,27 @@ of POIs, his/her visit duration should be longer than average in general.
 
 (TENTATIVELY)
 
+**Active Learning Literature Survey.
+  Burr Settles.
+  Computer Sciences Technical Report 1648.
+  University of Wisconsin--Madison, 2010.**
+
+A good introductory resource to understand various aspects of active learning, including backgrounds, query strategies 
+(e.g. uncertainty sampling, QBC, EGL, error/variance reduction, methods using information density etc.) and
+practical considerations (more details in the dedicated paper below) etc.
+
+**From Theories to Queries: Active Learning in Practice.
+  Burr Settles.
+  JMLR W&CP, NIPS 2011 Workshop on Active Learning and Experimental Design.**
+
+This is an expanded version of a chapter in the above survey, with much detailed description of problems occurred when applying
+active learning in practice 
+(e.g. batch query, noisy labeling, labeling cost, feature querying, query for multi-task and non-iid training set when changing models)
+as well as recent efforts to address these challenges.
+
+
+
 **Chapter 6 of ["Prediction, learning, and games"](http://www.ii.uni.wroc.pl/~lukstafi/pmwiki/uploads/AGT/Prediction_Learning_and_Games.pdf)**
 
-**[Theory of Bandits and Online Optimisation](http://www.cs.huji.ac.il/~shais/papers/OLsurvey.pdf)**
+**[Online Learning and Online Convex Optimization](http://www.cs.huji.ac.il/~shais/papers/OLsurvey.pdf)**
   * The first chapter provides good introductory information of online learning

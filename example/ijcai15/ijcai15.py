@@ -632,6 +632,11 @@ class PersTour:
         self.calc_evalmetrics()
         self.poicat_stat()
 
+        with open('seq_a_r.list', 'w') as f:
+            for seq in sorted(self.recommendSeqs.keys()):
+                f.write(str(seq) + 'A:' + str(self.sequences[seq]) + '\n')
+                f.write(str(seq) + 'R:' + str(self.recommendSeqs[seq]) + '\n')
+
 
     def load_sequences(self, fseqlist, subdir):
         """Load original and recommended sequences from file"""
@@ -751,9 +756,13 @@ class PersTour:
         plt.boxplot([recalls, precisions, f1scores], labels=['Recall', 'Precision', 'F1-score'])
         fig.show()
 
-        print(recalls)
-        print(precisions)
-        print(f1scores)
+        #print(recalls)
+        #print(precisions)
+        #print(f1scores)
+        np.savetxt('r.txt', recalls, delimiter=',')
+        np.savetxt('p.txt', precisions, delimiter=',')
+        np.savetxt('f1.txt', f1scores, delimiter=',')
+        
 
         # calculate Root Mean Square Error of POI visit duration
 
