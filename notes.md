@@ -1,12 +1,12 @@
-# Notes on Active Learning, Bandits and Experimental Design
+# Notes on Active Learning, Bandits, Choice and Design of Experiments (ABCDE)
 
 There are three ideas which are often used for eliciting human
 responses using machine learning predictors. At a high level they are
 similar is spirit, but they have different foundations which lead to
 different formulations. The ideas are active learning, bandits and
-experimental design (ABED).
+experimental design. Related to this but with literature from a different field is social choice theory, which looks at how individual preferences are aggregated.
 
-## Overview of ABED
+## Overview of ABCDE
 
 ### Active Learning
 
@@ -14,10 +14,10 @@ Active learning considers the setting where the agent interacts with
 its environment to procure a training set, rather than passively
 receiving i.i.d. samples from some underlying distribution.
 
-It is often assumed that the environment is infinite (e.g. R^d) and
-the agent has to choose a location, x, to query. The oracle then returns
-the label y. It is often assumed that there is no noise in the label,
-and hence there is no benefit of querying the same point x again. In
+It is often assumed that the environment is infinite (e.g. $R^d$) and
+the agent has to choose a location, $x$, to query. The oracle then returns
+the label $y$. It is often assumed that there is no noise in the label,
+and hence there is no benefit of querying the same point $x$ again. In
 many practical applications, the environment is considered to be
 finite (but large). This is called the pool-based active learning.
 
@@ -42,6 +42,8 @@ action. This difference in reward is called regret.
 
 ### Experimental Design
 
+In contrast to active learning, experimental design considers the problem of regression, i.e. where the label $y\in R$ is a real number.
+
 The problem to be solved in experimental design is to choose a set of
 trials (say of size N) to gather enough information about the object
 of interest. The goal is to maximise the information obtained about
@@ -50,25 +52,19 @@ the parameters of the model (of the object).
 It is often assumed that the observations at the N trials are
 independent. When N is finite this is called exact design, otherwise
 it is called approximate or continuous design. The environment is
-assumed to be infinite (e.g. R^d) and the observations are scalar real
-variables.
+assumed to be infinite (e.g. $R^d$) and the observations are scalar real variables.
 
 
+------
 
+# Unsorted notes
 
-
-
-# Active Learning
-
-# Bandits
-
-## Thompson sampling
-
-## Upper Confidence Bound
+* Thompson sampling
+* Upper Confidence Bound
 
 ### Notes on UCB for binary rewards
 
-In the special case when the rewards of the arms are {0,1}, we can get much tighter analysis. See [pymaBandits](http://mloss.org/software/view/415/).
+In the special case when the rewards of the arms are {0,1}, we can get much tighter analysis. See [pymaBandits](http://mloss.org/software/view/415/). This is also implemented in this repository under ```python/digbeta```.
 
 
 ### Notes on UCB for graphs
@@ -82,5 +78,3 @@ Study bandit problem where the arms are the nodes of a graph and the expected pa
 Assume that the graph is known, and its edges represent the similarities of the nodes. At time $t$, choose a node and observe its payoff. Based on the payoff, update model.
 
 Assume that number of nodes $N$ is large, and interested in the regime $t < N$.
-
-# Experimental Design
