@@ -1,4 +1,13 @@
 
+
+ideas relevant as of 2015-08-27
+
+* predicting the sequence 
+  * extending the tour -- "next basket“ + ”previous basket" 
+* recommendation with factored attributes
+* TSP +  learning the objective function
+
+----------- 
 This file contains the practical aspects of bandit for recommendations -- settings for recommending trajectories and evaluations (for now). 
 
 Discussion on 21 May, 2015 (amended 17 May)
