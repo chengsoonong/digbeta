@@ -76,7 +76,10 @@ class PersTour:
         # calculate travel time
         self.traveltime = np.zeros((len(self.poimap), len(self.poimap)), dtype=np.float64)   # travel costs
         coordsfile = self.dirname + '/' + fname + '.coord'
-        self.calc_traveltime(coordsfile, self.dirname + '/' + fpoi)
+        if fpoi:
+            self.calc_traveltime(coordsfile, self.dirname + '/' + fpoi)
+        else:
+            self.calc_traveltime(coordsfile)
 
         # recommended sequences
         self.recommendSeqs = dict()
@@ -235,6 +238,14 @@ class PersTour:
                 assert(photo_cnt[poi] > 0)
                 longitudes[poi] /= photo_cnt[poi]
                 latitudes [poi] /= photo_cnt[poi]
+            with open(self.dirname + '/poi.coord', 'w') as f:
+                for poi in range(len(self.poimap)):
+                    cat = self.poicat[poi]
+                    catstr = 'NONE'
+                    for k, v in self.catmap.items(): 
+                        if v == cat: catstr = k
+                    f.write(str(longitudes[poi]) + ',' + str(latitudes[poi]) + ',' + catstr + '\n')
+
 
         # convert degrees to radians
         for poi in range(len(self.poimap)):
@@ -465,7 +476,7 @@ class PersTour:
 
     def MIP_recommend(self, testseq, eta, lpFilename, time_based=True):
         """Recommend a trajectory given an existing travel sequence S_N, 
-           the first/last POI and travel budget are calculated based on S_N
+           the first/last POI and travel budget calculated based on S_N
         """
         assert(0 <= testseq < len(self.seqmap))
         assert(0 <= eta <= 1)
@@ -580,6 +591,104 @@ class PersTour:
         #                break
 
 
+    def calc_seqbudget(self, usr, seqpoilist, time_based=True):
+        assert(len(seqpoilist) > 1)
+        """Calculate the travel budget for the given travelling sequence"""
+
+        budget = 0. # travel budget
+        for i in range(len(seqpoilist)-1):
+            px = seqpoilist[i]
+            py = seqpoilist[i+1]
+            assert(px in range(len(self.poimap)))
+            assert(py in range(len(self.poimap)))
+            budget += self.traveltime[px, py]
+            cat = self.poicat[py]
+            if time_based:
+                budget += self.time_usr_interest[usr, cat] * self.avg_poi_visit[py]
+            else:
+                budget += self.freq_usr_interest[usr, cat] * self.avg_poi_visit[py]
+        return budget
+
+
+    def calc_seqscore(self, usr, seqpoilist, eta, time_based=True):
+        """Calculate the score of a user's travelling sequence"""
+        assert(len(seqpoilist) > 1)
+        assert(0 <= eta <= 1)
+        assert(usr in range(len(self.usrmap)))
+
+        score = 0.0 # sequence score: the objective in ILP
+        for i in range(1, len(seqpoilist)):
+            px = seqpoilist[i]
+            assert(px in range(len(self.poimap)))
+            cat = self.poicat[px]
+            interest = 0
+            if time_based: interest = self.time_usr_interest[usr, cat]
+            else:          interest = self.freq_usr_interest[usr, cat]
+            score += eta * interest + (1. - eta) * self.poi_pop[px]
+        return score
+
+
+    def BruteForce_recommend(self, testseq, eta, seqfname, time_based=True):
+        """Recommend by enumerating all possible short trajectories given an existing travel sequence S_N, 
+           the first/last POI and travel budget calculated based on S_N
+        """
+        assert(testseq in range(len(self.seqmap)))
+        assert(0 <= eta <= 1)
+
+        if (len(self.sequences[testseq]) < 3):
+            print('WARN: Given sequence is too short! NO recommendation!')
+            return
+        
+        usr = self.sequsr[testseq]       # user of this sequence
+        p0 = self.sequences[testseq][0]   # the first POI
+        pN = self.sequences[testseq][-1]  # the last  POI
+
+        budget = self.calc_seqbudget(usr, self.sequences[testseq], time_based)
+
+        # brute force approach
+        # enumerating all possible trajectories with length 3
+        seqlist = []
+        for pi in range(len(self.poimap)):
+            if pi == p0 or pi == pN: continue
+            newbudget = self.calc_seqbudget(usr, [p0, pi, pN], time_based)
+            if newbudget > budget: continue
+            score = self.calc_seqscore(usr, [p0, pi, pN], eta, time_based)
+            seqlist.append(([p0, pi, pN], score))
+        
+        # enumerating all possible trajectories with length 4
+        for pi in range(len(self.poimap)):
+            if pi == p0 or pi == pN: continue
+            for pj in range(len(self.poimap)):
+                if pj in {p0, pN, pi}: continue
+                newbudget = self.calc_seqbudget(usr, [p0, pi, pj, pN], time_based)
+                if newbudget > budget: continue
+                score = self.calc_seqscore(usr, [p0, pi, pj, pN], eta, time_based)
+                seqlist.append(([p0, pi, pj, pN], score))
+
+        # enumerating all possible trajectories with length 5
+        for pi in range(len(self.poimap)):
+            if pi == p0 or pi == pN: continue
+            for pj in range(len(self.poimap)):
+                if pj in {p0, pN, pi}: continue
+                for pk in range(len(self.poimap)):
+                    if pk in {p0, pN, pi, pj}: continue
+                    newbudget = self.calc_seqbudget(usr, [p0, pi, pj, pk, pN], time_based)
+                    if newbudget > budget: continue
+                    score = self.calc_seqscore(usr, [p0, pi, pj, pk, pN], eta, time_based)
+                    seqlist.append(([p0, pi, pj, pk, pN], score))
+
+
+        # sort candidate sequences according to scores
+        seqlist.sort(key=lambda item:item[1], reverse=True)
+
+        # write to file
+        ascore = self.calc_seqscore(usr, self.sequences[testseq], eta, time_based)
+        with open(seqfname, 'w') as f:
+            f.write(str(self.sequences[testseq]) + ', ' + str(ascore) + ' Actual' + '\n')
+            for item in seqlist:
+                f.write(str(item[0]) + ', ' + str(item[1]) + '\n')
+
+
     def recommend(self, eta, time_based=True):
         """Trajectory Recommendation"""
         assert(0.0 <= eta <= 1.0)
@@ -626,13 +735,39 @@ class PersTour:
 #                    f.write('\n')
 
 
+    def recommend_bf(self, eta, time_based=True):
+        """Trajectory Recommendation"""
+        assert(0.0 <= eta <= 1.0)
+
+        lpFileDir = self.dirname + '/eta'
+        if   round(eta, 1) == 0.0: lpFileDir += '00.bf'
+        elif round(eta, 1) == 0.5: lpFileDir += '05'
+        elif round(eta, 1) == 1.0: lpFileDir += '10'
+
+        if time_based:
+            if eta > 0.0: lpFileDir += '_time.bf'
+        else:
+            if eta > 0.0: lpFileDir += '_freq.bf'
+
+        for seq in range(len(self.sequences)):
+            if len(self.sequences[seq]) < 3 or len(self.sequences[seq]) > 5: continue
+            lpFileName = lpFileDir + '/' + str(seq) + '.seq.list'
+            print('write', lpFileName)
+
+            trainseqset = {x for x in range(len(self.sequences)) if x != seq}
+            self.init_params()
+            self.calc_adtime(trainseqset)
+            self.calc_metrics(trainseqset)
+            self.BruteForce_recommend(seq, eta, lpFileName, time_based)
+ 
+
     def evaluate(self, fseqlist, subdir):
         """Evaluate the recommended itinerary"""
         self.load_sequences(fseqlist, subdir)
         self.calc_evalmetrics()
         self.poicat_stat()
 
-        with open('seq_a_r.list', 'w') as f:
+        with open(self.dirname + '/seq_a_r.list', 'w') as f:
             for seq in sorted(self.recommendSeqs.keys()):
                 f.write(str(seq) + 'A:' + str(self.sequences[seq]) + '\n')
                 f.write(str(seq) + 'R:' + str(self.recommendSeqs[seq]) + '\n')
@@ -759,9 +894,9 @@ class PersTour:
         #print(recalls)
         #print(precisions)
         #print(f1scores)
-        np.savetxt('r.txt', recalls, delimiter=',')
-        np.savetxt('p.txt', precisions, delimiter=',')
-        np.savetxt('f1.txt', f1scores, delimiter=',')
+        np.savetxt(self.dirname + '/r.txt', recalls, delimiter=',')
+        np.savetxt(self.dirname + '/p.txt', precisions, delimiter=',')
+        np.savetxt(self.dirname + '/f1.txt', f1scores, delimiter=',')
         
 
         # calculate Root Mean Square Error of POI visit duration
@@ -795,6 +930,7 @@ class PersTour:
     def poicat_stat(self):
         """Calculate the transition matrix of POI category for both actual and recommended itineraries"""
         assert(len(self.recommendSeqs) > 0)
+
         catstat_visit = np.zeros((len(self.catmap), len(self.catmap)), dtype=np.float) # for actual itineraries
         catstat_rec   = np.zeros((len(self.catmap), len(self.catmap)), dtype=np.float) # for recommended itineraries
 
@@ -823,6 +959,7 @@ class PersTour:
             total = np.sum(catstat_visit[r])
             for c in range(np.shape(catstat_visit)[1]):
                 catstat_visit[r, c] /= total
+
         print('transition matrix for recommended sequences:')
         print(catstat_rec)
         print('transition matrix for actual sequences:')
