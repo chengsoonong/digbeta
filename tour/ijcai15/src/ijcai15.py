@@ -472,7 +472,39 @@ class PersTour:
                     if v == idx: title = k; break
                 plt.title(title, color='g')
         fig3.show()
-        
+ 
+ 
+    def plot_poiduration(self):
+        """Calculate the time spent at each POI for each user"""
+        seqset = {x for x in range(len(self.seqmap))}
+        self.calc_adtime(seqset)
+        duration = np.zeros((len(self.usrmap), len(self.poimap)), dtype=np.float32)
+
+        for k, v in self.adtime.items():
+            usr = k[0]
+            seq = k[1]
+            poi = k[2]
+            atime = v[0]
+            dtime = v[1]
+            duration[usr, poi] += dtime - atime
+        for usr in range(len(self.usrmap)):
+            for poi in range(len(self.poimap)):
+                if math.fabs(duration[usr, poi]) < 1e-6: continue
+                duration[usr, poi] = math.log10(duration[usr, poi])
+
+        np.savetxt(self.dirname + '/logd.txt', duration, delimiter=',')
+
+        #fig = plt.figure()
+        #ax = fig.gca(projection='3d')
+        #for zpos in range(len(self.usrmap)):
+        #    left = np.arange(len(self.poimap))
+        #    height = duration[zpos]
+        #    ax.bar(left, height, zs=zpos, zdir='y', alpha=0.6)
+        #ax.set_xlabel('POI')
+        #ax.set_ylabel('User')
+        #ax.set_zlabel('Log10(duration)')
+        #plt.show()
+       
 
     def MIP_recommend(self, testseq, eta, lpFilename, time_based=True):
         """Recommend a trajectory given an existing travel sequence S_N, 
