@@ -73,6 +73,8 @@ class PersTour:
                 for seq in range(len(self.seqmap)):
                     f.write(str(seq) + ' ' + str(self.sequences[seq]) + '\n')
 
+        #self.calc_metrics(seqset)
+
         # calculate travel time
         self.traveltime = np.zeros((len(self.poimap), len(self.poimap)), dtype=np.float64)   # travel costs
         coordsfile = self.dirname + '/' + fname + '.coord'
@@ -245,6 +247,7 @@ class PersTour:
                     for k, v in self.catmap.items(): 
                         if v == cat: catstr = k
                     f.write(str(longitudes[poi]) + ',' + str(latitudes[poi]) + ',' + catstr + '\n')
+                    #f.write(str(longitudes[poi]) + ',' + str(latitudes[poi]) + ',' + str(self.poi_pop[poi]) + ',' + catstr + '\n')
 
 
         # convert degrees to radians
@@ -929,14 +932,10 @@ class PersTour:
         np.savetxt(self.dirname + '/r.txt', recalls, delimiter=',')
         np.savetxt(self.dirname + '/p.txt', precisions, delimiter=',')
         np.savetxt(self.dirname + '/f1.txt', f1scores, delimiter=',')
-        
 
         # calculate Root Mean Square Error of POI visit duration
-
         # calculate tour popularity
-
         # calculate tour interest
-
         # calculate popularity and interest rank
 
 
@@ -996,4 +995,58 @@ class PersTour:
         print(catstat_rec)
         print('transition matrix for actual sequences:')
         print(catstat_visit)
- 
+
+
+    def ext_transmat(self):
+        """Calculate the transition matrix of POI category for actual itineraries with a special category REST
+           For a specific user, the different between the end time of the earlier sequence and the start time of
+           latter sequence is less 24 hours, then their is a REST state between the two sequences
+        """
+
+        mat = np.zeros((len(self.catmap)+1, len(self.catmap)+1), dtype=np.float64)
+
+        for k, v in self.sequences.items():
+            for pj in range(len(v)-1):
+                cati = self.poicat[v[pj]]
+                catj = self.poicat[v[pj+1]]
+                mat[cati, catj] += 1
+
+        # for REST state
+        usrseq = dict()
+        restidx = len(self.catmap)
+        for seq in self.sequences.keys():
+            usr = self.sequsr[seq]
+            if usr not in usrseq: usrseq[usr] = []
+            usrseq[usr].append(seq)
+        for usr, seqlist in usrseq.items():
+            # sort according to the arrival time of the first POI of sequence
+            seqlist.sort(key=lambda seq: self.adtime[usr, seq, self.sequences[seq][0]][0]) 
+            for i in range(len(seqlist)-1):
+                seq1 = seqlist[i]
+                seq2 = seqlist[i+1]
+                poi1 = self.sequences[seq1][-1]  # last POI of the earlier sequence
+                poi2 = self.sequences[seq2][0] # first POI of the latter sequence
+                dtime = self.adtime[usr, seq1, poi1][1]
+                atime = self.adtime[usr, seq2, poi2][0]
+                assert(atime > dtime)
+                if atime - dtime < 24 * 60 * 60: # poi1-->REST-->poi2
+                    cat1 = self.poicat[poi1]
+                    cat2 = self.poicat[poi2]
+                    mat[cat1, restidx] += 1
+                    mat[restidx, cat2] += 1
+                else: # REST-->REST
+                    mat[restidx, restidx] += 1
+
+        # normalize each row to get the transition probability from cati to catj
+        for r in range(mat.shape[0]):
+            total = np.sum(mat[r])
+            for c in range(mat.shape[1]):
+                mat[r, c] /= total
+
+        np.savetxt(self.dirname + '/ext.transmat.txt', mat, delimiter=',')
+        print('extended transition matrix for actual sequences:')
+        cats = ''
+        for k, v in self.catmap.items():
+            cats += '(' + str(k) + ', ' + str(v) + ')  '
+        print(cats)
+        print(mat)
