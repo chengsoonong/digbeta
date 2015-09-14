@@ -7,10 +7,13 @@ import numpy as np
 class Simulator:
     """Trajectory Simulation"""
 
-    def __init__(self, fpoi, ftransMat):
+    def __init__(self, poistr, matstr):
         """Class Initialization"""
-        self.poidata = self.load_poi(fpoi)
-        self.transMat, self.catdata = self.load_mat(ftransMat) # with extra state 'REST' at the last row/column
+        self.rng = random.SystemRandom()
+        #self.poidata = self.load_poi(fpoi)
+        #self.transMat, self.catdata = self.load_mat(ftransMat) # with extra state 'REST' at the last row/column
+        self.poidata = self.parse_poi(poistr)
+        self.transMat, self.catdata = self.parse_mat(matstr) # with extra state 'REST' at the last row/column
         assert(self.transMat.shape[0] == self.transMat.shape[1])
         assert(self.transMat.shape[0] == len(self.catdata))
 
@@ -34,8 +37,8 @@ class Simulator:
         obsMat = np.zeros(np.shape(self.transMat), dtype=np.int32)
 
         # random.randint(a, b) returns a random integer N such that a <= N <= b.
-        prevcat = random.randint(0, len(self.catdata)-2) # do not start at 'REST'
-        prevpoi = random.choice(self.catpoidict[prevcat])
+        prevcat = self.rng.randint(0, len(self.catdata)-2) # do not start at 'REST'
+        prevpoi = self.rng.choice(self.catpoidict[prevcat])
         nextcat = None
         nextpoi = None
       
@@ -51,7 +54,7 @@ class Simulator:
                 else:
                     nextpoi = self.rule_NN(prevpoi, nextcat)
             else:
-                nextpoi = random.choice(self.catpoidict[nextcat])
+                nextpoi = self.rng.choice(self.catpoidict[nextcat])
             obsMat[prevcat, nextcat] += 1
             n += 1
             prevcat = nextcat
@@ -64,8 +67,8 @@ class Simulator:
         obsMat = np.zeros(np.shape(self.transMat), dtype=np.int32)
 
         # random.randint(a, b) returns a random integer N such that a <= N <= b.
-        prevcat = random.randint(0, len(self.catdata)-2) # do not start at 'REST'
-        prevpoi = random.choice(self.catpoidict[prevcat])
+        prevcat = self.rng.randint(0, len(self.catdata)-2) # do not start at 'REST'
+        prevpoi = self.rng.choice(self.catpoidict[prevcat])
         nextcat = None
         nextpoi = None
       
@@ -81,12 +84,23 @@ class Simulator:
                 else:
                     nextpoi = self.rule_Pop(nextcat)
             else:
-                nextpoi = random.choice(self.catpoidict[nextcat])
+                nextpoi = self.rng.choice(self.catpoidict[nextcat])
             obsMat[prevcat, nextcat] += 1
             n += 1
             prevcat = nextcat
             prevpoi = nextpoi
         return obsMat
+
+
+    def estimate_MLE(self, obsMat):
+        """Maximum Likelihood Estimation"""
+        assert(np.shape(obsMat) == self.transMat.shape)
+        assert((obsMat >= 0).all())
+
+        estMat = np.zeros(np.shape(obsMat), dtype=np.float64)
+        for r in range(np.shape(obsMat)[0]):
+            estMat[r] = obsMat[r] / np.sum(obsMat[r])
+        return estMat
 
    
     def load_poi(self, fname):
@@ -100,7 +114,7 @@ class Simulator:
                 lng = float(t[0])  # longitude 
                 lat = float(t[1])  # latitude
                 pop = int(t[2])    # popularity
-                cat = str(t[3])    # category
+                cat = t[3]         # category
                 poidata.append((lng, lat, pop, cat))
         return poidata
 
@@ -119,15 +133,51 @@ class Simulator:
                 if firstRow: # POI categories at the first row
                     ncols = len(t)
                     firstRow = False
-                    for x in t:
-                        cat = str(x.strip())
-                        catset.add(cat)
-                        catdata.append(cat)
+                    catset = {x.strip() for x in t}
+                    catdata = [x.strip() for x in t]
                 else:
-                    row = []
                     assert(ncols == len(t))
-                    for x in t: row.append(float(x.strip()))
+                    row = [float(x.strip()) for x in t]
                     data.append(row)
+        assert(len(catset) == len(catdata))
+        assert(catdata[-1] == 'REST') # state 'REST' at the last row/column
+        return np.array(data), catdata
+
+
+    def parse_poi(self, poistr):
+        """Load POI data: geo-coordinates, category"""
+        poidata = []
+        lines = poistr.split('\n')
+        for line in lines:
+            t = line.strip().split(',')
+            assert(len(t) == 4)
+            lng = float(t[0])  # longitude 
+            lat = float(t[1])  # latitude
+            pop = int(t[2])    # popularity
+            cat = t[3]         # category
+            poidata.append((lng, lat, pop, cat))
+        return poidata
+
+
+    def parse_mat(self, matstr):
+        """Load Transition Matrix of a Markov Chain"""
+        ncols = 0
+        firstRow = True
+        catset = set()
+        catdata = []
+        data = []
+        lines = matstr.split('\n')
+        for line in lines:
+            t = line.strip().split(',')
+            if firstRow: # POI categories at the first row
+                ncols = len(t)
+                firstRow = False
+                catset = {x.strip() for x in t}
+                catdata = [x.strip() for x in t]
+            else:
+                assert(ncols == len(t))
+                row = [float(x.strip()) for x in t]
+                data.append(row)
         assert(len(catset) == len(catdata))
         assert(catdata[-1] == 'REST') # state 'REST' at the last row/column
         return np.array(data), catdata
@@ -263,25 +313,67 @@ class Simulator:
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
-        print('Usage:', sys.argv[0], 'POI_FILE  TRANSITION_MATRIX_FILE')
+    if len(sys.argv) != 2:
+        print('Usage:', sys.argv[0], 'NUMBER_OF_STEP')
         sys.exit(0)
 
-    fpoi = sys.argv[1]
-    ftrans = sys.argv[2]
-    N = 500000
-    sim = Simulator(fpoi, ftrans)
+    N = int(sys.argv[1])
+    #N = 500000
+    poistr = """-79.3792433791,43.6431825014,3506,Sport
+                -79.4186338571,43.6327716174,609,Sport
+                -79.3800452078,43.6621752718,688,Sport
+                -79.3892897441,43.6412973685,3056,Sport
+                -79.3923959409,43.653662053,986,Cultural
+                -79.3773273575,43.6471509752,2064,Cultural
+                -79.3853489798,43.6423852627,1736,Cultural
+                -79.3391695,43.7164471367,278,Cultural
+                -79.3611074827,43.6670669191,346,Cultural
+                -79.3944584714,43.6671825712,4142,Cultural
+                -79.1822114886,43.8200801331,481,Cultural
+                -79.4093638091,43.678156694,964,Cultural
+                -79.4170006879,43.6339241915,141,Amusement
+                -79.3735729115,43.6198358673,113,Amusement
+                -79.387065479,43.6428491376,3553,Amusement
+                -79.4160112537,43.6325628267,808,Amusement
+                -79.4508076154,43.6371833846,26,Amusement
+                -79.3782267477,43.6216974955,111,Beach
+                -79.462381764,43.6465571685,89,Beach
+                -79.3804532715,43.656274007,3594,Beach
+                -79.3837019012,43.6524782093,3619,Beach
+                -79.3798840402,43.6538681522,1874,Shopping
+                -79.3823200204,43.6386213833,1028,Shopping
+                -79.4011678236,43.654747843,1701,Shopping
+                -79.4526832115,43.7257607115,104,Shopping
+                -79.3909345778,43.6701035397,631,Shopping
+                -79.3811841774,43.6521810267,936,Structure
+                -79.3912647227,43.6621384805,744,Structure
+                -79.3805837906,43.6456505403,1538,Structure"""
+
+    matstr = """Amusement,Beach,Cultural,Shopping,Sport,Structure,REST
+                3.043478260869565341e-02,3.913043478260869873e-02,1.152173913043478271e-01,3.695652173913043653e-02,\
+                8.043478260869564578e-02,3.260869565217391214e-02,6.652173913043478715e-01
+                1.473839351510685368e-02,3.168754605747973324e-02,4.568901989683124554e-02,6.705969049373618207e-02,\
+                1.400147383935151056e-02,7.590272660280029948e-02,7.509211495946941373e-01
+                3.054989816700610927e-02,4.752206381534283819e-02,2.647657841140529586e-02,4.684317718940936986e-02,\
+                1.493550577053632047e-02,6.653088934147997902e-02,7.671418873048201359e-01
+                1.310401310401310485e-02,8.190008190008189748e-02,4.995904995904995594e-02,1.310401310401310485e-02,\
+                1.474201474201474252e-02,5.569205569205569473e-02,7.714987714987715517e-01
+                5.148005148005147663e-02,2.960102960102960201e-02,2.702702702702702853e-02,1.673101673101673112e-02,\
+                1.029601029601029567e-02,2.702702702702702853e-02,8.378378378378378288e-01
+                2.813852813852813980e-02,1.017316017316017285e-01,8.766233766233766378e-02,6.709956709956710341e-02,\
+                2.597402597402597574e-02,2.489177489177489197e-02,6.645021645021644829e-01
+                1.051051051051051129e-02,2.402402402402402382e-02,3.453453453453453337e-02,1.909051909051908899e-02,\
+                2.659802659802659730e-02,1.973401973401973236e-02,8.655083655083655181e-01"""
+
+    sim = Simulator(poistr, matstr)
     #obs = sim.simulate_NN(N)
     #obs = sim.simulate_NN(N, randomized=True)
     #obs = sim.simulate_Pop(N)
     obs = sim.simulate_Pop(N, randomized=True)
-    trans = np.zeros(obs.shape, dtype=np.float64)
-    for r in range(obs.shape[0]):
-        total = np.sum(obs[r])
-        trans[r] = obs[r] / total
+    est = sim.estimate_MLE(obs)
+    print('Observations')
     print(obs)
-    #print(sim.transMat)
-    #print('-'*20)
-    #print(trans)
     print('-'*20)
-    print(sim.transMat - trans)
+    print('Transition Matrix Diff: Real - Estimated')
+    print(sim.transMat - est)
+
