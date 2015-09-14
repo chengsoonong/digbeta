@@ -72,6 +72,12 @@ class PersTour:
             with open(self.dirname + '/' + 'seq.list', 'w') as f:
                 for seq in range(len(self.seqmap)):
                     f.write(str(seq) + ' ' + str(self.sequences[seq]) + '\n')
+            with open(self.dirname + '/' + 'seq-net.txt', 'w') as f:
+                for k, v in self.sequences.items():
+                    if len(v) < 2: continue
+                    usr = self.sequsr[k]
+                    for i in range(len(v)-1):
+                        f.write(str(usr) + ' ' +  str(v[i]) + ' ' + str(v[i+1]) + '\n')
 
         #self.calc_metrics(seqset)
 
@@ -1028,13 +1034,14 @@ class PersTour:
                 poi2 = self.sequences[seq2][0] # first POI of the latter sequence
                 dtime = self.adtime[usr, seq1, poi1][1]
                 atime = self.adtime[usr, seq2, poi2][0]
+                cat1 = self.poicat[poi1]
+                cat2 = self.poicat[poi2]
                 assert(atime > dtime)
                 if atime - dtime < 24 * 60 * 60: # poi1-->REST-->poi2
-                    cat1 = self.poicat[poi1]
-                    cat2 = self.poicat[poi2]
                     mat[cat1, restidx] += 1
                     mat[restidx, cat2] += 1
-                else: # REST-->REST
+                else: # poi1-->REST-->REST
+                    mat[cat1, restidx] += 1
                     mat[restidx, restidx] += 1
 
         # normalize each row to get the transition probability from cati to catj
