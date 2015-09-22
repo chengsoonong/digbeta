@@ -58,7 +58,7 @@ class PersTour:
         self.adtime = dict() # arrival and departure time for each (usr, poi, seq)
         self.poi_pop           = np.zeros(len(self.poimap), dtype=np.int32)                     # POI popularity
         self.avg_poi_visit     = np.zeros(len(self.poimap), dtype=np.float64)                   # average POI visit duration
-        self.pers_poi_visit    = np.zeros((len(self.usrmap), len(self.poimap)), dtype=np.float64) # Personalized POI visit duration
+        #self.pers_poi_visit    = np.zeros((len(self.usrmap), len(self.poimap)), dtype=np.float64) # Personalized POI visit duration
         self.time_usr_interest = np.zeros((len(self.usrmap), len(self.catmap)), dtype=np.float64) # Time-based user interest
         self.freq_usr_interest = np.zeros((len(self.usrmap), len(self.catmap)), dtype=np.int32)   # Frequency-based user interest
         
@@ -72,14 +72,6 @@ class PersTour:
             with open(self.dirname + '/' + 'seq.list', 'w') as f:
                 for seq in range(len(self.seqmap)):
                     f.write(str(seq) + ' ' + str(self.sequences[seq]) + '\n')
-            with open(self.dirname + '/' + 'seq-net.txt', 'w') as f:
-                for k, v in self.sequences.items():
-                    if len(v) < 2: continue
-                    usr = self.sequsr[k]
-                    for i in range(len(v)-1):
-                        f.write(str(usr) + ' ' +  str(v[i]) + ' ' + str(v[i+1]) + '\n')
-
-        #self.calc_metrics(seqset)
 
         # calculate travel time
         self.traveltime = np.zeros((len(self.poimap), len(self.poimap)), dtype=np.float64)   # travel costs
@@ -275,7 +267,7 @@ class PersTour:
                                                 math.cos(latitudes[poi1])*math.cos(latitudes[poi2]) *
                                                 (math.sin(0.5*dlong))**2 
                                             ))
-                self.traveltime[poi1, poi2] = distance / speed            # hour
+                self.traveltime[poi1, poi2] = 60*60*distance / speed      # seconds
                 self.traveltime[poi2, poi1] = self.traveltime[poi1, poi2] # symmetrical
         #np.savetxt('dist.txt', self.traveltime, delimiter=',')
 
@@ -285,8 +277,8 @@ class PersTour:
         self.adtime.clear()
         for idx in range(len(self.poi_pop)): self.poi_pop[idx] = 0
         for idx in range(len(self.avg_poi_visit)): self.avg_poi_visit[idx] = 0
-        for r in range(np.shape(self.pers_poi_visit)[0]):
-            for c in range(np.shape(self.pers_poi_visit)[1]): self.pers_poi_visit[r, c] = 0
+        #for r in range(np.shape(self.pers_poi_visit)[0]):
+        #    for c in range(np.shape(self.pers_poi_visit)[1]): self.pers_poi_visit[r, c] = 0
         for r in range(np.shape(self.time_usr_interest)[0]):
             for c in range(np.shape(self.time_usr_interest)[1]): self.time_usr_interest[r, c] = 0
         for r in range(np.shape(self.freq_usr_interest)[0]):
@@ -331,10 +323,10 @@ class PersTour:
             self.time_usr_interest[usr, cat] += term
 
         # calculate Personalized POI visit duration
-        for usr in range(len(self.usrmap)):
-            for poi in range(len(self.poimap)):
-                cat = self.poicat[poi]
-                self.pers_poi_visit[usr, poi] = self.time_usr_interest[usr, cat] * self.avg_poi_visit[poi]
+        #for usr in range(len(self.usrmap)):
+        #    for poi in range(len(self.poimap)):
+        #        cat = self.poicat[poi]
+        #        self.pers_poi_visit[usr, poi] = self.time_usr_interest[usr, cat] * self.avg_poi_visit[poi]
 
         # calculate Frequency-based user interest
         for item in self.records:
@@ -575,8 +567,8 @@ class PersTour:
             prob += pulp.lpSum([visit_vars[pi][pk] for pi in pois if pi != pN]) == \
                     pulp.lpSum([visit_vars[pk][pj] for pj in pois if pj != p0]), \
                     'Connected_' + pk # the itinerary is connected
-            prob += pulp.lpSum([visit_vars[pi][pk] for pi in pois if pi != pN]) <= 1, 'LeaveAtMostOnce_' + pk # ENTER POIk at most once
-            prob += pulp.lpSum([visit_vars[pk][pj] for pj in pois if pj != p0]) <= 1, 'EnterAtMostOnce_' + pk # LEAVE POIk at most once
+            prob += pulp.lpSum([visit_vars[pi][pk] for pi in pois if pi != pN]) <= 1, 'LeaveAtMostOnce_' + pk # LEAVE POIk at most once
+            prob += pulp.lpSum([visit_vars[pk][pj] for pj in pois if pj != p0]) <= 1, 'EnterAtMostOnce_' + pk # ENTER POIk at most once
         prob += pulp.lpSum([visit_vars[pi][pj] * ( \
                             self.traveltime[int(pi), int(pj)] + \
                             usr_interest[usr, self.poicat[int(pj)]] * self.avg_poi_visit[int(pj)]) \
@@ -669,6 +661,51 @@ class PersTour:
         return score
 
 
+    def breakdown_time(self, usr, seqpoilist, time_based=True):
+        """Breakdown time spent into visit duration and travelling"""
+        assert(len(seqpoilist) > 1)
+        assert(usr in range(len(self.usrmap)))
+
+        usr_interest = None
+        if time_based:
+            usr_interest = self.time_usr_interest
+        else:
+            usr_interest = self.freq_usr_interest
+
+        times = []
+        for i in range(len(seqpoilist)-1):
+            px = seqpoilist[i]
+            py = seqpoilist[i+1]
+            assert(px in range(len(self.poimap)))
+            assert(py in range(len(self.poimap)))
+            catx = self.poicat[px]
+            caty = self.poicat[py]
+
+            px0 = None # the actual POI ID in dataset
+            py0 = None
+            for k, v in self.poimap.items():
+                if px0 and py0: break
+                if v == px: px0 = k
+                if v == py: py0 = k
+
+            if i == 0:
+                times.append((px0, round(usr_interest[usr, catx] * self.avg_poi_visit[px] / 60))) # time (minute) spent at POI px
+            times.append((px0, py0, round(self.traveltime[px, py] / 60)))                         # travelling time from px to py
+            times.append((py0, round(usr_interest[usr, caty] * self.avg_poi_visit[py] / 60)))     # time spent at POI py
+        return times
+
+
+    def get_realpoi(self, poilist):
+        """Replace mapped POIs to real POI ID in dataset"""
+        pois = []
+        for pid in poilist:
+            for k, v in self.poimap.items():
+                if pid == v: 
+                    pois.append(k)
+                    break
+        return pois
+
+
     def BruteForce_recommend(self, testseq, eta, seqfname, time_based=True):
         """Recommend by enumerating all possible short trajectories given an existing travel sequence S_N, 
            the first/last POI and travel budget calculated based on S_N
@@ -694,7 +731,8 @@ class PersTour:
             newbudget = self.calc_seqbudget(usr, [p0, pi, pN], time_based)
             if newbudget > budget: continue
             score = self.calc_seqscore(usr, [p0, pi, pN], eta, time_based)
-            seqlist.append(([p0, pi, pN], score))
+            times = self.breakdown_time(usr, [p0, pi, pN])
+            seqlist.append(([p0, pi, pN], times, score))
         
         # enumerating all possible trajectories with length 4
         for pi in range(len(self.poimap)):
@@ -704,7 +742,8 @@ class PersTour:
                 newbudget = self.calc_seqbudget(usr, [p0, pi, pj, pN], time_based)
                 if newbudget > budget: continue
                 score = self.calc_seqscore(usr, [p0, pi, pj, pN], eta, time_based)
-                seqlist.append(([p0, pi, pj, pN], score))
+                times = self.breakdown_time(usr, [p0, pi, pj, pN])
+                seqlist.append(([p0, pi, pj, pN], times, score))
 
         # enumerating all possible trajectories with length 5
         for pi in range(len(self.poimap)):
@@ -716,18 +755,48 @@ class PersTour:
                     newbudget = self.calc_seqbudget(usr, [p0, pi, pj, pk, pN], time_based)
                     if newbudget > budget: continue
                     score = self.calc_seqscore(usr, [p0, pi, pj, pk, pN], eta, time_based)
-                    seqlist.append(([p0, pi, pj, pk, pN], score))
+                    times = self.breakdown_time(usr, [p0, pi, pj, pk, pN])
+                    seqlist.append(([p0, pi, pj, pk, pN], times, score))
 
 
         # sort candidate sequences according to scores
-        seqlist.sort(key=lambda item:item[1], reverse=True)
+        seqlist.sort(key=lambda item:item[2], reverse=True)
 
-        # write to file
+        # calculation for the actual sequence
+        #seqset = {x for x in range(len(self.sequences))}
+        #self.init_params()
+        #self.calc_adtime(seqset)  # re-calculate the arrival and departure time, including sequence 'testseq'
+        #self.calc_metrics(seqset) # re-calculate metrics, including information from sequence 'testseq'
         ascore = self.calc_seqscore(usr, self.sequences[testseq], eta, time_based)
+
+        # rank of the actual sequence
+        rank = 0
+        for i, t in enumerate(seqlist):
+            if abs(ascore - t[2]) < 1e-6:
+                rank = i + 1
+                break
+        assert(rank != 0)
+        atimes = []
+        for i in range(len(self.sequences[testseq])-1):
+            px = self.sequences[testseq][i]
+            py = self.sequences[testseq][i+1]
+            px0 = None # the actual POI ID in dataset
+            py0 = None
+            for k, v in self.poimap.items():
+                if px0 and py0: break
+                if v == px: px0 = k
+                if v == py: py0 = k
+            if i == 0:
+                atimes.append((px0, round((self.adtime[usr, testseq, px][1] - self.adtime[usr, testseq, px][0]) / 60)))
+            atimes.append((px0, py0, round(self.traveltime[px, py] / 60)))
+            atimes.append((py0, round((self.adtime[usr, testseq, py][1] - self.adtime[usr, testseq, py][0]) / 60)))
+        
+        # write to file
         with open(seqfname, 'w') as f:
-            f.write(str(self.sequences[testseq]) + ', ' + str(ascore) + ' Actual' + '\n')
+            f.write(str(self.get_realpoi(self.sequences[testseq])) + ', ' + str(atimes) + ', ' + str(ascore) + \
+                    ' Actual, Rank ' + str(rank) +  '/' + str(len(seqlist)) + '\n')
             for item in seqlist:
-                f.write(str(item[0]) + ', ' + str(item[1]) + '\n')
+                f.write(str(self.get_realpoi(item[0])) + ', ' + str(item[1]) + ', ' + str(item[2]) + '\n')
 
 
     def recommend(self, eta, time_based=True):
@@ -790,15 +859,21 @@ class PersTour:
         else:
             if eta > 0.0: lpFileDir += '_freq.bf'
 
+        # no leave-one-out
+        seqset = {x for x in range(len(self.sequences))}
+        self.init_params()
+        self.calc_adtime(seqset)
+        self.calc_metrics(seqset)
+ 
         for seq in range(len(self.sequences)):
             if len(self.sequences[seq]) < 3 or len(self.sequences[seq]) > 5: continue
             lpFileName = lpFileDir + '/' + str(seq) + '.seq.list'
             print('write', lpFileName)
 
-            trainseqset = {x for x in range(len(self.sequences)) if x != seq}
-            self.init_params()
-            self.calc_adtime(trainseqset)
-            self.calc_metrics(trainseqset)
+            #trainseqset = {x for x in range(len(self.sequences)) if x != seq}
+            #self.init_params()
+            #self.calc_adtime(trainseqset)
+            #self.calc_metrics(trainseqset)
             self.BruteForce_recommend(seq, eta, lpFileName, time_based)
  
 
@@ -1057,3 +1132,4 @@ class PersTour:
             cats += '(' + str(k) + ', ' + str(v) + ')  '
         print(cats)
         print(mat)
+
