@@ -52,7 +52,7 @@ def readseqs(fname, traj_len):
             generated_len = len(line.split(']')[0].split(','))
             if generated_len != slen:
                 continue
-            s = line.strip().split(']')[1].split(' ')[1]
+            s = line.strip().split(']')[-1].split(' ')[1]
             scores.append(float(s))
     return scores, seqlen
 
