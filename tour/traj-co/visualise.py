@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import sys
+import lxml # required for pretty print for fastkml
 from fastkml import kml, styles
 from shapely.geometry import Point, LineString
 
