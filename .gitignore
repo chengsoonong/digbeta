@@ -2,3 +2,11 @@ hmm_bandit/hmm.aux
 hmm_bandit/hmm.log
 hmm_bandit/hmm.synctex.gz
 hmm.pdf
+
+tour/data/*
+binary_reward/factored_bandit.aux
+binary_reward/factored_bandit.bbl
+binary_reward/factored_bandit.blg
+binary_reward/factored_bandit.log
+binary_reward/factored_bandit.pdf
+binary_reward/factored_bandit.synctex.gz
