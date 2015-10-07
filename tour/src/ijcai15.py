@@ -1,11 +1,8 @@
 import math
-import pulp
 import re
 import random
 import numpy as np
 import statistics as stat
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import axes3d
 #from datetime import datetime
 
 class PersTour:
@@ -337,291 +334,6 @@ class PersTour:
             self.freq_usr_interest[usr, cat] += 1
 
 
-    def plot_metrics(self):
-        """Plot POI popularity and time-based user interest for each POI category"""
-        city = self.dirname.split('/')[-1]
-        nrows = math.ceil(len(self.catmap) / 2)
-        y_pop = [list([self.poi_pop[j] for j in range(len(self.poimap)) if self.poicat[j] == i]) for i in range(len(self.catmap))]
-        xmax = max(list([len(x) for x in y_pop]))
-        ymax = round(max(self.poi_pop), -2) + 100
-        fig1 = plt.figure(1)
-        fig1.text(0.3, 0.96, city + ': POI Popularity by Category', fontsize=18)
-        for r in range(nrows):
-            for c in range(2):
-                idx = r*2 + c
-                if idx >= len(y_pop): continue
-                plt.subplot(nrows, 2, idx+1)
-                plt.axis([-1, xmax, -50, ymax])
-                #plt.xlabel('POI')
-                plt.ylabel('Popularity')
-                plt.plot(sorted(y_pop[idx]), 's-c', label='popularity')
-                xx = np.arange(-1, xmax, 1)
-                #yy = np.ones(len(xx), dtype=np.float32) * stat.mean(y_pop[idx]) 
-                #TypeError: can't convert type 'int32' to numerator/denominator
-                #http://bugs.python.org/issue20481
-                yy = np.ones(len(xx), dtype=np.float32) * sum(y_pop[idx])/len(y_pop[idx])
-                plt.plot(xx, yy, '-g', label='mean')
-                plt.legend()
-                for k, v in self.catmap.items():
-                    if v == idx: plt.title(k, color='g'); break
-        fig1.show()
-
-        xmax = len(self.usrmap) + 50
-        ymax = round(np.max(self.time_usr_interest), -2) + 100
-        fig2 = plt.figure(2)
-        fig2.text(0.23, 0.96, city + ': Time-based User Interest by POI Category', fontsize=18)
-        for r in range(nrows):
-            for c in range(2):
-                idx = r*2 + c
-                if idx >= np.shape(self.time_usr_interest)[1]: continue
-                plt.subplot(nrows, 2, idx+1)
-                plt.axis([-50, xmax, -50, ymax])
-                #plt.xlabel('User')
-                plt.ylabel('User Interest')
-                plt.plot(sorted(self.time_usr_interest[:, idx], reverse=True), 's-g')
-                #plt.loglog(sorted(self.time_usr_interest[:, idx], reverse=True), 's-g', basey=2)
-                #print(sorted(self.time_usr_interest[:, idx], reverse=True))
-                #yy = [math.log2(x) for x in sorted(self.time_usr_interest[:, idx], reverse=True)]
-                plt.plot(yy, 's-g')
-                for k, v in self.catmap.items():
-                    if v == idx: plt.title(k, color='g')
-        fig2.show()
- 
-        ymax = round(np.max(self.freq_usr_interest), -2) + 100
-        fig3 = plt.figure(3)
-        fig3.text(0.23, 0.96, city + ': Frequency-based User Interest by POI Category', fontsize=18)
-        for r in range(nrows):
-            for c in range(2):
-                idx = r*2 + c
-                if idx >= np.shape(self.freq_usr_interest)[1]: continue
-                plt.subplot(nrows, 2, idx+1)
-                plt.axis([-50, xmax, -50, ymax])
-                #plt.xlabel('User')
-                plt.ylabel('User Interest')
-                plt.plot(sorted(self.freq_usr_interest[:, idx], reverse=True), 's-g')
-                #plt.plot(sorted(self.freq_usr_interest[:, idx]), 's-g')
-                for k, v in self.catmap.items():
-                    if v == idx: plt.title(k, color='g')
-        fig3.show()
-
-
-    def plot_histograms(self):
-        """Plot histogram POI popularity and time-based user interest for each POI category"""
-        nrows = math.ceil(len(self.catmap) / 2)
-        y_pop = [list([self.poi_pop[j] for j in range(len(self.poimap)) if self.poicat[j] == i]) for i in range(len(self.catmap))]
-        #y_pop = []
-        #for i in range(len(self.catmap)):
-        #    y_pop.append(list([self.poi_pop[j] for j in range(len(self.poimap)) if self.poicat[j] == i]))
-        xmax = round(max(self.poi_pop), -2) + 100
-        fig1 = plt.figure(1)
-        fig1.text(0.23, 0.96, 'Histogram of POI Popularity by Category', fontsize=18)
-        for r in range(nrows):
-            for c in range(2):
-                idx = r*2 + c
-                if idx >= len(y_pop): continue
-                plt.subplot(nrows, 2, idx+1)
-                plt.axis([-200, xmax, 0, 5])
-                plt.xlabel('Popularity')
-                plt.ylabel('Frequency')
-                if len(y_pop[idx]) == 1: # this is a bug of matplotlib v1.4.2, https://github.com/matplotlib/matplotlib/issues/3882
-                    v = y_pop[idx][0]
-                    rmin = max(-200, v-30)
-                    rmax = min(v+30, xmax)
-                    plt.hist(y_pop[idx], bins=1, range=[rmin, rmax], histtype='step')
-                else:
-                    plt.hist(y_pop[idx], bins=10, histtype='step')
-                title = ''
-                for k, v in self.catmap.items():
-                    if v == idx: title = k; break
-                plt.title(title, color='g')
-        fig1.show()
-        #fig1name = self.dirname + '/' + 'poi_pop.svg'
-        #fig1.savefig(fig1name, dpi=1000)
-
-        xmax = round(np.max(self.time_usr_interest), -2) + 100
-        fig2 = plt.figure(2)
-        fig2.text(0.23, 0.96, 'Histogram of Time-based User Interest by POI Category', fontsize=18)
-        for r in range(nrows):
-            for c in range(2):
-                idx = r*2 + c
-                if idx >= np.shape(self.time_usr_interest)[1]: continue
-                plt.subplot(nrows, 2, idx+1)
-                plt.axis([-200, xmax, 0, 20])
-                plt.xlabel('User Interest')
-                plt.ylabel('Frequency')
-                plt.hist(self.time_usr_interest[:, idx], bins=10, histtype='step', color='r')
-                title = ''
-                for k, v in self.catmap.items():
-                    if v == idx: title = k; break
-                plt.title(title, color='g')
-        fig2.show()
- 
-        xmax = round(np.max(self.freq_usr_interest), -2) + 100
-        fig3 = plt.figure(3)
-        fig3.text(0.23, 0.96, 'Histogram of Frequency-based User Interest by POI Category', fontsize=18)
-        for r in range(nrows):
-            for c in range(2):
-                idx = r*2 + c
-                if idx >= np.shape(self.freq_usr_interest)[1]: continue
-                plt.subplot(nrows, 2, idx+1)
-                plt.axis([-200, xmax, 0, 20])
-                plt.xlabel('User Interest')
-                plt.ylabel('Frequency')
-                plt.hist(self.freq_usr_interest[:, idx], bins=10, histtype='step', color='r')
-                title = ''
-                for k, v in self.catmap.items():
-                    if v == idx: title = k; break
-                plt.title(title, color='g')
-        fig3.show()
- 
- 
-    def plot_poiduration(self):
-        """Calculate the time spent at each POI for each user"""
-        seqset = {x for x in range(len(self.seqmap))}
-        self.calc_adtime(seqset)
-        duration = np.zeros((len(self.usrmap), len(self.poimap)), dtype=np.float32)
-
-        for k, v in self.adtime.items():
-            usr = k[0]
-            seq = k[1]
-            poi = k[2]
-            atime = v[0]
-            dtime = v[1]
-            duration[usr, poi] += dtime - atime
-        for usr in range(len(self.usrmap)):
-            for poi in range(len(self.poimap)):
-                if math.fabs(duration[usr, poi]) < 1e-6: continue
-                duration[usr, poi] = math.log10(duration[usr, poi])
-
-        np.savetxt(self.dirname + '/logd.txt', duration, delimiter=',')
-
-        #fig = plt.figure()
-        #ax = fig.gca(projection='3d')
-        #for zpos in range(len(self.usrmap)):
-        #    left = np.arange(len(self.poimap))
-        #    height = duration[zpos]
-        #    ax.bar(left, height, zs=zpos, zdir='y', alpha=0.6)
-        #ax.set_xlabel('POI')
-        #ax.set_ylabel('User')
-        #ax.set_zlabel('Log10(duration)')
-        #plt.show()
-       
-
-    def MIP_recommend(self, testseq, eta, lpFilename, time_based=True):
-        """Recommend a trajectory given an existing travel sequence S_N, 
-           the first/last POI and travel budget calculated based on S_N
-        """
-        assert(0 <= testseq < len(self.seqmap))
-        assert(0 <= eta <= 1)
-
-        if (len(self.sequences[testseq]) < 3):
-            print('WARN: Given sequence is too short! NO recommendation!')
-            return
-        
-        usr = self.sequsr[testseq]       # user of this sequence
-        p0 = str(self.sequences[testseq][0])   # the first POI
-        pN = str(self.sequences[testseq][-1])  # the last  POI
-        N  = len(self.sequences[testseq]) # number of POIs in the given sequence
-        
-        # reference to either self.time_usr_interest or self.freq_usr_interest
-        usr_interest = []            
-        if time_based:
-            usr_interest = self.time_usr_interest
-        else:
-            usr_interest = self.freq_usr_interest
-
-        budget = 0. # travel budget
-        for i in range(len(self.sequences[testseq])-1):
-            px = self.sequences[testseq][i]
-            py = self.sequences[testseq][i+1]
-            budget += self.traveltime[px, py]
-            cat = self.poicat[py]
-            budget += usr_interest[usr, cat] * self.avg_poi_visit[py]
-
-        # The MIP problem
-        # REF: pythonhosted.org/PuLP/index.html
-        # create a string list for each POI
-        pois = [str(p) for p in range(len(self.poimap))] 
-
-        # create problem
-        prob = pulp.LpProblem('TourRecommendation', pulp.LpMaximize)
-        
-        # visit_i_j = 1 means POI i and j are visited in sequence
-        visit_vars = pulp.LpVariable.dicts('visit', (pois, pois), 0, 1, pulp.LpInteger) 
-        
-        # a dictionary contains all dummy variables
-        dummy_vars = pulp.LpVariable.dicts('u', [x for x in pois if x != p0], 2, N, pulp.LpInteger)
-
-        # add objective
-        prob += pulp.lpSum([visit_vars[pi][pj] * \
-                                (eta * usr_interest[usr, self.poicat[int(pi)]] + (1. - eta) * self.poi_pop[int(pi)]) \
-                                for pi in pois if pi != p0 and pi != pN \
-                                for pj in pois if pj != p0 \
-                                ]), 'Objective'
-
-        # add constraints
-        # each constraint should be in ONE line
-        prob += pulp.lpSum([visit_vars[p0][pj] for pj in pois if pj != p0]) == 1, 'StartAtp0' # starts at the first POI
-        prob += pulp.lpSum([visit_vars[pi][pN] for pi in pois if pi != pN]) == 1, 'EndAtpN'   # ends at the last POI
-        for pk in [x for x in pois if x != p0 and x != pN]:
-            prob += pulp.lpSum([visit_vars[pi][pk] for pi in pois if pi != pN]) == \
-                    pulp.lpSum([visit_vars[pk][pj] for pj in pois if pj != p0]), \
-                    'Connected_' + pk # the itinerary is connected
-            prob += pulp.lpSum([visit_vars[pi][pk] for pi in pois if pi != pN]) <= 1, 'LeaveAtMostOnce_' + pk # LEAVE POIk at most once
-            prob += pulp.lpSum([visit_vars[pk][pj] for pj in pois if pj != p0]) <= 1, 'EnterAtMostOnce_' + pk # ENTER POIk at most once
-        prob += pulp.lpSum([visit_vars[pi][pj] * ( \
-                            self.traveltime[int(pi), int(pj)] + \
-                            usr_interest[usr, self.poicat[int(pj)]] * self.avg_poi_visit[int(pj)]) \
-                            for pi in pois if pi != pN \
-                            for pj in pois if pj != p0 \
-                            ]) <= budget, 'WithinBudget' # travel cost should be within budget
-        for pi in pois:
-            if pi != p0:
-                for pj in pois:
-                    if pj != p0:
-                        prob += dummy_vars[pi] - dummy_vars[pj] + 1 <= \
-                                (N - 1) * (1 - visit_vars[pi][pj]), \
-                                'SubTourElimination_' + str(pi) + '_' + str(pj) # TSP sub-tour elimination
-
-        # write problem data to an .lp file
-        prob.writeLP(lpFilename)
-
-        # TOO slow for large sequences!
-        # solve problem using PuLP's default solver 
-        #prob.solve()
-        #strategy = 1
-        #if len(self.sequences[seq]) > 3: strategy = 2
-        #prob.solve(pulp.PULP_CBC_CMD(options=['-threads', '6', '-strategy', str(strategy), '-maxIt', '10000000']))
-
-        # print the status of the solution
-        #print('status:', pulp.LpStatus[prob.status])
-
-        # print each variable with it's resolved optimum value
-        #for v in prob.variables():
-        #   print(v.name, '=', v.varValue)
-        #   if v.varValue != 0: print(v.name, '=', v.varValue)
-
-        #visitMat = np.zeros((len(pois), len(pois)), dtype=np.bool)
-        #for pi in pois:
-        #    for pj in pois:
-        #        visitMat[int(pi), int(pj)] = visit_vars[pi][pj].varValue
-        #        if visitMat[int(pi), int(pj)]: print(pi, pj)
-
-        # print the optimised objective function value
-        #print('obj:', pulp.value(prob.objective))
-
-        # build the recommended trajectory
-        #tour = [p0]
-        #while True:
-        #    pi = tour[-1]
-        #    for pj in pois:
-        #        if visitMat[int(pi), int(pj)]:
-        #            pi = pj
-        #            tour.append(pi)
-        #            if pi == pN:
-        #                return [int(px) for px in tour]
-        #            else:
-        #                break
 
 
     def calc_seqbudget(self, usr, seqpoilist, time_based=True):
@@ -823,27 +535,6 @@ class PersTour:
             self.calc_adtime(trainseqset)
             self.calc_metrics(trainseqset)
 
-            self.MIP_recommend(seq, eta, lpFileName, time_based)
-        
-#        seqIdx = list(range(len(self.sequences)))
-#        seqIdx.sort(key=lambda seq:len(self.sequences[seq]))
-#        for seq in seqIdx:
-#            if len(self.sequences[seq]) >= 3:
-#                print('REAL:', self.sequences[seq])
-#                tour = self.MIP_recommend(seq, eta);
-#                print('RECO:', tour)
-#                print('-'*30)
-#                with open(fname, 'a') as f:
-#                    f.write(str(seq) + '|')
-#                    for i, s in enumerate(self.sequences[seq]):
-#                        if i > 0: f.write(',')
-#                        f.write(str(s))
-#                    f.write('|')
-#                    for i, s in enumerate(tour):
-#                        if i > 0: f.write(',')
-#                        f.write(str(s))
-#                    f.write('\n')
-
 
     def recommend_bf(self, eta, time_based=True):
         """Trajectory Recommendation"""
@@ -1002,11 +693,6 @@ class PersTour:
         print('Precision:', stat.mean(precisions), stat.stdev(precisions))
         print('F1-score: ', stat.mean(f1scores),   stat.stdev(f1scores))
 
-        fig = plt.figure()
-        plt.ylim(-0.05, 1.05)
-        plt.boxplot([recalls, precisions, f1scores], labels=['Recall', 'Precision', 'F1-score'])
-        fig.show()
-
         #print(recalls)
         #print(precisions)
         #print(f1scores)
@@ -1019,24 +705,6 @@ class PersTour:
         # calculate tour interest
         # calculate popularity and interest rank
 
-
-    def plot_recommend(self):
-        """Plot the categories of both actual and recommended itineraries"""
-        assert(len(self.recommendSeqs) > 0)
-
-        # plot POI category for each sequence: (poi_order, cat, seq_order)
-        fig = plt.figure()
-        ax = fig.gca(projection='3d')
-        for i, k in enumerate(self.recommendSeqs.keys()):
-            #X = X1 = Y = Y1 = Z = Z1 = []  #ERROR: the reference of the same object
-            X = []; Y = []; Z = []; X1 = []; Y1 = []; Z1 = []
-            for j, poi in enumerate(self.recommendSeqs[k]):
-                X.append(j); Y.append(self.poicat[poi]); Z.append(i)
-            for j, poi in enumerate(self.sequences[k]):
-                X1.append(j); Y1.append(self.poicat[poi]); Z1.append(i)
-            ax.plot(X,  Y,  Z,  'g')  # recommended
-            ax.plot(X1, Y1, Z1, 'r')  # actual
-        plt.show()
 
 
     def poicat_stat(self):
@@ -1132,4 +800,24 @@ class PersTour:
             cats += '(' + str(k) + ', ' + str(v) + ')  '
         print(cats)
         print(mat)
+
+
+    def gen_transmat(self, seqset):
+        """Calculate the transition matrix of POI category for given itineraries"""
+        assert(len(seqset) > 0)
+        transmat = np.zeros((len(self.catmap), len(self.catmap)), dtype=np.float)
+
+        for k, v in self.sequences.items():
+            if k not in seqset: continue
+            for pj in range(len(v)-1):
+                cati = self.poicat[v[pj]]
+                catj = self.poicat[v[pj+1]]
+                transmat[cati, catj] += 1
+
+        # normalize each row to get the transition probability from cati to catj
+        for r in range(transmat.shape[0]):
+            total = np.sum(transmat[r])
+            transmat[r] /= total
+
+        return transmat
 
