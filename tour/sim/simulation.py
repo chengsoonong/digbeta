@@ -271,7 +271,7 @@ class Simulator:
             pid = self.catpoidict[destcatid][i]
             lng2 = self.poidata[pid][0]
             lat2 = self.poidata[pid][1]
-            pvals[i] = self.calc_dist(lng1, lat1, lng2, lat2)
+            pvals[i] = 1 / (self.calc_dist(lng1, lat1, lng2, lat2) + 0.001) # taking care of 0
         pvals /= np.sum(pvals)
  
         # catgorical/multinoulli distribution, special case of multinomial distribution (n=1)
@@ -367,9 +367,9 @@ if __name__ == '__main__':
 
     sim = Simulator(poistr, matstr)
     #obs = sim.simulate_NN(N)
-    #obs = sim.simulate_NN(N, randomized=True)
+    obs = sim.simulate_NN(N, randomized=True)
     #obs = sim.simulate_Pop(N)
-    obs = sim.simulate_Pop(N, randomized=True)
+    #obs = sim.simulate_Pop(N, randomized=True)
     est = sim.estimate_MLE(obs)
     print('Observations')
     print(obs)
