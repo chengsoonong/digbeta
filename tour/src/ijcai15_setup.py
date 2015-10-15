@@ -29,7 +29,7 @@ def unzip_file(fname, path):
 
 if __name__ == '__main__':
     data_url = 'https://sites.google.com/site/limkwanhui/datacode/data-ijcai15.zip?attredirects=0'
-    coord_url = 'https://www.dropbox.com/s/nd4o5u3nwrepjqq/data-ijcai15-coords.zip?dl=1'
+    ext_url = 'https://www.dropbox.com/s/mfu5312jxitxxgn/data-ijcai15-ext.zip?dl=1'
     chunk_size = 4096
     data_dir = '../data'
     subdir = 'data-ijcai15'
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     unzip_file(fname1, data_dir)
 
     # download/unzip part2 of data
-    fname2 = download_data(coord_url)
+    fname2 = download_data(ext_url)
     unzip_file(fname2, os.path.join(data_dir, subdir))
 
     # delete temp files
