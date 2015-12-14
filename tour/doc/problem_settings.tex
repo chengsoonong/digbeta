@@ -20,7 +20,7 @@ as well as Place/Point of Interest (POI) extracted from Wikipedia articles.
 
 \subsection{\textsc{Definition}}
 For user $u$ and POI $p$, define $u$'s travel history and travel sequences, 
-POI popularity, POI category and distance between POIs as follows\cite{lim15}:
+POI popularity, POI category, distance between POIs and average POI visit duration as follows\cite{lim15}:
 \begin{itemize}
 \item \textbf{Travel History}:
       \begin{equation*}
@@ -35,10 +35,16 @@ POI popularity, POI category and distance between POIs as follows\cite{lim15}:
       \begin{equation*}
       Pop(p) = \sum_{u \in U} \sum_{p_i \in S_u} \delta(p_i == p)
       \end{equation*}
+      where $U$ is the set of all users.
 \item \textbf{POI Category}: the categories (e.g. structures, entertainment and shopping) extracted from Wikipedia articles.
 \item \textbf{POI Pair Distance}: distance between two POIs computed by
       \href{https://en.wikipedia.org/wiki/Great-circle\_distance#Computational\_formulas}{Haversine formula}
       given POI geographic coordinates.
+\item \textbf{Average POI Visit Duration}:
+      \begin{equation}
+      \bar{V}(p) = \frac{1}{N} \sum_{u \in U} \sum_{p_i \in S_u} (t_{p_i}^d - t_{p_i}^a) \delta(p_i == p)
+      \end{equation}
+      where $N$ is the number of visits of POI $p$ by all users.
 \end{itemize}
 
 \subsection{\textsc{Evaluation Metrics}} 
@@ -62,90 +68,62 @@ define metrics\cite{lim15}
 
 \section{\textsc{Problem Formulation}}
 \label{sec:formulation}
-At first glance, trajectory recommendation seems not to be a supervised machine learning problem,
-but it can be formulated as a supervised structured prediction problem so that 
-active learning, which is designed to work in supervised learning settings, will work properly.
-\begin{itemize}
+The input/output of the recommendation algorithm:
+\begin{description}
 \item \textbf{Input}: start POI $p_s$, end POI $p_e$, number of POIs $l$ in the expected trajectory.
 \item \textbf{Output}: recommended trajectory $p_s, \dots, p_e$ with $l$ POIs in total.
-\end{itemize}
+\end{description}
 
-It seems impossible to learning a function from the above input to output 
-as the function space is too large while the available data are very limited.
-However, we can add some processing steps before/after the input/output which could largely reduce 
-the search space of possible functions and thus make this problem learnable.
-\begin{itemize}
-\item \textbf{Preprocess}: map $(p_s, p_e, l)$ to a number of synthesized trajectories $p_s, \dots, p_e$ with $l$ POIs.
-\item \textbf{Input}: a synthesized trajectory
-\item \textbf{Output}: a score of the input trajectory
-\item \textbf{Postprocess}: recommend the trajectory with highest score among all corresponding synthesized trajectories (i.e. argmax).
-\end{itemize}
-With the above formulation, the input and output of query in active learning should be
-\begin{itemize}
-\item \textbf{Input}: a synthesized trajectory
-\item \textbf{Output}: a score of the input trajectory
-\end{itemize}
-which implies that the oracle should implement a trajectory scoring function. 
-
-As far as the labelling cost is concerned, it would be better to ask the oracle a YES/NO question,
-in practice, given two trajectories $\text{Traj}_a$ and $\text{Traj}_b$, 
-we would like to ask the oracle the following question: 
-
-\textit{Is $\text{Traj}_a$ better than $\text{Traj}_b$?} \\
-The expected answer is YES if the oracle thinks $\text{Traj}_a$ is better than $\text{Traj}_b$ and NO otherwise.
-
-@TODO: what does \textbf{better} mean here?
-
-@TODO: There will be too many trajectory pairs, how to choose/sample a pair to query?
-
-
-\section{\textsc{Features}}
-We use three transition features for each trajectory, namely,
+\subsection{\textsc{Features}}
+Two POI features are used here, namely,
 \begin{enumerate}
-\item POI category transition probabilities: 
-      $P(\text{Cat}_{p_j} \vert \text{Cat}_{p_i})$, 
-      the transition probability from POI $p_i$ to POI $p_j$.
-\item POI popularity transition probabilities: 
-      $P(\text{Pop}_{p_j} \vert \text{Pop}_{p_i})$, 
-      the transition probability from POI $p_i$ to POI $p_j$.
-      Discretize POI popularity first, 
-      @TODO binning method?
-\item POI pair distance transition probabilities: 
-      $P(\text{Dist}_{p_j \to p_k} \vert \text{Dist}_{p_i \to p_j})$,
-      the transition probability from POI pair ($p_i$, $p_j$) to pair ($p_j$, $p_k$).
-      Discretize POI pair distance first,
-      @TODO binning method?
+\item POI popularity
+\item Average POI visit duration
 \end{enumerate}
 
-
-\section{\textsc{Probabilistic Model}}
-For each transition feature, there is a Markov Chain (MC), thus three MCs in total.
-The states of the MCs are POI categories, discretized POI popularities and discretized POI pair distances, respectively.
-
-\subsection{\textsc{Parameter Estimation}}
-Transition probabilities of the three MCs are estimated using maximum likelihood estimator (MLE).
+\subsection{\textsc{Learning}}
+We use rankSVM\cite{herbrich99} to rank the set of POIs.
+To learn the parameters of rankSVM,
+training data are generated as follows:
+\begin{enumerate}
+\item Each tuple $(p_s, p_e, l)$ form a \textit{query} (in Information Retrieval (IR) terminology). 
+\item The label of a POI is the number of presence of that POI in a specific \textit{query} 
+      (It would simply be POI popularity if \textit{query} is not considered.)
+\item Absence POIs are unobserved (i.e. missing data) in a specific \textit{query} (in IR terminology).
+\item Use the two features described above (after scaling).
+\end{enumerate}
 
 \subsection{\textsc{Prediction}}
-Given a trajectory, we compute a probability of the trajectory with each of the three MCs and 
-define the sum of the three probabilities as the score the given trajectory.
-
-For each input $(p_s, p_e, l)$ described in section \ref{sec:formulation}, 
-we compute scores for all possible trajectories $p_s, \dots, p_e$ with $l$ POIs and
-recommend the trajectory with highest score.
-
-\subsection{\textsc{Learning}}
-Start from an empty training set, after each query, 
-we update parameters/transition probabilities of the three MCs using Bayes' rule
-\begin{equation*}
-P(\Theta \vert X) \propto P(X \vert \Theta) P(\Theta)
-\end{equation*}
-
-@TODO: concretely, how to update parameters after receiving a YES/NO answer from oracle?
+A trained rankSVM could generate a ranking of POIs, we predict a trajectory with respect to constraints
+$(p_s, p_e, l)$ by choose the top $l-2$ POIs without considering 
+$p_s$ and $p_e$ to form a trajectory (the visit order is not considered here).
 
 
-\section{\textsc{Query Strategies}}
+\section{\textsc{Active Learning Setting}}
+The active learning setting for trajectory recommendation is a bit different from that in supervised learning.
+\begin{enumerate}
+\item Each query is corresponding to a set of constraints of recommendation, 
+      e.g. start POI, end POI, number of POIs, travel time, visit duration etc.
+      According to the input of recommendation algorithm described above, 
+      the current constraints are start POI, end POI and number of POIs.
+\item Generate a probability distribution of all trajectories that satisfy the constraints.
+\item Choose a set of constraints based on the probability distribution of possible trajectories that satisfy the constraints
+      according to a query strategy.
+\item Query the oracle "What is the best trajectory to recommend given this set of constraints?"
+\end{enumerate}
+
+To generate a probability distribution of possible trajectories, 
+we need an algorithm that can generate a probability/score for each trajectory,
+the parameters of that algorithm could be adjusted by incorporating the query result 
+(i.e. the best trajectory to recommend given a set of constraints) and 
+hopefully improve the performance of recommendation.
+
+@TODO: describe the details of the algorithm that can generate a probability/score for a trajectory.
+
+\subsection{\textsc{Query Strategies}}
 Three nontrivial query strategies are used to compare with the random baseline (i.e. passive learning) in the active learning process.
-Let \textbf{x} denote an example in the pool and \textbf{y} denote the label of an example,
+Let \textbf{x} denote an example (i.e. the set of constraints of recommendation) in the pool and 
+\textbf{y} denote the label of an example (i.e. the best trajectory to recommend given a set of constraints),
 the query strategies are
 \begin{itemize}
 \item \textbf{Random Baseline}: this is the passive learning baseline,
@@ -185,7 +163,6 @@ the query strategies are
       Sequence entropy $\phi^{SE}$ measures the "base" informativeness and could be replaced by $\phi^{NSE}$ for efficient computation.
       This strategy queries the example $\textbf{x}$ of maximum $\phi^{ID}$ among all unlabelled examples in a pool.
 \end{itemize}
-@TODO: define example and its label concretely.
 
 \section{\textsc{Experimental Dataset}}
 Trajectories are extracted from YFCC100M dataset in several well-known cities, e.g. Melbourne, Toronto, Edinburgh etc. \\
