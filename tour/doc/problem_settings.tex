@@ -65,21 +65,23 @@ define metrics\cite{lim15}
       \end{equation*}
 \end{itemize}
 
-
-\section{\textsc{Problem Formulation}}
+\subsection{\textsc{Problem Formulation}}
 \label{sec:formulation}
 The input/output of the recommendation algorithm:
 \begin{description}
-\item \textbf{Input}: start POI $p_s$, end POI $p_e$, number of POIs $l$ in the expected trajectory.
+\item \textbf{Input/Constraints}: start POI $p_s$, end POI $p_e$, number of POIs $l$ in the expected trajectory.
 \item \textbf{Output}: recommended trajectory $p_s, \dots, p_e$ with $l$ POIs in total.
 \end{description}
 
+
+\section{\textsc{User Agnostic Modeling}}
 \subsection{\textsc{Features}}
 Two POI features are used here, namely,
 \begin{enumerate}
 \item POI popularity
 \item Average POI visit duration
 \end{enumerate}
+We use an user agnostic model to recommend trajectory with given constraints and the above features.
 
 \subsection{\textsc{Learning}}
 We use rankSVM\cite{herbrich99} to rank the set of POIs.
@@ -99,6 +101,28 @@ $(p_s, p_e, l)$ by choose the top $l-2$ POIs without considering
 $p_s$ and $p_e$ to form a trajectory (the visit order is not considered here).
 
 
+\section{\textsc{Personalised Modeling}}
+Factors that could affect a visiting trajectory:
+\begin{itemize}
+\item traveller/user preference
+\item travel history of user (merge with the first one $\to$ a changing preference)
+\item travel season
+\item travel method: drive/ride/walk/public transport
+\item total time allocated for travelling?
+\end{itemize}
+Factors that could affect the visit duration at a POI:
+\begin{itemize}
+\item traveller/user preference
+\item travel history of user (merge with the first one $\to$ a changing preference)
+\item travel season
+\item travel method: drive/ride/walk/public transport
+\item total time allocated for travelling
+\item travel pattern, e.g. POI$_i$ $\to$ POI$_j$ $\to$ POI$_k$, 
+      the visit duration at POI$_j$ is related to that at POI$_j$ and POI$_k$.
+\end{itemize}
+@TODO: build a Bayesian network that reflects the interaction of these factors.
+
+
 \section{\textsc{Active Learning Setting}}
 The active learning setting for trajectory recommendation is a bit different from that in supervised learning.
 \begin{enumerate}
@@ -111,14 +135,10 @@ The active learning setting for trajectory recommendation is a bit different fro
       according to a query strategy.
 \item Query the oracle "What is the best trajectory to recommend given this set of constraints?"
 \end{enumerate}
-
-To generate a probability distribution of possible trajectories, 
-we need an algorithm that can generate a probability/score for each trajectory,
-the parameters of that algorithm could be adjusted by incorporating the query result 
-(i.e. the best trajectory to recommend given a set of constraints) and 
-hopefully improve the performance of recommendation.
-
-@TODO: describe the details of the algorithm that can generate a probability/score for a trajectory.
+Currently, for the user agnostic model, to generate a probability distribution of all possible trajectories, 
+we first scale the scores of POIs (for ranking) to range $[-1, 1]$, then shift all scores $1$ unit to the right,
+the score of a trajectory is defined as the summation of the scores of its POIs, 
+generate the distribution by normalising scores of all possible trajectories.
 
 \subsection{\textsc{Query Strategies}}
 Three nontrivial query strategies are used to compare with the random baseline (i.e. passive learning) in the active learning process.
