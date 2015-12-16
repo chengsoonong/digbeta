@@ -88,7 +88,7 @@ We use rankSVM\cite{herbrich99} to rank the set of POIs.
 To learn the parameters of rankSVM,
 training data are generated as follows:
 \begin{enumerate}
-\item Each tuple $(p_s, p_e, l)$ form a \textit{query} (in Information Retrieval (IR) terminology). 
+\item Each user ID form a \textit{query} (in Information Retrieval (IR) terminology). 
 \item The label of a POI is the number of presence of that POI in a specific \textit{query} 
       (It would simply be POI popularity if \textit{query} is not considered.)
 \item Absence POIs are unobserved (i.e. missing data) in a specific \textit{query} (in IR terminology).
