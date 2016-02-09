@@ -53,24 +53,29 @@ the number of visited POIs is $L$.
 
 \subsection{Ranking of POIs}
 % ranking of POIs focus on modeling the (personalised) preference of POIs
-We first produce a ranking of POIs $<_{p_i, p_j} \subset \mathcal{P}^2$ with respect to constraints $(p_s, p_e, L)$ 
-using rankSVM with linear kernel and $L2$ loss)\cite{lranksvm}, 
+We first produce a ranking of POIs, i.e., $<_{p_i, p_j} \subset \mathcal{P}^2$,
+with respect to constraints $(p_s, p_e, L)$ 
+using rankSVM with linear kernel and $L2$ loss\cite{lranksvm}, 
 i.e.,
 \begin{displaymath}
 \min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^T \mathbf{w} +
                   C \sum_{(i, j) \in P} \max \left( 0, 1 - \mathbf{w}^T (\mathbf{x}_i - \mathbf{x}_j) \right)^2
 \end{displaymath}
-
+where $\mathbf{w}$ is a vector of parameters, 
+$C > 0$ is the regularization parameter and 
+$\mathbf{x}_i$ is the feature vector of POI $p_i$.
 Features used for ranking POIs are:
 \begin{itemize}
-\item Popularity of POI which is defined as the number of distinct users that visited the POI\cite{ht10}.
-\item Average visit duration of POI\cite{ijcai15}:
+\item Popularity of a POI, which is defined as the number of distinct users that visited the POI\cite{ht10}.
+\item The total number of visits of a POI,
       \begin{displaymath}
-          \bar{V}(p) = \frac{1}{N} \sum_{u \in \mathcal{U}} \sum_i \sum_{p_j \in \mathcal{T}_u^i} (t_{p_j}^s - t_{p_j}^e) \delta(p_j = p),
+          N(p) = \sum_{u \in \mathcal{U}} \sum_i \sum_{p_j \in \mathcal{T}_u^i} \delta(p_j = p)
+      \end{displaymath}
+\item Average visit duration of POI\cite{ijcai15},
+      \begin{displaymath}
+          \bar{V}(p) = \frac{1}{N(p)} \sum_{u \in \mathcal{U}} \sum_i \sum_{p_j \in \mathcal{T}_u^i} (t_{p_j}^s - t_{p_j}^e) \delta(p_j = p),
           p \in \mathcal{P}
       \end{displaymath}
-      where $N = \sum_{u \in \mathcal{U}} \sum_i \sum_{p_j \in \mathcal{T}_u^i} \delta(p_j = p)$ 
-      is the number of visits at POI $p$ of all users.
 \item Whether the category (e.g., structures, entertainment and shopping etc.) is the same as that of $p_s$ (and $p_e$).
 \item Distance from POI $p$ to $p_s$ (and $p_e$) using haversine formula \cite{wiki_haversine},
       \begin{displaymath}
@@ -87,25 +92,35 @@ Features used for ranking POIs are:
 \item The number of POIs in the expected trajectory, i.e. $L$
 \end{itemize}
 
+To generate the target/label of a POI in training set,
+we first group trajectories with the same start POI $p_s'$, end POI $p_e'$ and the number of visited POIs $L'$ together,
+each group of trajectories form a query,
+and the target/label of POI $p$ in a particular query (i.e., trajectory group) are the number of occurrence
+in trajectories of that query, 
+without counting the occurrence of $p$ as start or end POI of a trajectory.
+
 The ranking scores of POIs are transformed to probabilities using Platt scaling\cite{platt99} by
 \begin{displaymath}
     %P(y=1 |p) = \frac{1}{1 + e^{A f(x) + B}, p \in P
-    P(Rank_p?) = \frac{1}{1 + e^{\alpha R(p) + \beta}}, p \in \mathcal{P}
+    P(p |(p_s, p_e, L)) = \frac{1}{1 + e^{\alpha R(p) + \beta}}, p \in \mathcal{P}
 \end{displaymath}
 where $R(p)$ is the ranking score of POI $p$, $\alpha$ and $\beta$ are parameters learned from training set\cite{plattnote07}.
 
 
 \subsection{Factorising Transition Probabilities between POIs}
 To deal with data sparsity,
-the transition probability between a pair of POIs $(p_i, p_j), p_i, p_j \in \mathcal{P}$ was factorised into the product of
+the transition probability between a pair of POIs $(p_i, p_j)$ was factorised into the product of
 transition probabilities between the following individual features of that POI pair.
 \begin{enumerate}
 \item The category of POI, $P(Cat(p_j) | Cat(p_i))$
-      is the transition probability from the category of POI $p_i$ to the category of $p_j$.
-\item The popularity of POI, which was discritized with uniform log-scale intervals,
+      is the transition probability from the category of $p_i$ to the category of $p_j$.
+\item The popularity of POI, which was first discritized with uniform intervals in log-scale,
       and $P(Pop(p_j) | Pop(p_i))$ is the transition probability from the interval with $Pop(p_i)$ 
       to the interval with $Pop(p_j)$.
-\item The average visit duration of POI, similarly, it was discritized with uniform log-scale intervals,
+\item The total number of visits of POI, similarly, it was first discritized with uniform intervals in log-scale,
+      and $P(N(p_j) | N(p_i))$ is the transition probability from the interval with $N(p_i)$ 
+      to the interval with $N(p_j)$.
+\item The average visit duration of POI, and again, it was first discritized with uniform intervals in log-scale,
       and $P(\bar{V}(p_j) | \bar{V}(p_i))$ is the transition probability from the interval with $\bar{V}(p_i)$ 
       to the interval with $\bar{V}(p_j)$.
 \item The neighborhood relationship between $p_i$ and $p_j$,
@@ -115,10 +130,11 @@ transition probabilities between the following individual features of that POI p
 \end{enumerate}
 
 Assuming independence between these features,
-the transition probability between POI $p_i$ and $p_j$ was
+the transition probability between $p_i$ and $p_j$ can be factorised as follows,
 \begin{align*}
     P(p_j | p_i) = & \frac{1}{Z_i} P(Cat(p_j) | Cat(p_i)) \times \\ 
                    & P(Pop(p_j) | Pop(p_i)) \times \\
+                   & P(N(p_j) | N(p_i)) \times \\
                    & P(\bar{V}(p_j) | \bar{V}(p_i)) \times \\
                    & P(Neighb(p_i, p_j)), i \ne j, p_i, p_j \in \mathcal{P}
 \end{align*}
@@ -127,24 +143,56 @@ where $Z_i$ is a normalising constant.
 %POIs are grouped into several clusters according to their geographical coordinates using K-means
 %to reflect their neighborhood relationships.
 
-
 \subsection{Recommend Trajectories}
+%\subsection{Probabilistic Model incorporating both ranking and transition}
 % ranking of POIs focus on modeling the (population) preference of POIs
 % MC focus on modeling the transition patterns between POIs
 % we can capture both aspects by combining them
 % TODO: explain no self-loop in graph G?
-We create a weighted directed graph $G$ with vertices $V$ the set of POIs $\mathcal{P}$ and 
-edges $E$ the transitions between POIs,
-the weight of vertex $v_{p}, p \in \mathcal{P}$ is the negative logarithm of ranking probability of POI $p$, 
-i.e.,
-$w(v_{p}) = -\log(P(Rank_p?)), p \in \mathcal{P}$,
-the weight of directed edge $(v_p, v_{p'})$ is the negative logarithm of transition probability between POI $p$ and $p'$,
-i.e.,
-$w(v_p, v_{p'}) = -\log(P(v_{p'} |v_p))$.
 
-Compute the most likely trajectory with respect to constraints $(p_s, p_e, L)$ is
+For trajectory $(p_{j_1}, \dots, p_{j_L})$ with respect to constraints $(p_s, p_e, L)$, 
+where $p_{j_1} = p_s$ and $p_{j_L} = p_e$, 
+the likelihood of the trajectory is
+\begin{align*}
+    \mathcal{L}((p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L)) =& \prod_{k=1}^L P(p_{j_k} |(p_s, p_e, L)) \times \\
+                                                            & \prod_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k})
+\end{align*}
+by taking the logarithm, we get 
+\begin{align*}
+    \log \left( \mathcal{L}((p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L)) \right) =& \sum_{k=1}^L P(p_{j_k} |(p_s, p_e, L)) + \\
+                                                                                & \sum_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k})
+\end{align*}
+
+To recommend the \textit{most likely} trajectory with respect to constraints $(p_s, p_e, L)$,
+what we need to do is finding a trajectory of maximum likelihood with respect to constraints $(p_s, p_e, L)$,
+i.e.,
+\begin{align*}
+    \text{argmax}_{(p_{j_1}, \dots, p_{j_L})} & \mathcal{L}((p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L)), \\
+                                              & p_{j_1} = p_s, p_{j_L} = p_e, p_{j_k} \in \mathcal{P}, 1 \le k \le L
+\end{align*}
+which is equivalent to
+\begin{align*}
+    & \text{argmax}_{(p_s, p_e, L)} \log \left( \mathcal{L}((p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L)) \right) \\
+    &= \text{argmax}_{(p_s, p_e, L)} \left( \sum_{k=1}^L P(p_{j_k} |(p_s, p_e, L)) + \sum_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k}) \right)
+\end{align*}
+
+One way to find such a trajectory is transforming the above optimization problem to 
+finding a shortest path in a weighted graph.
+
+Concretely,
+we create a weighted directed graph $G$ with vertices $V$ that corresponds to the set of POIs $\mathcal{P}$ and 
+edges $E$ which corresponds to transitions between POIs in $\mathcal{P}$,
+the weight of vertex $v_{p}, p \in \mathcal{P}$ is set to the negative logarithm of the ranking probability of POI $p$, 
+and the weight of directed edge $(v_p, v_{p'})$ is the negative logarithm of the transition probability from $p$ to $p'$,
+i.e.,
+\begin{align*}
+    w(v_{p})       & = -\log(P(p |(p_s, p_e, L))) \\
+    w(v_p, v_{p'}) & = -\log(P(v_{p'} |v_p)), p \in \mathcal{P}
+\end{align*}
+
+Thus, compute the most likely trajectory with respect to constraints $(p_s, p_e, L)$ is
 equivalent to find a path (not necessarily a simple path) from vertex $v_{p_s}$ to
-vertex $v_{p_e}$ which minimize the total path weights and with exactly $L$ vertices,
+$v_{p_e}$ with exactly $L$ vertices and minimize the total path weights,
 i.e.,
 \begin{align*}
     \text{minimize~} & \sum_{i=1}^{L} w(v_i) + \sum_{i=1}^{L-1} w(v_i, v_{i+1}) \\
@@ -155,22 +203,22 @@ i.e.,
 The path can be found using dynamic programming, 
 with array $A[l, v]$ stores the minimum total weights of path 
 that starts at vertex $v_{p_s}$ and ends at vertex $v$ with 
-exactly $l$ vertices in path and 
+exactly $l$ vertices in path,
 array $B[l, v]$ stores the predecessor of $v$ in that path,
-to compute a path with $l+1$ vertices,
+and compute a path with $l+1$ vertices is simply the following recursive relations,
 \begin{align*}
     A[l+1, v] &= \min_{v' \in Pa_v} \{ A[l, v'] + w(v', v) + w(v') + w(v) \} \\
     B[l+1, v] &= \text{argmin}_{v' \in Pa_v} \{ A[l, v'] + w(v', v) + w(v') + w(v) \} 
 \end{align*}
-where $Pa_v$ is the parent of vertex $v$, 
+where $Pa_v$ is the parent of vertex $v$ in $G$,
 i.e., 
-there is a directed edge from $v', v' \in Pa_v$ to $v$.
+there is a directed edge from $v'$ to $v$, $v' \in Pa_v$.
 
 The minimum path weight is $A[L, v_{p_e}]$,
-the actual path can be found by tracing back from $B[L, v_{p_e}]$,
-the algorithm is shown in figure \ref{fig:path},
+and the actual path can be found by tracing back from $B[L, v_{p_e}]$,
+the complete algorithm to find this path is shown in figure \ref{fig:path},
 the sequence of POIs corresponding to vertices in that path is the 
-trajectory we would like to recommend.
+trajectory we would like to recommend with respect to constraints $(p_s, p_e, L)$.
 
 \begin{figure*}
 \centering
@@ -198,7 +246,7 @@ trajectory we would like to recommend.
 19:&\hspace{20pt}     $path$.prepend$(B[l, v])$ \\
 20:&\hspace{20pt}     $v = path[0]$ \\
 21:&\hspace{20pt}     $l = l - 1$ \\
-22:&\hspace{10pt} \textbf{util} $v == v_{p_s}$ \\
+22:&\hspace{10pt} \textbf{util} $l < 2$ \\
 23:&\hspace{10pt} \textbf{return} $path$ \\
 24:&\textbf{end procedure} \\
 \hline
