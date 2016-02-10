@@ -1,5 +1,8 @@
 \documentclass{sig-alternate-05-2015}
 
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+
 \begin{document}
 
 %\setcopyright{}
@@ -102,7 +105,7 @@ without counting the occurrence of $p$ as start or end POI of a trajectory.
 The ranking scores of POIs are transformed to probabilities using Platt scaling\cite{platt99} by
 \begin{displaymath}
     %P(y=1 |p) = \frac{1}{1 + e^{A f(x) + B}, p \in P
-    P(p |(p_s, p_e, L)) = \frac{1}{1 + e^{\alpha R(p) + \beta}}, p \in \mathcal{P}
+    P_R(p |(p_s, p_e, L)) = \frac{1}{1 + e^{\alpha R(p) + \beta}}, p \in \mathcal{P}
 \end{displaymath}
 where $R(p)$ is the ranking score of POI $p$, $\alpha$ and $\beta$ are parameters learned from training set\cite{plattnote07}.
 
@@ -132,11 +135,10 @@ transition probabilities between the following individual features of that POI p
 Assuming independence between these features,
 the transition probability between $p_i$ and $p_j$ can be factorised as follows,
 \begin{align*}
-    P(p_j | p_i) = & \frac{1}{Z_i} P(Cat(p_j) | Cat(p_i)) \times \\ 
-                   & P(Pop(p_j) | Pop(p_i)) \times \\
-                   & P(N(p_j) | N(p_i)) \times \\
-                   & P(\bar{V}(p_j) | \bar{V}(p_i)) \times \\
-                   & P(Neighb(p_i, p_j)), i \ne j, p_i, p_j \in \mathcal{P}
+    & P(p_j | p_i) \\
+   =& \frac{1}{Z_i} P(Cat(p_j) | Cat(p_i)) \times P(Pop(p_j) | Pop(p_i)) \times \\
+    & P(N(p_j) | N(p_i)) \times P(\bar{V}(p_j) | \bar{V}(p_i)) \times P(Neighb(p_i, p_j)) \\
+    & i \ne j, p_i, p_j \in \mathcal{P}
 \end{align*}
 where $Z_i$ is a normalising constant.
 
@@ -154,26 +156,36 @@ For trajectory $(p_{j_1}, \dots, p_{j_L})$ with respect to constraints $(p_s, p_
 where $p_{j_1} = p_s$ and $p_{j_L} = p_e$, 
 the likelihood of the trajectory is
 \begin{align*}
-    \mathcal{L}((p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L)) =& \prod_{k=1}^L P(p_{j_k} |(p_s, p_e, L)) \times \\
-                                                            & \prod_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k})
+    & \mathcal{L} \left( (p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L) \right) \\
+   =& \prod_{k=1}^L P_R(p_{j_k} |(p_s, p_e, L)) \times \prod_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k})
 \end{align*}
-by taking the logarithm, we get 
-\begin{align*}
-    \log \left( \mathcal{L}((p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L)) \right) =& \sum_{k=1}^L P(p_{j_k} |(p_s, p_e, L)) + \\
-                                                                                & \sum_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k})
-\end{align*}
+%by taking the logarithm, we get 
+%\begin{align*}
+%    \log \left( \mathcal{L}((p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L)) \right) =& \sum_{k=1}^L P(p_{j_k} |(p_s, p_e, L)) + \\
+%                                                                                & \sum_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k})
+%\end{align*}
 
 To recommend the \textit{most likely} trajectory with respect to constraints $(p_s, p_e, L)$,
 what we need to do is finding a trajectory of maximum likelihood with respect to constraints $(p_s, p_e, L)$,
 i.e.,
+
 \begin{align*}
-    \text{argmax}_{(p_{j_1}, \dots, p_{j_L})} & \mathcal{L}((p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L)), \\
-                                              & p_{j_1} = p_s, p_{j_L} = p_e, p_{j_k} \in \mathcal{P}, 1 \le k \le L
+    & \argmax_{(p_{j_1}, \dots, p_{j_L})} \mathcal{L} \left( (p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L) \right) \\
+%which is equivalent to
+%\begin{align*}
+   =& \argmax_{(p_s, p_e, L)} \log \left( \mathcal{L} \left( (p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L) \right) \right) \\
+   =& \argmax_{(p_s, p_e, L)} \log \left( \prod_{k=1}^L P_R(p_{j_k} |(p_s, p_e, L)) \times 
+      \prod_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k}) \right) \\
+   =& \argmax_{(p_s, p_e, L)} \sum_{k=1}^L \log \left( P_R(p_{j_k} |(p_s, p_e, L)) \right) + 
+      \sum_{k=1}^{L-1} \log \left( P(p_{j_{k+1}} | p_{j_k}) \right) \\
+   =& \argmin_{(p_s, p_e, L)} -\sum_{k=1}^L \log \left( P_R(p_{j_k} |(p_s, p_e, L)) \right) -
+      \sum_{k=1}^{L-1} \log \left( P(p_{j_{k+1}} | p_{j_k}) \right) 
 \end{align*}
-which is equivalent to
+such that
 \begin{align*}
-    & \text{argmax}_{(p_s, p_e, L)} \log \left( \mathcal{L}((p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L)) \right) \\
-    &= \text{argmax}_{(p_s, p_e, L)} \left( \sum_{k=1}^L P(p_{j_k} |(p_s, p_e, L)) + \sum_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k}) \right)
+    p_{j_1} &= p_s \\
+    p_{j_L} &= p_e \\
+    p_{j_k} &\in \mathcal{P}, 1 \le k \le L
 \end{align*}
 
 One way to find such a trajectory is transforming the above optimization problem to 
@@ -186,18 +198,21 @@ the weight of vertex $v_{p}, p \in \mathcal{P}$ is set to the negative logarithm
 and the weight of directed edge $(v_p, v_{p'})$ is the negative logarithm of the transition probability from $p$ to $p'$,
 i.e.,
 \begin{align*}
-    w(v_{p})       & = -\log(P(p |(p_s, p_e, L))) \\
-    w(v_p, v_{p'}) & = -\log(P(v_{p'} |v_p)), p \in \mathcal{P}
+    w(v_{p})       & = -\log(P_R(p | (p_s, p_e, L))) \\
+    w(v_p, v_{p'}) & = -\log(P(p' | p))
 \end{align*}
 
 Thus, compute the most likely trajectory with respect to constraints $(p_s, p_e, L)$ is
 equivalent to find a path (not necessarily a simple path) from vertex $v_{p_s}$ to
-$v_{p_e}$ with exactly $L$ vertices and minimize the total path weights,
+$v_{p_e}$ with exactly $L$ vertices and minimum total path weights,
 i.e.,
+\begin{displaymath}
+    \argmin_{(v_1, \dots, v_L)} \sum_{i=1}^{L} w(v_i) + \sum_{i=1}^{L-1} w(v_i, v_{i+1})
+\end{displaymath}
+such that
 \begin{align*}
-    \text{minimize~} & \sum_{i=1}^{L} w(v_i) + \sum_{i=1}^{L-1} w(v_i, v_{i+1}) \\
-    \text{s.t.~~~~~} & v_1 = v_{p_s} \\
-                     & v_L = v_{p_e} 
+    v_1 &= v_{p_s} \\
+    v_L &= v_{p_e} 
 \end{align*}
     
 The path can be found using dynamic programming, 
