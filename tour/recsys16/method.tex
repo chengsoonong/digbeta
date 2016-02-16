@@ -145,6 +145,46 @@ where $Z_i$ is a normalising constant.
 %POIs are grouped into several clusters according to their geographical coordinates using K-means
 %to reflect their neighborhood relationships.
 
+% Kronecker product
+We compute the transition probabilities of the above individual POI features 
+using maximum likelihood estimation, 
+i.e., counting the number of transitions for each pair of features then normalising each row,
+taking care of zeros by adding a small number $\epsilon$
+\footnote{In our experiments, $\epsilon$ for a specific row in the transition matrix equals $0.2$ times 
+the minimum non-zero value in that row.}
+to each number,
+which results a transition matrix for each of the above POI features.
+
+By computing the Kronecker product of transition matricies of all the POI features,
+we get a (unnormalised) transition matrix of POI features.
+However, to obtain the transition probabilities between each POI pair $(p_i, p_j), i \ne j$,
+there are two cases needs to be dealt with:
+\begin{enumerate}
+\item POI features which represent POIs that do not exist in $\mathcal{P}$,
+\item POI features that corresponds to more than one POIs in $\mathcal{P}$.
+\end{enumerate}
+
+% deal with feature vector without corresponding POI or with more than one POIs.
+For the first case, 
+the corresponding rows and columns in the result matrix of Kronecker product are simply removed.
+
+The second case was a bit subtle.
+POIs with exactly the same features are treated as a POI group,
+the incoming transition probability of the group was divided uniformly among POIs in the same group,
+which corresponds to choose a POI in the group uniformly at random;
+the outgoing transition probability of each POI is set the same as the outgoing transition probability of the POI group,
+as one had already been in the POI group in this case;
+the self-loop of the POI group represents the transitions between POIs in the group,
+suppose the transition probability from a POI group to itself is $P_o$,
+for each POI $p_i$ in the group, the transition probability from $p_i$ to any other POI $p_j$ in the same group
+is $\frac{P_o}{M-1}$, where $M$ is the number of POIs in the group.
+\footnote{Self-loop of individual POIs are forbidden here, so $P(p_i | p_i) = 0$ for all $p_i \in \mathcal{P}$.}
+
+Finally, we normalise each row of the transition matrix of POIs to get transition probabilities for each pair of POIs.
+\footnote{Note that dealing with the second case before or after row normalisation leads to the same transition probabilities, 
+as the process does not change the normalising constant of each row of the transition matrix.}
+
+
 \subsection{Recommend Trajectories}
 %\subsection{Probabilistic Model incorporating both ranking and transition}
 % ranking of POIs focus on modeling the (population) preference of POIs
@@ -154,16 +194,14 @@ where $Z_i$ is a normalising constant.
 
 For trajectory $(p_{j_1}, \dots, p_{j_L})$ with respect to constraints $(p_s, p_e, L)$, 
 where $p_{j_1} = p_s$ and $p_{j_L} = p_e$, 
-the likelihood of the trajectory is
+define the likelihood of the trajectory
 \begin{align*}
     & \mathcal{L} \left( (p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L) \right) \\
-   =& \prod_{k=1}^L P_R(p_{j_k} |(p_s, p_e, L)) \times \prod_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k})
+  =:& \prod_{k=1}^L P_R(p_{j_k} |(p_s, p_e, L)) \times \prod_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k})
 \end{align*}
-%by taking the logarithm, we get 
-%\begin{align*}
-%    \log \left( \mathcal{L}((p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L)) \right) =& \sum_{k=1}^L P(p_{j_k} |(p_s, p_e, L)) + \\
-%                                                                                & \sum_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k})
-%\end{align*}
+
+%TODO: remove ranking probs. from definition of trajectory likelihood
+%TODO: formulate the optimisation objective as a weighted sum of ranking and transition
 
 To recommend the \textit{most likely} trajectory with respect to constraints $(p_s, p_e, L)$,
 what we need to do is finding a trajectory of maximum likelihood with respect to constraints $(p_s, p_e, L)$,
@@ -220,10 +258,10 @@ with array $A[l, v]$ stores the minimum total weights of path
 that starts at vertex $v_{p_s}$ and ends at vertex $v$ with 
 exactly $l$ vertices in path,
 array $B[l, v]$ stores the predecessor of $v$ in that path,
-and compute a path with $l+1$ vertices is simply the following recursive relations,
+and compute a path with $l+1$ vertices by simply using the following recursive relations,
 \begin{align*}
-    A[l+1, v] &= \min_{v' \in Pa_v} \{ A[l, v'] + w(v', v) + w(v') + w(v) \} \\
-    B[l+1, v] &= \text{argmin}_{v' \in Pa_v} \{ A[l, v'] + w(v', v) + w(v') + w(v) \} 
+    A[l+1, v] &= \min_{v' \in Pa_v} \{ A[l, v'] + w(v', v) + w(v) \} \\
+    B[l+1, v] &= \argmin_{v' \in Pa_v} \{ A[l, v'] + w(v', v) + w(v) \} 
 \end{align*}
 where $Pa_v$ is the parent of vertex $v$ in $G$,
 i.e., 
@@ -235,7 +273,8 @@ the complete algorithm to find this path is shown in figure \ref{fig:path},
 the sequence of POIs corresponding to vertices in that path is the 
 trajectory we would like to recommend with respect to constraints $(p_s, p_e, L)$.
 
-\begin{figure*}
+%\begin{figure*}
+\begin{figure}
 \centering
 \begin{tabular}{rl}
 \hline
@@ -249,8 +288,8 @@ trajectory we would like to recommend with respect to constraints $(p_s, p_e, L)
  8:&\hspace{10pt} \textbf{end for} \\
  9:&\hspace{10pt} \textbf{for} $l=3$ \textbf{to} $L$ \\
 10:&\hspace{20pt}     \textbf{for} $v \in V$ \\
-11:&\hspace{30pt}         $A[l, v] = \min_{v' \in Pa_v} \{ A[l-1, v'] + w(v', v) + w(v') + w(v) \}$ \\
-12:&\hspace{30pt}         $B[l, v] = \text{argmin}_{v' \in Pa_v} \{ A[l-1, v'] + w(v', v) + w(v') + w(v) \}$ \\
+11:&\hspace{30pt}         $A[l, v] = \min_{v' \in Pa_v} \{ A[l-1, v'] + w(v', v) + w(v) \}$ \\
+12:&\hspace{30pt}         $B[l, v] = \argmin_{v' \in Pa_v} \{ A[l-1, v'] + w(v', v) + w(v) \}$ \\
 13:&\hspace{20pt}     \textbf{end for} \\
 14:&\hspace{10pt} \textbf{end for} \\
 % //trace back to find the actual path
@@ -268,7 +307,8 @@ trajectory we would like to recommend with respect to constraints $(p_s, p_e, L)
 \end{tabular}
 \caption{Path Finding}
 \label{fig:path}
-\end{figure*}
+%\end{figure*}
+\end{figure}
 
 
 %\section{Acknowledgments}
