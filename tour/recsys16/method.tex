@@ -190,44 +190,68 @@ as the process does not change the normalising constant of each row of the trans
 % ranking of POIs focus on modeling the (population) preference of POIs
 % MC focus on modeling the transition patterns between POIs
 % we can capture both aspects by combining them
-% TODO: explain no self-loop in graph G?
 
-For trajectory $(p_{j_1}, \dots, p_{j_L})$ with respect to constraints $(p_s, p_e, L)$, 
-where $p_{j_1} = p_s$ and $p_{j_L} = p_e$, 
-define the likelihood of the trajectory
-\begin{align*}
-    & \mathcal{L} \left( (p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L) \right) \\
-  =:& \prod_{k=1}^L P_R(p_{j_k} |(p_s, p_e, L)) \times \prod_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k})
-\end{align*}
+To recommend the \textit{most likely} trajectory with respect to constraints $(p_s, p_e, L)$,
+we want to maximize the ranking probabilities of POIs in the trajectory as well as
+the likelihood of the trajectory w.r.t. the Markov Chain corresponds to the transition matrix of POIs.
+Specifically, we want to maximize both of the following two quantities.
+\begin{itemize}
+\item The ranking probabilities of POIs in trajectory $(p_{j_1}, \dots, p_{j_L})$:
+      \begin{displaymath}
+          \ell_R((p_{j_1}, \dots, p_{j_L})) = \sum_{k=1}^L \log \left( P_R(p_{j_k} |(p_s, p_e, L)) \right)
+      \end{displaymath}
+\item The log likelihood of trajectory $(p_{j_1}, \dots, p_{j_L})$:
+      \begin{displaymath}
+          \ell((p_{j_1}, \dots, p_{j_L})) = \sum_{k=1}^{L-1} \log \left( P(p_{j_{k+1}} | p_{j_k}) \right)
+      \end{displaymath}
+\end{itemize}
+where $p_{j_1} = p_s$ and $p_{j_L} = p_e$.
+
+%For trajectory $(p_{j_1}, \dots, p_{j_L})$ with respect to constraints $(p_s, p_e, L)$, 
+%where $p_{j_1} = p_s$ and $p_{j_L} = p_e$, 
+%define the likelihood of the trajectory
+%\begin{align*}
+%    & \mathcal{L} \left( (p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L) \right) \\
+%  =:& \prod_{k=1}^L P_R(p_{j_k} |(p_s, p_e, L)) \times \prod_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k})
+%\end{align*}
 
 %TODO: remove ranking probs. from definition of trajectory likelihood
 %TODO: formulate the optimisation objective as a weighted sum of ranking and transition
 
-To recommend the \textit{most likely} trajectory with respect to constraints $(p_s, p_e, L)$,
-what we need to do is finding a trajectory of maximum likelihood with respect to constraints $(p_s, p_e, L)$,
-i.e.,
+%To recommend the \textit{most likely} trajectory with respect to constraints $(p_s, p_e, L)$,
+%what we need to do is finding a trajectory of maximum likelihood with respect to constraints $(p_s, p_e, L)$,
+%i.e.,
 
+Thus, we can optimize the following objective:
+\begin{displaymath}
+    \gamma \ell_R((p_{j_1}, \dots, p_{j_L})) + (1 - \gamma) \ell((p_{j_1}, \dots, p_{j_L}))
+\end{displaymath}
+where the parameter $\gamma \in [0, 1]$ was used to trade-off the importance between the ranking probabilities 
+and likelihood of the recommended trajectory.
+i.e.,
 \begin{align*}
-    & \argmax_{(p_{j_1}, \dots, p_{j_L})} \mathcal{L} \left( (p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L) \right) \\
+    & \argmax_{(p_{j_1}, \dots, p_{j_L})} \gamma \ell_R((p_{j_1}, \dots, p_{j_L})) + (1 - \gamma) \ell((p_{j_1}, \dots, p_{j_L})) \\
+%    & \argmax_{(p_{j_1}, \dots, p_{j_L})} \mathcal{L} \left( (p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L) \right) \\
 %which is equivalent to
 %\begin{align*}
-   =& \argmax_{(p_s, p_e, L)} \log \left( \mathcal{L} \left( (p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L) \right) \right) \\
-   =& \argmax_{(p_s, p_e, L)} \log \left( \prod_{k=1}^L P_R(p_{j_k} |(p_s, p_e, L)) \times 
-      \prod_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k}) \right) \\
-   =& \argmax_{(p_s, p_e, L)} \sum_{k=1}^L \log \left( P_R(p_{j_k} |(p_s, p_e, L)) \right) + 
-      \sum_{k=1}^{L-1} \log \left( P(p_{j_{k+1}} | p_{j_k}) \right) \\
-   =& \argmin_{(p_s, p_e, L)} -\sum_{k=1}^L \log \left( P_R(p_{j_k} |(p_s, p_e, L)) \right) -
-      \sum_{k=1}^{L-1} \log \left( P(p_{j_{k+1}} | p_{j_k}) \right) 
+%   =& \argmax_{(p_{j_1}, \dots, p_{j_L})} \log \left( \mathcal{L} \left( (p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L) \right) \right) \\
+%   =& \argmax_{(p_{j_1}, \dots, p_{j_L})} \log \left( \prod_{k=1}^L P_R(p_{j_k} |(p_s, p_e, L)) \times 
+%      \prod_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k}) \right) \\
+   =& \argmax_{(p_{j_1}, \dots, p_{j_L})} \gamma \sum_{k=1}^L \log \left( P_R(p_{j_k} |(p_s, p_e, L)) \right) + 
+    (1 - \gamma) \sum_{k=1}^{L-1} \log \left( P(p_{j_{k+1}} | p_{j_k}) \right) \\
+   =& \argmin_{(p_{j_1}, \dots, p_{j_L})} - \gamma \sum_{k=1}^L \log \left( P_R(p_{j_k} |(p_s, p_e, L)) \right) -
+    (1 - \gamma) \sum_{k=1}^{L-1} \log \left( P(p_{j_{k+1}} | p_{j_k}) \right) 
 \end{align*}
 such that
 \begin{align*}
     p_{j_1} &= p_s \\
     p_{j_L} &= p_e \\
-    p_{j_k} &\in \mathcal{P}, 1 \le k \le L
+    p_{j_k} &\in \mathcal{P}, 1 \le k \le L \\
+    \gamma  &\in [0, 1]
 \end{align*}
 
 One way to find such a trajectory is transforming the above optimization problem to 
-finding a shortest path in a weighted graph.
+find a shortest path in a weighted graph.
 
 Concretely,
 we create a weighted directed graph $G$ with vertices $V$ that corresponds to the set of POIs $\mathcal{P}$ and 
@@ -245,7 +269,7 @@ equivalent to find a path (not necessarily a simple path) from vertex $v_{p_s}$ 
 $v_{p_e}$ with exactly $L$ vertices and minimum total path weights,
 i.e.,
 \begin{displaymath}
-    \argmin_{(v_1, \dots, v_L)} \sum_{i=1}^{L} w(v_i) + \sum_{i=1}^{L-1} w(v_i, v_{i+1})
+    \argmin_{(v_1, \dots, v_L)} \gamma \sum_{i=1}^{L} w(v_i) + (1 - \gamma) \sum_{i=1}^{L-1} w(v_i, v_{i+1})
 \end{displaymath}
 such that
 \begin{align*}
@@ -260,8 +284,8 @@ exactly $l$ vertices in path,
 array $B[l, v]$ stores the predecessor of $v$ in that path,
 and compute a path with $l+1$ vertices by simply using the following recursive relations,
 \begin{align*}
-    A[l+1, v] &= \min_{v' \in Pa_v} \{ A[l, v'] + w(v', v) + w(v) \} \\
-    B[l+1, v] &= \argmin_{v' \in Pa_v} \{ A[l, v'] + w(v', v) + w(v) \} 
+    A[l+1, v] &= \min_{v' \in Pa_v} \{ A[l, v'] + \gamma w(v) + (1-\gamma) w(v', v) \} \\
+    B[l+1, v] &= \argmin_{v' \in Pa_v} \{ A[l, v'] + \gamma w(v) + (1-\gamma) w(v', v) \} 
 \end{align*}
 where $Pa_v$ is the parent of vertex $v$ in $G$,
 i.e., 
@@ -281,15 +305,15 @@ trajectory we would like to recommend with respect to constraints $(p_s, p_e, L)
  1:&\textbf{procedure} FindPath$(V, E, p_s, p_e, L)$ \\
  2:&\hspace{10pt} \textbf{for} $v \in V$ \\
  3:&\hspace{20pt}     \textbf{if} $(v_{p_s}, v) \in E$ \\
- 4:&\hspace{30pt}         $A[2, v] = w(v_{p_s}, v) + w(v_{p_s}) + w(v)$ \\
+4:&\hspace{30pt}          $A[2, v] = w(v_{p_s}, v) + \gamma w(v) + (1-\gamma) w(v_{p_s})$ \\
  5:&\hspace{30pt}         $B[2, v] = v_{p_s}$ \\
  6:&\hspace{20pt}     \textbf{else} \\
  7:&\hspace{30pt}         $A[2, v] = +\infty$ \\
  8:&\hspace{10pt} \textbf{end for} \\
  9:&\hspace{10pt} \textbf{for} $l=3$ \textbf{to} $L$ \\
 10:&\hspace{20pt}     \textbf{for} $v \in V$ \\
-11:&\hspace{30pt}         $A[l, v] = \min_{v' \in Pa_v} \{ A[l-1, v'] + w(v', v) + w(v) \}$ \\
-12:&\hspace{30pt}         $B[l, v] = \argmin_{v' \in Pa_v} \{ A[l-1, v'] + w(v', v) + w(v) \}$ \\
+11:&\hspace{30pt}         $A[l, v] = \min_{v' \in Pa_v} \{ A[l-1, v'] + \gamma w(v) + (1-\gamma) w(v', v) \}$ \\
+12:&\hspace{30pt}         $B[l, v] = \argmin_{v' \in Pa_v} \{ A[l-1, v'] + \gamma w(v) + (1-\gamma) w(v', v) \}$ \\
 13:&\hspace{20pt}     \textbf{end for} \\
 14:&\hspace{10pt} \textbf{end for} \\
 % //trace back to find the actual path
