@@ -1,5 +1,6 @@
 \documentclass{sig-alternate-05-2015}
 
+\usepackage{multirow}
 \DeclareMathOperator*{\argmin}{argmin}
 \DeclareMathOperator*{\argmax}{argmax}
 
@@ -34,10 +35,11 @@
 %\keywords{}
 
 \section{Proposed Method}
+\label{method}
 
 
 \subsection{Problem Formulation}
-\label{sec:formulation}
+\label{method:formulation}
 For a set of Point/Place of Interest (POI) $\mathcal{P}$ and a set of users $\mathcal{U}$,
 a trajectory $\mathcal{T}_u$ of user $u$ is an ordered sequence of POIs,
 i.e.,
@@ -55,6 +57,7 @@ the number of visited POIs is $L$.
 
 
 \subsection{Ranking of POIs}
+\label{method:ranking}
 % ranking of POIs focus on modeling the (personalised) preference of POIs
 We first produce a ranking of POIs, i.e., $<_{p_i, p_j} \subset \mathcal{P}^2$,
 with respect to constraints $(p_s, p_e, L)$ 
@@ -76,8 +79,7 @@ Features used for ranking POIs are:
       \end{displaymath}
 \item Average visit duration of POI\cite{ijcai15},
       \begin{displaymath}
-          \bar{V}(p) = \frac{1}{N(p)} \sum_{u \in \mathcal{U}} \sum_i \sum_{p_j \in \mathcal{T}_u^i} (t_{p_j}^s - t_{p_j}^e) \delta(p_j = p),
-          p \in \mathcal{P}
+          \bar{V}(p) = \frac{1}{N(p)} \sum_{u \in \mathcal{U}} \sum_i \sum_{p_j \in \mathcal{T}_u^i} (t_{p_j}^s - t_{p_j}^e) \delta(p_j = p)
       \end{displaymath}
 \item Whether the category (e.g., structures, entertainment and shopping etc.) is the same as that of $p_s$ (and $p_e$).
 \item Distance from POI $p$ to $p_s$ (and $p_e$) using haversine formula \cite{wiki_haversine},
@@ -102,18 +104,19 @@ and the target/label of POI $p$ in a particular query (i.e., trajectory group) a
 in trajectories of that query, 
 without counting the occurrence of $p$ as start or end POI of a trajectory.
 
-The ranking scores of POIs are transformed to probabilities using Platt scaling\cite{platt99} by
+The ranking scores of POIs are transformed to probability distribution using softmax function
 \begin{displaymath}
     %P(y=1 |p) = \frac{1}{1 + e^{A f(x) + B}, p \in P
-    P_R(p |(p_s, p_e, L)) = \frac{1}{1 + e^{\alpha R(p) + \beta}}, p \in \mathcal{P}
+    P_R(p_j |(p_s, p_e, L)) = \frac{e^{R(p_j)}}{\sum_j e^{R(p_j)}}
 \end{displaymath}
-where $R(p)$ is the ranking score of POI $p$, $\alpha$ and $\beta$ are parameters learned from training set\cite{plattnote07}.
+where $R(p_j)$ is the ranking score of POI $p_j$.
 
 
 \subsection{Factorising Transition Probabilities between POIs}
+\label{method:transition}
 To deal with data sparsity,
 the transition probability between a pair of POIs $(p_i, p_j)$ was factorised into the product of
-transition probabilities between the following individual features of that POI pair.
+transition probabilities between the individual features of that POI.
 \begin{enumerate}
 \item The category of POI, $P(Cat(p_j) | Cat(p_i))$
       is the transition probability from the category of $p_i$ to the category of $p_j$.
@@ -186,6 +189,7 @@ as the process does not change the normalising constant of each row of the trans
 
 
 \subsection{Recommend Trajectories}
+\label{method:recommend}
 %\subsection{Probabilistic Model incorporating both ranking and transition}
 % ranking of POIs focus on modeling the (population) preference of POIs
 % MC focus on modeling the transition patterns between POIs
@@ -224,30 +228,31 @@ where $p_{j_1} = p_s$ and $p_{j_L} = p_e$.
 
 Thus, we can optimize the following objective:
 \begin{displaymath}
-    \gamma \ell_R((p_{j_1}, \dots, p_{j_L})) + (1 - \gamma) \ell((p_{j_1}, \dots, p_{j_L}))
+    \alpha \ell_R((p_{j_1}, \dots, p_{j_L})) + \beta \ell((p_{j_1}, \dots, p_{j_L}))
 \end{displaymath}
-where the parameter $\gamma \in [0, 1]$ was used to trade-off the importance between the ranking probabilities 
+where $\alpha \in [0, 1]$ and $\beta = 1 - \alpha$ were parameters to trade-off the importance between the ranking probabilities 
 and likelihood of the recommended trajectory.
 i.e.,
 \begin{align*}
-    & \argmax_{(p_{j_1}, \dots, p_{j_L})} \gamma \ell_R((p_{j_1}, \dots, p_{j_L})) + (1 - \gamma) \ell((p_{j_1}, \dots, p_{j_L})) \\
+    & \argmax_{(p_{j_1}, \dots, p_{j_L})} \alpha \ell_R((p_{j_1}, \dots, p_{j_L})) + \beta \ell((p_{j_1}, \dots, p_{j_L})) \\
 %    & \argmax_{(p_{j_1}, \dots, p_{j_L})} \mathcal{L} \left( (p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L) \right) \\
 %which is equivalent to
 %\begin{align*}
 %   =& \argmax_{(p_{j_1}, \dots, p_{j_L})} \log \left( \mathcal{L} \left( (p_{j_1}, \dots, p_{j_L}) | (p_s, p_e, L) \right) \right) \\
 %   =& \argmax_{(p_{j_1}, \dots, p_{j_L})} \log \left( \prod_{k=1}^L P_R(p_{j_k} |(p_s, p_e, L)) \times 
 %      \prod_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k}) \right) \\
-   =& \argmax_{(p_{j_1}, \dots, p_{j_L})} \gamma \sum_{k=1}^L \log \left( P_R(p_{j_k} |(p_s, p_e, L)) \right) + 
-    (1 - \gamma) \sum_{k=1}^{L-1} \log \left( P(p_{j_{k+1}} | p_{j_k}) \right) \\
-   =& \argmin_{(p_{j_1}, \dots, p_{j_L})} - \gamma \sum_{k=1}^L \log \left( P_R(p_{j_k} |(p_s, p_e, L)) \right) -
-    (1 - \gamma) \sum_{k=1}^{L-1} \log \left( P(p_{j_{k+1}} | p_{j_k}) \right) 
+   =& \argmax_{(p_{j_1}, \dots, p_{j_L})} \alpha \sum_{k=1}^L \log \left( P_R(p_{j_k} |(p_s, p_e, L)) \right) + 
+      \beta \sum_{k=1}^{L-1} \log \left( P(p_{j_{k+1}} | p_{j_k}) \right) \\
+   =& \argmin_{(p_{j_1}, \dots, p_{j_L})} - \alpha \sum_{k=1}^L \log \left( P_R(p_{j_k} |(p_s, p_e, L)) \right) -
+      \beta \sum_{k=1}^{L-1} \log \left( P(p_{j_{k+1}} | p_{j_k}) \right) 
 \end{align*}
 such that
 \begin{align*}
     p_{j_1} &= p_s \\
     p_{j_L} &= p_e \\
     p_{j_k} &\in \mathcal{P}, 1 \le k \le L \\
-    \gamma  &\in [0, 1]
+    \alpha  &\in [0, 1] \\
+    \beta   &= 1 - \alpha
 \end{align*}
 
 One way to find such a trajectory is transforming the above optimization problem to 
@@ -269,7 +274,7 @@ equivalent to find a path (not necessarily a simple path) from vertex $v_{p_s}$ 
 $v_{p_e}$ with exactly $L$ vertices and minimum total path weights,
 i.e.,
 \begin{displaymath}
-    \argmin_{(v_1, \dots, v_L)} \gamma \sum_{i=1}^{L} w(v_i) + (1 - \gamma) \sum_{i=1}^{L-1} w(v_i, v_{i+1})
+    \argmin_{(v_1, \dots, v_L)} \alpha \sum_{i=1}^{L} w(v_i) + \beta \sum_{i=1}^{L-1} w(v_i, v_{i+1})
 \end{displaymath}
 such that
 \begin{align*}
@@ -284,8 +289,8 @@ exactly $l$ vertices in path,
 array $B[l, v]$ stores the predecessor of $v$ in that path,
 and compute a path with $l+1$ vertices by simply using the following recursive relations,
 \begin{align*}
-    A[l+1, v] &= \min_{v' \in Pa_v} \{ A[l, v'] + \gamma w(v) + (1-\gamma) w(v', v) \} \\
-    B[l+1, v] &= \argmin_{v' \in Pa_v} \{ A[l, v'] + \gamma w(v) + (1-\gamma) w(v', v) \} 
+    A[l+1, v] &= \min_{v' \in Pa_v} \{ A[l, v'] + \alpha w(v) + \beta w(v', v) \} \\
+    B[l+1, v] &= \argmin_{v' \in Pa_v} \{ A[l, v'] + \alpha w(v) + \beta w(v', v) \} 
 \end{align*}
 where $Pa_v$ is the parent of vertex $v$ in $G$,
 i.e., 
@@ -300,20 +305,20 @@ trajectory we would like to recommend with respect to constraints $(p_s, p_e, L)
 %\begin{figure*}
 \begin{figure}
 \centering
-\begin{tabular}{rl}
-\hline
- 1:&\textbf{procedure} FindPath$(V, E, p_s, p_e, L)$ \\
- 2:&\hspace{10pt} \textbf{for} $v \in V$ \\
- 3:&\hspace{20pt}     \textbf{if} $(v_{p_s}, v) \in E$ \\
-4:&\hspace{30pt}          $A[2, v] = w(v_{p_s}, v) + \gamma w(v) + (1-\gamma) w(v_{p_s})$ \\
- 5:&\hspace{30pt}         $B[2, v] = v_{p_s}$ \\
- 6:&\hspace{20pt}     \textbf{else} \\
- 7:&\hspace{30pt}         $A[2, v] = +\infty$ \\
- 8:&\hspace{10pt} \textbf{end for} \\
- 9:&\hspace{10pt} \textbf{for} $l=3$ \textbf{to} $L$ \\
+\begin{tabular}{p{3pt}l}
+%\hline
+01:&\textbf{procedure} FindPath$(V, E, p_s, p_e, L)$ \\
+02:&\hspace{10pt} \textbf{for} $v \in V$ \\
+03:&\hspace{20pt}     \textbf{if} $(v_{p_s}, v) \in E$ \\
+04:&\hspace{30pt}         $A[2, v] = w(v_{p_s}, v) + \alpha w(v) + \beta w(v_{p_s})$ \\
+05:&\hspace{30pt}         $B[2, v] = v_{p_s}$ \\
+06:&\hspace{20pt}     \textbf{else} \\
+07:&\hspace{30pt}         $A[2, v] = +\infty$ \\
+08:&\hspace{10pt} \textbf{end for} \\
+09:&\hspace{10pt} \textbf{for} $l=3$ \textbf{to} $L$ \\
 10:&\hspace{20pt}     \textbf{for} $v \in V$ \\
-11:&\hspace{30pt}         $A[l, v] = \min_{v' \in Pa_v} \{ A[l-1, v'] + \gamma w(v) + (1-\gamma) w(v', v) \}$ \\
-12:&\hspace{30pt}         $B[l, v] = \argmin_{v' \in Pa_v} \{ A[l-1, v'] + \gamma w(v) + (1-\gamma) w(v', v) \}$ \\
+11:&\hspace{30pt}         \(\displaystyle A[l, v] = \min_{v' \in Pa_v} \{ A[l-1, v'] + \alpha w(v) + \beta w(v', v) \} \) \\
+12:&\hspace{30pt}         \(\displaystyle B[l, v] = \argmin_{v' \in Pa_v} \{ A[l-1, v'] + \alpha w(v) + \beta w(v', v) \} \)\\
 13:&\hspace{20pt}     \textbf{end for} \\
 14:&\hspace{10pt} \textbf{end for} \\
 % //trace back to find the actual path
@@ -327,12 +332,51 @@ trajectory we would like to recommend with respect to constraints $(p_s, p_e, L)
 22:&\hspace{10pt} \textbf{util} $l < 2$ \\
 23:&\hspace{10pt} \textbf{return} $path$ \\
 24:&\textbf{end procedure} \\
-\hline
+%\hline
 \end{tabular}
 \caption{Path Finding}
 \label{fig:path}
 %\end{figure*}
 \end{figure}
+
+
+\section{Experimental Results}
+\begin{table}
+\centering
+\caption{Experimental Results}
+\begin{tabular}{l|l|l|l} \hline
+\textbf{Dataset} & \textbf{Method} & \textbf{F1} & $\mathbf{\tau}$ \\ 
+\hline
+\multirow{9}{*}{Toronto} & Random                & & \\
+                         & Rank-Pop              & & \\
+                         & Rank-Feature          & & \\
+                         & MC-DP                 & & \\
+                         & MC-ILP                & & \\
+                         & PersTour              & & \\
+                         & PersTour-L            & & \\
+                         & Rank-Feature + MC-DP  & & \\
+                         & Rank-Feature + MC-ILP & & \\
+\hline
+\end{tabular}
+\end{table}
+
+We compared the experimental results on 5 datasets between the proposed methods and other 7 methods:
+\begin{itemize}
+\item Random: choose POIs uniformly at random from the set of POIs $\mathcal{P} \setminus \{p_s, p_e \}$ to visit.
+\item Rank-Pop: choose POIs according to the ranking based on POI popularity.
+\item Rank-Feature: choose POIs according to the ranking based on POI features described in section \ref{method:ranking}.
+\item MC-DP: recommend trajectory according to the Markov Chain with transition matrix 
+      described in section \ref{method:transition},
+      use Viterbi algorithm to compute the most likely trajectory w.r.t. constraints $(p_s, p_e, L)$.
+\item MC-ILP: the same as MC-DP, but use integer linear programming to compute the most likely trajectory.
+\item PersTour\cite{ijcai15}: personalised trajectory recommendation method described in \cite{ijcai15}.
+\item PersTour-L: PersTour\cite{ijcai15} with budget constraint replaced with the number POIs to visit, i.e., $L$.
+\item Rank-Feature + MC-DP: one of the proposed methods, combining POI ranking based on features 
+      described in section \ref{method:ranking} and the Markov Chain with transition matrix described in section \ref{method:transition},
+      use dynamic programming to compute the most likely trajectory w.r.t. constraints $(p_s, p_e, L)$.
+\item Rank-Feature + MC-ILP: the second proposed method, same as Rank-Feature + MC-DP, 
+      but use integer linear programming to compute the most likely trajectory.
+\end{itemize}
 
 
 %\section{Acknowledgments}
