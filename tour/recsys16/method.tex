@@ -341,24 +341,71 @@ trajectory we would like to recommend with respect to constraints $(p_s, p_e, L)
 
 
 \section{Experimental Results}
-\begin{table}
+%\begin{table*}
+%\centering
+%\caption{Experimental Results}
+%\begin{tabular}{c|ccccccc|cccccccc} \hline
+%\multirow{2}{*}{Dataset} & \multicolumn{7}{|c|}{User agnostic} & \multicolumn{8}{|c}{User specific} \\ \cline{2-15}
+%                         & Rand & RankP & RankF & MC-DP & MC-ILP & Pro-DP & Pro-ILP 
+%                         & PersTour & PersTour-L & RankP & RankF & MC-DP & MC-ILP & Pro-DP & Pro-ILP \\ \hline
+%Edinburgh         & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ 
+%                  & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $\mathbf{1\pm0}$ & $1\pm0$ \\
+%Glasgow           & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ 
+%                  & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $\mathbf{1\pm0}$ & $1\pm0$ \\
+%Melbourne         & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ 
+%                  & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $\mathbf{1\pm0}$ & $1\pm0$ \\
+%Osaka             & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ 
+%                  & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $\mathbf{1\pm0}$ & $1\pm0$ \\
+%Toronto           & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ 
+%                  & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $\mathbf{1\pm0}$ & $1\pm0$ \\
+%\hline
+%\textbf{Dataset} & \textbf{Method} & \textbf{F1} & $\mathbf{\tau}$ \\ 
+%\hline
+%\multirow{9}{*}{Toronto} & Random                & & \\
+%                         & Rank-Pop              & & \\
+%                         & Rank-Feature          & & \\
+%                         & MC-DP                 & & \\
+%                         & MC-ILP                & & \\
+%                         & PersTour              & & \\
+%                         & PersTour-L            & & \\
+%                         & Rank-Feature + MC-DP  & & \\
+%                         & Rank-Feature + MC-ILP & & \\
+%\hline
+%\end{tabular}
+%\end{table*}
+
+\begin{table*}
 \centering
 \caption{Experimental Results}
-\begin{tabular}{l|l|l|l} \hline
-\textbf{Dataset} & \textbf{Method} & \textbf{F1} & $\mathbf{\tau}$ \\ 
-\hline
-\multirow{9}{*}{Toronto} & Random                & & \\
-                         & Rank-Pop              & & \\
-                         & Rank-Feature          & & \\
-                         & MC-DP                 & & \\
-                         & MC-ILP                & & \\
-                         & PersTour              & & \\
-                         & PersTour-L            & & \\
-                         & Rank-Feature + MC-DP  & & \\
-                         & Rank-Feature + MC-ILP & & \\
+\tiny
+\begin{tabular}{c|cccccc|cccccc} \hline
+\multirow{2}{*}{Dataset} & \multicolumn{6}{|c|}{User agnostic} & \multicolumn{6}{|c}{User specific} \\ \cline{2-13}
+& RankP & RankF & MC-DP & MC-ILP & Prop-DP & Prop-ILP
+& RankP & RankF & MC-DP & MC-ILP & Prop-DP & Prop-ILP \\ \hline
+Osaka & $0.61\pm0.16$ & $0.63\pm0.15$ & $0.71\pm0.23$ & $0.67\pm0.21$ & $\mathbf{0.71\pm0.20}$ & $0.66\pm0.21$ & $0.61\pm0.16$ & $0.65\pm0.17$ & $0.71\pm0.22$ & $0.66\pm0.20$ & $0.66\pm0.19$ & $0.63\pm0.19$ \\
+Glasgow & $0.71\pm0.17$ & $\mathbf{0.76\pm0.18}$ & $0.71\pm0.18$ & $0.70\pm0.17$ & $0.75\pm0.18$ & $0.74\pm0.18$ & $0.71\pm0.17$ & $0.75\pm0.18$ & $0.70\pm0.18$ & $0.69\pm0.18$ & $0.71\pm0.18$ & $0.72\pm0.17$ \\
 \hline
 \end{tabular}
-\end{table}
+\end{table*}
+
+
+\begin{table*}
+\centering
+\caption{Experimental Results}
+\small
+\begin{tabular}{l|cc|cc} \hline
+\multirow{2}{*}{Method} & \multicolumn{2}{|c|}{User agnostic} & \multicolumn{2}{|c}{User specific} \\ \cline{2-5}
+& Osaka & Glasgow & Osaka & Glasgow \\ \hline
+RankP & $0.611\pm0.163$ & $0.706\pm0.169$ & $0.611\pm0.163$ & $0.706\pm0.169$ \\
+RankF & $0.633\pm0.153$ & $\mathbf{0.758\pm0.182}$ & $0.647\pm0.170$ & $0.754\pm0.179$ \\
+MC-DP & $0.707\pm0.229$ & $0.708\pm0.184$ & $0.706\pm0.218$ & $0.695\pm0.182$ \\
+MC-ILP & $0.670\pm0.209$ & $0.705\pm0.168$ & $0.656\pm0.198$ & $0.691\pm0.177$ \\
+Prop-DP & $\mathbf{0.709\pm0.202}$ & $0.745\pm0.180$ & $0.658\pm0.192$ & $0.714\pm0.183$ \\
+Prop-ILP & $0.660\pm0.206$ & $0.743\pm0.179$ & $0.635\pm0.190$ & $0.724\pm0.167$ \\
+\hline
+\end{tabular}
+\end{table*}
+
 
 We compared the experimental results on 5 datasets between the proposed methods and other 7 methods:
 \begin{itemize}
