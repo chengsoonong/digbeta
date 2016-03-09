@@ -221,5 +221,36 @@ Melbourne & 5 & 5 & 4 & 3 \\
     \end{tabular}
 \end{table*}
 
+\begin{table*}
+    \centering
+    \caption{Experimental Results: user agnostic setting without trajectories that are short or with sub-tours}
+    \begin{tabular}{l|ccccc} \hline
+         & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
+        RankP & $\mathbf{0.716\pm0.128}$ & $0.750\pm0.153$ & $0.711\pm0.154$ & $0.701\pm0.135$ & $0.608\pm0.128$ \\
+        RankF & $0.707\pm0.150$ & $0.793\pm0.161$ & $0.708\pm0.151$ & $\mathbf{0.756\pm0.156}$ & $\mathbf{0.609\pm0.126}$ \\
+        MC-DP & $0.687\pm0.156$ & $0.758\pm0.166$ & $0.671\pm0.163$ & $0.715\pm0.166$ & $0.580\pm0.155$ \\
+        MC-ILP & $0.681\pm0.163$ & $0.768\pm0.158$ & $0.688\pm0.154$ & $0.737\pm0.156$ & $0.590\pm0.144$ \\
+        Prop-DP & $0.685\pm0.178$ & $0.774\pm0.182$ & $0.699\pm0.158$ & $0.724\pm0.165$ & $0.589\pm0.148$ \\
+        Prop-ILP & $0.702\pm0.165$ & $\mathbf{0.798\pm0.161}$ & $\mathbf{0.712\pm0.151}$ & $0.745\pm0.152$ & $0.606\pm0.136$ \\
+        \hline
+    \end{tabular}
+\end{table*}
+
+\begin{table*}
+    \centering
+    \caption{Experimental Results: user specific setting without trajectories that are short or with sub-tours}
+    \begin{tabular}{l|ccccc} \hline
+         & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
+        RankP & $\mathbf{0.716\pm0.128}$ & $0.750\pm0.153$ & $\mathbf{0.711\pm0.154}$ & $0.701\pm0.135$ & $0.608\pm0.128$ \\
+        RankF & $0.707\pm0.150$ & $0.793\pm0.161$ & $0.708\pm0.147$ & $0.751\pm0.162$ & $\mathbf{0.608\pm0.124}$ \\
+        MC-DP & $0.690\pm0.171$ & $0.742\pm0.161$ & $0.661\pm0.163$ & $0.706\pm0.160$ & $0.586\pm0.162$ \\
+        MC-ILP & $0.690\pm0.171$ & $0.755\pm0.157$ & $0.678\pm0.154$ & $0.730\pm0.149$ & $0.595\pm0.153$ \\
+        Prop-DP & $0.690\pm0.171$ & $0.778\pm0.184$ & $0.693\pm0.161$ & $0.736\pm0.164$ & $0.593\pm0.160$ \\
+        Prop-ILP & $0.702\pm0.165$ & $\mathbf{0.802\pm0.162}$ & $0.711\pm0.152$ & $\mathbf{0.753\pm0.158}$ & $0.605\pm0.147$ \\
+        \hline
+    \end{tabular}
+\end{table*}
+
+
 \subsection{Analysis of Experimental Results}
 \label{experiment:analysis}
