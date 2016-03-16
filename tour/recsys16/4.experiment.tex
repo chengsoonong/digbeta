@@ -6,7 +6,7 @@
 We experiment on trajectories data in four cities from \cite{ijcai15} that were
 extracted from Yahoo! Flickr Creative Commons 100M (a.k.a. YFCC100M) dataset\cite{yfcc100m},
 and trajectories data in Melbourne that was extracted from YFCC100M the same way described in \cite{ht10, ijcai15},
-dataset statistics are available in table \ref{table:data:all}-\ref{table:data:perfect}.
+dataset statistics are available in table \ref{table:data:all}-\ref{table:data:nofew}.
 
 An example of trajectory in Melbourne was shown in figure \ref{fig:traj}.
 
@@ -17,55 +17,50 @@ An example of trajectory in Melbourne was shown in figure \ref{fig:traj}.
 \label{fig:traj}
 \end{figure}
 
-
-\begin{table}
+\begin{table*}
 \centering
 \caption{Dataset with all trajectories}
 \label{table:data:all}
-\scriptsize
-\begin{tabular}{lrrrr} \hline
-\textbf{City} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#POI Visits} & \textbf{\#Trajectories} \\ \hline
-Osaka & 27 & 450 & 7,747 & 1,115 \\ 
-Glasgow & 27 & 601 & 11,434 & 2,227 \\ 
-Edinburgh & 28 & 1,454 & 33,944 & 5,028 \\ 
-Toronto & 29 & 1,395 & 39,419 & 6,057 \\ 
-Melbourne & 85 & 832 & 23,794 & 4,918 \\ 
+\begin{tabular}{lrrrrr} \hline
+\textbf{City} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#POI Visits} & \textbf{\#Trajectories} & \textbf{\#TotalNodes} \\ \hline
+Osaka & 27 & 450 & 7,747 & 1,115 & 1,419 \\ 
+Glasgow & 27 & 601 & 11,434 & 2,227 & 2,824 \\ 
+Edinburgh & 28 & 1,454 & 33,944 & 5,028 & 8,616 \\ 
+Toronto & 29 & 1,395 & 39,419 & 6,057 & 7,896 \\ 
+Melbourne & 85 & 1,000 & 23,995 & 5,106 & 7,671 \\ 
 \hline
 \end{tabular}
-\end{table}
+\end{table*}
 
-\begin{table}
+\begin{table*}
 \centering
 \caption{Dataset without short trajectories}
 \label{table:data:noshort}
-\scriptsize
-\begin{tabular}{lrrrr} \hline
-\textbf{City} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#POI Visits} & \textbf{\#Trajectories} \\ \hline
-Osaka & 21 & 51 & 1,595 & 64 \\ 
-Glasgow & 24 & 102 & 1,862 & 131 \\ 
-Edinburgh & 26 & 423 & 13,136 & 710 \\ 
-Toronto & 26 & 232 & 7,415 & 417 \\ 
-Melbourne & 81 & 248 & 6,510 & 395 \\ 
+\begin{tabular}{lrrrrr} \hline
+\textbf{City} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#POI Visits} & \textbf{\#Trajectories} & \textbf{\#TotalNodes} \\ \hline
+Osaka & 21 & 51 & 1,595 & 64 & 246 \\ 
+Glasgow & 24 & 102 & 1,862 & 131 & 508 \\ 
+Edinburgh & 26 & 423 & 13,136 & 710 & 3,596 \\ 
+Toronto & 26 & 232 & 7,415 & 417 & 1,696 \\ 
+Melbourne & 82 & 302 & 7,374 & 506 & 2,559 \\ 
 \hline
 \end{tabular}
-\end{table}
+\end{table*}
 
-\begin{table}
+\begin{table*}
 \centering
-\caption{Dataset without trajectories that are short or with sub-tours}
-\label{table:data:perfect}
-\scriptsize
-\begin{tabular}{lrrrr} \hline
-\textbf{City} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#POI Visits} & \textbf{\#Trajectories} \\ \hline
-Osaka & 18 & 29 & 801 & 35 \\ 
-Glasgow & 23 & 66 & 844 & 75 \\ 
-Edinburgh & 26 & 249 & 4,570 & 365 \\ 
-Toronto & 26 & 149 & 4,003 & 239 \\ 
-Melbourne & 78 & 188 & 3,312 & 266 \\ 
+\caption{Dataset without users with less than 5 trajectories}
+\label{table:data:nofew}
+\begin{tabular}{lrrrrr} \hline
+\textbf{City} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#POI Visits} & \textbf{\#Trajectories} & \textbf{\#TotalNodes} \\ \hline
+Osaka & 24 & 40 & 2,471 & 473 & 577 \\ 
+Glasgow & 25 & 94 & 7,116 & 1,433 & 1,711 \\ 
+Edinburgh & 28 & 192 & 19,149 & 2,901 & 4,420 \\ 
+Toronto & 29 & 248 & 27,105 & 4,113 & 5,185 \\ 
+Melbourne & 85 & 242 & 15,833 & 3,759 & 5,223 \\ 
 \hline
 \end{tabular}
-\end{table}
-
+\end{table*}
 
 
 \subsection{Evaluation Metrics}
@@ -101,57 +96,7 @@ We compared the experimental results on trajectory datasets between the proposed
 
 The regularisation parameter of rankSVM in RankF, Prop-DP and Prop-ILP was set to $1000$,
 $K=100$ for user specific setting in RankF, RankP, MC-DP, MC-ILP, Prop-DP and Prop-ILP,
-POI features used in MC-DP, MC-ILP, Prop-DP and Prop-ILP were discretized using parameters discribed in 
-table \ref{table:discretize:all}-\ref{table:discretize:perfect}.
-
-
-\begin{table}
-\centering
-\caption{POI Features Discretization Parameters: Dataset with all trajectories}
-\label{table:discretize:all}
-\scriptsize
-\begin{tabular}{lcccc} \hline
-\textbf{City} & \textbf{Popularity} & \textbf{\#Visits} & \textbf{Duration} & \textbf{Neighbourhood} \\ \hline
-Osaka & 2 & 2 & 3 & 4 \\ 
-Glasgow & 4 & 4 & 3 & 3 \\ 
-Edinburgh & 4 & 3 & 3 & 3 \\ 
-Toronto & 3 & 3 & 3 & 3 \\ 
-Melbourne & 5 & 4 & 3 & 5 \\ 
-\hline
-\end{tabular}
-\end{table}
-
-\begin{table}
-\centering
-\caption{POI Features Discretization Parameters: Dataset without short trajectories}
-\label{table:discretize:noshort}
-\scriptsize
-\begin{tabular}{lcccc} \hline
-\textbf{City} & \textbf{Popularity} & \textbf{\#Visits} & \textbf{Duration} & \textbf{Neighbourhood} \\ \hline
-Osaka & 3 & 3 & 5 & 4 \\ 
-Glasgow & 3 & 4 & 5 & 4 \\ 
-Edinburgh & 4 & 4 & 3 & 3 \\ 
-Toronto & 2 & 4 & 3 & 3 \\ 
-Melbourne & 3 & 2 & 5 & 3 \\ 
-\hline
-\end{tabular}
-\end{table}
-
-\begin{table}
-\centering
-\caption{POI Features Discretization Parameters: Dataset without trajectories that are short or with sub-tours}
-\label{table:discretize:perfect}
-\scriptsize
-\begin{tabular}{lcccc} \hline
-\textbf{City} & \textbf{Popularity} & \textbf{\#Visits} & \textbf{Duration} & \textbf{Neighbourhood} \\ \hline
-Osaka & 2 & 2 & 3 & 4 \\ 
-Glasgow & 2 & 2 & 3 & 4 \\ 
-Edinburgh & 4 & 2 & 3 & 4 \\ 
-Toronto & 3 & 3 & 3 & 3 \\ 
-Melbourne & 5 & 5 & 4 & 3 \\ 
-\hline
-\end{tabular}
-\end{table}
+POI features used in MC-DP, MC-ILP, Prop-DP and Prop-ILP were discretized using $5$ bins or clusters.
 
 
 %\begin{tabular}{c|ccccccc|cccccccc} \hline
@@ -161,94 +106,95 @@ Melbourne & 5 & 5 & 4 & 3 \\
 %Toronto           & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ 
 %                  & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $\mathbf{1\pm0}$ & $1\pm0$ \\
 
+
 \begin{table*}
-    \centering
-    \caption{Experimental Results: user agnostic setting with all trajectories}
-    \begin{tabular}{l|ccccc} \hline
-         & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
-        RankP & $0.611\pm0.163$ & $0.706\pm0.169$ & $\mathbf{0.644\pm0.169}$ & $0.638\pm0.141$ & $0.563\pm0.140$ \\
-        RankF & $0.633\pm0.153$ & $\mathbf{0.758\pm0.182}$ & $0.634\pm0.153$ & $\mathbf{0.707\pm0.178}$ & $0.570\pm0.134$ \\
-        MC-DP & $0.707\pm0.229$ & $0.695\pm0.180$ & $0.560\pm0.175$ & $0.637\pm0.170$ & $0.518\pm0.166$ \\
-        MC-ILP & $0.670\pm0.209$ & $0.696\pm0.166$ & $0.594\pm0.136$ & $0.652\pm0.149$ & $0.534\pm0.148$ \\
-        Prop-DP & $\mathbf{0.709\pm0.202}$ & $0.706\pm0.175$ & $0.611\pm0.182$ & $0.684\pm0.195$ & $0.552\pm0.179$ \\
-        Prop-ILP & $0.660\pm0.206$ & $0.711\pm0.170$ & $0.626\pm0.152$ & $0.701\pm0.176$ & $\mathbf{0.579\pm0.156}$ \\
-        \hline
-    \end{tabular}
+\centering
+\caption{Experimental Results: user agnostic setting with all trajectories}
+\begin{tabular}{l|ccccc} \hline
+ & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
+RankP & $0.611\pm0.163$ & $0.706\pm0.169$ & $\mathbf{0.644\pm0.169}$ & $0.638\pm0.141$ & $0.567\pm0.156$ \\
+RankF & $0.633\pm0.153$ & $\mathbf{0.758\pm0.182}$ & $0.634\pm0.153$ & $\mathbf{0.707\pm0.178}$ & $\mathbf{0.578\pm0.152}$ \\
+MC-DP & $\mathbf{0.685\pm0.184}$ & $0.696\pm0.165$ & $0.560\pm0.182$ & $0.621\pm0.172$ & $0.532\pm0.183$ \\
+MC-ILP & $0.653\pm0.181$ & $0.702\pm0.166$ & $0.602\pm0.144$ & $0.641\pm0.152$ & $0.546\pm0.161$ \\
+Prop-DP & $0.670\pm0.181$ & $0.725\pm0.184$ & $0.617\pm0.182$ & $0.674\pm0.183$ & $0.556\pm0.180$ \\
+Prop-ILP & $0.648\pm0.175$ & $0.738\pm0.179$ & $0.630\pm0.152$ & $0.690\pm0.171$ & $0.567\pm0.161$ \\
+\hline
+\end{tabular}
 \end{table*}
 
 \begin{table*}
-    \centering
-    \caption{Experimental Results: user specific setting with all trajectories}
-    \begin{tabular}{l|ccccc} \hline
-         & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
-        RankP & $0.611\pm0.163$ & $0.706\pm0.169$ & $\mathbf{0.644\pm0.169}$ & $0.638\pm0.141$ & $0.563\pm0.140$ \\
-        RankF & $0.647\pm0.170$ & $\mathbf{0.754\pm0.179}$ & $0.635\pm0.155$ & $\mathbf{0.708\pm0.178}$ & $0.569\pm0.134$ \\
-        MC-DP & $\mathbf{0.706\pm0.218}$ & $0.689\pm0.181$ & $0.561\pm0.181$ & $0.640\pm0.175$ & $0.537\pm0.177$ \\
-        MC-ILP & $0.656\pm0.198$ & $0.696\pm0.177$ & $0.598\pm0.152$ & $0.661\pm0.156$ & $0.552\pm0.162$ \\
-        Prop-DP & $0.658\pm0.192$ & $0.700\pm0.169$ & $0.614\pm0.185$ & $0.691\pm0.196$ & $0.563\pm0.166$ \\
-        Prop-ILP & $0.635\pm0.190$ & $0.705\pm0.163$ & $0.628\pm0.154$ & $0.702\pm0.178$ & $\mathbf{0.578\pm0.157}$ \\
-        \hline
-    \end{tabular}
+\centering
+\caption{Experimental Results: user specific setting with all trajectories}
+\begin{tabular}{l|ccccc} \hline
+ & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
+RankP & $0.611\pm0.163$ & $0.706\pm0.169$ & $\mathbf{0.644\pm0.169}$ & $0.638\pm0.141$ & $0.567\pm0.156$ \\
+RankF & $0.647\pm0.170$ & $\mathbf{0.754\pm0.179}$ & $0.635\pm0.155$ & $\mathbf{0.708\pm0.178}$ & $0.579\pm0.150$ \\
+MC-DP & $\mathbf{0.700\pm0.204}$ & $0.708\pm0.160$ & $0.571\pm0.190$ & $0.631\pm0.164$ & $0.530\pm0.189$ \\
+MC-ILP & $0.667\pm0.193$ & $0.715\pm0.171$ & $0.611\pm0.157$ & $0.644\pm0.141$ & $0.547\pm0.167$ \\
+Prop-DP & $0.683\pm0.200$ & $0.714\pm0.178$ & $0.620\pm0.185$ & $0.685\pm0.193$ & $0.557\pm0.181$ \\
+Prop-ILP & $0.659\pm0.187$ & $0.722\pm0.169$ & $0.633\pm0.156$ & $0.697\pm0.177$ & $\mathbf{0.579\pm0.160}$ \\
+\hline
+\end{tabular}
 \end{table*}
 
 \begin{table*}
-    \centering
-    \caption{Experimental Results: user agnostic setting without short trajectories}
-    \begin{tabular}{l|ccccc} \hline
-         & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
-        RankP & $0.630\pm0.175$ & $0.705\pm0.171$ & $0.641\pm0.163$ & $0.653\pm0.145$ & $0.570\pm0.141$ \\
-        RankF & $0.639\pm0.182$ & $\mathbf{0.749\pm0.174}$ & $\mathbf{0.644\pm0.162}$ & $\mathbf{0.713\pm0.178}$ & $0.573\pm0.138$ \\
-        MC-DP & $0.690\pm0.205$ & $0.718\pm0.188$ & $0.564\pm0.191$ & $0.687\pm0.185$ & $0.525\pm0.173$ \\
-        MC-ILP & $0.651\pm0.194$ & $0.716\pm0.186$ & $0.595\pm0.157$ & $0.687\pm0.167$ & $0.547\pm0.150$ \\
-        Prop-DP & $\mathbf{0.717\pm0.215}$ & $0.734\pm0.183$ & $0.615\pm0.196$ & $0.681\pm0.197$ & $0.548\pm0.175$ \\
-        Prop-ILP & $0.691\pm0.196$ & $0.736\pm0.175$ & $0.625\pm0.161$ & $0.703\pm0.166$ & $\mathbf{0.576\pm0.157}$ \\
-        \hline
-    \end{tabular}
+\centering
+\caption{Experimental Results: user agnostic setting without short trajectories}
+\begin{tabular}{l|ccccc} \hline
+ & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
+RankP & $0.630\pm0.175$ & $0.705\pm0.171$ & $0.641\pm0.163$ & $0.653\pm0.145$ & $0.573\pm0.153$ \\
+RankF & $0.639\pm0.182$ & $\mathbf{0.749\pm0.174}$ & $\mathbf{0.644\pm0.162}$ & $\mathbf{0.713\pm0.178}$ & $\mathbf{0.580\pm0.154}$ \\
+MC-DP & $0.709\pm0.201$ & $0.692\pm0.184$ & $0.595\pm0.173$ & $0.672\pm0.183$ & $0.547\pm0.187$ \\
+MC-ILP & $0.671\pm0.200$ & $0.694\pm0.176$ & $0.614\pm0.150$ & $0.689\pm0.166$ & $0.561\pm0.161$ \\
+Prop-DP & $\mathbf{0.730\pm0.191}$ & $0.729\pm0.184$ & $0.621\pm0.185$ & $0.692\pm0.183$ & $0.563\pm0.180$ \\
+Prop-ILP & $0.674\pm0.205$ & $0.729\pm0.180$ & $0.633\pm0.155$ & $0.704\pm0.172$ & $0.574\pm0.157$ \\
+\hline
+\end{tabular}
 \end{table*}
 
 \begin{table*}
-    \centering
-    \caption{Experimental Results: user specific setting without short trajectories}
-    \begin{tabular}{l|ccccc} \hline
-         & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
-        RankP & $0.630\pm0.175$ & $0.705\pm0.171$ & $0.641\pm0.163$ & $0.653\pm0.145$ & $0.570\pm0.141$ \\
-        RankF & $0.648\pm0.202$ & $\mathbf{0.742\pm0.171}$ & $\mathbf{0.643\pm0.162}$ & $\mathbf{0.715\pm0.178}$ & $0.570\pm0.137$ \\
-        MC-DP & $0.674\pm0.179$ & $0.707\pm0.179$ & $0.575\pm0.196$ & $0.685\pm0.181$ & $0.535\pm0.170$ \\
-        MC-ILP & $0.630\pm0.171$ & $0.712\pm0.173$ & $0.602\pm0.164$ & $0.690\pm0.164$ & $0.555\pm0.152$ \\
-        Prop-DP & $\mathbf{0.714\pm0.207}$ & $0.728\pm0.179$ & $0.616\pm0.196$ & $0.693\pm0.186$ & $0.560\pm0.174$ \\
-        Prop-ILP & $0.681\pm0.194$ & $0.735\pm0.172$ & $0.625\pm0.162$ & $0.705\pm0.169$ & $\mathbf{0.575\pm0.160}$ \\
-        \hline
-    \end{tabular}
+\centering
+\caption{Experimental Results: user specific setting without short trajectories}
+\begin{tabular}{l|ccccc} \hline
+ & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
+RankP & $0.630\pm0.175$ & $0.705\pm0.171$ & $0.641\pm0.163$ & $0.653\pm0.145$ & $0.573\pm0.153$ \\
+RankF & $0.648\pm0.202$ & $\mathbf{0.742\pm0.171}$ & $\mathbf{0.643\pm0.162}$ & $\mathbf{0.715\pm0.178}$ & $\mathbf{0.580\pm0.151}$ \\
+MC-DP & $0.697\pm0.182$ & $0.699\pm0.183$ & $0.590\pm0.175$ & $0.690\pm0.178$ & $0.539\pm0.185$ \\
+MC-ILP & $0.664\pm0.177$ & $0.696\pm0.177$ & $0.619\pm0.151$ & $0.690\pm0.169$ & $0.552\pm0.159$ \\
+Prop-DP & $\mathbf{0.733\pm0.190}$ & $0.728\pm0.184$ & $0.620\pm0.185$ & $0.693\pm0.189$ & $0.559\pm0.173$ \\
+Prop-ILP & $0.674\pm0.205$ & $0.731\pm0.178$ & $0.632\pm0.154$ & $0.706\pm0.173$ & $0.569\pm0.155$ \\
+\hline
+\end{tabular}
 \end{table*}
 
 \begin{table*}
-    \centering
-    \caption{Experimental Results: user agnostic setting without trajectories that are short or with sub-tours}
-    \begin{tabular}{l|ccccc} \hline
-         & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
-        RankP & $\mathbf{0.716\pm0.128}$ & $0.750\pm0.153$ & $0.711\pm0.154$ & $0.701\pm0.135$ & $0.608\pm0.128$ \\
-        RankF & $0.707\pm0.150$ & $0.793\pm0.161$ & $0.708\pm0.151$ & $\mathbf{0.756\pm0.156}$ & $\mathbf{0.609\pm0.126}$ \\
-        MC-DP & $0.687\pm0.156$ & $0.758\pm0.166$ & $0.671\pm0.163$ & $0.715\pm0.166$ & $0.580\pm0.155$ \\
-        MC-ILP & $0.681\pm0.163$ & $0.768\pm0.158$ & $0.688\pm0.154$ & $0.737\pm0.156$ & $0.590\pm0.144$ \\
-        Prop-DP & $0.685\pm0.178$ & $0.774\pm0.182$ & $0.699\pm0.158$ & $0.724\pm0.165$ & $0.589\pm0.148$ \\
-        Prop-ILP & $0.702\pm0.165$ & $\mathbf{0.798\pm0.161}$ & $\mathbf{0.712\pm0.151}$ & $0.745\pm0.152$ & $0.606\pm0.136$ \\
-        \hline
-    \end{tabular}
+\centering
+\caption{Experimental Results: user agnostic setting without users with less than 5 trajectories}
+\begin{tabular}{l|ccccc} \hline
+ & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
+RankP & $0.625\pm0.136$ & $0.666\pm0.158$ & $0.603\pm0.130$ & $0.689\pm0.150$ & $0.568\pm0.145$ \\
+RankF & $0.632\pm0.081$ & $0.759\pm0.195$ & $\mathbf{0.648\pm0.165}$ & $\mathbf{0.726\pm0.159}$ & $0.575\pm0.151$ \\
+MC-DP & $0.719\pm0.171$ & $0.738\pm0.183$ & $0.581\pm0.173$ & $0.680\pm0.154$ & $0.530\pm0.192$ \\
+MC-ILP & $0.688\pm0.163$ & $0.735\pm0.192$ & $0.600\pm0.149$ & $0.686\pm0.149$ & $0.545\pm0.169$ \\
+Prop-DP & $\mathbf{0.740\pm0.184}$ & $0.762\pm0.194$ & $0.596\pm0.186$ & $0.713\pm0.165$ & $0.568\pm0.188$ \\
+Prop-ILP & $0.715\pm0.182$ & $\mathbf{0.765\pm0.199}$ & $0.616\pm0.155$ & $0.720\pm0.161$ & $\mathbf{0.580\pm0.170}$ \\
+\hline
+\end{tabular}
 \end{table*}
 
 \begin{table*}
-    \centering
-    \caption{Experimental Results: user specific setting without trajectories that are short or with sub-tours}
-    \begin{tabular}{l|ccccc} \hline
-         & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
-        RankP & $\mathbf{0.716\pm0.128}$ & $0.750\pm0.153$ & $\mathbf{0.711\pm0.154}$ & $0.701\pm0.135$ & $0.608\pm0.128$ \\
-        RankF & $0.707\pm0.150$ & $0.793\pm0.161$ & $0.708\pm0.147$ & $0.751\pm0.162$ & $\mathbf{0.608\pm0.124}$ \\
-        MC-DP & $0.690\pm0.171$ & $0.742\pm0.161$ & $0.661\pm0.163$ & $0.706\pm0.160$ & $0.586\pm0.162$ \\
-        MC-ILP & $0.690\pm0.171$ & $0.755\pm0.157$ & $0.678\pm0.154$ & $0.730\pm0.149$ & $0.595\pm0.153$ \\
-        Prop-DP & $0.690\pm0.171$ & $0.778\pm0.184$ & $0.693\pm0.161$ & $0.736\pm0.164$ & $0.593\pm0.160$ \\
-        Prop-ILP & $0.702\pm0.165$ & $\mathbf{0.802\pm0.162}$ & $0.711\pm0.152$ & $\mathbf{0.753\pm0.158}$ & $0.605\pm0.147$ \\
-        \hline
-    \end{tabular}
+\centering
+\caption{Experimental Results: user specific setting without users with less than 5 trajectories}
+\begin{tabular}{l|ccccc} \hline
+ & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
+RankP & $0.625\pm0.136$ & $0.666\pm0.158$ & $0.603\pm0.130$ & $0.689\pm0.150$ & $0.568\pm0.145$ \\
+RankF & $0.679\pm0.172$ & $\mathbf{0.772\pm0.201}$ & $\mathbf{0.647\pm0.169}$ & $\mathbf{0.737\pm0.170}$ & $0.576\pm0.151$ \\
+MC-DP & $\mathbf{0.731\pm0.195}$ & $0.759\pm0.172$ & $0.600\pm0.175$ & $0.684\pm0.156$ & $0.548\pm0.178$ \\
+MC-ILP & $0.700\pm0.189$ & $0.746\pm0.197$ & $0.611\pm0.154$ & $0.686\pm0.142$ & $0.557\pm0.156$ \\
+Prop-DP & $0.719\pm0.171$ & $0.725\pm0.177$ & $0.587\pm0.176$ & $0.718\pm0.160$ & $0.571\pm0.185$ \\
+Prop-ILP & $0.700\pm0.163$ & $0.744\pm0.175$ & $0.614\pm0.148$ & $0.714\pm0.154$ & $\mathbf{0.583\pm0.165}$ \\
+\hline
+\end{tabular}
 \end{table*}
 
 
