@@ -17,50 +17,58 @@ An example of trajectory in Melbourne was shown in figure \ref{fig:traj}.
 \label{fig:traj}
 \end{figure}
 
+\subsection{Dataset preprocess}
+\label{experiment:datapreprocess}
+Trajectories in all datasets are preprocessed such that no self-loops and sub-tours exist.
+Concretely, after splitting a sequence of photos by a given time gap and mapping photos to a set of POIs\cite{ht10, ijcai15},
+a trajectory was extracted from the result POI visiting sequence such that the order of POIs in the trajectory is the same as 
+the order of the first occurrence of POIs in the visiting sequence.
+
 \begin{table*}
 \centering
 \caption{Dataset with all trajectories}
 \label{table:data:all}
 \begin{tabular}{lrrrrr} \hline
 \textbf{City} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#POI Visits} & \textbf{\#Trajectories} & \textbf{\#TotalNodes} \\ \hline
-Osaka & 27 & 450 & 7,747 & 1,115 & 1,419 \\ 
-Glasgow & 27 & 601 & 11,434 & 2,227 & 2,824 \\ 
-Edinburgh & 28 & 1,454 & 33,944 & 5,028 & 8,616 \\ 
-Toronto & 29 & 1,395 & 39,419 & 6,057 & 7,896 \\ 
-Melbourne & 85 & 1,000 & 23,995 & 5,106 & 7,671 \\ 
+Osaka & 27 & 450 & 7,747 & 1,115 & 1,372 \\ 
+Glasgow & 27 & 601 & 11,434 & 2,227 & 2,749 \\ 
+Edinburgh & 28 & 1,454 & 33,944 & 5,028 & 7,853 \\ 
+Toronto & 29 & 1,395 & 39,419 & 6,057 & 7,607 \\ 
+Melbourne & 85 & 1,000 & 23,995 & 5,106 & 7,246 \\ 
 \hline
 \end{tabular}
 \end{table*}
 
 \begin{table*}
 \centering
-\caption{Dataset without short trajectories}
+\caption{Dataset of trajectories with more than 2 visited POIs}
 \label{table:data:noshort}
 \begin{tabular}{lrrrrr} \hline
 \textbf{City} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#POI Visits} & \textbf{\#Trajectories} & \textbf{\#TotalNodes} \\ \hline
-Osaka & 21 & 51 & 1,595 & 64 & 246 \\ 
-Glasgow & 24 & 102 & 1,862 & 131 & 508 \\ 
-Edinburgh & 26 & 423 & 13,136 & 710 & 3,596 \\ 
-Toronto & 26 & 232 & 7,415 & 417 & 1,696 \\ 
-Melbourne & 82 & 302 & 7,374 & 506 & 2,559 \\ 
+Osaka & 21 & 40 & 1,158 & 47 & 165 \\ 
+Glasgow & 24 & 90 & 1,579 & 112 & 395 \\ 
+Edinburgh & 26 & 386 & 11,954 & 634 & 2,681 \\ 
+Toronto & 26 & 196 & 6,427 & 335 & 1,243 \\ 
+Melbourne & 81 & 265 & 6,310 & 442 & 2,006 \\ 
 \hline
 \end{tabular}
 \end{table*}
 
 \begin{table*}
 \centering
-\caption{Dataset without users with less than 5 trajectories}
+\caption{Dataset of users with more than 5 (including 5) trajectories}
 \label{table:data:nofew}
 \begin{tabular}{lrrrrr} \hline
 \textbf{City} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#POI Visits} & \textbf{\#Trajectories} & \textbf{\#TotalNodes} \\ \hline
-Osaka & 24 & 40 & 2,471 & 473 & 577 \\ 
-Glasgow & 25 & 94 & 7,116 & 1,433 & 1,711 \\ 
-Edinburgh & 28 & 192 & 19,149 & 2,901 & 4,420 \\ 
-Toronto & 29 & 248 & 27,105 & 4,113 & 5,185 \\ 
-Melbourne & 85 & 242 & 15,833 & 3,759 & 5,223 \\ 
+Osaka & 24 & 40 & 2,471 & 473 & 567 \\ 
+Glasgow & 25 & 94 & 7,116 & 1,433 & 1,677 \\ 
+Edinburgh & 28 & 192 & 19,149 & 2,901 & 4,131 \\ 
+Toronto & 29 & 248 & 27,105 & 4,113 & 5,032 \\ 
+Melbourne & 85 & 242 & 15,833 & 3,759 & 5,000 \\ 
 \hline
 \end{tabular}
 \end{table*}
+
 
 
 \subsection{Evaluation Metrics}
