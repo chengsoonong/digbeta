@@ -28,11 +28,11 @@ with respect to constraints $(p_s, p_e, L)$
 using rankSVM with linear kernel and $L2$ loss\cite{lranksvm}, 
 i.e.,
 \begin{displaymath}
-\min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^T \mathbf{w} +
-                  C \sum_{(i, j) \in P} \max \left( 0, 1 - \mathbf{w}^T (\mathbf{x}_i - \mathbf{x}_j) \right)^2
+\min_{\mathbf{w_r}} \frac{1}{2} \mathbf{w_r}^T \mathbf{w_r} +
+                  C_r \sum_{(i, j) \in P} \max \left( 0, 1 - \mathbf{w_r}^T (\mathbf{x}_i - \mathbf{x}_j) \right)^2
 \end{displaymath}
-where $\mathbf{w}$ is a vector of parameters, 
-$C > 0$ is the regularization parameter and 
+where $\mathbf{w_r}$ is a vector of parameters, 
+$C_r > 0$ is the regularization parameter and 
 $\mathbf{x}_i$ is the feature vector of POI $p_i$.
 Features used for ranking POIs are:
 \begin{itemize}
@@ -46,12 +46,12 @@ Features used for ranking POIs are:
           \bar{V}(p) = \frac{1}{N(p)} \sum_{u \in \mathcal{U}} \sum_i \sum_{p_j \in \mathcal{T}_u^i} (t_{p_j}^s - t_{p_j}^e) \delta(p_j = p)
       \end{displaymath}
 \item Whether the category (e.g., structures, entertainment and shopping etc.) is the same as that of $p_s$ (and $p_e$).
-\item Distance from POI $p$ to $p_s$ (and $p_e$) using haversine formula \cite{wiki_haversine},
+\item Distance from POI $p$ to $p_s$ (and $p_e$) using haversine formula \cite{haversine},
       \begin{displaymath}
       d = 2 R_1 \arcsin \sqrt{ \sin^2 \left( \frac{\Delta \phi}{2} \right) + 
            \cos \phi_p \cos \phi_{p_s} \sin^2 \left( \frac{\Delta \lambda}{2} \right) }
       \end{displaymath}
-            where $R_1 = 6371.0088$ km is the mean earth radius \cite{wiki_earth_radius}, 
+            where $R_1 = 6371.0088$ km is the mean earth radius \cite{earth_radius}, 
             $\Delta \phi = \phi_p - \phi_{p_s}$, $\Delta \lambda = \lambda_p - \lambda_{p_s}$,
             and $\phi_p$, $\lambda_p$ are the latitude and longitude of POI $p$ respectively.
 \item The difference in popularity of POI $p$ from $p_s$ (and $p_e$),
@@ -312,3 +312,19 @@ We will explore characteristics of a specific user with a simple strategy,
 i.e., by upsampling his/her visited trajectories when training,
 concretely, we upsampe $K$ folds of trajectories of a user and $1$ fold of trajectories of other users to training 
 the model to recommend a trajectory to that user.
+
+
+\subsection{Recommend Trajectory via Structured Prediction}
+\label{method:structured}
+As trajectory is a sequence of POIs, 
+which can be naturally modeled using chain-structured models such as conditional random fields (CRFs)\cite{crf01}.
+We trained a CRF with POI ranking probabilities as node features and transition probabilities between POIs as edge features,
+and learn the parameters by solving the following optimisation problem of the margin rescaled
+1-slack formulation of structual SVM\cite{ssvm09} using convex optimisation tools.
+\begin{align*}
+\min_{\mathbf{w}_s, \xi \ge 0} ~~& \frac{1}{2} \mathbf{w}_s^T \mathbf{w}_s + C_s \xi \\
+s.t. ~~& \frac{1}{N} \mathbf{w}_s^T \sum_{i=1}^N \phi(\mathbf{x}_i, \mathbf{y}_i) - \phi(\mathbf{x}_i, \bar{\mathbf{y}}_i) \ge 
+         \frac{1}{N} \sum_{i=1}^N L(\mathbf{y}_i, \bar{\mathbf{y}}_i) - \xi \\
+     ~~& \forall(\bar{\mathbf{y}}_1, \dots, \bar{\mathbf{y}}_N) \in \mathcal{Y}^N
+\end{align*}
+where $\mathbf{w}_s$ is parameters, $C_s$ is regularisation constant and $\xi$ is the slack variable.
