@@ -72,10 +72,12 @@ Then employ trajectory F1-score defined in \cite{ijcai15} to compare the perform
 We compared the experimental results on trajectory datasets between the proposed methods and other 7 methods:
 \begin{itemize}
 \item Random: choose POIs uniformly at random (without replacement) from the set of POIs $\mathcal{P} \setminus \{p_s, p_e \}$ to visit.
-\item PersTour\cite{ijcai15}: personalised trajectory recommendation method described in \cite{ijcai15}, 
+\item PersTour-T.5\cite{ijcai15}: personalised trajectory recommendation method described in \cite{ijcai15}, 
       time-based user interest was used and $\eta = 0.5$.
-\item PersTour-L: PersTour\cite{ijcai15} with budget constraint replaced with the number POIs to visit, i.e., $L$,
+\item PersTour-T1\cite{ijcai15}: the same as PersTour-T.5, but set $\eta=1.0$.
+\item PersTour-L.5: PersTour\cite{ijcai15} with budget constraint replaced with the number POIs to visit, i.e., $L$,
       similar to PersTour, we use time-based user interest and set $\eta$ to $0.5$.
+\item PersTour-L1: the same as PersTour-L.5, but set $\eta=1.0$.
 \item RankP: choose POIs according to the ranking based on POI popularity.
 \item RankF: choose POIs according to the ranking based on POI features described in section \ref{method:ranking}.
 \item MC-DP: recommend trajectory according to the Markov Chain with transition matrix described in section \ref{method:transition},
@@ -91,7 +93,7 @@ We compared the experimental results on trajectory datasets between the proposed
 \end{itemize}
 
 The regularisation parameter of rankSVM in RankF, Prop-DP and Prop-ILP was set to $1000$, and $1$ for CRF and CRF1,
-$\eta=0.5$ in PersTour,
+$\alpha=\beta=0.5$ in Prop-DP, Prop-ILP, 
 $K=100$ for user specific setting in RankF, RankP, MC-DP, MC-ILP, Prop-DP and Prop-ILP,
 POI features used in MC-DP, MC-ILP, Prop-DP and Prop-ILP were discretized using $5$ bins or clusters.
 
@@ -108,15 +110,19 @@ POI features used in MC-DP, MC-ILP, Prop-DP and Prop-ILP were discretized using 
 \caption{Experimental Results: user agnostic setting of all trajectories without loops}
 \begin{tabular}{l|ccccc} \hline
  & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
-PersTour & $0.686\pm0.233$ & $0.801\pm0.214$ & $0.656\pm0.223$ & $0.720\pm0.215$ & - \\
-RankP & $0.663\pm0.125$ & $0.744\pm0.165$ & $\mathbf{0.701\pm0.160}$ & $0.678\pm0.121$ & $0.607\pm0.143$ \\
+Random & - & - & - & - & - \\
+PersTour-T.5 & $0.686\pm0.233$ & $0.801\pm0.214$ & $0.656\pm0.223$ & $0.720\pm0.215$ & - \\
+PersTour-T1 & $0.639\pm0.202$ & $0.719\pm0.211$ & $0.611\pm0.201$ & $0.709\pm0.219$ & - \\
+PersTour-L.5 & $0.686\pm0.138$ & $0.660\pm0.102$ & $0.651\pm0.143$ & $0.643\pm0.114$ & - \\
+PersTour-L1 & $0.654\pm0.140$ & $0.641\pm0.114$ & $0.595\pm0.138$ & $0.611\pm0.115$ & - \\
+RankP & $0.663\pm0.125$ & $0.744\pm0.165$ & $0.701\pm0.160$ & $0.678\pm0.121$ & $0.607\pm0.143$ \\
 RankF & $0.679\pm0.113$ & $0.775\pm0.168$ & $0.693\pm0.154$ & $0.752\pm0.167$ & $0.616\pm0.142$ \\
 MC-DP & $0.680\pm0.157$ & $0.716\pm0.168$ & $0.628\pm0.172$ & $0.661\pm0.157$ & $0.558\pm0.179$ \\
 MC-ILP & $0.706\pm0.150$ & $0.734\pm0.169$ & $0.678\pm0.148$ & $0.688\pm0.138$ & $0.582\pm0.152$ \\
 Prop-DP & $0.699\pm0.168$ & $0.738\pm0.176$ & $0.646\pm0.174$ & $0.690\pm0.171$ & $0.576\pm0.181$ \\
-Prop-ILP & $0.717\pm0.158$ & $0.762\pm0.170$ & $0.688\pm0.153$ & $\mathbf{0.726\pm0.152}$ & $0.613\pm0.157$ \\
+Prop-ILP & $0.717\pm0.158$ & $0.762\pm0.170$ & $0.688\pm0.153$ & $0.726\pm0.152$ & $0.613\pm0.157$ \\
 CRF & $0.686\pm0.124$ & $0.721\pm0.174$ & $0.645\pm0.166$ & $0.711\pm0.178$ & $0.571\pm0.150$ \\
-CRF1 & $\mathbf{0.762\pm0.162}$ & \mathbf{0.840\pm0.170} & - & - & - \\
+CRF1 & $\mathbf{0.762\pm0.162}$ & $\mathbf{0.838\pm0.173}$ & - & $\mathbf{0.879\pm0.154}$ & - \\
 \hline
 \end{tabular}
 \end{table*}
@@ -128,12 +134,12 @@ CRF1 & $\mathbf{0.762\pm0.162}$ & \mathbf{0.840\pm0.170} & - & - & - \\
  & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
 PersTour & - & - & - & - & - \\
 RankP & $0.625\pm0.136$ & $0.666\pm0.158$ & $0.603\pm0.130$ & $0.689\pm0.150$ & $0.568\pm0.145$ \\
-RankF & $0.679\pm0.172$ & $\mathbf{0.772\pm0.201}$ & $0.647\pm0.169$ & $\mathbf{0.737\pm0.170}$ & $0.576\pm0.151$ \\
-MC-DP & $\mathbf{0.731}\pm0.195$ & $0.759\pm0.172$ & $0.600\pm0.175$ & $0.684\pm0.156$ & $0.548\pm0.178$ \\
+RankF & $0.679\pm0.172$ & $0.772\pm0.201$ & $0.647\pm0.169$ & $0.737\pm0.170$ & $0.576\pm0.151$ \\
+MC-DP & $0.731\pm0.195$ & $0.759\pm0.172$ & $0.600\pm0.175$ & $0.684\pm0.156$ & $0.548\pm0.178$ \\
 MC-ILP & $0.700\pm0.189$ & $0.746\pm0.197$ & $0.611\pm0.154$ & $0.686\pm0.142$ & $0.557\pm0.156$ \\
 Prop-DP & $0.719\pm0.171$ & $0.725\pm0.177$ & $0.587\pm0.176$ & $0.718\pm0.160$ & $0.571\pm0.185$ \\
-Prop-ILP & $0.700\pm0.163$ & $0.744\pm0.175$ & $0.614\pm0.148$ & $0.714\pm0.154$ & $\mathbf{0.583\pm0.165}$ \\
-CRF & $0.716\pm0.110$ & $0.699\pm0.159$ & - & - & - \\
+Prop-ILP & $0.700\pm0.163$ & $0.744\pm0.175$ & $0.614\pm0.148$ & $0.714\pm0.154$ & $0.583\pm0.165$ \\
+CRF & $0.716\pm0.110$ & $0.699\pm0.159$ & - & $0.695\pm0.163$ & - \\
 CRF1 & - & - & - & - & - \\
 \hline
 \end{tabular}
