@@ -1,0 +1,33 @@
+\section{Introduction}
+\label{sec:introduction}
+Location based information sharing services provided by online social media 
+(e.g. Facebook, Twitter, Flickr etc) generated a lot of data with geographical information, 
+together with timetamps and user tags, makes it possible to generate massive trajectories of users.
+While there is great oppertunity to recommend high quality trajectories by exploring visiting patterns
+in these data, much work has focused on recommending Points of Interest (POIs) based on their
+popularity\cite{}, and valuable information such as user preferences of POIs as well as transition
+patterns between different POIs are mostly ignored.
+
+In this work, we propose an approach to recommend high quality trajectories that incorporates both user 
+preferences of POIs and transition patterns between POIs using a formulation based on structured prediction.
+Learning to rank was applied to a number of informative POI features as well as trajectory features to ranking
+the preference of POIs, and transition patterns between POIs were captured by a Markov Chain (MC) with POIs as states,
+we factorise the transition probabilities with respect to serveral POI features, and Conditional Random Fields (CRF) 
+were adopted to effectively combine these two aspects. 
+Experimental results show that the proposed approach yields significant performance improvements over the state-of-the-art methods.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
