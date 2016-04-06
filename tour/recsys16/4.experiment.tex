@@ -24,36 +24,20 @@ Concretely, after splitting a sequence of photos by a given time gap and mapping
 a trajectory was extracted from the result POI visiting sequence such that the order of POIs in the trajectory is the same as 
 the order of the first occurrence of POIs in the visiting sequence.
 
+
 \begin{table*}
 \centering
-\caption{Dataset of all trajectories without loops}
+\caption{Datasets description}
 \label{table:data:all}
 \begin{tabular}{lrrrrr} \hline
-\textbf{City} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#POI Visits} & \textbf{\#Trajectories} & \textbf{\#TotalNodes} \\ \hline
-Osaka & 27 & 450 & 7,747 & 1,115 & 1,372 \\ 
-Glasgow & 27 & 601 & 11,434 & 2,227 & 2,749 \\ 
-Edinburgh & 28 & 1,454 & 33,944 & 5,028 & 7,853 \\ 
-Toronto & 29 & 1,395 & 39,419 & 6,057 & 7,607 \\ 
-Melbourne & 85 & 1,000 & 23,995 & 5,106 & 7,246 \\ 
+\textbf{Dataset} & \textbf{\#Photos} & \textbf{\#POI Visits} & \textbf{\#Trajectories} & \textbf{\#Users} \\ \hline
+Edinburgh & 82,060 & 33,944 & 5,028 & 1,454 \\ 
+Glasgow & 29,019 & 11,434 & 2,227 & 601 \\ 
+Osaka & 392,420 & 7,747 & 1,115 & 450 \\ 
+Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\ 
 \hline
 \end{tabular}
 \end{table*}
-
-\begin{table*}
-\centering
-\caption{Dataset of users with more than 5 (including 5) trajectories with loops}
-\label{table:data:nofew}
-\begin{tabular}{lrrrrr} \hline
-\textbf{City} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#POI Visits} & \textbf{\#Trajectories} & \textbf{\#TotalNodes} \\ \hline
-Osaka & 24 & 40 & 2,471 & 473 & 577 \\ 
-Glasgow & 25 & 94 & 7,116 & 1,433 & 1,711 \\ 
-Edinburgh & 28 & 192 & 19,149 & 2,901 & 4,420 \\ 
-Toronto & 29 & 248 & 27,105 & 4,113 & 5,185 \\ 
-Melbourne & 85 & 242 & 15,833 & 3,759 & 5,223 \\ 
-\hline
-\end{tabular}
-\end{table*}
-
 
 
 
@@ -105,47 +89,47 @@ POI features used in MC-DP, MC-ILP, Prop-DP and Prop-ILP were discretized using 
 %Toronto           & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ 
 %                  & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $\mathbf{1\pm0}$ & $1\pm0$ \\
 
-\begin{table*}
-\centering
-\caption{Experimental Results: user agnostic setting of all trajectories without loops}
-\begin{tabular}{l|ccccc} \hline
- & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
-Random & - & - & - & - & - \\
-PersTour-T.5 & $0.686\pm0.233$ & $0.801\pm0.214$ & $0.656\pm0.223$ & $0.720\pm0.215$ & - \\
-PersTour-T1 & $0.639\pm0.202$ & $0.719\pm0.211$ & $0.611\pm0.201$ & $0.709\pm0.219$ & - \\
-PersTour-L.5 & $0.686\pm0.138$ & $0.660\pm0.102$ & $0.651\pm0.143$ & $0.643\pm0.114$ & - \\
-PersTour-L1 & $0.654\pm0.140$ & $0.641\pm0.114$ & $0.595\pm0.138$ & $0.611\pm0.115$ & - \\
-RankP & $0.663\pm0.125$ & $0.744\pm0.165$ & $0.701\pm0.160$ & $0.678\pm0.121$ & $0.607\pm0.143$ \\
-RankF & $0.679\pm0.113$ & $0.775\pm0.168$ & $0.693\pm0.154$ & $0.752\pm0.167$ & $0.616\pm0.142$ \\
-MC-DP & $0.680\pm0.157$ & $0.716\pm0.168$ & $0.628\pm0.172$ & $0.661\pm0.157$ & $0.558\pm0.179$ \\
-MC-ILP & $0.706\pm0.150$ & $0.734\pm0.169$ & $0.678\pm0.148$ & $0.688\pm0.138$ & $0.582\pm0.152$ \\
-Prop-DP & $0.699\pm0.168$ & $0.738\pm0.176$ & $0.646\pm0.174$ & $0.690\pm0.171$ & $0.576\pm0.181$ \\
-Prop-ILP & $0.717\pm0.158$ & $0.762\pm0.170$ & $0.688\pm0.153$ & $0.726\pm0.152$ & $0.613\pm0.157$ \\
-CRF & $0.686\pm0.124$ & $0.721\pm0.174$ & $0.645\pm0.166$ & $0.711\pm0.178$ & $0.571\pm0.150$ \\
-CRF1 & $\mathbf{0.762\pm0.162}$ & $\mathbf{0.838\pm0.173}$ & - & $\mathbf{0.879\pm0.154}$ & - \\
-\hline
-\end{tabular}
-\end{table*}
 
 \begin{table*}
 \centering
-\caption{Experimental Results: user specific setting of users with more than 5 (including 5) trajectories with loops}
-\begin{tabular}{l|ccccc} \hline
- & Osaka & Glasgow & Edinburgh & Toronto & Melbourne \\ \hline
-PersTour & - & - & - & - & - \\
-RankP & $0.625\pm0.136$ & $0.666\pm0.158$ & $0.603\pm0.130$ & $0.689\pm0.150$ & $0.568\pm0.145$ \\
-RankF & $0.679\pm0.172$ & $0.772\pm0.201$ & $0.647\pm0.169$ & $0.737\pm0.170$ & $0.576\pm0.151$ \\
-MC-DP & $0.731\pm0.195$ & $0.759\pm0.172$ & $0.600\pm0.175$ & $0.684\pm0.156$ & $0.548\pm0.178$ \\
-MC-ILP & $0.700\pm0.189$ & $0.746\pm0.197$ & $0.611\pm0.154$ & $0.686\pm0.142$ & $0.557\pm0.156$ \\
-Prop-DP & $0.719\pm0.171$ & $0.725\pm0.177$ & $0.587\pm0.176$ & $0.718\pm0.160$ & $0.571\pm0.185$ \\
-Prop-ILP & $0.700\pm0.163$ & $0.744\pm0.175$ & $0.614\pm0.148$ & $0.714\pm0.154$ & $0.583\pm0.165$ \\
-CRF & $0.716\pm0.110$ & $0.699\pm0.159$ & - & $0.695\pm0.163$ & - \\
-CRF1 & - & - & - & - & - \\
+\caption{Performance comparison on four datasets in terms of trajectory F$_1$-score}
+\begin{tabular}{l|cccc} \hline
+ & Edinburgh & Glasgow & Osaka & Toronto \\ \hline
+Random & $0.571\pm0.139$ & $0.632\pm0.124$ & $0.628\pm0.114$ & $0.621\pm0.128$ \\
+PersTour-T.5 & $0.657\pm0.222$ & $0.804\pm0.214$ & $0.709\pm0.224$ & $0.720\pm0.215$ \\
+PersTour-T1 & $0.611\pm0.201$ & $0.723\pm0.209$ & $0.642\pm0.186$ & $0.710\pm0.219$ \\
+PersTour-L.5 & $0.651\pm0.143$ & $0.662\pm0.102$ & $0.699\pm0.139$ & $0.642\pm0.112$ \\
+PersTour-L1 & $0.596\pm0.138$ & $0.642\pm0.113$ & $0.657\pm0.142$ & $0.612\pm0.114$ \\
+RankP & $0.701\pm0.160$ & $0.746\pm0.167$ & $0.666\pm0.130$ & $0.679\pm0.120$ \\
+RankF & $0.694\pm0.155$ & $0.777\pm0.170$ & $0.690\pm0.108$ & $0.753\pm0.167$ \\
+MC-DP & $0.629\pm0.171$ & $0.721\pm0.164$ & $0.690\pm0.160$ & $0.662\pm0.156$ \\
+MC-ILP & $0.678\pm0.149$ & $0.738\pm0.169$ & $0.720\pm0.148$ & $0.688\pm0.139$ \\
+Prop-DP & $0.647\pm0.173$ & $0.744\pm0.172$ & $0.719\pm0.167$ & $0.691\pm0.171$ \\
+Prop-ILP & $0.688\pm0.153$ & $0.764\pm0.172$ & $0.733\pm0.157$ & $0.726\pm0.152$ \\
+CRF & $\mathbf{0.847\pm0.159}$ & $\mathbf{0.838\pm0.173}$ & $\mathbf{0.762\pm0.162}$ & $\mathbf{0.879\pm0.154}$ \\
 \hline
 \end{tabular}
 \end{table*}
 
 
+\begin{table*}
+\centering
+\caption{Performance comparison on four datasets in terms of $\tau$}
+\begin{tabular}{l|cccc} \hline
+ & Edinburgh & Glasgow & Osaka & Toronto \\ \hline
+Random & $0.260\pm0.156$ & $0.319\pm0.166$ & $0.313\pm0.145$ & $0.309\pm0.166$ \\
+PersTour-L.5 & $0.351\pm0.206$ & $0.351\pm0.162$ & $0.426\pm0.247$ & $0.329\pm0.158$ \\
+PersTour-L1 & $0.289\pm0.174$ & $0.332\pm0.159$ & $0.365\pm0.224$ & $0.292\pm0.134$ \\
+RankP & $0.421\pm0.257$ & $0.504\pm0.297$ & $0.367\pm0.198$ & $0.378\pm0.203$ \\
+RankF & $0.409\pm0.243$ & $0.559\pm0.307$ & $0.385\pm0.185$ & $0.508\pm0.297$ \\
+MC-DP & $0.404\pm0.229$ & $0.482\pm0.285$ & $0.458\pm0.261$ & $0.404\pm0.229$ \\
+MC-ILP & $0.390\pm0.235$ & $0.488\pm0.296$ & $0.463\pm0.267$ & $0.399\pm0.233$ \\
+Prop-DP & $0.420\pm0.243$ & $0.535\pm0.298$ & $0.515\pm0.276$ & $0.451\pm0.264$ \\
+Prop-ILP & $0.401\pm0.245$ & $0.535\pm0.309$ & $0.489\pm0.287$ & $0.459\pm0.269$ \\
+CRF & $\mathbf{0.721\pm0.289}$ & $\mathbf{0.705\pm0.310}$ & $\mathbf{0.540\pm0.306}$ & $\mathbf{0.774\pm0.292}$ \\
+\hline
+\end{tabular}
+\end{table*}
 
 
 \subsection{Analysis of Experimental Results}

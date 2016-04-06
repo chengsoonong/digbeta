@@ -304,16 +304,6 @@ trajectory we would like to recommend with respect to constraints $(p_s, p_e, L)
 \end{figure}
 
 
-\subsection{User-specific Trajectory Recommendation}
-\label{method:specific}
-Up to now, we have not used information specific to each user, 
-it has been shown that this kind of information is helpful when recommend trajectories\cite{ijcai15}.
-We will explore characteristics of a specific user with a simple strategy, 
-i.e., by upsampling his/her visited trajectories when training,
-concretely, we upsampe $K$ folds of trajectories of a user and $1$ fold of trajectories of other users to training 
-the model to recommend a trajectory to that user.
-
-
 \subsection{Recommend Trajectory via Structured Prediction}
 \label{method:structured}
 As trajectory is a sequence of POIs, 
