@@ -68,96 +68,86 @@ $\mathcal{T}_a$ and $\mathcal{T}_r$, $N = |\mathcal{T}_a|$ is the number of visi
 
 We compared the experimental results on trajectory datasets between the proposed methods and other 7 methods:
 \begin{itemize}
-\item Random: choose POIs uniformly at random (without replacement) from the set of POIs $\mathcal{P} \setminus \{p_s, p_e \}$ to visit.
-\item PersTour-T.5\cite{ijcai15}: personalised trajectory recommendation method described in \cite{ijcai15}, 
+\item \textbf{Random}: choose POIs uniformly at random (without replacement) 
+      from the set of POIs $\mathcal{P} \setminus \{p_s, p_e \}$ to visit.
+\item \textbf{POI Popularity}: choose POIs according to the ranking based on POI popularity.
+\item \textbf{POI Rank}: choose POIs according to the ranking based on POI features described in section \ref{method:ranking}.
+\item \textbf{Markov}: recommend trajectory according to the factorized transition matrix described in section \ref{method:transition},
+      using Viterbi algorithm to compute the most likely trajectory w.r.t. constraint $(p_s, p_e, L)$.
+\item \textbf{Markov Path}: the same as Markov, but use integer linear programming to compute the most likely trajectory,
+      so that it does not contain self-loops or sub-tours.
+\item \textbf{Rank + Markov}: one of the proposed methods, combining POI ranking based on features 
+      described in section \ref{method:ranking} and the factorized transition matrix described in section \ref{method:transition},
+      use algorithm \ref{dp-algo} to compute the most likely trajectory w.r.t. constraint $(p_s, p_e, L)$.
+\item \textbf{Rank + Markov Path}: the second proposed method, same as Rank + Markov,
+      but use integer linear programming to restrict no self-loop or sub-tour appears in the recommended trajectory.
+\item \textbf{Structured SVM}: structured prediction using EdgeFeatureGraphCRF with OneSlackSSVM to recommend trajectory.
+\item \textbf{PersTour}\cite{ijcai15}: personalised trajectory recommendation method described in \cite{ijcai15}, 
       time-based user interest was used and $\eta = 0.5$.
-\item PersTour-T1\cite{ijcai15}: the same as PersTour-T.5, but set $\eta=1.0$.
-\item PersTour-L.5: PersTour\cite{ijcai15} with budget constraint replaced with the number POIs to visit, i.e., $L$,
+\item \textbf{PersTour-L}: PersTour\cite{ijcai15} with budget constraint replaced with the number POIs to visit, i.e., $L$,
       similar to PersTour, we use time-based user interest and set $\eta$ to $0.5$.
-\item PersTour-L1: the same as PersTour-L.5, but set $\eta=1.0$.
-\item RankP: choose POIs according to the ranking based on POI popularity.
-\item RankF: choose POIs according to the ranking based on POI features described in section \ref{method:ranking}.
-\item MC-DP: recommend trajectory according to the Markov Chain with transition matrix described in section \ref{method:transition},
-      use Viterbi algorithm to compute the most likely trajectory w.r.t. constraint $(p_s, p_e, L)$.
-\item MC-ILP: the same as MC-DP, but use integer linear programming to compute the most likely trajectory.
-\item Hybrid-DP: one of the proposed methods, combining POI ranking based on features 
-      described in section \ref{method:ranking} and the Markov Chain with transition matrix described in section \ref{method:transition},
-      use dynamic programming to compute the most likely trajectory w.r.t. constraint $(p_s, p_e, L)$.
-\item Hybrid-ILP: the second proposed method, same as Hybrid-DP,
-      but use integer linear programming to compute the most likely trajectory.
-\item SSVM: structured prediction using EdgeFeatureGraphCRF with OneSlackSSVM to recommend trajectory.
 \end{itemize}
 
 The F$_1$-scores of different algorithms on five datasets are shown in table \ref{table:f1}
 and the values of $\tau$ of different algorithms are show in table \ref{table:tau}
-\footnote{We can not compute $\tau$ for PersTour-T.5 because the number of POIs in recommend trajectory is not guaranteed to equal the number of POIs in real trajectory}.
+\footnote{We can not compute $\tau$ for \textbf{PersTour} because the number of POIs in recommend trajectory is not guaranteed to equal the number of POIs in real trajectory}.
 
 \subsection{Parameters}
-For all algorithms that utilizing ranking probabilities of POIs, namely, RankF, Hybrid-DP and Hybrid-ILP,
-the regularization parameter of rankSVM was $10$.
+For all algorithms that utilizing ranking probabilities of POIs, namely, \textbf{POI Rank}, \textbf{Rank + Markov} and 
+\textbf{Rank + Markov Path}, the regularization parameter of rankSVM was $10$.
 The discretization parameters used to factorize the transition probabilities between POIs was $5$, namely,
 either discretizing POI features into $5$ bins in log-space or clustering POIs to $5$ clusters according to the geographical coordinates.
-The trade-off parameters $\alpha$ and $\beta$ was set to $0.5$ in both Hybrid-DP and Hybrid-ILP algorithms.
-The regularization parameter when training Structured SVM was $1$.
-
-
-%\begin{tabular}{c|ccccccc|cccccccc} \hline
-%\multirow{2}{*}{Dataset} & \multicolumn{7}{|c|}{User agnostic} & \multicolumn{8}{|c}{User specific} \\ \cline{2-15}
-%                         & Rand & RankP & RankF & MC-DP & MC-ILP & Pro-DP & Pro-ILP 
-%                         & PersTour & PersTour-L & RankP & RankF & MC-DP & MC-ILP & Pro-DP & Pro-ILP \\ \hline
-%Toronto           & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ 
-%                  & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $1\pm0$ & $\mathbf{1\pm0}$ & $1\pm0$ \\
+The trade-off parameters $\alpha$ and $\beta$ was set to $0.5$ in both \textbf{Rank + Markov} and \textbf{Rank + Markov Path} algorithms.
+The regularization parameter when training \textbf{Structured SVM} was $1$.
 
 
 \begin{table*}
 \centering
+\begin{tabular}{l|cccc} \hline
+ & Edinburgh & Glasgow & Osaka & Toronto \\ \hline
+Random & $0.570\pm0.139$ & $0.632\pm0.124$ & $0.621\pm0.117$ & $0.621\pm0.128$ \\
+POI Popularity & $0.701\pm0.160$ & $0.745\pm0.166$ & $0.661\pm0.128$ & $0.679\pm0.120$ \\
+POI Rank & $0.693\pm0.155$ & $0.777\pm0.169$ & $0.678\pm0.116$ & $\mathbf{0.753\pm0.167}$ \\
+Markov & $0.629\pm0.172$ & $0.717\pm0.170$ & $0.679\pm0.162$ & $0.662\pm0.156$ \\
+Markov Path & $0.678\pm0.149$ & $0.735\pm0.170$ & $0.706\pm0.154$ & $0.688\pm0.139$ \\
+Rank + Markov & $0.646\pm0.174$ & $0.739\pm0.178$ & $0.705\pm0.171$ & $0.691\pm0.171$ \\
+Rank + Markov Path & $0.687\pm0.154$ & $0.763\pm0.171$ & $\mathbf{0.718\pm0.163}$ & $0.726\pm0.152$ \\
+Structured SVM & - & $0.727\pm0.173$ & $0.715\pm0.170$ & $0.728\pm0.186$ \\
+PersTour\cite{ijcai15} & $0.656\pm0.223$ & $\mathbf{0.802\pm0.213}$ & $0.702\pm0.230$ & $0.720\pm0.215$ \\
+PersTour-L & $0.651\pm0.143$ & $0.660\pm0.102$ & $0.691\pm0.138$ & $0.642\pm0.112$ \\
+\hline
+\end{tabular}
 \caption{Performance comparison on four datasets in terms of trajectory F$_1$-score}
 \label{table:f1}
-\begin{tabular}{l|cccc} \hline
- & Edinburgh & Glasgow & Osaka & Toronto \\ \hline
-Random & $0.577\pm0.126$ & $0.632\pm0.124$ & $0.621\pm0.117$ & $0.621\pm0.128$ \\
-PersTour-T.5 & $0.649\pm0.250$ & $\mathbf{0.802\pm0.213}$ & $0.702\pm0.230$ & $0.720\pm0.215$ \\
-PersTour-T1 & $0.585\pm0.218$ & $0.720\pm0.211$ & $0.640\pm0.195$ & $0.710\pm0.219$ \\
-PersTour-L.5 & $0.632\pm0.095$ & $0.660\pm0.102$ & $0.691\pm0.138$ & $0.642\pm0.112$ \\
-PersTour-L1 & $0.599\pm0.132$ & $0.641\pm0.114$ & $0.657\pm0.141$ & $0.612\pm0.114$ \\
-RankP & $0.706\pm0.159$ & $0.745\pm0.166$ & $0.661\pm0.128$ & $0.679\pm0.120$ \\
-RankF & $0.707\pm0.176$ & $0.777\pm0.169$ & $0.678\pm0.116$ & $\mathbf{0.753\pm0.167}$ \\
-MC-DP & $0.675\pm0.192$ & $0.717\pm0.170$ & $0.679\pm0.162$ & $0.662\pm0.156$ \\
-MC-ILP & $0.707\pm0.159$ & $0.735\pm0.170$ & $0.706\pm0.154$ & $0.688\pm0.139$ \\
-Hybrid-DP & $0.692\pm0.198$ & $0.739\pm0.178$ & $0.705\pm0.171$ & $0.691\pm0.171$ \\
-Hybrid-ILP & $\mathbf{0.727\pm0.163}$ & $0.763\pm0.171$ & $\mathbf{0.718\pm0.163}$ & $0.726\pm0.152$ \\
-SSVM & - & $0.727\pm0.173$ & $0.715\pm0.170$ & $0.728\pm0.186$ \\
-\hline
-\end{tabular}
 \end{table*}
 
 
 \begin{table*}
 \centering
-\caption{Performance comparison on four datasets in terms of $\tau$}
-\label{table:tau}
 \begin{tabular}{l|cccc} \hline
  & Edinburgh & Glasgow & Osaka & Toronto \\ \hline
-Random & $0.261\pm0.119$ & $0.318\pm0.165$ & $0.305\pm0.145$ & $0.309\pm0.166$ \\
-PersTour-L.5 & $0.311\pm0.109$ & $0.349\pm0.163$ & $0.415\pm0.243$ & $0.329\pm0.158$ \\
-PersTour-L1 & $0.287\pm0.168$ & $0.331\pm0.159$ & $0.361\pm0.218$ & $0.292\pm0.134$ \\
-RankP & $0.440\pm0.258$ & $0.503\pm0.296$ & $0.361\pm0.194$ & $0.378\pm0.203$ \\
-RankF & $0.438\pm0.287$ & $\mathbf{0.557\pm0.306}$ & $0.373\pm0.186$ & $0.508\pm0.297$ \\
-MC-DP & $0.481\pm0.269$ & $0.478\pm0.286$ & $0.442\pm0.259$ & $0.404\pm0.229$ \\
-MC-ILP & $0.442\pm0.278$ & $0.485\pm0.295$ & $0.445\pm0.268$ & $0.399\pm0.233$ \\
-Hybrid-DP & $0.500\pm0.288$ & $0.531\pm0.299$ & $0.495\pm0.276$ & $0.451\pm0.264$ \\
-Hybrid-ILP & $0.484\pm0.283$ & $0.531\pm0.309$ & $0.470\pm0.288$ & $0.459\pm0.269$ \\
-SSVM & - & $0.505\pm0.282$ & $\mathbf{0.499\pm0.293}$ & $\mathbf{0.511\pm0.312}$ \\
+Random & $0.259\pm0.156$ & $0.318\pm0.165$ & $0.305\pm0.145$ & $0.309\pm0.166$ \\
+POI Popularity & $\mathbf{0.422\pm0.257}$ & $0.503\pm0.296$ & $0.361\pm0.194$ & $0.378\pm0.203$ \\
+POI Rank & $0.409\pm0.243$ & $\mathbf{0.557\pm0.306}$ & $0.373\pm0.186$ & $0.508\pm0.297$ \\
+Markov & $0.404\pm0.229$ & $0.478\pm0.286$ & $0.442\pm0.259$ & $0.404\pm0.229$ \\
+Markov Path & $0.389\pm0.235$ & $0.485\pm0.295$ & $0.445\pm0.268$ & $0.399\pm0.233$ \\
+Rank + Markov & $0.420\pm0.244$ & $0.531\pm0.299$ & $0.495\pm0.276$ & $0.451\pm0.264$ \\
+Rank + Markov Path & $0.401\pm0.245$ & $0.531\pm0.309$ & $0.470\pm0.288$ & $0.459\pm0.269$ \\
+Structured SVM & - & $0.505\pm0.282$ & $\mathbf{0.499\pm0.293}$ & $\mathbf{0.511\pm0.312}$ \\
+PersTour-L & $0.350\pm0.206$ & $0.349\pm0.163$ & $0.415\pm0.243$ & $0.329\pm0.158$ \\
 \hline
 \end{tabular}
+\caption{Performance comparison on four datasets in terms of $\tau$}
+\label{table:tau}
 \end{table*}
+
 
 \subsection{Avoid Peeking}
 When working with machine learning methods, to make sure the reported performance is a good approximation
 of the generalization performance, it is critical to prevent information in test set from leaking into
 training set.
 Many algorithms in the above comparison utilizing both learning to rank and factorized Markov Chain, 
-e.g., Hybrid-DP, Hybrid-ILP and SSVM,
+e.g., \textbf{Rank + Markov}, \textbf{Rank + Markov Path} and \textbf{Structured SVM},
 both of them need to be trained or parameters be estimated before being used in other algorithms.
 Features such as popularity of a POI, the number of visits of a POI and the average visit duration at a POI are
 determined by the POI itself as well as trajectories in training set, let's call them aggregated features as they are 
@@ -172,6 +162,22 @@ practitioners did not realize some bits of information in test set were leaked i
 %but in certain areas, such as aerodynamics, some decisions are very sensitive to the quantity of certain features.
 %Nevertheless, the exact impact still needs further investigation.
 
-\subsection{Analysis of Experimental Results}
-
-\label{experiment:analysis}
+\subsection{Results Analysis}
+\begin{table*}
+\centering
+\begin{tabular}{l|cccccc} \hline
+ & Query & POI & Transition & No sub-tours & Joint \\ \hline
+Random         & $\times$ & $\times$ & $\times$ & $\times$ & $\times$ \\ 
+POI Popularity & $\times$ & $\surd$ & $\times$ & $\times$ & $\times$ \\ 
+POI Rank       & $\surd$  & $\surd$ & $\times$ & $\times$ & $\times$ \\
+Markov         & $\times$ & $\surd$ & $\surd$ & $\times$ & $\times$ \\
+Markov Path    & $\times$ & $\surd$ & $\surd$ & $\surd$ & $\times$ \\
+Rank + Markov  & $\surd$ & $\surd$ & $\surd$ & $\times$ & $\times$ \\
+Rank + Markov Path & $\surd$ & $\surd$ & $\surd$ & $\surd$ & $\times$ \\
+Structured SVM & $\surd$ & $\surd$ & $\surd$ & $\times$ & $\surd$ \\
+PersTour\cite{ijcai15} & $\times$ & $\surd$ & $\times$ & $\surd$ & $\times$ \\
+PersTour-L & $\times$ & $\surd$ & $\times$ & $\surd$ & $\times$ \\ \hline
+\end{tabular}
+\caption{Characteristics of different algorithms}
+\label{table:character}
+\end{table*}
