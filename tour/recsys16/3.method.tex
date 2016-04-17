@@ -243,46 +243,45 @@ there is a directed edge from $v'$ to $v$, $v' \in Pa_v$.
 
 The minimum path weight is $M_1[L, v_{p_e}]$,
 and the actual path can be found by tracing back from $M_2[L, v_{p_e}]$,
-the complete algorithm to find this path is shown in figure \ref{fig:path},
+the complete algorithm to find this path is shown in figure \ref{algo:dp},
 the sequence of POIs corresponding to vertices in that path is the 
 trajectory we would like to recommend with respect to constraint $ x = (p_s, p_e, L)$.
 
-%\begin{figure*}
-\begin{figure}
+\begin{table}
 \centering
-\begin{tabular}{p{3pt}l}
-%\hline
-01:&\textbf{procedure} FindPath$(V, E, p_s, p_e, L)$ \\
-02:&\hspace{10pt} \textbf{for} $v \in V$ \\
-03:&\hspace{20pt}     \textbf{if} $(v_{p_s}, v) \in E$ \\
-04:&\hspace{30pt}         $M_1[2, v] = w(v_{p_s}, v) + \alpha w(v) + \beta w(v_{p_s})$ \\
-05:&\hspace{30pt}         $M_2[2, v] = v_{p_s}$ \\
-06:&\hspace{20pt}     \textbf{else} \\
-07:&\hspace{30pt}         $M_1[2, v] = +\infty$ \\
-08:&\hspace{10pt} \textbf{end for} \\
-09:&\hspace{10pt} \textbf{for} $l=3$ \textbf{to} $L$ \\
-10:&\hspace{20pt}     \textbf{for} $v \in V$ \\
-11:&\hspace{30pt}         \(\displaystyle M_1[l, v] = \min_{v' \in Pa_v} \{ M_1[l-1, v'] + \alpha w(v) + \beta w(v', v) \} \) \\
-12:&\hspace{30pt}         \(\displaystyle M_2[l, v] = \argmin_{v' \in Pa_v} \{ M_1[l-1, v'] + \alpha w(v) + \beta w(v', v) \} \)\\
-13:&\hspace{20pt}     \textbf{end for} \\
-14:&\hspace{10pt} \textbf{end for} \\
+\begin{tabular}{rl}
+\hline
+\multicolumn{2}{l}{\textbf{Algorithm 1} for finding a path with minimum weight.} \\
+\hline
+ 1:& Input: $V, E, p_s, p_e, L$ \\
+ 2:&\textbf{for} $v \in V$ \\
+ 3:&\hspace{10pt}\textbf{if} $(v_{p_s}, v) \in E$ \\
+ 4:&\hspace{20pt}   $M_1[2, v] = w(v_{p_s}, v) + \alpha w(v) + \beta w(v_{p_s})$ \\
+ 5:&\hspace{20pt}   $M_2[2, v] = v_{p_s}$ \\
+ 6:&\hspace{10pt}\textbf{else} \\
+ 7:&\hspace{20pt}   $M_1[2, v] = +\infty$ \\
+ 8:&\textbf{end for} \\
+ 9:&\textbf{for} $l=3$ \textbf{to} $L$ \\
+10:&\hspace{10pt}\textbf{for} $v \in V$ \\
+11:&\hspace{20pt}   \(\displaystyle M_1[l, v] = \min_{v' \in Pa_v} \{ M_1[l-1, v'] + \alpha w(v) + \beta w(v', v) \} \) \\
+12:&\hspace{20pt}   \(\displaystyle M_2[l, v] = \argmin_{v' \in Pa_v} \{ M_1[l-1, v'] + \alpha w(v) + \beta w(v', v) \} \)\\
+13:&\hspace{10pt}\textbf{end for} \\
+14:&\textbf{end for} \\
 % //trace back to find the actual path
-15:&\hspace{10pt} $path = [v_{p_e}]$ \\
-16:&\hspace{10pt} $v = path[0]$ \\
-17:&\hspace{10pt} $l = L$ \\
-18:&\hspace{10pt} \textbf{repeat} \\
-19:&\hspace{20pt}     $path$.prepend$(M_2[l, v])$ \\
-20:&\hspace{20pt}     $v = path[0]$ \\
-21:&\hspace{20pt}     $l = l - 1$ \\
-22:&\hspace{10pt} \textbf{until} $l < 2$ \\
-23:&\hspace{10pt} \textbf{return} $path$ \\
-24:&\textbf{end procedure} \\
-%\hline
+15:&$path = [v_{p_e}]$ \\
+16:&$v = path[0]$ \\
+17:&$l = L$ \\
+18:&\textbf{repeat} \\
+19:&\hspace{10pt}$path$.prepend$(M_2[l, v])$ \\
+20:&\hspace{10pt}$v = path[0]$ \\
+21:&\hspace{10pt}$l = l - 1$ \\
+22:&\textbf{until} $l < 2$ \\
+23:&\textbf{return} $path$ \\
+\hline
 \end{tabular}
-\caption{Path Finding}
-\label{fig:path}
-%\end{figure*}
-\end{figure}
+%\caption{Path Finding}
+\label{algo:dp}
+\end{table}
 
 
 \subsection{Recommend Trajectories via Structured Prediction}
