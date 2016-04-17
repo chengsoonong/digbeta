@@ -11,8 +11,9 @@ trajectories were extracted the same way as that described in \cite{ht10, ijcai1
 the time that a user arrived a POI was approximated by the time the first photo taken by that user at that POI,
 similarly, the time that a user leaved a POI was approximated by the time the last photo taken by that user at 
 that POI \cite{ijcai15}.
-An example of trajectory in Melbourne dataset was shown in figure \ref{fig:traj}, 
-and statistics of the five datasets are described in table \ref{table:data:all}.
+An example of trajectory in Toronto dataset was shown in figure \ref{fig:traj}, 
+%TODO: explain what is a POI/photo in the figure
+and statistics of the five datasets are described in table \ref{table:data}.
 
 
 \begin{figure}
@@ -24,8 +25,6 @@ and statistics of the five datasets are described in table \ref{table:data:all}.
 
 \begin{table*}
 \centering
-\caption{Datasets description}
-\label{table:data:all}
 \begin{tabular}{lrrrrr} \hline
 \textbf{Dataset} & \textbf{\#Photos} & \textbf{\#POI Visits} & \textbf{\#Trajectories} & \textbf{\#Users} \\ \hline
 Edinburgh & 82,060 & 33,944 & 5,028 & 1,454 \\ 
@@ -34,6 +33,8 @@ Osaka & 392,420 & 7,747 & 1,115 & 450 \\
 Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\ 
 \hline
 \end{tabular}
+\caption{Statistics of trajectory dataset}
+\label{table:data}
 \end{table*}
 
 
@@ -48,19 +49,29 @@ we employ the trajectory F$_1$-score define in \cite{ijcai15} to measure the POI
 correctly recommended. Let $\mathcal{T}_a$ be the trajectory that was visited in the real world,
 and $\mathcal{T}_r$ be the trajectory recommended by one of the algorithms,
 trajectory F$_1$-scores was defined as
+%TODO: use \definition format for trajectory F_1
 \begin{displaymath}
     F_1 = \frac{2 |\mathcal{T}_a \cap \mathcal{T}_r|}{|\mathcal{T}_a| + |\mathcal{T}_r|}
 \end{displaymath}
+A perfect trajectory F$_1$-score (i.e., F$_1 = 1$) means the recommended trajectory contains the exactly 
+same POIs as those in the ground truth, and a $0$ trajectory F$_1$-score means that unfortunately none of 
+the POIs in the real trajectory was recommended.
 
 In addition, we adapted Kendall's $\tau$ coefficient \cite{kendalltau} to measure the quality of 
 recommended visiting order of POIs, which was defined as
+%TODO: use \definition format for trajectory \tau
 \begin{displaymath}
     \tau = \frac{2(N_c - N_d)}{N(N-1)}
 \end{displaymath}
+%TODO: detail what is a concordant/discordant pair 
 where $N_c$ is the number of concordant pairs of POIs in the real visited trajectory $\mathcal{T}_a$ and 
 the recommended trajectory $\mathcal{T}_r$, $N_d$ is the number of discordant pairs of POIs in 
 $\mathcal{T}_a$ and $\mathcal{T}_r$, $N = |\mathcal{T}_a|$ is the number of visited POIs.
-
+A perfect trajectory $\tau$, (i.e., $\tau = 1$) means the recommended trajectory not only contains the exactly 
+same set of POIs as those in the real trajectory, but also the recommended visiting order among these POIs is 
+exactly the same order that visited by people in real life.
+%A completely missed trajectory $\tau$ (i.e., $\tau = -1$) indicates
+%TODO: explain tau=0 and tau=-1
 
 \subsection{Comparison}
 % the way to binning POI features, #clusters of POIs,
@@ -82,17 +93,14 @@ We compared the experimental results on trajectory datasets between the proposed
       so that it does not contain self-loops or sub-tours.
 \item \textsc{Rank} + \textsc{Markov}: one of the proposed methods, combining POI ranking based on features 
       described in section \ref{method:ranking} and the factorized transition matrix described in section \ref{method:transition},
-      use algorithm \ref{dp-algo} to compute the most likely trajectory w.r.t. constraint $(p_s, p_e, L)$.
+      use algorithm \ref{algo:dp} to compute the most likely trajectory w.r.t. constraint $(p_s, p_e, L)$.
 \item \textsc{Rank} + \textsc{MarkovPath}: the second proposed method, same as Rank + Markov,
       but use integer linear programming to restrict no self-loop or sub-tour appears in the recommended trajectory.
-\item \textsc{StructuredSVM}: structured prediction using EdgeFeatureGraphCRF with OneSlackSSVM to recommend trajectory.
+\item \textsc{StructuredSVM}: structured prediction method using POI rankings as well as transition probabilities
+      between POIs to recommend trajectory as described in section \ref{method:structured}.
 \end{itemize}
 
-The F$_1$-scores of different algorithms on five datasets are shown in table \ref{table:f1}
-and the values of $\tau$ of different algorithms are show in table \ref{table:tau}
-\footnote{We can not compute $\tau$ for \textsc{PersTour} because the number of POIs in recommend trajectory is not guaranteed to equal the number of POIs in real trajectory}.
-
-\subsection{Parameters}
+% Parameters
 For all algorithms that utilizing ranking probabilities of POIs, namely, \textsc{PoiRank}, \textsc{Rank} + \textsc{Markov} and 
 \textsc{Rank} + \textsc{MarkovPath}, the regularization parameter of rankSVM was $10$.
 The discretization parameters used to factorize the transition probabilities between POIs was $5$, namely,
@@ -102,20 +110,92 @@ The trade-off parameters $\alpha$ and $\beta$ was set to $0.5$ in both \textsc{R
 The regularization parameter when training \textsc{StructuredSVM} was $1$.
 
 
+\subsection{Results}
+%TODO: tell the story: justify each row in the table, make comparison.
+The F$_1$-scores of the nine algorithms on all four datasets are shown in table \ref{table:f1}.
+The information utilized by these algorithms except \textsc{Random} range from POI information and query information 
+of trajectories to transition patterns between different POIs and so on, table \ref{table:character} summarize the 
+characteristics of all the nine algorithms.
+
+From table \ref{table:f1}, one can observe that all algorithms that capture POI specific information significantly 
+outperform the one that does not use it, namely the \textsc{Random} baseline algorithm, in all four datasets, 
+which indicates the POI specific information is very helpful for recommending trajectories.
+%
+% time constraint is better than length constraint
+Another observation is \textsc{PersTour} get much better trajectory F$_1$-scores on all four datasets 
+than \textsc{PersTour-L}, which is equivalent to \textsc{PersTour} except the total number of POIs was used to 
+constrain recommendation, which means, at least for \textsc{PersTour}, the total time consumed in a trajectory
+provides more helpful information than purely the number of POIs one should visit, and indicates recommendation
+algorithms that use the number of POIs instead of the time consumed might not perform as good.
+%
+% comparison between ijcai and other methods
+Surprisingly, algorithms that didn't utilize the total time consumed in a trajectory can outperform the one that 
+used this information, i.e., the \textsc{PersTour} algorithm, on three out of four datasets, 
+by learning to rank POIs based on informative POIs features and exploiting the transition patterns between POIs.
+%
+% strong performance of POI popularity based ranking on Edinburgh data
+In particular, POI popularity seems to be very informative, ranking based on only POI popularity 
+(i.e., \textsc{PoiPopularity}) yield very good performance on two out of four dataset, 
+especially on Edinburgh dataset, where it surprisingly outperforms all 
+other methods, including those much more sophisticated than this simple ranking method.
+%
+% strong performance of POI feature based ranking on Toronto and Glasgow data
+Furthermore, \textsc{PoiRank} performs very well in three out of four datasets, 
+especially on Toronto dataset, where it got better results than any other methods, 
+while on both Edinburgh and Glasgow datasets, it was the second best performer, 
+which indicates that learning to rank is very helpful when recommending trajectories.
+%
+% the performance of transition-only methods
+However, recommendation by exploiting only transition patterns did not performs quite well,
+but when supported by learning to rank, it improves a lot, which results the best performer on Osaka dataset and
+the third best performer on all other datasets, namely \textsc{Rank} + \textsc{MarkovPath}.
+%
+% sub-tours hurt
+In addition, we found that sub-tours hurt trajectory recommendation when compare the performance between
+\textsc{Markove} and \textsc{MarkovPath} as well as between \textsc{Rank} + \textsc{Markov} and 
+\textsc{Rank} + \textsc{MarkovPath}, while the latter algorithms got an additional restrict that no sub-tours 
+occur in recommended trajectories in both cases.
+% 
+% why structured prediction didn't work very well
+This discovery could also be the reason that the sophisticated structured prediction algorithm, 
+i.e., \textsc{StructuredSVM}, can not perform better than the best performer among the various algorithms
+that exploiting POI rankings and/or transition patterns.
+
+
+% performance comparison in terms of tau
+On the other hand, when compare the performance of different recommendation algorithms in terms of $\tau$
+which measures the quality of visiting orders of POIs in recommended trajectories,
+as shown in table \ref{table:tau}
+\footnote{We can not compute $\tau$ for \textsc{PersTour} because the number of POIs in recommend trajectory is not guaranteed to equal the number of POIs in real trajectory},
+\textsc{StructuredSVM} became the best performer in three out of four datasets,
+this is expected as \textsc{StructuredSVM} can tune much more parameters than other algorithms when training,
+which means it can utilize the transition patterns between POIs better,
+as a result, when POIs in a recommended trajectory also appear in the ground truth, 
+there is a better chance that the visiting order among these POIs are also consistent with 
+that in the real trajectory.
+%
+% 
+The last interesting observation that we want point out is the recommendation algorithm that uses only
+POI popularity, i.e., \textsc{PoiPopularity}, yields the best performance in terms of trajectory F$_1$-score and 
+also get very good performance, almost comparable to the best performer in terms of trajectory $\tau$ 
+on Edinburgh dataset. This observation indicates that most tourists visiting Edinburgh not only just visiting
+places that very popular, but also follow similar visiting orders when visiting these places.
+
+
 \begin{table*}
 \centering
 \begin{tabular}{l|cccc} \hline
  & Edinburgh & Glasgow & Osaka & Toronto \\ \hline
-\textsc{Random} & $0.571\pm0.139$ & $0.632\pm0.124$ & $0.621\pm0.117$ & $0.621\pm0.128$ \\
+\textsc{Random} & $0.570\pm0.139$ & $0.632\pm0.124$ & $0.621\pm0.117$ & $0.621\pm0.128$ \\
 \textsc{PersTour}\cite{ijcai15} & $0.656\pm0.223$ & $\mathbf{0.802\pm0.213}$ & $0.702\pm0.230$ & $0.720\pm0.215$ \\
 \textsc{PersTour-L} & $0.651\pm0.143$ & $0.660\pm0.102$ & $0.691\pm0.138$ & $0.642\pm0.112$ \\
-\textsc{PoiPopularity} & $\mathbf{0.701\pm0.161}$ & $0.745\pm0.166$ & $0.661\pm0.128$ & $0.679\pm0.120$ \\
-\textsc{PoiRank} & $0.693\pm0.155$ & $0.777\pm0.169$ & $0.678\pm0.116$ & $\mathbf{0.753\pm0.167}$ \\
-\textsc{Markov} & $0.629\pm0.171$ & $0.717\pm0.170$ & $0.679\pm0.162$ & $0.662\pm0.156$ \\
-\textsc{MarkovPath} & $0.678\pm0.149$ & $0.735\pm0.170$ & $0.706\pm0.154$ & $0.688\pm0.139$ \\
-\textsc{Rank} + \textsc{Markov} & $0.647\pm0.173$ & $0.739\pm0.178$ & $0.705\pm0.171$ & $0.691\pm0.171$ \\
-\textsc{Rank} + \textsc{MarkovPath} & $0.688\pm0.154$ & $0.763\pm0.171$ & $\mathbf{0.718\pm0.163}$ & $0.726\pm0.152$ \\
-\textsc{StructuredSVM} & - & $0.727\pm0.173$ & $0.715\pm0.170$ & $0.728\pm0.186$ \\
+\textsc{PoiPopularity} & $\mathbf{0.701\pm0.160}$ & $0.745\pm0.166$ & $0.661\pm0.128$ & $0.679\pm0.120$ \\
+\textsc{PoiRank} & $\mathit{0.694\pm0.157}$ & $\mathit{0.777\pm0.171}$ & $0.679\pm0.112$ & $\mathbf{0.748\pm0.166}$ \\
+\textsc{Markov} & $0.629\pm0.172$ & $0.714\pm0.168$ & $0.679\pm0.162$ & $0.663\pm0.157$ \\
+\textsc{MarkovPath} & $0.678\pm0.148$ & $0.731\pm0.167$ & $0.706\pm0.154$ & $0.689\pm0.140$ \\
+\textsc{Rank} + \textsc{Markov} & $0.642\pm0.171$ & $0.736\pm0.176$ & $0.701\pm0.171$ & $0.689\pm0.170$ \\
+\textsc{Rank} + \textsc{MarkovPath} & $0.684\pm0.151$ & $0.760\pm0.170$ & $\mathbf{0.719\pm0.161}$ & $0.724\pm0.152$ \\
+\textsc{StructuredSVM} & $0.659\pm0.186$ & $0.727\pm0.173$ & $\mathit{0.715\pm0.170}$ & $\mathit{0.728\pm0.186}$ \\
 \hline
 \end{tabular}
 \caption{Performance comparison on four datasets in terms of trajectory F$_1$-score}
@@ -123,25 +203,45 @@ The regularization parameter when training \textsc{StructuredSVM} was $1$.
 \end{table*}
 
 
-
 \begin{table*}
 \centering
 \begin{tabular}{l|cccc} \hline
  & Edinburgh & Glasgow & Osaka & Toronto \\ \hline
-\textsc{Random} & $0.259\pm0.156$ & $0.318\pm0.165$ & $0.305\pm0.145$ & $0.309\pm0.166$ \\
+\textsc{Random} & $0.259\pm0.155$ & $0.318\pm0.165$ & $0.305\pm0.145$ & $0.309\pm0.166$ \\
 \textsc{PersTour-L} & $0.350\pm0.206$ & $0.349\pm0.163$ & $0.415\pm0.243$ & $0.329\pm0.158$ \\
-\textsc{PoiPopularity} & $\mathbf{0.422\pm0.257}$ & $0.503\pm0.296$ & $0.361\pm0.194$ & $0.378\pm0.203$ \\
-\textsc{PoiRank} & $0.409\pm0.243$ & $\mathbf{0.557\pm0.306}$ & $0.373\pm0.186$ & $0.508\pm0.297$ \\
-\textsc{Markov} & $0.404\pm0.229$ & $0.478\pm0.286$ & $0.442\pm0.259$ & $0.404\pm0.229$ \\
-\textsc{MarkovPath} & $0.389\pm0.235$ & $0.485\pm0.295$ & $0.445\pm0.268$ & $0.399\pm0.233$ \\
-\textsc{Rank} + \textsc{Markov} & $0.420\pm0.244$ & $0.531\pm0.299$ & $0.495\pm0.276$ & $0.451\pm0.264$ \\
-\textsc{Rank} + \textsc{MarkovPath} & $0.401\pm0.245$ & $0.531\pm0.309$ & $0.470\pm0.288$ & $0.459\pm0.269$ \\
-\textsc{StructuredSVM} & - & $0.505\pm0.282$ & $\mathbf{0.499\pm0.293}$ & $\mathbf{0.511\pm0.312}$ \\
+\textsc{PoiPopularity} & $\mathit{0.421\pm0.257}$ & $0.503\pm0.296$ & $0.361\pm0.194$ & $0.378\pm0.203$ \\
+\textsc{PoiRank} & $0.410\pm0.246$ & $\mathbf{0.557\pm0.311}$ & $0.367\pm0.162$ & $\mathit{0.501\pm0.294}$ \\
+\textsc{Markov} & $0.404\pm0.229$ & $0.472\pm0.282$ & $0.442\pm0.259$ & $0.406\pm0.231$ \\
+\textsc{MarkovPath} & $0.390\pm0.235$ & $0.479\pm0.292$ & $0.445\pm0.268$ & $0.401\pm0.235$ \\
+\textsc{Rank} + \textsc{Markov} & $0.411\pm0.237$ & $0.522\pm0.293$ & $\mathit{0.475\pm0.278}$ & $0.449\pm0.263$ \\
+\textsc{Rank} + \textsc{MarkovPath} & $0.395\pm0.238$ & $\mathit{0.523\pm0.303}$ & $0.470\pm0.284$ & $0.455\pm0.268$ \\
+\textsc{StructuredSVM} & $\mathbf{0.423\pm0.264}$ & $0.505\pm0.282$ & $\mathbf{0.499\pm0.293}$ & $\mathbf{0.511\pm0.312}$ \\
 \hline
 \end{tabular}
 \caption{Performance comparison on four datasets in terms of $\tau$}
 \label{table:tau}
 \end{table*}
+
+
+\begin{table*}
+\centering
+\begin{tabular}{l|cccccc} \hline
+                                    & Query    & POI      & Transition & No sub-tours & Joint    \\ \hline
+\textsc{Random}                     & $\times$ & $\times$ & $\times$   & $\times$     & $\times$ \\ 
+\textsc{PersTour}\cite{ijcai15}     & $\times$ & $\surd$  & $\times$   & $\surd$      & $\times$ \\
+\textsc{PersTour-L}                 & $\times$ & $\surd$  & $\times$   & $\surd$      & $\times$ \\
+\textsc{PoiPopularity}              & $\times$ & $\surd$  & $\times$   & $\times$     & $\times$ \\ 
+\textsc{PoiRank}                    & $\surd$  & $\surd$  & $\times$   & $\times$     & $\times$ \\
+\textsc{Markov}                     & $\times$ & $\surd$  & $\surd$    & $\times$     & $\times$ \\
+\textsc{MarkovPath}                 & $\times$ & $\surd$  & $\surd$    & $\surd$      & $\times$ \\
+\textsc{Rank} + \textsc{Markov}     & $\surd$  & $\surd$  & $\surd$    & $\times$     & $\times$ \\
+\textsc{Rank} + \textsc{MarkovPath} & $\surd$  & $\surd$  & $\surd$    & $\surd$      & $\times$ \\
+\textsc{StructuredSVM}              & $\surd$  & $\surd$  & $\surd$    & $\times$     & $\surd$  \\ \hline
+\end{tabular}
+\caption{Characteristics of different algorithms}
+\label{table:character}
+\end{table*}
+
 
 
 \subsection{Avoid Peeking}
@@ -164,22 +264,4 @@ practitioners did not realize some bits of information in test set were leaked i
 %but in certain areas, such as aerodynamics, some decisions are very sensitive to the quantity of certain features.
 %Nevertheless, the exact impact still needs further investigation.
 
-\subsection{Results Analysis}
-\begin{table*}
-\centering
-\begin{tabular}{l|cccccc} \hline
-                                    & Query    & POI      & Transition & No sub-tours & Joint    \\ \hline
-\textsc{Random}                     & $\times$ & $\times$ & $\times$   & $\times$     & $\times$ \\ 
-\textsc{PersTour}\cite{ijcai15}     & $\times$ & $\surd$  & $\times$   & $\surd$      & $\times$ \\
-\textsc{PersTour-L}                 & $\times$ & $\surd$  & $\times$   & $\surd$      & $\times$ \\
-\textsc{PoiPopularity}              & $\times$ & $\surd$  & $\times$   & $\times$     & $\times$ \\ 
-\textsc{PoiRank}                    & $\surd$  & $\surd$  & $\times$   & $\times$     & $\times$ \\
-\textsc{Markov}                     & $\times$ & $\surd$  & $\surd$    & $\times$     & $\times$ \\
-\textsc{MarkovPath}                 & $\times$ & $\surd$  & $\surd$    & $\surd$      & $\times$ \\
-\textsc{Rank} + \textsc{Markov}     & $\surd$  & $\surd$  & $\surd$    & $\times$     & $\times$ \\
-\textsc{Rank} + \textsc{MarkovPath} & $\surd$  & $\surd$  & $\surd$    & $\surd$      & $\times$ \\
-\textsc{StructuredSVM}              & $\surd$  & $\surd$  & $\surd$    & $\times$     & $\surd$  \\ \hline
-\end{tabular}
-\caption{Characteristics of different algorithms}
-\label{table:character}
-\end{table*}
+
