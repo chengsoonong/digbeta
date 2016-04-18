@@ -4,46 +4,46 @@
 
 \subsection{Problem Formulation}
 \label{method:formulation}
-For a set of Point/Place of Interest (POI) $\mathcal{P}$ and a set of users $\mathcal{U}$,
-a trajectory $\mathcal{T}^u$ of user $u$ is an ordered sequence of POIs,
+For a set of Point of Interest (POI) $\mathcal{P}$ and a set of users $\mathcal{U}$,
+a trajectory $\mathcal{T}_u$ of user $u$ is an ordered sequence of POIs,
 i.e.,
 \begin{displaymath}
-    \mathcal{T}^u = ((p_1, t_{p_1}^s, t_{p_{1}}^e), \dots, (p_L, t_{p_L}^s, t_{p_L}^e)), 
+    \mathcal{T}_u = ((p_1, t_{p_1}^s, t_{p_{1}}^e), \dots, (p_L, t_{p_L}^s, t_{p_L}^e)), 
     u \in \mathcal{U}, 
     p_j \in \mathcal{P}, 1 \le j \le L
 \end{displaymath}
 where $t_p^s$ and $t_p^e$ is the start and end time of user $u$ at POI $p$ respectively.
 
-Given a set of trajectories $\{ \mathcal{T}_u^i \}, u \in \mathcal{U}$ with visited POIs in $\mathcal{P}$, 
-a start POI $p_s$, a destination $p_e$ and an integer $2 < L \le |\mathcal{P}|$,
+Given a set of trajectories $\{ \mathcal{T}_u^{(i)} \}$ with visited POIs in $\mathcal{P}$, 
+a start POI $p_s$, a destination $p_e$ and an integer $L, 2 < L \le |\mathcal{P}|$,
 trajectory recommendation is to recommend the \textit{most likely} trajectory $(p_s, \dots, p_e)$ to user $u$ such that
-the number of visited POIs is $L$.
+the number of visited POIs is $L$ (including $p_s$ and $p_e$).
 
 
-\subsection{Ranking of POIs}
+\subsection{Learning to Rank}
 \label{method:ranking}
 % ranking of POIs focus on modeling the (personalised) preference of POIs
-We first produce a ranking of POIs, i.e., $<_{p_i, p_j} \subset \mathcal{P}^2$,
+We first learn a ranking of POIs, i.e., $<_{p_i, p_j} \subset \mathcal{P}^2$,
 with respect to constraint $(p_s, p_e, L)$ 
 using rankSVM with linear kernel and $L2$ loss\cite{lranksvm}, 
 i.e.,
 \begin{displaymath}
 \min_{\mathbf{w_r}} \frac{1}{2} \mathbf{w_r}^T \mathbf{w_r} +
-                  C_r \sum_{(i, j) \in P} \max \left( 0, 1 - \mathbf{w_r}^T (\mathbf{x}_i - \mathbf{x}_j) \right)^2
+                  C_r \sum_{(i, j) \in P} \max \left( 0, 1 - \mathbf{w_r}^T (\mathbf{f}_i - \mathbf{f}_j) \right)^2
 \end{displaymath}
 where $\mathbf{w_r}$ is a vector of parameters, 
 $C_r > 0$ is the regularization parameter and 
-$\mathbf{x}_i$ is the feature vector of POI $p_i$.
-Features used for ranking POIs are:
+$\mathbf{f}_i$ is the feature vector of POI $p_i$ with respect to constraint $(p_s, p_e, L)$,
+including:
 \begin{itemize}
-\item Popularity of a POI, which is defined as the number of distinct users that visited the POI\cite{ht10}.
-\item The total number of visits of a POI,
+\item The popularity of a POI, which is defined as the number of distinct users that visited the POI\cite{ht10}.
+\item The total number of visits at POI $p$,
       \begin{displaymath}
-          N(p) = \sum_{u \in \mathcal{U}} \sum_i \sum_{p_j \in \mathcal{T}_u^i} \delta(p_j = p)
+          N(p) = \sum_{u \in \mathcal{U}} \sum_i \sum_{p_j \in \mathcal{T}_u^{(i)}} \delta(p_j = p)
       \end{displaymath}
-\item Average visit duration of POI\cite{ijcai15},
+\item The average visit duration at POI $p$\cite{ijcai15},
       \begin{displaymath}
-          \bar{V}(p) = \frac{1}{N(p)} \sum_{u \in \mathcal{U}} \sum_i \sum_{p_j \in \mathcal{T}_u^i} (t_{p_j}^s - t_{p_j}^e) \delta(p_j = p)
+          \bar{V}(p) = \frac{1}{N(p)} \sum_{u \in \mathcal{U}} \sum_i \sum_{p_j \in \mathcal{T}_u^{(i)}} (t_{p_j}^s - t_{p_j}^e) \delta(p_j = p)
       \end{displaymath}
 \item Whether the category (e.g., structures, entertainment and shopping etc.) is the same as that of $p_s$ (and $p_e$).
 \item Distance from POI $p$ to $p_s$ (and $p_e$) using haversine formula \cite{haversine},
@@ -61,53 +61,56 @@ Features used for ranking POIs are:
 \item The number of POIs in the expected trajectory, i.e. $L$
 \end{itemize}
 
-To generate the target/label of a POI in training set,
-we first group trajectories with the same start POI $p_s'$, end POI $p_e'$ and the number of visited POIs $L'$ together,
+To generate the label of a POI in training set for learning to rank,
+we first group trajectories with the same start POI $p_s'$, end POI $p_e'$ and the number of POIs $L'$ together,
 each group of trajectories form a query,
-and the target/label of POI $p$ in a particular query (i.e., trajectory group) are the number of occurrence
+and the label of POI $p$ in a particular query (i.e., trajectory group) are the number of occurrence
 in trajectories of that query, 
-without counting the occurrence of $p$ as start or end POI of a trajectory.
+without counting the occurrence of $p$ when it is the start or end POI of a trajectory.
 
 The ranking scores of POIs are transformed to probability distribution using softmax function
 \begin{displaymath}
     %P(y=1 |p) = \frac{1}{1 + e^{A f(x) + B}, p \in P
     P_R(p_j |(p_s, p_e, L)) = \frac{e^{R(p_j)}}{\sum_j e^{R(p_j)}}
 \end{displaymath}
-where $R(p_j)$ is the ranking score of POI $p_j$.
+where $R(p_j)$ is the ranking score of POI $p_j$ with respect to constraint $(p_s, p_e, L)$.
 
 
-\subsection{Factorizing Transition Probabilities between POIs}
+\subsection{Factorized Markov Chain}
 \label{method:transition}
-To deal with data sparsity,
+We use a Markov Chain to model the transition patterns between POIs,
+to deal with data sparsity,
 the transition probability between a pair of POIs $(p_i, p_j)$ was factorized into the product of
-transition probabilities between the individual features of that POI.
+transition probabilities between the following individual POI features.
 \begin{enumerate}
-\item The category of POI, $P(Cat(p_j) | Cat(p_i))$
-      is the transition probability from the category of $p_i$ to the category of $p_j$.
+\item The category of POI, $P_{\textsc{cat}}(p_j | p_i)$
+      denotes the transition probability from the category of $p_i$ to the category of $p_j$.
 \item The popularity of POI, which was first discritized with uniform intervals in log-scale,
-      and $P(Pop(p_j) | Pop(p_i))$ is the transition probability from the interval with $Pop(p_i)$ 
-      to the interval with $Pop(p_j)$.
+      and $P_{\textsc{pop}}(p_j | p_i)$ denotes the transition probability from the interval with the popularity of
+      $p_i$ to the interval with the popularity of $p_j$.
 \item The total number of visits of POI, similarly, it was first discritized with uniform intervals in log-scale,
-      and $P(N(p_j) | N(p_i))$ is the transition probability from the interval with $N(p_i)$ 
+      and $P_N(p_j | p_i)$ denotes the transition probability from the interval with $N(p_i)$ 
       to the interval with $N(p_j)$.
 \item The average visit duration of POI, and again, it was first discritized with uniform intervals in log-scale,
-      and $P(\bar{V}(p_j) | \bar{V}(p_i))$ is the transition probability from the interval with $\bar{V}(p_i)$ 
+      and $P_{\bar{V}}(p_j | p_i)$ denotes the transition probability from the interval with $\bar{V}(p_i)$ 
       to the interval with $\bar{V}(p_j)$.
 \item The neighborhood relationship between $p_i$ and $p_j$,
       which was represented by the geographical clusters of POIs that $p_i$ and $p_j$ reside in,
-      and $P(Neighb(p_i, p_j)) = P(c_{p_j} | c_{p_i})$ is the transition probability from the cluster with 
+      and $P(c_{p_j} | c_{p_i})$ denotes the transition probability from the cluster with 
       $p_i$ (i.e., $c_{p_i}$) to the cluster with $p_j$ (i.e., $c_{p_j}$).
 \end{enumerate}
 
 Assuming independence between these features,
 the transition probability between $p_i$ and $p_j$ can be factorized as follows,
-\begin{align*}
-    & P(p_j | p_i) \\
-   =& \frac{1}{Z_i} P(Cat(p_j) | Cat(p_i)) \times P(Pop(p_j) | Pop(p_i)) \times \\
-    & P(N(p_j) | N(p_i)) \times P(\bar{V}(p_j) | \bar{V}(p_i)) \times P(Neighb(p_i, p_j)) \\
-    & i \ne j, p_i, p_j \in \mathcal{P}
-\end{align*}
-where $Z_i$ is a normalizing constant.
+\begin{displaymath}
+    P(p_j | p_i) = 
+    \begin{cases} 
+    \hfill 0, \hfill & i = j \\
+    \hfill \frac{1}{Z_i} P_{\textsc{cat}}(p_j | p_i) \times P_{\textsc{pop}}(p_j | p_i) \times P_N(p_j | p_i) \\
+    \hfill \times P_{\bar{V}}(p_j | p_i) \times P(c_{p_j} | c_{p_i}), \hfill & i \ne j 
+    \end{cases}
+\end{displaymath}
+where $p_i, p_j \in \mathcal{P}$ and $Z_i$ is a normalizing constant.
 
 %POIs are grouped into several clusters according to their geographical coordinates using K-means
 %to reflect their neighborhood relationships.
@@ -117,15 +120,14 @@ We compute the transition probabilities of the above individual POI features
 using maximum likelihood estimation, 
 i.e., counting the number of transitions for each pair of features then normalizing each row,
 taking care of zeros by adding a small number $\epsilon$
-\footnote{In our experiments, $\epsilon$ for a specific row in the transition matrix equals $0.2$ times 
-the minimum non-zero value in that row.}
-to each number,
+\footnote{In our experiments, $\epsilon = 1$.}
+to each number before normalization,
 which results a transition matrix for each of the above POI features.
 
 By computing the Kronecker product of transition matrices of all the POI features,
 we get an unnormalized transition matrix of POI features.
-However, to obtain the transition probabilities between each POI pair $(p_i, p_j), i \ne j$,
-there are two cases needs to be dealt with:
+However, to obtain the transition probabilities between each POI pair $(p_i, p_j)$,
+there are two cases needs to be dealt with properly:
 \begin{enumerate}
 \item POI features which represent POIs that do not exist in $\mathcal{P}$,
 \item POI features that corresponds to more than one POIs in $\mathcal{P}$.
@@ -136,20 +138,29 @@ For the first case,
 the corresponding rows and columns in the result matrix of Kronecker product are simply removed.
 
 The second case was a bit subtle.
-POIs with exactly the same features are treated as a POI group,
-the incoming transition probability of the group was divided uniformly among POIs in the same group,
-which corresponds to choose a POI in the group uniformly at random;
-the outgoing transition probability of each POI is set the same as the outgoing transition probability of the POI group,
-as one had already been in the POI group in this case;
-the self-loop of the POI group represents the transitions between POIs in the group,
-suppose the transition probability from a POI group to itself is $P_o$,
-for each POI $p_i$ in the group, the transition probability from $p_i$ to any other POI $p_j$ in the same group
-is $\frac{P_o}{M-1}$, where $M$ is the number of POIs in the group.
-\footnote{Self-loop of individual POIs are forbidden here, so $P(p_i | p_i) = 0$ for all $p_i \in \mathcal{P}$.}
-
-Finally, we normalize each row of the transition matrix of POIs to get transition probabilities for each pair of POIs.
-\footnote{Note that dealing with the second case before or after row normalization leads to the same transition probabilities, 
-as the process does not change the normalizing constant of each row of the transition matrix.}
+Let POIs with exactly the same features be a POI group,
+the transition probabilities associated with POIs in the same group are computed as follows:
+\begin{itemize}
+\item The incoming (unnormalized) transition probability of the group was divided uniformly among POIs 
+      in the same group, which is equivalent to choose a POI in the group uniformly at random;
+\item The outgoing (unnormalized) transition probability of each POI should be the same as the 
+      outgoing transition probability of the POI group, as one had already been in the POI group in this case;
+\item The self-loop of the POI group represents the transitions between POIs in the same group,
+      suppose the (unnormalized) transition probability from a POI group to itself is $P_o$,
+      and the number of POIs in the group is $N_o$,
+      the transition probability from $p_i$ to $p_j$ in the same group is
+      \begin{displaymath}
+          P(p_j | p_i) = 
+          \begin{cases}
+              \hfill 0, \hfill & i = j \\
+              \hfill \frac{P_o}{N_o - 1}, \hfill & i \ne j \\
+          \end{cases}
+      \end{displaymath}
+\end{itemize}
+Finally, the unnormalized outgoing transition probabilities of each POI were normalized to form 
+a valid probability distribution
+\footnote{Note that dealing with the second case before or after the normalization leads to 
+the same transition probabilities, which can be easily proved.}.
 
 
 \subsection{Recommend Trajectories}
@@ -160,14 +171,14 @@ as the process does not change the normalizing constant of each row of the trans
 % we can capture both aspects by combining them
 
 To recommend the \textit{most likely} trajectory with respect to constraint $(p_s, p_e, L)$,
-we want to maximize the ranking probabilities of POIs in the trajectory as well as
-the likelihood of the trajectory w.r.t. the Markov Chain corresponds to the transition matrix of POIs.
-Specifically, we want to maximize both of the following two quantities.
-For brevity, we use $x$ to denote the constraint $(p_s, p_e, L)$ and $y$ to denote the corresponding
-recommended trajectory $(p_{j_1}, \dots, p_{j_L})$.
+we want to maximize both the product of ranking probabilities of POIs in the recommended trajectory and
+the likelihood of the recommended trajectory.
+Specifically, we want to maximize the following two quantities at the same time.
+For brevity, we use $x$ to denote the constraint $(p_s, p_e, L)$ and $y$ to denote the
+recommended trajectory $(p_{j_1}, \dots, p_{j_L})$ where $p_s = p_{j_1}$ and $p_e = p_{j_L}$.
 
 \begin{itemize}
-\item The ranking probabilities of POIs in the recommended trajectory:
+\item The logarithm of the product of ranking probabilities of POIs in the recommended trajectory:
       \begin{displaymath}
           \ell_R(y) = \sum_{k=1}^L \log P_R(p_{j_k} | x)
       \end{displaymath}
@@ -176,14 +187,13 @@ recommended trajectory $(p_{j_1}, \dots, p_{j_L})$.
           \ell(y) = \sum_{k=1}^{L-1} \log P(p_{j_{k+1}} | p_{j_k})
       \end{displaymath}
 \end{itemize}
-where $p_{j_1} = p_s$ and $p_{j_L} = p_e$.
 
 Thus, we can optimize the following objective:
 \begin{displaymath}
     \alpha \ell_R(y) + (1-\alpha) \ell(y)
 \end{displaymath}
-where $\alpha \in [0, 1]$ is parameter to trade-off the importance between the ranking probabilities 
-and likelihood of the recommended trajectory.
+where $\alpha \in [0, 1]$ is parameter to trade-off the importance between the ranking of POIs
+and the transitions between POIs in the recommended trajectory.
 i.e.,
 \begin{align*}
     & \argmax_{y \in \mathcal{P}^L} \alpha \ell_R(y) + (1-\alpha) \ell(y) \\
@@ -199,27 +209,26 @@ such that
     p_{j_k} &\in \mathcal{P}, 1 \le k \le L \\
     \alpha  &\in [0, 1]
 \end{align*}
-
-One way to find such a trajectory is transforming the above optimization problem to 
-find a shortest path in a weighted graph.
-
-Concretely,
+We optimize this objective by formulating it as a shortest path problem in a weight directed graph.
+Concretely, 
 we create a weighted directed graph $G$ with vertices $V$ that corresponds to the set of POIs $\mathcal{P}$ and 
-edges $E$ which corresponds to transitions between POIs in $\mathcal{P}$,
-the weight of vertex $v_{p}, p \in \mathcal{P}$ is set to the negative logarithm of the ranking probability of POI $p$, 
-and the weight of directed edge $(v_p, v_{p'})$ is the negative logarithm of the transition probability from $p$ to $p'$,
-i.e.,
+edges $E$ that corresponds to transitions between POIs in $\mathcal{P}$.
+Furthermore, we set the weight of vertices and edges as follows:
 \begin{align*}
-    w(v_{p})       & = -\log(P_R(p | x)) \\
-    w(v_p, v_{p'}) & = -\log(P(p' | p))
+    w_{\textsc{v}}(v_{p})       & = -\log(P_R(p | x)) \\
+    w_{\textsc{e}}(v_p, v_{p'}) & = -\log(P(p' | p))
 \end{align*}
+where $v_{p}$ is the vertex corresponding to POI $p$ and $w_{\textsc{v}}(v_{p})$ is the weight of $v_{p}$,
+the directed edge $(v_p, v_{p'})$ corresponds to the transition from POI $p$ to POI $p'$ and 
+$w_{\textsc{e}}(v_p, v_{p'})$ is the weight of $(v_p, v_{p'})$.
 
-Thus, compute the most likely trajectory with respect to constraint $x = (p_s, p_e, L)$ is
-equivalent to find a path (not necessarily a simple path) from vertex $v_{p_s}$ to
-$v_{p_e}$ with exactly $L$ vertices and minimum total path weights,
+As a result, to compute the most likely trajectory with respect to constraint $x = (p_s, p_e, L)$ is
+equivalent to find a path or walk (a.k.a. non-simple path) from vertex $v_{p_s}$ to $v_{p_e}$ 
+with minimum total weights and contains exactly $L$ vertices (not necessarily unique).
 i.e.,
 \begin{displaymath}
-    \argmin_{(v_1, \dots, v_L)} \alpha \sum_{i=1}^{L} w(v_i) + \beta \sum_{i=1}^{L-1} w(v_i, v_{i+1})
+    \argmin_{(v_1, \dots, v_L)} \alpha \sum_{i=1}^{L} w_{\textsc{v}}(v_i) + 
+                                       \beta \sum_{i=1}^{L-1} w_{\textsc{e}}(v_i, v_{i+1})
 \end{displaymath}
 such that
 \begin{align*}
@@ -227,73 +236,76 @@ such that
     v_L &= v_{p_e} 
 \end{align*}
 where $\beta = 1 - \alpha$.
-The path can be found using dynamic programming, 
-with array $M_1[l, v]$ stores the minimum total weights of path 
-that starts at vertex $v_{p_s}$ and ends at vertex $v$ with 
-exactly $l$ vertices in path,
-array $M_2[l, v]$ stores the predecessor of $v$ in that path,
-and compute a path with $l+1$ vertices by simply using the following recursive relations,
+The path can be found using a dynamic programming algorithm using the following recursive relations,
 \begin{align*}
     M_1[l+1, v] &= \min_{v' \in Pa_v} \{ M_1[l, v'] + \alpha w(v) + \beta w(v', v) \} \\
     M_2[l+1, v] &= \argmin_{v' \in Pa_v} \{ M_1[l, v'] + \alpha w(v) + \beta w(v', v) \} 
 \end{align*}
-where $Pa_v$ is the parent of vertex $v$ in $G$,
+where array $M_1[l, v]$ stores the minimum total weights associated with path or walk
+that starts at vertex $v_{p_s}$ and ends at vertex $v$ with exactly $l$ vertices,
+array $M_2[l, v]$ stores the predecessor of $v$ in the path or walk,
+and $Pa_v$ is the parent of vertex $v$ in $G$,
 i.e., 
-there is a directed edge from $v'$ to $v$, $v' \in Pa_v$.
+there is a directed edge from $v'$ to $v$, $\forall v' \in Pa_v$.
 
-The minimum path weight is $M_1[L, v_{p_e}]$,
-and the actual path can be found by tracing back from $M_2[L, v_{p_e}]$,
-the complete algorithm to find this path is shown in figure \ref{algo:dp},
-the sequence of POIs corresponding to vertices in that path is the 
-trajectory we would like to recommend with respect to constraint $ x = (p_s, p_e, L)$.
+The minimum weight is $M_1[L, v_{p_e}]$,
+and the actual path or walk can be found by tracing back from $M_2[L, v_{p_e}]$,
+the sequence of POIs corresponding to vertices in that path or walk is the 
+trajectory that we would like to recommend with respect to constraint $ x = (p_s, p_e, L)$.
+The pseudo code of the above algorithm is show in table \ref{algo:dp}.
 
 \begin{table}
 \centering
+\small
 \begin{tabular}{rl}
 \hline
-\multicolumn{2}{l}{\textbf{Algorithm 1} for finding a path with minimum weight.} \\
+\multicolumn{2}{l}{\textbf{Algorithm 1} for finding a path or walk with minimum weight.} \\
 \hline
  1:& Input: $V, E, p_s, p_e, L$ \\
  2:&\textbf{for} $v \in V$ \\
- 3:&\hspace{10pt}\textbf{if} $(v_{p_s}, v) \in E$ \\
- 4:&\hspace{20pt}   $M_1[2, v] = w(v_{p_s}, v) + \alpha w(v) + \beta w(v_{p_s})$ \\
- 5:&\hspace{20pt}   $M_2[2, v] = v_{p_s}$ \\
- 6:&\hspace{10pt}\textbf{else} \\
- 7:&\hspace{20pt}   $M_1[2, v] = +\infty$ \\
+ 3:&\hspace{6pt}\textbf{if} $(v_{p_s}, v) \in E$ \\
+ 4:&\hspace{12pt}   $M_1[2, v] = w(v_{p_s}, v) + \alpha w_{\textsc{v}}(v) + \beta w_{\textsc{e}}(v_{p_s})$ \\
+ 5:&\hspace{12pt}   $M_2[2, v] = v_{p_s}$ \\
+ 6:&\hspace{6pt}\textbf{else} \\
+ 7:&\hspace{12pt}   $M_1[2, v] = +\infty$ \\
  8:&\textbf{end for} \\
  9:&\textbf{for} $l=3$ \textbf{to} $L$ \\
-10:&\hspace{10pt}\textbf{for} $v \in V$ \\
-11:&\hspace{20pt}   \(\displaystyle M_1[l, v] = \min_{v' \in Pa_v} \{ M_1[l-1, v'] + \alpha w(v) + \beta w(v', v) \} \) \\
-12:&\hspace{20pt}   \(\displaystyle M_2[l, v] = \argmin_{v' \in Pa_v} \{ M_1[l-1, v'] + \alpha w(v) + \beta w(v', v) \} \)\\
-13:&\hspace{10pt}\textbf{end for} \\
+10:&\hspace{6pt}\textbf{for} $v \in V$ \\
+11:&\hspace{12pt}   \(\displaystyle M_1[l, v] = \min_{v' \in Pa_v} \{ M_1[l-1, v'] + 
+                                                \alpha w_{\textsc{v}}(v) + \beta w_{\textsc{e}}(v', v) \} \) \\
+12:&\hspace{12pt}   \(\displaystyle M_2[l, v] = \argmin_{v' \in Pa_v} \{ M_1[l-1, v'] + 
+                                                \alpha w_{\textsc{v}}(v) + \beta w_{\textsc{e}}(v', v) \} \)\\
+13:&\hspace{6pt}\textbf{end for} \\
 14:&\textbf{end for} \\
 % //trace back to find the actual path
 15:&$path = [v_{p_e}]$ \\
 16:&$v = path[0]$ \\
 17:&$l = L$ \\
 18:&\textbf{repeat} \\
-19:&\hspace{10pt}$path$.prepend$(M_2[l, v])$ \\
-20:&\hspace{10pt}$v = path[0]$ \\
-21:&\hspace{10pt}$l = l - 1$ \\
+19:&\hspace{6pt}$path$.prepend$(M_2[l, v])$ \\
+20:&\hspace{6pt}$v = path[0]$ \\
+21:&\hspace{6pt}$l = l - 1$ \\
 22:&\textbf{until} $l < 2$ \\
 23:&\textbf{return} $path$ \\
 \hline
 \end{tabular}
-%\caption{Path Finding}
+    \caption{Algorithm for finding a path or walk with minimum weight}
 \label{algo:dp}
 \end{table}
 
 
-\subsection{Recommend Trajectories via Structured Prediction}
+\subsection{Recommend Trajectories via Structured \\ Prediction}
 \label{method:structured}
-Trajectory is a sequence of POI visits,
-the recommended trajectory with respect to constraint $x = (p_s, p_e, L)$ can be viewed as a chain of $L$ variables, 
+As trajectory is a sequence of POI visits,
+thus, the recommended trajectory with respect to constraint $x = (p_s, p_e, L)$ 
+can be viewed as a chain of $L$ variables, 
 with the first and last variables been observed, the states of variables are the set of POIs $\mathcal{P}$,
-by exploiting the interactions between neighbors, hopefully we can improve the recommendation.
+by exploiting the interactions between neighboring variables, 
+hopefully we can improve the quality of the recommended trajectories.
 
 % describe joint feature vector (node/unary, edge/pairwise)
 Structured prediction is able to incorporate both the features of variables (i.e., unary features) and 
-the features of interactions between different variables (i.e., pairwise features) to make a prediction, i.e.,
+the features of interactions between neighboring variables (i.e., pairwise features) to make a prediction, i.e.,
 \begin{displaymath}
     y^* = \argmax_{y \in \mathcal{P}^L} \sum_{j=1}^L \mathbf{w_u}^T \phi_j(x, y_j) + 
                                         \sum_{j=1}^{L-1} \mathbf{w_p}^T \phi_{j, j+1}(x, y_j, y_{j+1})
@@ -302,41 +314,49 @@ where $\phi_j$ is the unary features of the $j$-th variable and $\phi_{j, j+1}$ 
 the $j$-th and $(j+1)$-th variables, $x = (p_s, p_e, L)$ is the constraint, $\mathbf{w_u}$ and $\mathbf{w_p}$ are the 
 parameters of unary and pairwise features respectively.
 
-In the settings of trajectory recommendation, the ranking probabilities of POIs w.r.t constraint $x = (p_s, p_e, L)$
-and the transition probabilities were used to capture the unary features of individual variables and pairwise features
-between the neighboring variables, in particular, the unary features of the first and last variables are binary vectors 
+In the settings of trajectory recommendation, the ranking probabilities of POIs 
+with respect to constraint $x = (p_s, p_e, L)$ were used to capture the unary features of individual variables
+and the transition probabilities between POIs were utilized to capture the pairwise features 
+between the neighboring variables, in particular, 
+the unary features of the first and last variables are binary vectors 
 with true values at the corresponding POIs and false values anywhere else,
 the unary features of the other $L-2$ variables are the ranking probabilities of POIs in $\mathcal{P}$, i.e.,
 \begin{displaymath}
-    \phi_j(x, y_j) = P_R(y_j | x), p \in \mathcal{P}
+    \phi_j(x, y_j) = P_R(y_j | x), y_j \in \mathcal{P}
 \end{displaymath}
 Pairwise features between the $j$-th variable and the $(j+1)$-th variable $\phi_{j, j+1}$ was defined as
-\begin{displaymath}
-    \phi_{j, j+1}(x, y_j, y_{j+1}) = \phi_{j-1, j}(x, y_{j-1}, y_j) \times A 
-\end{displaymath}
-where $j=2, \dots, L-2$, $\phi_{j-1, j}$ is the pairwise features between the $(j-1)$-th and $j$-th variables, 
-and $A$ is the transition matrix between POIs in $\mathcal{P}$.
-The pairwise features between the first and second variables is the outgoing transition probabilities of the first variable,
-and the pairwise features between the second-last and last variables are a probability distribution over all POIs in 
-$\mathcal{P}$ where the probability mass is dominated by the variable corresponding to POI $p_e$,
-all other POIs $\mathcal{P} \setminus p_e$ are simply uniformly distributed.
+\begin{align*}
+    \phi_{j, j+1}(x, y_j, y_{j+1}) &= \phi_{j-1, j}(x, y_{j-1}, y_j) \times A \\
+                                 j &=2, \dots, L-2
+\end{align*}
+where $\phi_{j-1, j}$ is the pairwise features between the $(j-1)$-th and $j$-th variables, 
+and $A$ is the transition matrix between POIs described in section \ref{method:transition}.
+In particular, the pairwise features between the first and the second variables is the 
+outgoing transition probabilities of the first variable,
+and the pairwise features between the second-last and the last variables are a probability distribution 
+over all POIs in $\mathcal{P}$ where the probability mass is dominated by the variable corresponding to POI $p_e$,
+all other POIs in $\mathcal{P} \setminus p_e$ are simply uniformly distributed.
 
 % describe unary/pairwise potentials?
 
 % describe SSVM training (1-slack formulation)
-To estimate the parameters $\mathbf{w_u}$ and $\mathbf{w_p}$, we train a structured support vector machine using the 1-slack
-formulation\cite{ssvm09},
+To estimate the parameters $\mathbf{w_u}$ and $\mathbf{w_p}$, we train a structured support vector machine 
+using the 1-slack formulation\cite{ssvm09},
 \begin{align*}
     \min_{\mathbf{w}, \xi \ge 0} ~~& \frac{1}{2} \mathbf{w}^T \mathbf{w} + C \xi \\
     s.t. ~~& \frac{1}{N} \mathbf{w}^T \sum_{i=1}^N \delta(\hat{y^{(i)}}) \ge 
-             \frac{1}{N} \sum_{i=1}^N \Delta(y^{(i)}, \hat{y^{(i)}}) - \xi \\
-           & \forall \hat{y^{(i)}} \in \mathcal{P}^{|y^{(i)}|}, i = 1, \cdots, N
+                  \frac{1}{N} \sum_{i=1}^N \Delta(y^{(i)}, \hat{y^{(i)}}) - \xi \\
+         ~~& \forall \hat{y^{(i)}} \in \mathcal{P}^{|y^{(i)}|}, i = 1, \cdots, N
 \end{align*}
 where $\mathbf{w} = [\mathbf{w_u}^T, \mathbf{w_p}^T]^T$ is the parameter vector, 
-$N$ is the total number of examples in training set, $C$ is the regularization parameter,
-$\xi$ is the slack variable, $\delta(\hat{y^{(i)}}) = \Psi(x^{(i)}, y^{(i)}) - \Psi(x^{(i)}, \hat{y^{(i)}})$ and 
-$\Psi(x, y)$ is the joint feature vector which is a composite of unary features and pairwise features of the 
-$i$-th example in training set, $\Delta(y^{(i)}, \hat{y^{(i)}})$ is the loss associated with the actual and 
-the recommended trajectory of the $i$-th example, which Hamming loss was used in this work.
+$N$ is the total number of trajectories in training set, $C$ is the regularization parameter,
+$\xi$ is the slack variable, and
+\begin{displaymath}
+    \delta(\hat{y^{(i)}}) = \Psi(x^{(i)}, y^{(i)}) - \Psi(x^{(i)}, \hat{y^{(i)}})
+\end{displaymath}
+where $\Psi(x, y)$ is the joint feature vector which is a composite of unary features and pairwise features of the 
+$i$-th example in training set, 
+$\Delta(y^{(i)}, \hat{y^{(i)}})$ is the loss associated with the $i$-th trajectory in training set and 
+its corresponding recommended trajectory, and Hamming loss was used in this work.
 
 % describe SSVM inference (y^* = argmax_y w^T psi(x, y), viterbi?)
