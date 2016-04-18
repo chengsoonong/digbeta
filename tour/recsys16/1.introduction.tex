@@ -2,32 +2,15 @@
 \label{sec:introduction}
 Location based information sharing services provided by online social media 
 (e.g. Facebook, Twitter, Flickr etc) generated a lot of data with geographical information, 
-together with timetamps and user tags, makes it possible to generate massive trajectories of users.
-While there is great oppertunity to recommend high quality trajectories by exploring visiting patterns
-in these data, much work has focused on recommending Points of Interest (POIs) based on their
-popularity\cite{}, and valuable information such as user preferences of POIs as well as transition
-patterns between different POIs are mostly ignored.
+together with time-tamps and user tags, makes it possible to generate massive trajectories.
+There is great opportunity to explore visiting patterns from these trajectory data by leveraging POI properties 
+as well as transition patterns between different POIs, which leads a way to recommend high quality trajectories to tourists.
 
-In this work, we propose an approach to recommend high quality trajectories that incorporates both user 
-preferences of POIs and transition patterns between POIs using a formulation based on structured prediction.
-Learning to rank was applied to a number of informative POI features as well as trajectory features to ranking
-the preference of POIs, and transition patterns between POIs were captured by a Markov Chain (MC) with POIs as states,
-we factorise the transition probabilities with respect to serveral POI features, and Conditional Random Fields (CRFs) 
-were adopted to effectively combine these two aspects. 
-Experimental results show that the proposed approach yields significant performance improvements over the state-of-the-art methods.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+In this work, we propose to utilize learning to rank to capture the properties of POIs as well as a Markov Chain to 
+represent the transition patterns between POIs, furthermore, we factorize the transition probabilities between POIs
+according to several POI features to deal with data sparsity.
+We combine the results of learning to rank and the transition patterns using both a probabilistic model and a structured
+support vector machine, evaluate the quality of POIs in recommended trajectories by trajectory F$_1$-score\cite{ijcai15} and 
+adapt Kendall's $\tau$ coefficient\cite{kendalltau} to trajectory setting to measure the quality of the recommended POI visiting orders.
+Experimental results on four trajectory datasets show performance improvements over the state-of-the-art methods and 
+reveal many interesting properties of trajectories in different datasets.
