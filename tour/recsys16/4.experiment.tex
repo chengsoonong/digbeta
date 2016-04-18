@@ -3,23 +3,23 @@
 
 \subsection{Dataset}
 \label{experiment:dataset}
-We experiment on four trajectories datasets provided by \cite{ijcai15} that were
+We experiment on four trajectory datasets provided by \cite{ijcai15} that were
 extracted from Yahoo! Flickr Creative Commons 100M (a.k.a. YFCC100M) dataset\cite{yfcc100m} 
-using photos and videos with geographical locations, timestamps, user identifications etc,
-and another trajectories dataset using photos in YFCC100M that were taken in Melbourne,
-trajectories were extracted the same way as that described in \cite{ht10, ijcai15},
-the time that a user arrived a POI was approximated by the time the first photo taken by that user at that POI,
+using photos and videos with geographical locations, timestamps, user identifications etc.
+The time that a user arrived a POI was approximated by the time the first photo taken by that user at that POI,
 similarly, the time that a user leaved a POI was approximated by the time the last photo taken by that user at 
 that POI \cite{ijcai15}.
-An example of trajectory in Toronto dataset was shown in figure \ref{fig:traj}, 
+An example of trajectory with four POIs from Toronto dataset was shown in figure \ref{fig:traj}, 
 %TODO: explain what is a POI/photo in the figure
-and statistics of the five datasets are described in table \ref{table:data}.
+where the colored marker icons represent POIs, 
+and colored round icons represent a sample of photos assign to these POIs.
+Statistics of the four trajectory datasets are described in table \ref{table:data}.
 
 
 \begin{figure}
 \centering
 \epsfig{file=traj_eg.eps, width=3.5in}
-\caption{An example of trajectory}
+\caption{An example of trajectory with four POIs}
 \label{fig:traj}
 \end{figure}
 
@@ -51,8 +51,11 @@ and $\mathcal{T}_r$ be the trajectory recommended by one of the algorithms,
 trajectory F$_1$-scores was defined as
 %TODO: use \definition format for trajectory F_1
 \begin{displaymath}
-    F_1 = \frac{2 |\mathcal{T}_a \cap \mathcal{T}_r|}{|\mathcal{T}_a| + |\mathcal{T}_r|}
+    F_1 = \frac{2 |\mathcal{T}_a \cap \mathcal{T}_r|}{|\mathcal{T}_a| + |\mathcal{T}_r|} = 
+          \frac{|\mathcal{T}_a \cap \mathcal{T}_r|}{|\mathcal{T}_a|}
 \end{displaymath}
+where $|\mathcal{T}_a| = |\mathcal{T}_r|$ is the number of POIs in the real and recommended trajectory.
+
 A perfect trajectory F$_1$-score (i.e., F$_1 = 1$) means the recommended trajectory contains the exactly 
 same POIs as those in the ground truth, and a $0$ trajectory F$_1$-score means that unfortunately none of 
 the POIs in the real trajectory was recommended.
