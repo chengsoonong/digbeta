@@ -1,11 +1,10 @@
-Recommending Points of Interest (POI) and trajectories to tourists by exploring data with 
+Recommending Points of Interest (POIs) and trajectories to tourists by exploring data with 
 geographical information from on-line social media is an interesting and challenging task.
-We formulate trajectory recommendation as a structured prediction problem by incorporating 
-both the preferences of POIs and sequential visiting patterns.
-POI preferences were captured by applying learning to rank to a number of informative POI and trajectory features,
-POI sequential visiting patterns were modelled using a Markov Chain (MC) where transition 
-probabilities were factorized according to several POI features.
-Furthermore, a structured supported vector machine was utilized to effectively combine POI rankings
-and transitions to predict a whole trajectory.
-Experimental results demonstrate that our proposed approach outperformed
-the state-of-the-art methods on five trajectory datasets.
+We propose to utilize learning to rank and Markov Chain to capture the properties of POIs
+as well as the transition pattern between POIs, transition probabilities between POIs were
+factorized according to several POI features to deal with data sparsity.
+Furthermore, a probabilistic model and a structured support vector machine were leveraged 
+to combine the results of learning to rank as well as the Markov Chain to recommend trajectories.
+Experimental results on four trajectory datasets extracted from Flickr photos show performance 
+improvements of our approach over the state-of-the-art and reveal many interesting properties 
+of trajectories in different datasets.
