@@ -1,6 +1,8 @@
 \section{POI, Query and Path}
 \label{method}
 
+\subsection{Problem Formulation}
+\label{problem}
 For a set of Point of Interest (POI) $\mathcal{P}$ and a set of users $\mathcal{U}$,
 a trajectory $\mathcal{T}_u$ of user $u$ is an ordered sequence of POIs,
 i.e.,
@@ -11,84 +13,23 @@ i.e.,
 \end{displaymath}
 where $t_p^s$ and $t_p^e$ is the start and end time of user $u$ at POI $p$ respectively.
 
-Given a set of trajectories $\{ \mathcal{T}_u^{(i)} \}$ with visited POIs in $\mathcal{P}$,
+Given a set of trajectories $\{ \mathcal{T}_u^{(i)} \}$ with all visited POIs in $\mathcal{P}$, 
 a start POI $p_s$, a destination $p_e$ and an integer $L, 2 < L \le |\mathcal{P}|$,
-trajectory recommendation is to recommend the \textit{most likely} trajectory $(p_s, \dots, p_e)$ to user $u$ such that
-the number of visited POIs is $L$ (including $p_s$ and $p_e$).
+trajectory recommendation is to recommend the \textit{most likely} trajectory $(p_s, \dots, p_e)$ to 
+user $u$ such that the number of visited POIs is $L$ (including $p_s$ and $p_e$).
 
-\cheng{Introduce nodes and edges}
+\cheng{Introduce nodes and edges} \\
+Trajectory can be viewed as a directed graph where POIs are nodes and transition from one POI to another one
+is a directed edge.
 
 \subsection{Recommend POIs by popularity}
-
+\label{popularity}
+%
+%\begin{itemize}
+%  \item Nodes
+A number of POI features are informative, such as 
 \begin{itemize}
-  \item Nodes
-  \item \textsc{PoiPopularity}
-  \item no sequence information
-\end{itemize}
-
-\subsection{Using the origin and destination}
-
-\begin{itemize}
-  \item Query - $(s,e,l)$
-  \item RankSVM
-  \item \textsc{PoiRank}
-\end{itemize}
-
-\subsection{Transition probabilities}
-
-\begin{itemize}
-  \item Edge
-  \item Factorised transition matrix - maximum likelihood
-  \item Viterbi
-  \item \textsc{Markov}
-\end{itemize}
-
-\subsection{Performance metric}
-
-F1 vs Kendall's $\tau$.
-
-\section{Tour Recommendation}
-
-\cheng{Describe combining}
-
-\subsection{Walks vs Paths}
-
-\begin{itemize}
-  \item No sub tours - tottering
-  \item ILP
-  \item \textsc{MarkovPath}
-\end{itemize}
-
-\subsection{POI ranking and transitions}
-
-\begin{itemize}
-  \item Combine node and edge
-  \item Heuristics: \textsc{Rank+Markov}, \textsc{Rank+MarkovPath}
-  \item \textsc{StructuredSVM}
-\end{itemize}
-
-\subsection{Related Work}
-
-Describe IJCAI15 paper, and show \textsc{PersTourL}.
-
-\section{Old structure}
-\cheng{To be deleted once relevant info extracted.}
-\subsection{Learning to Rank}
-\label{method:ranking}
-% ranking of POIs focus on modeling the (personalised) preference of POIs
-We first learn a ranking of POIs, i.e., $<_{p_i, p_j} \subset \mathcal{P}^2$,
-with respect to constraint $(p_s, p_e, L)$
-using rankSVM with linear kernel and $L2$ loss\cite{lranksvm},
-i.e.,
-\begin{displaymath}
-\min_{\mathbf{w_r}} \frac{1}{2} \mathbf{w_r}^T \mathbf{w_r} +
-                  C_r \sum_{(i, j) \in P} \max \left( 0, 1 - \mathbf{w_r}^T (\mathbf{f}_i - \mathbf{f}_j) \right)^2
-\end{displaymath}
-where $\mathbf{w_r}$ is a vector of parameters,
-$C_r > 0$ is the regularization parameter and
-$\mathbf{f}_i$ is the feature vector of POI $p_i$ with respect to constraint $(p_s, p_e, L)$,
-including:
-\begin{itemize}
+\item The category of a POI, e.g., structures, entertainment and shopping etc.
 \item The popularity of a POI, which is defined as the number of distinct users that visited the POI\cite{ht10}.
 \item The total number of visits at POI $p$,
       \begin{displaymath}
@@ -96,17 +37,62 @@ including:
       \end{displaymath}
 \item The average visit duration at POI $p$\cite{ijcai15},
       \begin{displaymath}
-          \bar{V}(p) = \frac{1}{N(p)} \sum_{u \in \mathcal{U}} \sum_i \sum_{p_j \in \mathcal{T}_u^{(i)}} (t_{p_j}^s - t_{p_j}^e) \delta(p_j = p)
+          \bar{V}(p) = \frac{1}{N(p)} \sum_{u \in \mathcal{U}} \sum_i \sum_{p_j \in \mathcal{T}_u^{(i)}} 
+                       (t_{p_j}^s - t_{p_j}^e) \delta(p_j = p)
       \end{displaymath}
-\item Whether the category (e.g., structures, entertainment and shopping etc.) is the same as that of $p_s$ (and $p_e$).
-\item Distance from POI $p$ to $p_s$ (and $p_e$) using haversine formula \cite{haversine},
+\end{itemize}
+
+%  \item \textsc{PoiPopularity}
+One simple approach to recommend trajectory is based on the popularity of POIs only,
+i.e., keep recommending the most popular POI that has not been visited until the constraint
+of total number of POIs is violated. 
+The pseudo code of this algorithm, i.e., \textsc{PoiPopularity} is described below.
+
+\begin{table}
+\centering
+\small
+\begin{tabular}{rl}
+\hline
+\multicolumn{2}{l}{\textsc{PoiPopularity}: recommend trajectory by POI popularity.} \\
+\hline
+ 1:& Input: $\mathcal{P}, p_s, p_e, L$ \\
+ 2:& $\mathcal{T} = \{p_s\}$ \\
+ 3:& \textbf{repeat} \\
+ 4:&\hspace{10pt} Choose POI $p$ with maximum popularity from $\mathcal{P} \setminus \mathcal{T}$ \\
+ 5:&\hspace{10pt} Add $p$ to $\mathcal{T}$ \\
+ 6:&\textbf{until} $|\mathcal{T}| = L-1$ \\
+ 7:& Add $p_e$ to $\mathcal{T}$ \\
+ 8:& \textbf{return} $\mathcal{T}$ \\
+\hline
+\end{tabular}
+%\caption{}
+%\label{}
+\end{table}
+
+%
+%  \item no sequence information
+This simple algorithm does not leverage any sequential information embedded in trajectories in training set.
+%\end{itemize}
+
+\subsection{Using the origin and destination}
+\label{ranksvm}
+%
+%\begin{itemize}
+%  \item Query - $(s,e,l)$
+Besides features determined by POI only, features associated with both POIs and trajectories
+can be built by utilizing the origin POI $p_s$ and destination POI $p_e$ as well as 
+the total number of POIs $L$ in a trajectory to form a query $(p_s, p_e, L)$,
+we build additional features related to the query and a POI $p$ such as
+\begin{itemize}
+\item Whether the category of a POI $p$ is the same as that of $p_s$ (and $p_e$).
+\item The distance from POI $p$ to $p_s$ (and $p_e$) using haversine formula \cite{haversine},
       \begin{displaymath}
-      d = 2 R_1 \arcsin \sqrt{ \sin^2 \left( \frac{\Delta \phi}{2} \right) +
-           \cos \phi_p \cos \phi_{p_s} \sin^2 \left( \frac{\Delta \lambda}{2} \right) }
+          d(p, p_s) = 2 R_1 \arcsin \sqrt{ \sin^2 \frac{\Delta \phi}{2} +
+                      \cos \phi_p \cos \phi_{p_s} \sin^2 \frac{\Delta \lambda}{2} }
       \end{displaymath}
-            where $R_1 = 6371.0088$ km is the mean earth radius \cite{earth_radius},
-            $\Delta \phi = \phi_p - \phi_{p_s}$, $\Delta \lambda = \lambda_p - \lambda_{p_s}$,
-            and $\phi_p$, $\lambda_p$ are the latitude and longitude of POI $p$ respectively.
+      where $R_1 = 6371.0088$ km is the mean earth radius \cite{earth_radius},
+      $\Delta \phi = \phi_p - \phi_{p_s}$, $\Delta \lambda = \lambda_p - \lambda_{p_s}$,
+      and $\phi_p$, $\lambda_p$ are the latitude and longitude of POI $p$ respectively.
 \item The difference in popularity of POI $p$ from $p_s$ (and $p_e$),
       i.e., $\Delta Pop = Pop(p) - Pop(p_s)$.
 \item The difference in average visit duration of POI $p$ from that of $p_s$ (and $p_e$),
@@ -114,27 +100,66 @@ including:
 \item The number of POIs in the expected trajectory, i.e. $L$
 \end{itemize}
 
-To generate the label of a POI in training set for learning to rank,
-we first group trajectories with the same start POI $p_s'$, end POI $p_e'$ and the number of POIs $L'$ together,
-each group of trajectories form a query,
-and the label of POI $p$ in a particular query (i.e., trajectory group) are the number of occurrence
-in trajectories of that query,
-without counting the occurrence of $p$ when it is the start or end POI of a trajectory.
-
-The ranking scores of POIs are transformed to probability distribution using softmax function
+%  \item RankSVM
+We can learn a ranking of POIs by leveraging both features related to only POIs and features 
+associated with POIs as well as queries, in particular, 
+we learn a rank $<_{p_i, p_j} \subset \mathcal{P}^2$ with respect to query $(p_s, p_e, L)$ 
+using rankSVM with linear kernel and $L2$ loss\cite{lranksvm}, 
+i.e.,
 \begin{displaymath}
-    %P(y=1 |p) = \frac{1}{1 + e^{A f(x) + B}, p \in P
-    P_R(p_j |(p_s, p_e, L)) = \frac{e^{R(p_j)}}{\sum_j e^{R(p_j)}}
+\min_{\mathbf{w_r}} \frac{1}{2} \mathbf{w_r}^T \mathbf{w_r} +
+                    C_r \sum_{(p_i, p_j) \in \mathcal{P}} 
+                    \max \left( 0, 1 - \mathbf{w_r}^T (\mathbf{f}_{p_i} - \mathbf{f}_{p_j}) \right)^2
 \end{displaymath}
-where $R(p_j)$ is the ranking score of POI $p_j$ with respect to constraint $(p_s, p_e, L)$.
+where $\mathbf{w_r}$ is a vector of parameters,
+$C_r > 0$ is the regularization parameter and
+$\mathbf{f}_{p_i}$ is the feature vector associated with both POI $p_i$ and query $(p_s, p_e, L)$.
+The label of feature vector $\mathbf{f}_p$ is the number of occurrence of POI $p$ in trajectories 
+in training set that grouped by query $(p_s, p_e, L)$, 
+without counting the occurrence of $p$ when it is the origin or destination POI of a trajectory.
+
+%  \item \textsc{PoiRank}
+%\end{itemize}
+%
+We create another algorithm to recommend trajectory by utilising the ranking of POIs described above,
+the pseudo code of this algorithm, i.e., \textsc{PoiRank} was described below.
+
+\begin{table}
+\centering
+\small
+\begin{tabular}{rl}
+\hline
+\multicolumn{2}{l}{\textsc{PoiRank}: recommend trajectory by ranking POIs.} \\
+\hline
+ 1:& Input: $\mathcal{P}, p_s, p_e, L$ \\
+ 2:& $\mathcal{T} = \{p_s\}$ \\
+ 3:& Train a rankSVM using POI and query related features \\
+ 4:& Produce a rank $<_{p_i, p_j} \subset \mathcal{P}^2$ w.r.t. query $(p_s, p_e, L)$\\
+ 5:& \textbf{repeat} \\
+ 6:&\hspace{10pt} Choose POI $p$ with highest rank from $\mathcal{P} \setminus \mathcal{T}$ \\
+ 7:&\hspace{10pt} Add $p$ to $\mathcal{T}$ \\
+ 8:&\textbf{until} $|\mathcal{T}| = L-1$ \\
+ 9:& Add $p_e$ to $\mathcal{T}$ \\
+10:& \textbf{return} $\mathcal{T}$ \\
+\hline
+\end{tabular}
+%\caption{}
+%\label{}
+\end{table}
 
 
-\subsection{Factorized Markov Chain}
-\label{method:transition}
-We use a Markov Chain to model the transition patterns between POIs,
-to deal with data sparsity,
-the transition probability between a pair of POIs $(p_i, p_j)$ was factorized into the product of
-transition probabilities between the following individual POI features.
+\subsection{Transition probabilities}
+\label{transition}
+%
+%\begin{itemize}
+%  \item Edge
+As mentioned in section \ref{problem}, the transition from one POI to another in a trajectory 
+corresponds to a directed edge in a graph with POIs as nodes.
+
+%  \item Factorised transition matrix - maximum likelihood
+We model these transitions using a Markov Chain with POIs as states.
+the transition probability from POI $p_i$ to POI $p_j$ is factorized according to 
+the following individual POI features.
 \begin{enumerate}
 \item The category of POI, $P_{\textsc{cat}}(p_j | p_i)$
       denotes the transition probability from the category of $p_i$ to the category of $p_j$.
@@ -154,7 +179,7 @@ transition probabilities between the following individual POI features.
 \end{enumerate}
 
 Assuming independence between these features,
-the transition probability between $p_i$ and $p_j$ can be factorized as follows,
+the transition probability from $p_i$ to $p_j$ can be factorized as follows,
 \begin{displaymath}
     P(p_j | p_i) =
     \begin{cases}
@@ -165,20 +190,17 @@ the transition probability between $p_i$ and $p_j$ can be factorized as follows,
 \end{displaymath}
 where $p_i, p_j \in \mathcal{P}$ and $Z_i$ is a normalizing constant.
 
-%POIs are grouped into several clusters according to their geographical coordinates using K-means
-%to reflect their neighborhood relationships.
-
 % Kronecker product
 We compute the transition probabilities of the above individual POI features
 using maximum likelihood estimation,
 i.e., counting the number of transitions for each pair of features then normalizing each row,
 taking care of zeros by adding a small number $\epsilon$
 \footnote{In our experiments, $\epsilon = 1$.}
-to each number before normalization,
+to each number before normalisation,
 which results a transition matrix for each of the above POI features.
 
 By computing the Kronecker product of transition matrices of all the POI features,
-we get an unnormalized transition matrix of POI features.
+we get an unnormalised transition matrix of POI features.
 However, to obtain the transition probabilities between each POI pair $(p_i, p_j)$,
 there are two cases needs to be dealt with properly:
 \begin{enumerate}
@@ -194,12 +216,12 @@ The second case was a bit subtle.
 Let POIs with exactly the same features be a POI group,
 the transition probabilities associated with POIs in the same group are computed as follows:
 \begin{itemize}
-\item The incoming (unnormalized) transition probability of the group was divided uniformly among POIs
+\item The incoming (unnormalised) transition probability of the group was divided uniformly among POIs
       in the same group, which is equivalent to choose a POI in the group uniformly at random;
-\item The outgoing (unnormalized) transition probability of each POI should be the same as the
+\item The outgoing (unnormalised) transition probability of each POI should be the same as the
       outgoing transition probability of the POI group, as one had already been in the POI group in this case;
 \item The self-loop of the POI group represents the transitions between POIs in the same group,
-      suppose the (unnormalized) transition probability from a POI group to itself is $P_o$,
+      suppose the (unnormalised) transition probability from a POI group to itself is $P_o$,
       and the number of POIs in the group is $N_o$,
       the transition probability from $p_i$ to $p_j$ in the same group is
       \begin{displaymath}
@@ -210,26 +232,175 @@ the transition probabilities associated with POIs in the same group are computed
           \end{cases}
       \end{displaymath}
 \end{itemize}
-Finally, the unnormalized outgoing transition probabilities of each POI were normalized to form
+Finally, the unnormalised outgoing transition probabilities of each POI were normalized to form
 a valid probability distribution
 \footnote{Note that dealing with the second case before or after the normalization leads to
 the same transition probabilities, which can be easily proved.}.
 
+%  \item Viterbi
+%  \item \textsc{Markov}
+Given the transition matrix of POIs $A$, the log likelihood of trajectory $\mathcal{T}$ is
+\begin{displaymath}
+    \ell(\mathcal{T}) = \sum_{j=1}^{|\mathcal{T}|-1} \log P(\mathcal{T}_{j+1} | \mathcal{T}_j)
+\end{displaymath}
 
-\subsection{Recommend Trajectories}
-\label{method:recommend}
-%\subsection{Probabilistic Model incorporating both ranking and transition}
-% ranking of POIs focus on modeling the (population) preference of POIs
-% MC focus on modeling the transition patterns between POIs
-% we can capture both aspects by combining them
+We can recommend a trajectory with respect to query $(p_s, p_e, L)$ by maximising the likelihood 
+using a variant of Viterbi algorithm, the pseudo code of this algorithm, 
+i.e., \textsc{Markov} is shown below.
+%\end{itemize}
 
-To recommend the \textit{most likely} trajectory with respect to constraint $(p_s, p_e, L)$,
+\begin{table}
+\centering
+\small
+\begin{tabular}{rl}
+\hline
+\multicolumn{2}{l}{\textsc{Markov}: recommend trajectory by maximising its likelihood.} \\
+\hline
+ 1:& Input: $\mathcal{P}, A, p_s, p_e, L$ \\
+ 2:&\textbf{for} $p \in \mathcal{P}$ \\
+ 3:&\hspace{10pt} $M_1[2, p] = \log A_{p_s, p}$ \\
+ 4:&\hspace{10pt} $M_2[2, p] = p_s$ \\
+ 5:&\textbf{end for} \\
+ 6:&\textbf{for} $l=3$ \textbf{to} $L$ \\
+ 7:&\hspace{10pt}\textbf{for} $p \in \mathcal{P}$ \\
+ 8:&\hspace{20pt}   \(\displaystyle M_1[l, p] = \max_{p' \in \mathcal{P}} \{ M_1[l-1, p'] + \log A_{p', p} \) \\
+ 9:&\hspace{20pt}   \(\displaystyle M_2[l, p] = \argmax_{p' \in \mathcal{P}} \{ M_1[l-1, p'] + \log A_{p', p} \) \\
+10:&\hspace{10pt}\textbf{end for} \\
+11:&\textbf{end for} \\
+% //trace back to find the actual path
+12:&$\mathcal{T} = \{p_e\}$ \\
+13:&$p = \mathcal{T}[0]$ \\
+14:&$l = L$ \\
+15:&\textbf{repeat} \\
+16:&\hspace{10pt}$\mathcal{T}$.prepend$(M_2[l, p])$ \\
+17:&\hspace{10pt}$p = \mathcal{T}[0]$ \\
+18:&\hspace{10pt}$l = l - 1$ \\
+19:&\textbf{until} $l < 2$ \\
+20:&\textbf{return} $\mathcal{T}$ \\
+\hline
+\end{tabular}
+%\caption{}
+%\label{}
+\end{table}
+
+
+\subsection{Performance metric}
+\label{metric}
+%
+% F1 vs Kendall's $\tau$.
+To evaluate the performance of different trajectory recommendation algorithms,
+we employ the trajectory F$_1$-score\cite{ijcai15} to measure the POIs that are 
+correctly recommended. Let $\mathcal{T}$ be the trajectory that was visited in the real world,
+and $\hat{\mathcal{T}}$ be the recommended trajectory,
+$\mathcal{P}_{\mathcal{T}}$ be the set of POIs visited in $\mathcal{T}$,
+and $\mathcal{P}_{\hat{\mathcal{T}}}$ be the set of POIs visited in $\hat{\mathcal{T}}$,
+trajectory F$_1$-scores was defined as
+\begin{displaymath}
+    F_1 = \frac{2 |\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}|}
+               {|\mathcal{P}_{\mathcal{T}}| + |\mathcal{P}_{\hat{\mathcal{T}}}|}
+\end{displaymath}
+
+A perfect trajectory F$_1$-score (i.e., F$_1 = 1$) means the POIs in the recommended trajectory are exactly 
+the same POIs as those in the ground truth, and a $0$ trajectory F$_1$-score means that unfortunately none of 
+the POIs in the real trajectory was recommended.
+
+In addition, we adapted Kendall's $\tau$ coefficient \cite{kendalltau} to measure the quality of 
+recommended visiting order of POIs.
+When the number of visited POIs in the real trajectory is the same
+as the number of visited trajectory in the recommended trajectory,
+i.e., $|\mathcal{T}| = |\hat{\mathcal{T}}|$,
+we define trajectory $\tau$ as 
+\begin{displaymath}
+    \tau = \frac{2(N_c - N_d)}{|\mathcal{T}|(|\mathcal{T}|-1)}
+\end{displaymath}
+where $-1 \le \tau \le 1$ and $N_c$ is the number of POI pairs $(p_j, p_k)$ that satisfies the following constraints:
+\begin{align*}
+    (p_j \prec_{\mathcal{T}} p_k ~\land~ p_j \prec_{\hat{\mathcal{T}}} p_k) & ~\lor~
+    (p_j \succ_{\mathcal{T}} p_k ~\land~ p_j \succ_{\hat{\mathcal{T}}} p_k) \\
+    p_j \ne p_k, &~~ p_j, p_k \in \mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}} \\
+    j \ne k, &~~ 1 \le j, k \le |\mathcal{T}|
+\end{align*}
+where $p_j \prec_{\mathcal{T}} p_k$ denotes POI $p_j$ was visited before POI $p_k$ in trajectory $\mathcal{T}$,
+and $p_j \succ_{\mathcal{T}} p_k$ denotes POI $p_j$ was visited after POI $p_k$ in trajectory $\mathcal{T}$.
+$N_d$ is the number of POI pairs $(p_j, p_k)$ that satisfies the following constraints:
+\begin{align*}
+    (p_j \prec_{\mathcal{T}} p_k ~\land~ p_j \succ_{\hat{\mathcal{T}}} p_k) & ~\lor~
+    (p_j \succ_{\mathcal{T}} p_k ~\land~ p_j \prec_{\hat{\mathcal{T}}} p_k) \\
+    p_j \ne p_k, &~~ p_j, p_k \in \mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}} \\
+    j \ne k, &~~ 1 \le j, k \le |\mathcal{T}|
+\end{align*}
+
+A perfect trajectory $\tau$, (i.e., $\tau = 1$) means both the POIs and their visiting order in the 
+recommended trajectory are exactly the same as these in the real trajectory,
+and $\tau = -1$ means the POIs in the recommended trajectory is the same as those in the real trajectory,
+but the visiting order is completely reversed,
+and $\tau = 0$ means none of the recommended POIs was actually visited in the real trajectory.
+
+
+\section{Tour Recommendation}
+\label{recommendation}
+
+\cheng{Describe combining} \\
+Now that we got rankings of POIs as well as transition probabilities,
+we want to leverage both of them when recommending trajectories.
+
+\subsection{Walks vs Paths}
+\label{walkpath}
+%
+%\begin{itemize}
+%  \item No sub tours - tottering
+One problem of \textsc{Markov} algorithm described in section \ref{transition} is the recommended 
+trajectory contains sub-tours (or tottering), i.e., some POIs were visited more than once.
+We can eliminate sub-tours by specifying additional constraints when recommending trajectories.
+
+%  \item ILP
+In particular, we maximise the trajectory likelihood using an integer linear programming with 
+sub-tour elimination constraints adapted from the Travelling Salesman Problem\cite{opt98},
+specifically, given a set of POIs $\mathcal{P}$, transition matrix $A$ with transition probabilities
+between POIs in $\mathcal{P}$ and a query $(p_s, p_e, L)$, 
+we recommend a trajectory by solving the following integer linear programming:
+\begin{align*}
+\text{Maximize} & \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} \log A_{p_i, p_j} \\
+s.t. & x_{ij} \in \{0, 1\}, \forall i, j = 1, \cdots, N \\
+     & \sum_{j=2}^N x_{1j} = \sum_{i=1}^{N-1} x_{iN} = 1 \\
+     & \sum_{i=1}^{N-1} x_{ik} = \sum_{j=2}^N x_{kj} \le 1, \forall k=2, \cdots, N-1 \\
+     & \sum_{i=1}^{N-1} \sum_{j=2}^N = L-1 \\
+     & u_i - u_j + 1 \le (N-1) (1-x_{ij}), \forall i, j = 2, \cdots, N
+\end{align*}
+where $x_{ij}$ is a binary decision variable which determines whether transition from $p_i$ to $p_j$
+occurred in the recommended trajectory.
+For brevity, we assume $x_{i1}$ and $x_{1j}$ corresponds to the incoming and outgoing transitions of POI $p_s$, 
+similarly, $x_{iN}$ and $x_{Nj}$ corresponds to the incoming and outgoing transitions of POI $p_e$.
+The second constraint restricts that only one outgoing (and incoming) transition for $p_s$ ($p_e$)
+is permitted, i.e., the recommended trajectory should start from $p_s$ and end at $p_e$.
+The third constraint restricts that any POI should be visited at most once and the fourth constraint
+restrict that only $L-1$ transitions between POIs are permitted, i.e., the number of visited POIs should be
+exactly $L$ (including $p_s$ and $p_e$).
+The last constraint restricts that no sub-tours are permitted in the recommended trajectory.
+
+%  \item \textsc{MarkovPath}
+%\end{itemize}
+The algorithm that uses the above approach to recommend trajectory was denoted by \textsc{MarkovPath}.
+
+
+\subsection{POI ranking and transitions}
+To recommend the \textit{most likely} trajectory with respect to query $(p_s, p_e, L)$,
+we want to combine the ranking of POIs with the transition probabilities.
+First, we transform the ranking scores of POIs with respect to query $(p_s, p_e, L)$
+to a probability distribution using softmax function
+\begin{displaymath}
+    %P(y=1 |p) = \frac{1}{1 + e^{A f(x) + B}, p \in P
+    P_R(p_j |(p_s, p_e, L)) = \frac{e^{R(p_j)}}{\sum_j e^{R(p_j)}}
+\end{displaymath}
+where $R(p_j)$ is the ranking score of POI $p_j$ with respect to query $(p_s, p_e, L)$.
+
+%\begin{itemize}
+%  \item Combine node and edge
 we want to maximize both the product of ranking probabilities of POIs in the recommended trajectory and
 the likelihood of the recommended trajectory.
 Specifically, we want to maximize the following two quantities at the same time.
 For brevity, we use $x$ to denote the constraint $(p_s, p_e, L)$ and $y$ to denote the
 recommended trajectory $(p_{j_1}, \dots, p_{j_L})$ where $p_s = p_{j_1}$ and $p_e = p_{j_L}$.
-
 \begin{itemize}
 \item The logarithm of the product of ranking probabilities of POIs in the recommended trajectory:
       \begin{displaymath}
@@ -241,7 +412,8 @@ recommended trajectory $(p_{j_1}, \dots, p_{j_L})$ where $p_s = p_{j_1}$ and $p_
       \end{displaymath}
 \end{itemize}
 
-Thus, we can optimize the following objective:
+%  \item Heuristics: \textsc{Rank+Markov}, \textsc{Rank+MarkovPath}
+One heuristic is to optimize the following objective:
 \begin{displaymath}
     \alpha \ell_R(y) + (1-\alpha) \ell(y)
 \end{displaymath}
@@ -312,7 +484,7 @@ The pseudo code of the above algorithm is show in table \ref{algo:dp}.
 \small
 \begin{tabular}{rl}
 \hline
-\multicolumn{2}{l}{\textbf{Algorithm 1} for finding a path or walk with minimum weight.} \\
+\multicolumn{2}{l}{\textsc{Rank+Markov}: recommend trajectory by finding a path or walk with minimum weight.} \\
 \hline
  1:& Input: $V, E, p_s, p_e, L$ \\
  2:&\textbf{for} $v \in V$ \\
@@ -342,13 +514,22 @@ The pseudo code of the above algorithm is show in table \ref{algo:dp}.
 23:&\textbf{return} $path$ \\
 \hline
 \end{tabular}
-    \caption{Algorithm for finding a path or walk with minimum weight}
-\label{algo:dp}
+%    \caption{Algorithm for finding a path or walk with minimum weight}
+%\label{algo:dp}
 \end{table}
 
+Similar to the \textsc{Markov} algorithm,
+the recommended trajectory by \text{Rank+Markov} could also contains sub-tours (e.g., tottering),
+we can use similar approach to restrict that no sub-tours exists in the recommended trajectory 
+by maximising the following objective using integer linear programming
+\begin{displaymath}
+    \text{Maximize}  \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} (\alpha \log P_R(p_j | x) + \beta \log A_{p_i, p_j}) 
+\end{displaymath}
+The constraints are the same as those in algorithm \textsc{MarkovPath}.
 
-\subsection{Recommend Trajectories via Structured \\ Prediction}
-\label{method:structured}
+\subsection{Structured SVM}
+\label{ssvm}
+%  \item \textsc{StructuredSVM}
 As trajectory is a sequence of POI visits,
 thus, the recommended trajectory with respect to constraint $x = (p_s, p_e, L)$
 can be viewed as a chain of $L$ variables,
@@ -413,3 +594,20 @@ $\Delta(y^{(i)}, \hat{y^{(i)}})$ is the loss associated with the $i$-th trajecto
 its corresponding recommended trajectory, and Hamming loss was used in this work.
 
 % describe SSVM inference (y^* = argmax_y w^T psi(x, y), viterbi?)
+%\end{itemize}
+
+\subsection{Related Work}
+%
+%Describe IJCAI15 paper, and show \textsc{PersTourL}.
+
+The work that most similar to our approach was the \textsc{PersTour} algorithm proposed in \cite{ijcai15},
+it formulated trajectory recommendation as an Orienteering Problem and use integer linear programming to
+maximise an objective which is a composite of the total POI popularity in recommended trajectory and
+the total user interest at the recommended POIs.
+A user's interest on a specific category of POIs is modelled as the summation of ratios of the his/her 
+actual visit duration at these POIs over the average visit duration in general.
+Furthermore, \textsc{PersTour} utilise a time budget to restrict the recommended trajectory besides the
+origin and destination.
+
+To make comparison with \textsc{PersTour}, the time budget was replaced with the total number of POIs to visit
+and was denoted by algorithm \textsc{PersTour-L} in this paper.
