@@ -3,33 +3,20 @@
 \section{Related Work}
 \label{relatedwork}
 
-next basket recommendation~\cite{fpmc10}
+{\bf Problem setting:}
+POI recommendation~\cite{shi2011personalized,lian2014geomf,gao2013temporal}  survey on this~\cite{bao2015recommendations}
+next basket~\cite{fpmc10} / next location recommendation~\cite{ijcai13}, 
+finding / ranking a whole trip ~\cite{lu2012personalized}
+travel patterns in general, route aggregation \cite{lu2010photo2trip,zheng2012patterns} travel time~\cite{gao2013temporal}  
 
-next location recommendation~\cite{ijcai13}
+{\bf Method}
+MF, recommender system for places;
 
-POI rec from photos~\cite{shi2011personalized}
-
-\cite{lu2012personalized} claims to do both point ranking and trip planning, need to read carefully
-
-``Photo2Trip: generating travel routes from geo-tagged photos for trip planning''~\cite{lu2010photo2trip}
-
-Estimation markov chain from regions of interest in photos~\cite{zheng2012patterns}
-
-survey of location-based recommendation~\cite{bao2015recommendations}
-
-geo-MF for POI recommendation~\cite{lian2014geomf}
-
-correlation between check-in time and location~\cite{gao2013temporal}
-
-spatial topic model for local rec~\cite{hu2013spatialtopic}
-
-% IJCAI'15
-\cite{ijcai15} modeled user's interest on a specific category of POIs based on the observation that if a user is more interested in a 
-certain category of POIs, his/her visit duration would be longer than the average visit duration in general.
-They then formulated trajectory recommendation as a Orienteering problem and use integer programming to optimize an objective
-which was a composite of the total POI popularity as well as the total user interest on POIs in the recommended trajectory 
-with respect to a number of constraints such as the start/destination POI and time budget.
-
+planning:
+% Trip Builder
+\cite{tripbuilder15} recommended trajectories by first addressing a Generalized Maximum Coverage problem with respect to user preference and 
+time budget to get a set of candidate trajectories, which were then scheduled by solving a variant of Traveling Salesman Problem to form the 
+final recommendation.
 % WSDM'14
 \cite{wsdm14} proposed a framework to recommend trajectories based on user provided constraints such as the visiting order of different 
 categories of POIs, time and distance budget as well as the upper/lower bounds of the number of POIs in each category that a user wish 
@@ -38,20 +25,43 @@ and proved the maximization of user satisfaction is NP-hard in both cases.
 They further proposed pseudo polynomial dynamic programming algorithms as well as 
 a $1-\epsilon$ approximation algorithm to maximize the user satisfaction.
 
-% Trip Builder
-\cite{tripbuilder15} recommended trajectories by first addressing a Generalized Maximum Coverage problem with respect to user preference and 
-time budget to get a set of candidate trajectories, which were then scheduled by solving a variant of Traveling Salesman Problem to form the 
-final recommendation.
 
+joint
+\cite{lu2012personalized} claims to do both point ranking and trip planning, heuristic combination for point scoring, branch-n-bound search for planning. 
+% IJCAI'15
+\cite{ijcai15} modeled user's interest on a specific category of POIs based on the observation that if a user is more interested in a certain category of POIs, his/her visit duration would be longer than the average visit duration in general. They then formulated trajectory recommendation as a Orienteering problem and use integer programming to optimize an objective which was a composite of the total POI popularity as well as the total user interest on POIs in the recommended trajectory 
+with respect to a number of constraints such as the start/destination POI and time budget.
+\cite{kurashima2010geotag} modeled user preferences of POIs and his/her transition patterns 
+between POIs using a hybrid of 
+Markov and topic models, and recommend a trajectory by search the sequence of POIs with highest probability for this user  with respect to a time budget.
+greedy on best next location. 
+
+
+{\bf Features / available data}
+clustering space~\cite{hu2013spatialtopic}
+geo-MF for POI recommendation~\cite{lian2014geomf}
+spatial topic model for local rec~\cite{hu2013spatialtopic}
 \cite{ht14} aims to recommend a short and pleasant trajectory from the current POI to a destination POI by choosing the best average rank 
 of all POIs in a trajectory from the $M$ shortest paths that connect the current location and destination,
 POIs were ranked according to the degree of pleasure based on user votes and  crowd-sourced emotion scores on three aspects 
 (i.e., beauty, quietness and happiness).
-
-\cite{geophoto13} modeled user preferences of POIs and his/her transition patterns between POIs using a hybrid of 
-Markov and topic models, and recommend a trajectory by search the sequence of POIs with highest probability for this user 
-with respect to a time budget.
-
 \cite{travel13} recommend places to travelers by extracting traveling patterns based on automatically mined user attributes 
 (e.g., age, gender and race) and travel group types (e.g., couple, family and friends) from photos provided by online photo 
 sharing sites (e.g., Flickr).
+
+POI rec from photos~\cite{shi2011personalized}
+
+``Photo2Trip: generating travel routes from geo-tagged photos for trip planning''~\cite{lu2010photo2trip}
+
+Estimation markov chain from regions of interest in photos~\cite{zheng2012patterns}
+
+survey of location-based recommendation~\cite{bao2015recommendations}
+
+correlation between check-in time and location~\cite{gao2013temporal}
+
+LORE, use additive markov chain\cite{zhang2014lore}
+
+{\bf what we do:}
+trajectory recommendation, learning the joint preference of ranks routes, on minimum but commonly available set of features. 
+
+
