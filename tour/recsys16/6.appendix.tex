@@ -1,0 +1,19 @@
+\appendix
+\section{Details}
+\begin{itemize}
+\item \cheng{Show the set of POI categories} \\
+      Edinburgh: Cultural, Entertainment, Historical, Museum, Park, Structure \\
+      Glasgow: Education, Museum, Park, Religion, Shopping, Structure, Transport \\
+      Melbourne: City precincts, Entertainment, Institutions, Parks and spaces, Public galleries, Shopping, 
+                 Sports stadiums, Structures, Transport \\
+      Osaka: Amusement, Entertainment, Historical, Park \\
+      Toronto: Amusement, Beach, Cultural, Shopping, Sport, Structure 
+\item The distribution of POI visit duration is shown in figure \ref{fig:duration}.
+      \begin{figure*}
+      \includegraphics[width=\textwidth]{fig/visit_duration.pdf}
+      \caption{Distribution of POI visit duration}
+      \label{fig:duration}
+      \end{figure*}
+\item There are about $12$\% of trajectories in Melbourne dataset that were failed to be evaluated 
+      using \textsc{PersTour} due to the timeout of integer programming solver, the timeout is $2$ hours.
+\end{itemize}
