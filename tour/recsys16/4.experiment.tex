@@ -30,9 +30,9 @@ and the colored round icons represent a sample of photos assign to these POIs.
 \textbf{Dataset} & \textbf{\#Photos} & \textbf{\#POI Visits} & \textbf{\#Trajectories} & \textbf{\#Users} \\ \hline
 Edinburgh & 82,060 & 33,944 & 5,028 & 1,454 \\ 
 Glasgow & 29,019 & 11,434 & 2,227 & 601 \\ 
+Melbourne & 94,142 & 23,995 & 5,106 & 1,000 \\ 
 Osaka & 392,420 & 7,747 & 1,115 & 450 \\ 
 Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\ 
-Melbourne & 23,995 & 23,995 & 5,106 & 1,000 \\ 
 \hline
 \end{tabular}
 \caption{Statistics of trajectory dataset}
@@ -153,17 +153,17 @@ places that are very popular, but also follow similar visiting orders when visit
 \begin{table*}
 \centering
 \begin{tabular}{l|ccccc} \hline
- & Edinburgh & Glasgow & Osaka & Toronto & Melbourne \\ \hline
-\textsc{Random} & $0.570\pm0.139$ & $0.632\pm0.124$ & $0.621\pm0.117$ & $0.621\pm0.128$ & $0.558\pm0.149$ \\
-\textsc{PersTour}\cite{ijcai15} & $0.656\pm0.223$ & $\mathbf{0.802\pm0.213}$ & $0.702\pm0.230$ & $0.720\pm0.215$ & $0.491\pm0.211$ \\
-\textsc{PersTour-L} & $0.651\pm0.143$ & $0.660\pm0.102$ & $0.691\pm0.138$ & $0.642\pm0.112$ & $0.578\pm0.140$ \\
-\textsc{PoiPopularity} & $\mathbf{0.701\pm0.160}$ & $0.745\pm0.166$ & $0.661\pm0.128$ & $0.679\pm0.120$ & $0.621\pm0.136$ \\
-\textsc{PoiRank} & $\mathit{0.694\pm0.157}$ & $\mathit{0.777\pm0.171}$ & $0.679\pm0.112$ & $\mathbf{0.748\pm0.166}$ & $\mathbf{0.626\pm0.137}$ \\
-\textsc{Markov} & $0.629\pm0.172$ & $0.714\pm0.168$ & $0.679\pm0.162$ & $0.663\pm0.157$ & $0.577\pm0.168$ \\
-\textsc{MarkovPath} & $0.678\pm0.148$ & $0.731\pm0.167$ & $0.706\pm0.154$ & $0.689\pm0.140$ & $0.596\pm0.147$ \\
-\textsc{Rank+Markov} & $0.642\pm0.171$ & $0.736\pm0.176$ & $0.701\pm0.171$ & $0.689\pm0.170$ & $0.598\pm0.169$ \\
-\textsc{Rank+MarkovPath} & $0.684\pm0.151$ & $0.760\pm0.170$ & $\mathbf{0.719\pm0.161}$ & $0.724\pm0.152$ & $\mathit{0.625\pm0.150}$ \\
-\textsc{StructuredSVM} & $0.659\pm0.186$ & $0.727\pm0.173$ & $\mathit{0.715\pm0.170}$ & $\mathit{0.728\pm0.186}$ & $0.597\pm0.171$ \\
+ & Edinburgh & Glasgow & Melbourne & Osaka & Toronto \\ \hline
+\textsc{Random} & $0.570\pm0.139$ & $0.632\pm0.124$ & $0.558\pm0.149$ & $0.621\pm0.117$ & $0.621\pm0.128$ \\
+\textsc{PersTour}\cite{ijcai15} & $0.656\pm0.223$ & $\mathbf{0.802\pm0.213}$ & $0.491\pm0.211$ & $0.702\pm0.230$ & $0.720\pm0.215$ \\
+\textsc{PersTour-L} & $0.651\pm0.143$ & $0.660\pm0.102$ & $0.578\pm0.140$ & $0.691\pm0.138$ & $0.642\pm0.112$ \\
+\textsc{PoiPopularity} & $\mathbf{0.701\pm0.160}$ & $0.745\pm0.166$ & $0.621\pm0.136$ & $0.661\pm0.128$ & $0.679\pm0.120$ \\
+\textsc{PoiRank} & $\mathit{0.694\pm0.157}$ & $\mathit{0.777\pm0.171}$ & $\mathbf{0.626\pm0.137}$ & $0.679\pm0.112$ & $\mathbf{0.748\pm0.166}$ \\
+\textsc{Markov} & $0.629\pm0.172$ & $0.714\pm0.168$ & $0.577\pm0.168$ & $0.679\pm0.162$ & $0.663\pm0.157$ \\
+\textsc{MarkovPath} & $0.678\pm0.148$ & $0.731\pm0.167$ & $0.596\pm0.147$ & $0.706\pm0.154$ & $0.689\pm0.140$ \\
+\textsc{Rank+Markov} & $0.642\pm0.171$ & $0.736\pm0.176$ & $0.598\pm0.169$ & $0.701\pm0.171$ & $0.689\pm0.170$ \\
+\textsc{Rank+MarkovPath} & $0.684\pm0.151$ & $0.760\pm0.170$ & $\mathit{0.625\pm0.150}$ & $\mathbf{0.719\pm0.161}$ & $0.724\pm0.152$ \\
+\textsc{StructuredSVM} & $0.659\pm0.186$ & $0.727\pm0.173$ & $0.597\pm0.171$ & $\mathit{0.715\pm0.170}$ & $\mathit{0.728\pm0.186}$ \\
 \hline
 \end{tabular}
 \caption{Performance comparison on four datasets in terms of trajectory F$_1$-score. 
@@ -175,16 +175,16 @@ places that are very popular, but also follow similar visiting orders when visit
 \begin{table*}
 \centering
 \begin{tabular}{l|ccccc} \hline
- & Edinburgh & Glasgow & Osaka & Toronto & Melbourne \\ \hline
-\textsc{Random} & $0.259\pm0.155$ & $0.318\pm0.165$ & $0.305\pm0.145$ & $0.309\pm0.166$ & $0.248\pm0.148$ \\
-\textsc{PersTour-L} & $0.350\pm0.206$ & $0.349\pm0.163$ & $0.415\pm0.243$ & $0.329\pm0.158$ & $0.267\pm0.144$ \\
-\textsc{PoiPopularity} & $\mathit{0.421\pm0.257}$ & $0.503\pm0.296$ & $0.361\pm0.194$ & $0.378\pm0.203$ & $0.310\pm0.179$ \\
-\textsc{PoiRank} & $0.410\pm0.246$ & $\mathbf{0.557\pm0.311}$ & $0.367\pm0.162$ & $\mathit{0.501\pm0.294}$ & $0.315\pm0.187$ \\
-\textsc{Markov} & $0.404\pm0.229$ & $0.472\pm0.282$ & $0.442\pm0.259$ & $0.406\pm0.231$ & $0.296\pm0.191$ \\
-\textsc{MarkovPath} & $0.390\pm0.235$ & $0.479\pm0.292$ & $0.445\pm0.268$ & $0.401\pm0.235$ & $0.293\pm0.187$ \\
-\textsc{Rank+Markov} & $0.411\pm0.237$ & $0.522\pm0.293$ & $\mathit{0.475\pm0.278}$ & $0.449\pm0.263$ & $\mathbf{0.344\pm0.202}$ \\
-\textsc{Rank+MarkovPath} & $0.395\pm0.238$ & $\mathit{0.523\pm0.303}$ & $0.470\pm0.284$ & $0.455\pm0.268$ & $0.327\pm0.214$ \\
-\textsc{StructuredSVM} & $\mathbf{0.423\pm0.264}$ & $0.505\pm0.282$ & $\mathbf{0.499\pm0.293}$ & $\mathbf{0.511\pm0.312}$ & $\mathit{0.335\pm0.215}$ \\
+ & Edinburgh & Glasgow & Melbourne & Osaka & Toronto \\ \hline
+\textsc{Random} & $0.259\pm0.155$ & $0.318\pm0.165$ & $0.248\pm0.148$ & $0.305\pm0.145$ & $0.309\pm0.166$ \\
+\textsc{PersTour-L} & $0.350\pm0.206$ & $0.349\pm0.163$ & $0.267\pm0.144$ & $0.415\pm0.243$ & $0.329\pm0.158$ \\
+\textsc{PoiPopularity} & $\mathit{0.421\pm0.257}$ & $0.503\pm0.296$ & $0.310\pm0.179$ & $0.361\pm0.194$ & $0.378\pm0.203$ \\
+\textsc{PoiRank} & $0.410\pm0.246$ & $\mathbf{0.557\pm0.311}$ & $0.315\pm0.187$ & $0.367\pm0.162$ & $\mathit{0.501\pm0.294}$ \\
+\textsc{Markov} & $0.404\pm0.229$ & $0.472\pm0.282$ & $0.296\pm0.191$ & $0.442\pm0.259$ & $0.406\pm0.231$ \\
+\textsc{MarkovPath} & $0.390\pm0.235$ & $0.479\pm0.292$ & $0.293\pm0.187$ & $0.445\pm0.268$ & $0.401\pm0.235$ \\
+\textsc{Rank+Markov} & $0.411\pm0.237$ & $0.522\pm0.293$ & $\mathbf{0.344\pm0.202}$ & $\mathit{0.475\pm0.278}$ & $0.449\pm0.263$ \\
+\textsc{Rank+MarkovPath} & $0.395\pm0.238$ & $\mathit{0.523\pm0.303}$ & $0.327\pm0.214$ & $0.470\pm0.284$ & $0.455\pm0.268$ \\
+\textsc{StructuredSVM} & $\mathbf{0.423\pm0.264}$ & $0.505\pm0.282$ & $\mathit{0.335\pm0.215}$ & $\mathbf{0.499\pm0.293}$ & $\mathbf{0.511\pm0.312}$ \\
 \hline
 \end{tabular}
 \caption{Performance comparison on four datasets in terms of $\tau$.
