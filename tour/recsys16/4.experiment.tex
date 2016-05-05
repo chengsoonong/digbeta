@@ -3,9 +3,12 @@
 
 \subsection{Dataset}
 \label{experiment:dataset}
-We experiment on four trajectory datasets provided by \cite{ijcai15} that were
-extracted from Yahoo! Flickr Creative Commons 100M (a.k.a. YFCC100M) dataset~\cite{thomee2016yfcc100m} 
-using metadata of photos and videos such as geographical locations, timestamps, user identifications etc.
+We experiment on five trajectory datasets, four of them were provided by \cite{ijcai15}.
+Trajectories in these datasets were extracted from Yahoo! Flickr Creative Commons 100M 
+(a.k.a. YFCC100M) dataset\cite{thomee2016yfcc100m} using metadata of photos and videos 
+such as geographical locations, timestamps, user identifications etc, 
+the details of building trajectories are covered in \cite{ht10} and \cite{ijcai15} and
+we refer interested readers to these papers.
 Statistics of the four trajectory datasets are described in table \ref{table:data}.
 %
 The time that a user arrived a POI was approximated by the time the first photo taken by the user at that POI,
@@ -40,115 +43,130 @@ Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\
 \end{table*}
 
 
-\subsection{Evaluation}
+\subsection{Experimental Settings}
 We use leave-one-out cross validation to evaluate different trajectory recommendation algorithms,
 i.e., when evaluating a trajectory of a specific user, all other trajectories of this user as well as 
 all trajectories of other users were used to train the recommendation algorithms.
+In addition, we compared the experimental results on four trajectory datasets among the following $10$ algorithms.
 
-In addition, we compared the experimental results on four trajectory datasets among 
-the following recommendation algorithms.
-\begin{itemize}
-\item \textsc{Random}: choose POIs uniformly at random (without replacement) 
-      from the set of POIs $\mathcal{P} \setminus \{p_s, p_e \}$ to visit.
-\item \textsc{PersTour}\cite{ijcai15}: personalised trajectory recommendation algorithm with time budget constraint,
-      the trade-off parameter was $0.5$.
-\item \textsc{PersTour-L}: the same setting as \textsc{PersTour} but with time budget constraint replaced with the 
-      total number POIs to visit, i.e., $L$.
-\item \textsc{PoiPopularity}: choose POIs according to the ranking based on POI popularity only.
-\item \textsc{PoiRank}: choose POIs according to the ranking based on POI features described in section \ref{method:ranking}.
-\item \textsc{Markov}: recommend trajectory according to the factorized transition matrix described in section \ref{method:transition},
-      using Viterbi algorithm to compute the most likely trajectory with respect to constraint $(p_s, p_e, L)$.
-\item \textsc{MarkovPath}: the same as \textsc{Markov}, but with extra restriction that 
-      no sub-tours exist in the recommended trajectory.
-\item \textsc{Rank+Markov}: combining POI ranking and the factorized transition matrix and use algorithm \ref{algo:dp} to 
-      compute the most likely trajectory with respect to constraint $(p_s, p_e, L)$.
-\item \textsc{Rank+MarkovPath}: the same as \textsc{Rank+Markov}, but with extra restriction that 
-      no sub-tours exist in the recommended trajectory.
-\item \textsc{StructuredSVM}: structured prediction algorithm using POI rankings as well as transition probabilities
-      between POIs to recommend trajectory as described in section \ref{method:structured}.
-\end{itemize}
+\textsc{Random}: choose POIs uniformly at random (without replacement) 
+    from the set of POIs $\mathcal{P} \setminus \{p_s, p_e \}$ to visit.
 
-% Parameters
-For all algorithms that utilizing ranking probabilities of POIs, namely, \textsc{PoiRank}, \textsc{Rank+Markov} and 
-\textsc{Rank+MarkovPath}, the regularization parameter of rankSVM was $10$.
-The discretization parameters used to factorize the transition probabilities between POIs was $5$, namely,
-discretizing POI features into $5$ bins and clustering POIs to $5$ clusters according to the geographical coordinates.
+\textsc{PersTour}\cite{ijcai15}: personalised trajectory recommendation algorithm with time budget constraint.
+
+\textsc{PersTour-L}: the same setting as \textsc{PersTour} but constraining the total number of POIs to visit 
+    instead of the time budget.
+
+\textsc{PoiPopularity}: choose POIs according to the ranking based on POI popularity only.
+
+\textsc{PoiRank}: choose POIs according to the ranking based on POI specific and query specific features 
+    described in section \ref{ranksvm}.
+
+\textsc{Markov}: recommend trajectory according to the factorized transition matrix described in section \ref{transition},
+    using Viterbi algorithm to compute the most likely trajectory with respect to query $(p_s, p_e, L)$.
+
+\textsc{MarkovPath}: the same as \textsc{Markov}, but with extra restriction that no sub-tours exist in the 
+    recommended trajectory.
+
+\textsc{Rank+Markov}: a heuristic algorithm to combine POI ranking and the factorized transition matrix 
+    to recommend the most likely trajectory with respect to query $(p_s, p_e, L)$.
+
+\textsc{Rank+MarkovPath}: the same as \textsc{Rank+Markov}, but with extra restriction that no sub-tours exist in 
+    the recommended trajectory.
+
+\textsc{StructuredSVM}: structured prediction algorithm using POI rankings as well as transition probabilities
+    between POIs to recommend trajectory as described in section \ref{ssvm}.
+
+% Parameters for IJCAI methods
+The trade-off parameter for both \textsc{PersTour} and \textsc{PersTour-L} were $0.5$.
+% Parameters for rankSVM
+The regularization parameter of rankSVM was $10$ for all algorithms that utilising POI rankings, namely, 
+\textsc{PoiRank}, \textsc{Rank+Markov} and \textsc{Rank+MarkovPath}.
+% Parameters for transition matrix
+When computing the transition probabilities between POIs,
+POI popularity, the total number of visit at POI and the average visit duration at POI were discritized using
+$5$ bins uniformly in log-space, furthermore, POIs were grouped into $5$ clusters using K-means according to
+their geographical locations.
+% Parameters for Heuristics
 The trade-off parameters $\alpha$ was set to $0.5$ in both \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} algorithms.
+% Parameters for SSVM
 The regularization parameter to train \textsc{StructuredSVM} was $1$.
 
 
 \subsection{Results}
 % tell the story: justify each row in the table, make comparison.
 The F$_1$-scores of the nine algorithms on all four datasets are shown in table \ref{table:f1}.
-The information utilized by these algorithms except \textsc{Random} range from POI information and query information 
-of trajectories to transition patterns between different POIs and so on, table \ref{table:character} summarize the 
+The information utilized by these algorithms except \textsc{Random} range from POI specific and query specific 
+information to transition patterns between different POIs and so on, table \ref{table:character} summarize the 
 characteristics of all the nine algorithms.
 
-From table \ref{table:f1}, one can observe that all algorithms that capture POI specific information significantly 
+From table \ref{table:f1}, one can observe that all algorithms that capture POI specific information 
 outperform the one that does not use it, namely the \textsc{Random} baseline algorithm, 
+with one exception of \textsc{PersTour} on Melbourne dataset,
 which indicates the POI specific information is very helpful for recommending trajectories.
 %
 % time constraint is better than length constraint
-Another observation is \textsc{PersTour} get much better trajectory F$_1$-scores on all four datasets 
+Another observation is \textsc{PersTour} get much better trajectory F$_1$-scores on four out of five datasets 
 than \textsc{PersTour-L}, which is equivalent to \textsc{PersTour} except the total number of POIs was used to 
-constrain recommendation, which means, at least for \textsc{PersTour}, the total time consumed in a trajectory
-provides more helpful information than purely the number of POIs one should visit, and indicates that recommendation
-algorithms which use the number of POIs instead of the time consumed might not perform as well.
+constrain recommendation, which means the total time consumed in a trajectory was more helpful than the number 
+of POIs one should visit.
 %
 % comparison between ijcai and other methods
-However, algorithms that did not utilize the total time consumed in a trajectory can outperform the one that 
-used this information (i.e., \textsc{PersTour}) on three out of four datasets, 
-by learning to rank POIs based on informative POIs features and exploiting the transition patterns between POIs.
+However, algorithms that did not utilise the total time consumed in a trajectory can outperform the one that 
+used this information (i.e., \textsc{PersTour}) on four out of five datasets, 
+by learning to rank POIs based on POI specific and query specific features and exploiting the transition patterns 
+between POIs.
 
 % strong performance of POI popularity based ranking on Edinburgh data
-POI features seems to be very helpful for recommending trajectories.
+POI features seem to be very helpful for recommending trajectories.
 In particular, recommendation based on ranking POI popularity only 
-(i.e., \textsc{PoiPopularity}) yields very good performance on two out of four datasets, 
+(i.e., \textsc{PoiPopularity}) yields very good performance,
 especially on Edinburgh dataset, where it surprisingly outperforms all 
 other algorithms, including those much more sophisticated than this simple ranking method.
 %
 % strong performance of POI feature based ranking on Toronto and Glasgow data
-Furthermore, \textsc{PoiRank} performs very well in three out of four datasets, 
-especially on Toronto dataset, where it got better results than any other methods, 
+Furthermore, \textsc{PoiRank} performs very well in four out of five datasets, 
+especially on Toronto and Melbourne datasets, where it got better results than any other methods, 
 while on both Edinburgh and Glasgow datasets, it was the second best performer, 
-which indicates that learning to rank is very helpful when recommending trajectories.
+which indicates that learning to rank is very helpful for recommending trajectories.
 
 % the performance of transition-only methods
 Recommendation by exploiting only transition patterns did not performs quite well,
-but when supported by learning to rank, it improves a lot, which results the best performer on Osaka dataset and
-the third best performer on all other datasets, namely \textsc{Rank+MarkovPath}.
+but when supported by learning to rank, it improves a lot, which results the best performer on Osaka dataset 
+and the second or third best performer on all other datasets, namely \textsc{Rank+MarkovPath}.
 
 % sub-tours hurt
 In addition, we found that sub-tours hurt trajectory recommendation when compare the performance between
-\textsc{Markove} and \textsc{MarkovPath} as well as between \textsc{Rank+Markov} and 
-\textsc{Rank+MarkovPath}, while the latter algorithms got an additional restrict that no sub-tours 
-occur in recommended trajectories.
+algorithms with or without sub-tours restrictions, namely, \textsc{Markov} versus \textsc{MarkovPath} and 
+\textsc{Rank+Markov} versue \textsc{Rank+MarkovPath}.
 % 
 % why structured prediction didn't work very well
 This discovery could also be the reason that the sophisticated structured prediction algorithm, 
-i.e., \textsc{StructuredSVM}, can not perform better than the best performer among the various algorithms
-that exploiting POI rankings and/or transition patterns.
-
+i.e., \textsc{StructuredSVM}, since it utilised the same features as both \textsc{Rank+Markov} and 
+\textsc{Rank+MarkovPath}, but only got comparable or slightly better results than \textsc{Rank+Markov} 
+and cannot outperform \textsc{Rank+MarkovPath} on four out of five datasets, and was only doing slightly 
+better on Toronto dataset, even it took advantage of a significantly larger number of parameters.
 
 % performance comparison in terms of tau
 On the other hand, when compare the performance of different recommendation algorithms in terms of trajectory $\tau$
-which measures the quality of visiting orders of POIs in recommended trajectories,
+which try to measure the quality of visiting orders of POIs in recommended trajectories,
 as shown in table \ref{table:tau}
 \footnote{We can not compute trajectory $\tau$ for \textsc{PersTour} because the number of POIs in recommend trajectory 
 is not guaranteed to equal the number of POIs in real trajectory.},
-\textsc{StructuredSVM} became the best performer in three out of four datasets,
-this is expected as \textsc{StructuredSVM} can tune much more parameters than other algorithms when training,
-which means it can utilize the transition patterns between POIs better,
+\textsc{StructuredSVM} became the best performer in three out of five datasets,
+this is not unexpected as \textsc{StructuredSVM} can tune much more parameters than any other algorithms when training,
+which means it can utilise the transition patterns between POIs better,
 as a result, when POIs in a recommended trajectory also appear in the ground truth, 
 there is a better chance that the visiting order among these POIs are also consistent with 
 that in the real trajectory.
 
 % 
-The last interesting observation that we want point out is the performance of \textsc{PoiPopularity} algorithm
-on Edinburgh dataset, where it yields the best performance in terms of trajectory F$_1$-score and 
-also get very good performance, almost comparable to the best performer in terms of trajectory $\tau$.
-This observation indicates that most tourists visiting Edinburgh not only just visiting
-places that are very popular, but also follow similar visiting orders when visiting these places.
+The last interesting observation that we want to point out is the performance of ranking based algorithms
+on Edinburgh, Glasgow and Toronto datasets, when measured in terms of both trajectory F$_1$ score and trajectory
+$\tau$, \textsc{PoiPopularity} performed very well on Edinburgh dataset, and \textsc{PoiRank} yielded very good
+performance on both Glasgow and Toronto datasets.
+This observation indicates that most tourists visiting these three cities not only just visiting
+places that are very popular, but also following similar visiting orders when visiting these places.
 
 \begin{table*}
 \centering
