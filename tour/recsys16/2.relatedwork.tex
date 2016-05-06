@@ -1,13 +1,20 @@
 %!TEX root = main.tex
 
 \section{Related Work}
-\label{relatedwork}
+\label{sec:relatedwork}
 
-{\bf Problem setting:}
-POI recommendation~\cite{shi2011personalized,lian2014geomf,gao2013temporal}  survey on this~\cite{bao2015recommendations}
-next basket~\cite{fpmc10} / next location recommendation~\cite{ijcai13}, 
-finding / ranking a whole trip ~\cite{lu2012personalized}
-travel patterns in general, route aggregation \cite{lu2010photo2trip,zheng2012patterns} travel time~\cite{gao2013temporal}  
+As geo-tagged travel data become widely available, problems in exploring routes and travel patterns has received increasing attention across several research communities -- including information retrieval and recommender systems, databases, social media, geographic information systems, and artificial intelligence. 
+%Exhaustive surveying of the area is beyond the scope of this work, we refer the readers to a number of  
+We summarize recently work most related to formulating and solving learning problems on assembling routes 
+from points-of-interest (POI), according to the problem setting, the methods for ranking and selecting places and routes, as well as the use of different features and queries. We refer the reader to a number of recent surveys\cite{bao2015recommendations,zheng2015trajectory,zheng2014urban} for detailed profiles of the area.
+
+There are several problem settings for travel patterns and trajectory data. 
+The first setting can be called {\em discovery}, such as identifying points of interest~\cite{zheng2009mining} identifying general travel patterns such as the most popular routes~\cite{lu2010photo2trip} or 
+quantifying tourist traffic flow between points of interest~\cite{zheng2012patterns}. 
+The second setting is POI recommendation. The basic formulation is collaborative filtering model for learning user-location affinity~\cite{shi2011personalized}, with additional ways to incorporate historic information in spatial~\cite{lian2014geomf} and temporal~\cite{gao2013temporal} data. See a detailed survey by Bao et al~\cite{bao2015recommendations} on this topic. 
+The third setting is next location recommendation. It is a variant of POI recommendation except given both the user and locations traveled to date. The solutions to this problem include incorporating Markov chains into collaborative filtering~\cite{fpmc10,ijcai13} or with sequence models such as recurrent neural networks~\cite{aaai16}. 
+The last problem setting is finding and ranking a whole trip. This usually translate into combinatorial optimisation problems~\cite{ijcai15,lu2012personalized} with the objective derived from user history and constraints designed from travel lengths.
+
 
 {\bf Method}
 MF, recommender system for places;
@@ -36,9 +43,11 @@ between POIs using a hybrid of
 Markov and topic models, and recommend a trajectory by search the sequence of POIs with highest probability for this user  with respect to a time budget.
 greedy on best next location. 
 
+\cite{chen2015tripplanner}
 
-{\bf Features / available data}
+{\bf queries, features, available data}
 clustering space~\cite{hu2013spatialtopic}
+travel time~\cite{gao2013temporal}
 geo-MF for POI recommendation~\cite{lian2014geomf}
 spatial topic model for local rec~\cite{hu2013spatialtopic}
 \cite{ht14} aims to recommend a short and pleasant trajectory from the current POI to a destination POI by choosing the best average rank 
@@ -48,6 +57,8 @@ POIs were ranked according to the degree of pleasure based on user votes and  cr
 \cite{travel13} recommend places to travelers by extracting traveling patterns based on automatically mined user attributes 
 (e.g., age, gender and race) and travel group types (e.g., couple, family and friends) from photos provided by online photo 
 sharing sites (e.g., Flickr).
+
+\cite{Zhang2015OOP} opion-based
 
 POI rec from photos~\cite{shi2011personalized}
 
