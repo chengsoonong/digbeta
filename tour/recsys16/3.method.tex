@@ -1,46 +1,20 @@
 \section{POI, Query and Path}
 \label{method}
 
-We would like to recommend a particular tour such that the user will visit a sequence of points of interests (POIs) that maximises utility. In Figure~\ref{fig:problems}, an example tour is shown in light blue, which starts at the POI denoted as a red square, visits two intermediate POIs, and terminates on the fourth POI. The tour of length 3 can be modeled as a sequence of directed edges in a graph containing all POIs in the city as nodes.
+We would like to recommend a particular tour such that the user will visit a sequence of points of interests (POIs), denoted $p_1, \ldots, p_L$, that maximises utility. We are given the desired start ($p_1=p_s$) and end point ($p_L=p_e$), and an associated number $l$ of POIs desired, from which we propose a trajectory through the city. In Figure~\ref{fig:problems}, an example tour is shown in light blue, which starts at the POI denoted as a red square, visits two intermediate POIs, and terminates on the fourth POI. The tour of length 3 can be modeled as a sequence of directed edges in a graph containing all POIs in the city as nodes.
 
 The training data consists of a set of tours of varying length in a particular city. We assume that all POIs in the city are visited at least once, and hence can construct a graph with POIs as nodes and potentially multiple directed edges between each pair of nodes. We extract the category, popularity, total number of visits and average visit duration for each POI. The set of categories are shown in Table~XX in the appendix, and the popularity is defined as the number of distinct users that visited the POI.
 
-\cheng{I have removed reference to user specific recommendations.}
-
 As a baseline approach, we recommend the trajectory based on the popularity of POIs only, that is we always suggest the top-$k$ most visited POIs for all visitors. This baseline approach, called \textsc{PoiPopularity}, ignores the start and end location, and its only adaptation to a particular request is to adjust $k$ to match the desired length.
 
-\subsection{Using the origin and destination}
-\label{ranksvm}
-%
-%\begin{itemize}
-%  \item Query - $(s,e,l)$
-Besides features determined by POI only, features associated with both POIs and trajectories
-can be built by utilizing the origin POI $p_s$ and destination POI $p_e$ as well as
-the total number of POIs $L$ in a trajectory to form a query $(p_s, p_e, L)$,
-we build additional features related to the query and a POI $p$ such as
-\begin{itemize}
-\item Whether the category of a POI $p$ is the same as that of $p_s$ (and $p_e$).
-\item The distance from POI $p$ to $p_s$ (and $p_e$) using haversine formula \cite{haversine},
-      \begin{displaymath}
-          d(p, p_s) = 2 R_1 \arcsin \sqrt{ \sin^2 \frac{\Delta \phi}{2} +
-                      \cos \phi_p \cos \phi_{p_s} \sin^2 \frac{\Delta \lambda}{2} }
-      \end{displaymath}
-      where $R_1 = 6371.0088$ km is the mean earth radius \cite{earth_radius},
-      $\Delta \phi = \phi_p - \phi_{p_s}$, $\Delta \lambda = \lambda_p - \lambda_{p_s}$,
-      and $\phi_p$, $\lambda_p$ are the latitude and longitude of POI $p$ respectively.
-\item The difference in popularity of POI $p$ from $p_s$ (and $p_e$),
-      i.e., $\Delta Pop = Pop(p) - Pop(p_s)$.
-\item The difference in average visit duration of POI $p$ from that of $p_s$ (and $p_e$),
-      i.e., $\Delta \bar{V} = \bar{V}(p) - \bar{V}(p_s)$
-\item The number of POIs in the expected trajectory, i.e. $L$
-\end{itemize}
+\cheng{I have removed reference to user specific recommendations.}
 
-%  \item RankSVM
-We can learn a ranking of POIs by leveraging both features related to only POIs and features
-associated with POIs as well as queries, in particular,
-we learn a rank $<_{p_i, p_j} \subset \mathcal{P}^2$ with respect to query $(p_s, p_e, L)$
-using rankSVM with linear kernel and $L2$ loss\cite{lranksvm},
-i.e.,
+
+\subsection{Ranking using the origin and destination}
+\label{ranksvm}
+
+In addition to popularity, we also can rank the recommended POIs based on the other three POI specific features (category, total visits and average duration).
+We can learn a ranking of POIs by using rankSVM with linear kernel and $L2$ loss\cite{lranksvm},
 \begin{displaymath}
 \min_{\mathbf{w_r}} \frac{1}{2} \mathbf{w_r}^T \mathbf{w_r} +
                     C_r \sum_{(p_i, p_j) \in \mathcal{P}}
@@ -48,16 +22,34 @@ i.e.,
 \end{displaymath}
 where $\mathbf{w_r}$ is a vector of parameters,
 $C_r > 0$ is the regularization parameter and
-$\mathbf{f}_{p_i}$ is the feature vector associated with both POI $p_i$ and query $(p_s, p_e, L)$.
-The label of feature vector $\mathbf{f}_p$ is the number of occurrence of POI $p$ in trajectories
-in training set that grouped by query $(p_s, p_e, L)$,
-without counting the occurrence of $p$ when it is the origin or destination POI of a trajectory.
+$\mathbf{f}_{p_i}$ is the feature vector described below.
 
-%  \item \textsc{PoiRank}
-%\end{itemize}
-%
-We create another algorithm to recommend trajectory by utilising the ranking of POIs described above,
-the pseudo code of this algorithm, i.e., \textsc{PoiRank} was described below.
+Furthermore, since we are constrained by the fact that trajectories have to be of length $L$ and start and end at certain points, we hope to improve the recommendation by using this information.
+In other words, using the query $(p_s, p_e, L)$ we can construct new features by contrasting
+candidate POIs with $p_s$ and $p_e$.
+
+For each of the POI features above, we construct two new features by taking the difference of
+the feature in POI $p$ with $(p_s, p_e)$ respectively.
+For the category, we set the feature to one when their categories are the same.
+For popularity and visit duration, we take the real valued difference.
+The distance from POI $p$ to $p_s$ (and $p_e$) is computed using the haversine formula \cite{haversine},
+\begin{displaymath}
+  d(p, p_s) = 2 R_1 \arcsin \sqrt{ \sin^2 \frac{\Delta \phi}{2} +
+    \cos \phi_p \cos \phi_{p_s} \sin^2 \frac{\Delta \lambda}{2} }
+\end{displaymath}
+where $R_1 = 6371.0088$ km is the mean earth radius \cite{earth_radius},
+$\Delta \phi = \phi_p - \phi_{p_s}$, $\Delta \lambda = \lambda_p - \lambda_{p_s}$,
+and $\phi_p$, $\lambda_p$ are the latitude and longitude of POI $p$ respectively.
+Lastly we also include the required length $L$ of the trajectory as a feature for rankSVM.
+
+For training the rankSVM, the labels are generated using the number of occurrences of
+POI $p$ in trajectories grouped by query $(p_s, p_e, L)$,
+without counting the occurrence of $p$ when it is the origin or destination POI of a trajectory.
+We create another algorithm to recommend trajectory by utilising
+the ranking of POIs described above,
+the pseudo code of this algorithm, \textsc{PoiRank}, is described in Table~\ref{alg:poirank}.
+
+\cheng{Is there a way to show the performance of rankSVM? If so, add to appendix.}
 
 \begin{table}
 \centering
@@ -78,8 +70,8 @@ the pseudo code of this algorithm, i.e., \textsc{PoiRank} was described below.
 10:& \textbf{return} $\mathcal{T}$ \\
 \hline
 \end{tabular}
-%\caption{}
-%\label{}
+\caption{\textsc{PoiRank}: recommend trajectory by ranking POIs.}
+\label{alg:poirank}
 \end{table}
 
 
