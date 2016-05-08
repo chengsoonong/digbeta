@@ -8,7 +8,8 @@ As geo-tagged travel data become widely available, problems in exploring routes 
 We summarize recently work most related to formulating and solving learning problems on assembling routes 
 from points-of-interest (POI), according to the problem setting, the methods for ranking and selecting places and routes, as well as the use of different features and queries. We refer the reader to a number of recent surveys\cite{bao2015recommendations,zheng2015trajectory,zheng2014urban} for detailed profiles of the area.
 
-There are several distinct problem settings for travel patterns and trajectory data. 
+%There are several distinct problem settings for travel patterns and trajectory data. 
+{\bf Problem settings} for travel patterns and trajectory data. 
 The first setting can be called {\em discovery}, such as identifying points of interest~\cite{zheng2009mining,li2015instagram} identifying general travel patterns such as the most popular routes~\cite{lu2010photo2trip} or 
 quantifying tourist traffic flow between points of interest~\cite{zheng2012patterns}. 
 The second type of problem is concerned with efficient querying of geographic objects for trips ~\cite{hashem2015efficient}. 
@@ -17,7 +18,8 @@ The fourth setting is next location recommendation~\cite{ijcai13,aaai16,baraglia
 The last problem setting is finding and ranking a whole trip. This usually translate into combinatorial optimisation problems~\cite{ijcai15,lu2012personalized} with the objective derived from user history and constraints designed from travel lengths. 
 Our work is in the last category, we formulate a learning problem to score the whole trajectory, taking into account individual POI properties and relationships among different POIs. 
 
-We group the methods for ranking and recommending location and trajectories in to three broad categories. 
+%We group the methods for ranking and recommending location and trajectories into three broad categories. 
+{\bf Methods} for ranking locations and trajectories. 
 The first is collaborative filtering, or matrix factorization family of techniques applied to places and trajectories~\cite{shi2011personalized,ijcai13,zhang2015location}. The second type regard route recommendation as a planning problem. Gionis et al~\cite{wsdm14} formulates optimization problems with additive user satisfaction and coverage constraints. Lim et al.~\cite{ijcai15} uses a combination of user preference and POI popularity as objective function, and then solves a traveling salesman problem (TSP) to obtain a route. 
 The TripBuilder system~\cite{brilhante2013shall} first solves a maximum coverage problem for user preference and then solves TSP for routing. The collaborative filtering approaches ranks POI but do not take into account the sequence that a trip is taken. On the other hand, the planning approaches assume a fixed objective function that is not directly optimized to predict user behavior. There has been a few approaches that jointly optimize for POI preference and routes. Lu et al~\cite{lu2012personalized} uses heuristic combinations for point scoring, followed by branch-n-bound search for planning. Kurashima et al~\cite{kurashima2010geotag} modeled user preferences and his/her transition patterns between POIs using a hybrid of Markov chain and toipc models, the search for a best path is done by greedily maximizing the probability for the next point. The TripPlanner system~\cite{chen2015tripplanner} selects POIs based on input query and POI categories, and then scores routes using heuristic search strategies taking into account traffic and travel time constraints. 
 We propose a new approach that learns the importance of different POI features and POI-to-POI transition features, we also provide a comprehensive benchmark on how node- and edge- features contribute to the final trajectory ranking. 
@@ -47,48 +49,32 @@ We propose a new approach that learns the importance of different POI features a
 %greedy on best next location. 
 
 
-{\bf queries, features, available data}
-clustering space~\cite{hu2013spatialtopic}
-geo-MF for POI recommendation~\cite{lian2014geomf}
-spatial topic model for local rec~\cite{hu2013spatialtopic}
-\cite{liu2014exploiting} -- geo, neighborhood
+%{\bf queries, features, available data}
+%One of the challenges for modeling traveling behavior is the diversity of available information,
+{\bf A diverse set of available information}, 
+such as geographic, time, user properties, and subjective opinions. 
+Approaches for modeling space include geolocation-informed matrix factorisation~\cite{lian2014geomf}, spatial topic models~\cite{hu2013spatialtopic}, neighborhood information~\cite{liu2014exploiting}, exploiting sequential information with additive markov chain~\cite{zhang2014lore}, and enriching location with the information for venues~\cite{deveaud2014importance,deveaud2015experiments}.
+Important variants to consider for modeling time include travel time~\cite{gao2013temporal}
+constructing time-aware routes~\cite{yuan2013timeaware,hsieh2014mining}, time-of-day and time-of-week~\cite{chen2015tripplanner}, POI availability and uncertainty in traveling time~\cite{zhang2015personalized}. There are a number of approaches that jointly consider space and time\cite{yuan2014graph,zhang2015location}, such as modeling the correlation between check-in time and location~\cite{gao2013temporal}. 
+Inferring user attributes and preferences has been an important consideration~\cite{liu2013personalized}. 
+Chen et al~\cite{chen2013people} recommend places to travelers based on automatically mined user attributes 
+(e.g., age, gender and race) and travel group types (e.g., couple, family and friends) from online photos.
+Ference et al~\cite{ference2013location} tailors the recommendation for out of town users.
+Subjective opinion is an important information source for decision making, in addition to past behaviors. Zhang et al~\cite{Zhang2015OOP} use written reviews for POI recommendataion.  
+The novel work from Quercia et al~\cite{ht14} crowd-source judgements about the beauty, quietness and happiness about places, and then constructs routes with these subjective criteria. 
+%aims to recommend a short and pleasant trajectory from the current POI to a destination POI by choosing the best average rank of all POIs in a trajectory from the $M$ shortest paths that connect the current location and destination,
+%POIs were ranked according to the degree of pleasure based on user votes and  crowd-sourced emotion scores on three aspects 
+%(i.e., beauty, quietness and happiness).
+In this work we focus on formulating learning problems to jointly rank POIs and routes. We use a minimum but commonly available set of features, such as neighborhood, popularity, and venue information. Gathering additional features via data linking for the dataset is out of the scope of this paper. 
 
-travel time~\cite{gao2013temporal}
-temporal~\cite{yuan2013timeaware,hsieh2014mining,gao2013temporal}, or spatial-temporal~\cite{yuan2014graph}
-time-of-day or time-of-week constraints~\cite{chen2015tripplanner}
-\cite{hsieh2014mining} - time-aware routes
+%{\bf what we do:}
+%trajectory recommendation, learning the joint preference of ranks routes, on minimum but commonly available set of features. 
 
-\cite{zhang2015personalized} -- Personalized Trip Recommendation with POI Availability and Uncertain Traveling Time
-\cite{zhang2015location} -- Location and Time Aware Social Collaborative Retrieval for New Successive Point-of-Interest Recommendation
-\cite{yuan2014graph} Graph-based point-of-interest recommendation with geographical and temporal influences
 
-venue\cite{deveaud2014importance,deveaud2015experiments}
+%POI rec from photos~\cite{shi2011personalized}
+%``Photo2Trip: generating travel routes from geo-tagged photos for trip planning''~\cite{lu2010photo2trip}
+%Estimation markov chain from regions of interest in photos~\cite{zheng2012patterns}
 
-out of town user \cite{ference2013location}
-user preference\cite{liu2013personalized}
-
-\cite{ht14} aims to recommend a short and pleasant trajectory from the current POI to a destination POI by choosing the best average rank 
-of all POIs in a trajectory from the $M$ shortest paths that connect the current location and destination,
-POIs were ranked according to the degree of pleasure based on user votes and  crowd-sourced emotion scores on three aspects 
-(i.e., beauty, quietness and happiness).
-\cite{travel13} recommend places to travelers by extracting traveling patterns based on automatically mined user attributes 
-(e.g., age, gender and race) and travel group types (e.g., couple, family and friends) from photos provided by online photo 
-sharing sites (e.g., Flickr).
-
-\cite{Zhang2015OOP} opion-based
-
-POI rec from photos~\cite{shi2011personalized}
-
-``Photo2Trip: generating travel routes from geo-tagged photos for trip planning''~\cite{lu2010photo2trip}
-
-Estimation markov chain from regions of interest in photos~\cite{zheng2012patterns}
-
-correlation between check-in time and location~\cite{gao2013temporal}
-
-LORE, use additive markov chain\cite{zhang2014lore}
-
-{\bf what we do:}
-trajectory recommendation, learning the joint preference of ranks routes, on minimum but commonly available set of features. 
 
 %\cite{ference2013location} - Location recommendation for out-of-town users
 %\cite{liu2013personalized} Personalized point-of-interest recommendation by mining users' preference transition
