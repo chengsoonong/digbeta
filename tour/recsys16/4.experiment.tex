@@ -211,10 +211,11 @@ places that are very popular, but also following similar visiting orders when vi
 \end{table*}
 
 
-\begin{table*}
-\centering
+\begin{table}
+\centering\small
 \begin{tabular}{l|cccccc} \hline
-                                    & Query    & POI      & Transition & No sub-tours & Joint    \\ \hline
+                                    & Query    & POI      & Trans. & No sub- & Joint    \\ 
+                                    &     &       &  & tours &     \\ \hline
 \textsc{Random}                     & $\times$ & $\times$ & $\times$   & $\times$     & $\times$ \\ 
 \textsc{PersTour}\cite{ijcai15}     & $\times$ & $\surd$  & $\times$   & $\surd$      & $\times$ \\
 \textsc{PersTour-L}                 & $\times$ & $\surd$  & $\times$   & $\surd$      & $\times$ \\
@@ -222,13 +223,13 @@ places that are very popular, but also following similar visiting orders when vi
 \textsc{PoiRank}                    & $\surd$  & $\surd$  & $\times$   & $\times$     & $\times$ \\
 \textsc{Markov}                     & $\times$ & $\surd$  & $\surd$    & $\times$     & $\times$ \\
 \textsc{MarkovPath}                 & $\times$ & $\surd$  & $\surd$    & $\surd$      & $\times$ \\
-\textsc{Rank} + \textsc{Markov}     & $\surd$  & $\surd$  & $\surd$    & $\times$     & $\times$ \\
-\textsc{Rank} + \textsc{MarkovPath} & $\surd$  & $\surd$  & $\surd$    & $\surd$      & $\times$ \\
+\textsc{Rank}+\textsc{Markov}     & $\surd$  & $\surd$  & $\surd$    & $\times$     & $\times$ \\
+\textsc{Rank}+\textsc{MarkovPath} & $\surd$  & $\surd$  & $\surd$    & $\surd$      & $\times$ \\
 \textsc{StructuredSVM}              & $\surd$  & $\surd$  & $\surd$    & $\times$     & $\surd$  \\ \hline
 \end{tabular}
 \caption{Characteristics of different algorithms}
 \label{table:character}
-\end{table*}
+\end{table}
 
 
 
