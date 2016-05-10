@@ -1,5 +1,5 @@
 \section{POI, Query and Path}
-\label{method}
+\label{sec:method}
 
 We would like to recommend a particular tour such that the user will visit a sequence of points of interests (POIs), denoted $p_1, \ldots, p_L$, that maximises utility. We are given the desired start ($p_1=p_s$) and end point ($p_L=p_e$), and an associated number $l$ of POIs desired, from which we propose a trajectory through the city. In Figure~\ref{fig:problems}, an example tour is shown in light blue, which starts at the POI denoted as a red square, visits two intermediate POIs, and terminates on the fourth POI. The tour of length 3 can be modeled as a sequence of directed edges in a graph containing all POIs in the city as nodes.
 
@@ -11,7 +11,7 @@ As a baseline approach, we recommend the trajectory based on the popularity of P
 
 
 \subsection{Ranking using the origin and destination}
-\label{ranksvm}
+\label{sec:ranksvm}
 
 In addition to popularity, we also can rank the recommended POIs based on the other three POI specific features (category, total visits and average duration).
 We can learn a ranking of POIs by using rankSVM with linear kernel and $L2$ loss\cite{lranksvm},
@@ -76,48 +76,29 @@ the pseudo code of this algorithm, \textsc{PoiRank}, is described in Table~\ref{
 
 
 \subsection{Transition probabilities}
-\label{transition}
-%
-%\begin{itemize}
-%  \item Edge
-As mentioned in section \ref{problem}, the transition from one POI to another in a trajectory
-corresponds to a directed edge in a graph with POIs as nodes.
+\label{sec:transition}
 
-%  \item Factorised transition matrix - maximum likelihood
-We model these transitions using a Markov Chain with POIs as states.
-the transition probability from POI $p_i$ to POI $p_j$ is factorized according to
-the following individual POI features.
-\begin{enumerate}
-\item The category of POI, $P_{\textsc{cat}}(p_j | p_i)$
-      denotes the transition probability from the category of $p_i$ to the category of $p_j$.
-\item The popularity of POI, which was first discritized with uniform intervals in log-scale,
-      and $P_{\textsc{pop}}(p_j | p_i)$ denotes the transition probability from the interval with the popularity of
-      $p_i$ to the interval with the popularity of $p_j$.
-\item The total number of visits of POI, similarly, it was first discritized with uniform intervals in log-scale,
-      and $P_N(p_j | p_i)$ denotes the transition probability from the interval with $N(p_i)$
-      to the interval with $N(p_j)$.
-\item The average visit duration of POI, and again, it was first discritized with uniform intervals in log-scale,
-      and $P_{\bar{V}}(p_j | p_i)$ denotes the transition probability from the interval with $\bar{V}(p_i)$
-      to the interval with $\bar{V}(p_j)$.
-\item The neighborhood relationship between $p_i$ and $p_j$,
-      which was represented by the geographical clusters of POIs that $p_i$ and $p_j$ reside in,
-      and $P(c_{p_j} | c_{p_i})$ denotes the transition probability from the cluster with
-      $p_i$ (i.e., $c_{p_i}$) to the cluster with $p_j$ (i.e., $c_{p_j}$).
-\end{enumerate}
+In addition to information about each individual POI, a tour recommendation system would benefit
+from capturing the likelihood of transitioning between different POIs. One option would be to
+directly model the probability of going from one POI to another, but this has several weaknesses.
+This model would be unable to handle a new POI (one that has not yet been visited).
+Furthermore even if we restrict ourselves to known POIs, there may be many locations which
+are rarely visited, leading to significant challenges in estimating the probabilities from
+empirical data.
 
-Assuming independence between these features,
-the transition probability from $p_i$ to $p_j$ can be factorized as follows,
-\begin{displaymath}
-    P(p_j | p_i) =
-    \begin{cases}
-    \hfill 0, \hfill & i = j \\
-    \hfill \frac{1}{Z_i} P_{\textsc{cat}}(p_j | p_i) \times P_{\textsc{pop}}(p_j | p_i) \times P_N(p_j | p_i) \\
-    \hfill \times P_{\bar{V}}(p_j | p_i) \times P(c_{p_j} | c_{p_i}), \hfill & i \ne j
-    \end{cases}
-\end{displaymath}
-where $p_i, p_j \in \mathcal{P}$ and $Z_i$ is a normalizing constant.
+We model these transitions using a Markov Chain with discrete factored states.
+The transition probability from POI $p_i$ to POI $p_j$ is factorised according to
+individual POI features as described in Section~\ref{sec:ranksvm}. We directly model
+the transition between the category and neighbourhood of each POI as the conditional probability.
+The popularity and total number of visits are binned uniformly into 5 discrete counts,
+and the average visit duration is discretised by binning them uniformly on the log scale.
 
-% Kronecker product
+\cheng{Refer to plots}.
+
+\cheng{Describe the clustering to obtain neighbourhood. Appendix for now.}
+
+\cheng{Why is neighbourhood not used in the univariate (POI) features?}
+
 We compute the transition probabilities of the above individual POI features
 using maximum likelihood estimation,
 i.e., counting the number of transitions for each pair of features then normalizing each row,
@@ -126,43 +107,18 @@ taking care of zeros by adding a small number $\epsilon$
 to each number before normalisation,
 which results a transition matrix for each of the above POI features.
 
-By computing the Kronecker product of transition matrices of all the POI features,
-we get an unnormalised transition matrix of POI features.
-However, to obtain the transition probabilities between each POI pair $(p_i, p_j)$,
-there are two cases needs to be dealt with properly:
-\begin{enumerate}
-\item POI features which represent POIs that do not exist in $\mathcal{P}$,
-\item POI features that corresponds to more than one POIs in $\mathcal{P}$.
-\end{enumerate}
-
-% deal with feature vector without corresponding POI or with more than one POIs.
-For the first case,
-the corresponding rows and columns in the result matrix of Kronecker product are simply removed.
-
-The second case was a bit subtle.
-Let POIs with exactly the same features be a POI group,
-the transition probabilities associated with POIs in the same group are computed as follows:
-\begin{itemize}
-\item The incoming (unnormalised) transition probability of the group was divided uniformly among POIs
-      in the same group, which is equivalent to choose a POI in the group uniformly at random;
-\item The outgoing (unnormalised) transition probability of each POI should be the same as the
-      outgoing transition probability of the POI group, as one had already been in the POI group in this case;
-\item The self-loop of the POI group represents the transitions between POIs in the same group,
-      suppose the (unnormalised) transition probability from a POI group to itself is $P_o$,
-      and the number of POIs in the group is $N_o$,
-      the transition probability from $p_i$ to $p_j$ in the same group is
-      \begin{displaymath}
-          P(p_j | p_i) =
-          \begin{cases}
-              \hfill 0, \hfill & i = j \\
-              \hfill \frac{P_o}{N_o - 1}, \hfill & i \ne j \\
-          \end{cases}
-      \end{displaymath}
-\end{itemize}
-Finally, the unnormalised outgoing transition probabilities of each POI were normalized to form
-a valid probability distribution
-\footnote{Note that dealing with the second case before or after the normalization leads to
-the same transition probabilities, which can be easily proved.}.
+Assuming independence between these features,
+the transition probability from two POIs ($p_i$ to $p_j$) can be defined as the product
+of the transition probabilities of each individual feature (and appropriately normalised),
+with two additional constraints.
+First we disallow self transitions by setting the probability of ($p_i$ to $p_i$) to zero.
+Second we need to deal with the possibility that multiple POIs may share exactly the same
+feature vector.
+When a group of POIs have identical (discretised) features, we distribute the probability
+uniformly among the POIs in the group. More details of this procedure are provided in the Appendix.
+Given the transition matrices for the individual factors, the POI-POI transition probability
+can be efficiently computed by taking the Kronecker product of the individual features
+and then updating it based on the constraints above.
 
 %  \item Viterbi
 %  \item \textsc{Markov}
@@ -171,12 +127,16 @@ Given the transition matrix of POIs $A$, the log likelihood of trajectory $\math
     \ell(\mathcal{T}) = \sum_{j=1}^{|\mathcal{T}|-1} \log P(\mathcal{T}_{j+1} | \mathcal{T}_j)
 \end{displaymath}
 
-We can recommend a trajectory with respect to query $(p_s, p_e, L)$ by maximising the likelihood
-using a variant of Viterbi algorithm, the pseudo code of this algorithm,
-i.e., \textsc{Markov} is shown below.
-%\end{itemize}
+Given the POI-POI transition matrix, we recommend a trajectory with respect to query
+$(p_s, p_e, L)$ by maximising the likelihood. We call this approach that only uses the
+transition probabilities between POIs as \textsc{Markov}. The maximum likelihood solution
+can be found using a variant of the Viterbi algorithm, which is shown in Table~\ref{tab:markov}.
+
+\cheng{Describe why this is not exactly standard Viterbi.}
 
 \begin{table}
+  \caption{\textsc{Markov}}
+  \label{tab:markov}
 \centering
 \small
 \begin{tabular}{rl}
@@ -211,53 +171,9 @@ i.e., \textsc{Markov} is shown below.
 \end{table}
 
 
-\subsection{Performance metric}
-\label{metric}
-%
-% F1 vs Kendall's $\tau$.
-To evaluate the performance of different trajectory recommendation algorithms,
-we employ the trajectory F$_1$-score\cite{ijcai15} to measure the POIs that are
-correctly recommended. Let $\mathcal{T}$ be the trajectory that was visited in the real world,
-and $\hat{\mathcal{T}}$ be the recommended trajectory,
-$\mathcal{P}_{\mathcal{T}}$ be the set of POIs visited in $\mathcal{T}$,
-and $\mathcal{P}_{\hat{\mathcal{T}}}$ be the set of POIs visited in $\hat{\mathcal{T}}$,
-trajectory F$_1$-scores was defined as
-\begin{displaymath}
-    F_1 = \frac{2 |\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}|}
-               {|\mathcal{P}_{\mathcal{T}}| + |\mathcal{P}_{\hat{\mathcal{T}}}|}
-\end{displaymath}
-
-A perfect trajectory F$_1$-score (i.e., F$_1 = 1$) means the POIs in the recommended trajectory are exactly
-the same POIs as those in the ground truth, and a $0$ trajectory F$_1$-score means that unfortunately none of
-the POIs in the real trajectory was recommended.
-
-In addition, to measure the quality of recommended visiting order of POIs, 
-we propose a new metric $F_{1,\textsc{order}}$,
-\begin{displaymath}
-F_{1,\textsc{order}} = \frac{2 \times P_{\textsc{order}} \times R_{\textsc{order}}} 
-                           {P_{\textsc{order}} + R_{\textsc{order}}}
-\end{displaymath}
-where 
-\begin{displaymath}
-P_{\textsc{order}} = \frac{N_c} {|\hat{\mathcal{T}}|(|\hat{\mathcal{T}}|-1) / 2}, 
-R_{\textsc{order}} = \frac{N_c} {|\mathcal{T}|(|\mathcal{T}|-1) / 2}
-\end{displaymath}
-and $N_c$ is the number of POI pairs $(p_j, p_k)$ that satisfies the following 
-constraints\footnote{We define $F_{1,\textsc{order}}=0$ if $N_c$ is $0$.}:
-\begin{align*}
-    (p_j \prec_{\mathcal{T}} p_k ~\land~ p_j \prec_{\hat{\mathcal{T}}} p_k) & ~\lor~
-    (p_j \succ_{\mathcal{T}} p_k ~\land~ p_j \succ_{\hat{\mathcal{T}}} p_k) \\
-    p_j \ne p_k, &~~ p_j, p_k \in \mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}} \\
-    j \ne k, &~~ 1 \le j, k \le |\mathcal{T}|
-\end{align*}
-
-A perfect trajectory $F_{1,\textsc{order}}$, i.e., $F_{1,\textsc{order}} = 1$, means that both the POIs and their visiting order in the
-recommended trajectory are exactly the same as these in the real trajectory,
-and $F_{1,\textsc{order}} = 0$ means that none of the recommended POI pairs was actually visited in the real trajectory.
-
 
 \section{Tour Recommendation}
-\label{recommendation}
+\label{sec:recommendation}
 
 \cheng{Describe combining} \\
 Now that we got rankings of POIs as well as transition probabilities,
@@ -268,7 +184,8 @@ we want to leverage both of them when recommending trajectories.
 %
 %\begin{itemize}
 %  \item No sub tours - tottering
-One problem of \textsc{Markov} algorithm described in section \ref{transition} is the recommended
+One problem of \textsc{Markov} algorithm described in section \ref{sec:transition}
+is the recommended
 trajectory contains sub-tours (or tottering), i.e., some POIs were visited more than once.
 We can eliminate sub-tours by specifying additional constraints when recommending trajectories.
 
@@ -341,7 +258,7 @@ and the transitions between POIs in the recommended trajectory.
 i.e.,
 \begin{align*}
     & \argmax_{y \in \mathcal{P}^L} \alpha \ell_R(y) + (1-\alpha) \ell(y) \\
-   =& \argmax_{y \in \mathcal{P}^L} \alpha \sum_{k=1}^{L} \log P_R(p_{j_k} | x) + 
+   =& \argmax_{y \in \mathcal{P}^L} \alpha \sum_{k=1}^{L} \log P_R(p_{j_k} | x) +
                                     (1-\alpha) \sum_{k=1}^{L-1} \log P(p_{j_{k+1}} | p_{j_k})
 \end{align*}
 such that
@@ -417,7 +334,7 @@ The constraints are the same as those in algorithm \textsc{MarkovPath}.
 We denote this algorithm as \textsc{Rank+MarkovPath}.
 
 \subsection{Structured SVM}
-\label{ssvm}
+\label{sec:ssvm}
 %  \item \textsc{StructuredSVM}
 As trajectory is a sequence of POI visits,
 thus, the recommended trajectory with respect to constraint $x = (p_s, p_e, L)$
@@ -453,7 +370,7 @@ Pairwise features between the $j$-th variable and the $(j+1)$-th variable $\phi_
                                  j &=2, \dots, L-2
 \end{align*}
 where $\phi_{j-1, j}$ is the pairwise features between the $(j-1)$-th and $j$-th variables,
-and $A$ is the transition matrix between POIs described in section \ref{method:transition}.
+and $A$ is the transition matrix between POIs described in section \ref{sec:transition}.
 In particular, the pairwise features between the first and the second variables is the
 outgoing transition probabilities of the first variable,
 and the pairwise features between the second-last and the last variables are a probability distribution
@@ -489,6 +406,8 @@ its corresponding recommended trajectory, and Hamming loss was used in this work
 %
 %Describe IJCAI15 paper, and show \textsc{PersTourL}.
 
+
+\cheng{This needs to be merged into Section~\ref{sec:relatedwork}.}
 The work that most similar to our approach was the \textsc{PersTour} algorithm proposed in \cite{ijcai15},
 it formulated trajectory recommendation as an Orienteering Problem and use integer linear programming to
 maximise an objective which is a composite of the total POI popularity in recommended trajectory and

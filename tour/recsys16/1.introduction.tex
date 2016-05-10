@@ -1,18 +1,18 @@
 \section{Introduction}
 \label{sec:introduction}
-Location based information sharing services provided by online social media 
-(e.g. Facebook, Twitter, Flickr etc) generated a lot of data with geographical information, 
+Location based information sharing services provided by online social media
+(e.g. Facebook, Twitter, Flickr etc) generated a lot of data with geographical information,
 together with time-tamps and user tags, makes it possible to generate massive trajectories.
-There is great opportunity to explore visiting patterns from these trajectory data by leveraging POI properties 
+There is great opportunity to explore visiting patterns from these trajectory data by leveraging POI properties
 as well as transition patterns between different POIs, which leads a way to recommend high quality trajectories to tourists.
 
-In this work, we propose to utilize learning to rank to capture the properties of POIs as well as a Markov Chain to 
+In this work, we propose to utilize learning to rank to capture the properties of POIs as well as a Markov Chain to
 represent the transition patterns between POIs, furthermore, we factorize the transition probabilities between POIs
 according to several POI features to deal with data sparsity.
 We combine the results of learning to rank and the factorized Markov Chain using both a probabilistic model and a structured
-support vector machine, and evaluate the quality of POIs in recommended trajectories in terms of trajectory F$_1$-score\cite{ijcai15} and 
+support vector machine, and evaluate the quality of POIs in recommended trajectories in terms of trajectory F$_1$-score\cite{ijcai15} and
 adapt Kendall's $\tau$ coefficient\cite{kendalltau} to measure the quality of the recommended POI visiting orders in trajectories.
-Experimental results on four trajectory datasets show performance improvements over the state-of-the-art methods and 
+Experimental results on four trajectory datasets show performance improvements over the state-of-the-art methods and
 reveal many interesting properties of trajectories in different datasets.
 
 
@@ -20,4 +20,5 @@ novel points:
 
 (1) joint optimization of point preference and route plan;
 (2) feature-driven, incorporates information about time, location, POI categories and behavior history
-(3) strong performance compared to IJCAI 2015. we can also quantify the contribution from both point ranking and routing. 
+(3) strong performance compared to IJCAI 2015. we can also quantify the contribution from both point ranking and routing.
+(4) F1 on pairs.
