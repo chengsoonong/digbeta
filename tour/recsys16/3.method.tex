@@ -231,37 +231,29 @@ A perfect trajectory F$_1$-score (i.e., F$_1 = 1$) means the POIs in the recomme
 the same POIs as those in the ground truth, and a $0$ trajectory F$_1$-score means that unfortunately none of
 the POIs in the real trajectory was recommended.
 
-In addition, we adapted Kendall's $\tau$ coefficient \cite{kendalltau} to measure the quality of
-recommended visiting order of POIs.
-When the number of visited POIs in the real trajectory is the same
-as the number of visited trajectory in the recommended trajectory,
-i.e., $|\mathcal{T}| = |\hat{\mathcal{T}}|$,
-we define trajectory $\tau$ as
+In addition, to measure the quality of recommended visiting order of POIs, 
+we propose a new metric $F_{1,\textsc{order}}$,
 \begin{displaymath}
-    \tau = \frac{2(N_c - N_d)}{|\mathcal{T}|(|\mathcal{T}|-1)}
+F_{1,\textsc{order}} = \frac{2 \times P_{\textsc{order}} \times R_{\textsc{order}}} 
+                           {P_{\textsc{order}} + R_{\textsc{order}}}
 \end{displaymath}
-where $-1 \le \tau \le 1$ and $N_c$ is the number of POI pairs $(p_j, p_k)$ that satisfies the following constraints:
+where 
+\begin{displaymath}
+P_{\textsc{order}} = \frac{N_c} {|\hat{\mathcal{T}}|(|\hat{\mathcal{T}}|-1) / 2}, 
+R_{\textsc{order}} = \frac{N_c} {|\mathcal{T}|(|\mathcal{T}|-1) / 2}
+\end{displaymath}
+and $N_c$ is the number of POI pairs $(p_j, p_k)$ that satisfies the following 
+constraints\footnote{We define $F_{1,\textsc{order}}=0$ if $N_c$ is $0$.}:
 \begin{align*}
     (p_j \prec_{\mathcal{T}} p_k ~\land~ p_j \prec_{\hat{\mathcal{T}}} p_k) & ~\lor~
     (p_j \succ_{\mathcal{T}} p_k ~\land~ p_j \succ_{\hat{\mathcal{T}}} p_k) \\
     p_j \ne p_k, &~~ p_j, p_k \in \mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}} \\
     j \ne k, &~~ 1 \le j, k \le |\mathcal{T}|
 \end{align*}
-where $p_j \prec_{\mathcal{T}} p_k$ denotes POI $p_j$ was visited before POI $p_k$ in trajectory $\mathcal{T}$,
-and $p_j \succ_{\mathcal{T}} p_k$ denotes POI $p_j$ was visited after POI $p_k$ in trajectory $\mathcal{T}$.
-$N_d$ is the number of POI pairs $(p_j, p_k)$ that satisfies the following constraints:
-\begin{align*}
-    (p_j \prec_{\mathcal{T}} p_k ~\land~ p_j \succ_{\hat{\mathcal{T}}} p_k) & ~\lor~
-    (p_j \succ_{\mathcal{T}} p_k ~\land~ p_j \prec_{\hat{\mathcal{T}}} p_k) \\
-    p_j \ne p_k, &~~ p_j, p_k \in \mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}} \\
-    j \ne k, &~~ 1 \le j, k \le |\mathcal{T}|
-\end{align*}
 
-A perfect trajectory $\tau$, (i.e., $\tau = 1$) means both the POIs and their visiting order in the
+A perfect trajectory $F_{1,\textsc{order}}$, i.e., $F_{1,\textsc{order}} = 1$, means that both the POIs and their visiting order in the
 recommended trajectory are exactly the same as these in the real trajectory,
-and $\tau = -1$ means the POIs in the recommended trajectory is the same as those in the real trajectory,
-but the visiting order is completely reversed,
-and $\tau = 0$ means none of the recommended POIs was actually visited in the real trajectory.
+and $F_{1,\textsc{order}} = 0$ means that none of the recommended POI pairs was actually visited in the real trajectory.
 
 
 \section{Tour Recommendation}
