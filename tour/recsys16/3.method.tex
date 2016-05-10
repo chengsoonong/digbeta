@@ -120,14 +120,7 @@ Given the transition matrices for the individual factors, the POI-POI transition
 can be efficiently computed by taking the Kronecker product of the individual features
 and then updating it based on the constraints above.
 
-%  \item Viterbi
-%  \item \textsc{Markov}
-Given the transition matrix of POIs $A$, the log likelihood of trajectory $\mathcal{T}$ is
-\begin{displaymath}
-    \ell(\mathcal{T}) = \sum_{j=1}^{|\mathcal{T}|-1} \log P(\mathcal{T}_{j+1} | \mathcal{T}_j)
-\end{displaymath}
-
-Given the POI-POI transition matrix, we recommend a trajectory with respect to query
+Given the POI-POI transition probabilities, we recommend a trajectory with respect to query
 $(p_s, p_e, L)$ by maximising the likelihood. We call this approach that only uses the
 transition probabilities between POIs as \textsc{Markov}. The maximum likelihood solution
 can be found using a variant of the Viterbi algorithm, which is shown in Table~\ref{tab:markov}.
@@ -172,32 +165,35 @@ can be found using a variant of the Viterbi algorithm, which is shown in Table~\
 
 
 
-\section{Tour Recommendation}
-\label{sec:recommendation}
-
-\cheng{Describe combining} \\
-Now that we got rankings of POIs as well as transition probabilities,
-we want to leverage both of them when recommending trajectories.
-
 \subsection{Walks vs Paths}
 \label{walkpath}
-%
-%\begin{itemize}
-%  \item No sub tours - tottering
-One problem of \textsc{Markov} algorithm described in section \ref{sec:transition}
-is the recommended
-trajectory contains sub-tours (or tottering), i.e., some POIs were visited more than once.
-We can eliminate sub-tours by specifying additional constraints when recommending trajectories.
+
+The tours recommended by \textsc{Markov} described in Section~\ref{sec:transition} are found
+using the maximum likelihood approach, and may contain multiple copies of the same POI.
+This is because the random walk suggested by Viterbi may have
+tottering (where the Markov chain transitions back and forth between two states),
+or may have circular sub-tours (where a POI already visited earlier in the tour is
+visited again).
+We propose a method for eliminating sub-tours by specifying additional constraints
+when recommending trajectories.
+
+\cheng{Report the proportion of recommended trajectories and actual trajectories with sub-tours, in the Appendix.}
+
 
 %  \item ILP
-In particular, we maximise the trajectory likelihood using an integer linear programming with
-sub-tour elimination constraints adapted from the Travelling Salesman Problem\cite{opt98},
-specifically, given a set of POIs $\mathcal{P}$, transition matrix $A$ with transition probabilities
+In particular, we find the best trajectory using an integer linear programming with
+sub-tour elimination constraints adapted from the Travelling Salesman Problem\cite{opt98}.
+We call our method that uses the transition matrix to recommend paths
+that do not have circular sub-tours \textsc{MarkovPath}.
+
+\cheng{Use align instead of align*, name each constraint that you care about, and refer to it in the text below. Suppress numbers by using nolabel.}
+
+Given a set of POIs $\mathcal{P}$, transition matrix $A$ with transition probabilities
 between POIs in $\mathcal{P}$ and a query $(p_s, p_e, L)$,
-we recommend a trajectory by solving the following integer linear programming:
+we recommend a trajectory by solving the following integer linear program:
 \begin{align*}
 \text{Maximize} & \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} \log A_{p_i, p_j} \\
-s.t. & x_{ij} \in \{0, 1\}, \forall i, j = 1, \cdots, N \\
+\text{subject~to} & x_{ij} \in \{0, 1\}, \forall i, j = 1, \cdots, N \\
      & \sum_{j=2}^N x_{1j} = \sum_{i=1}^{N-1} x_{iN} = 1 \\
      & \sum_{i=1}^{N-1} x_{ik} = \sum_{j=2}^N x_{kj} \le 1, \forall k=2, \cdots, N-1 \\
      & \sum_{i=1}^{N-1} \sum_{j=2}^N = L-1 \\
@@ -214,10 +210,14 @@ restrict that only $L-1$ transitions between POIs are permitted, i.e., the numbe
 exactly $L$ (including $p_s$ and $p_e$).
 The last constraint restricts that no sub-tours are permitted in the recommended trajectory.
 
-%  \item \textsc{MarkovPath}
-%\end{itemize}
-The algorithm that uses the above approach to recommend trajectory was denoted by \textsc{MarkovPath}.
 
+
+\section{Tour Recommendation}
+\label{sec:recommendation}
+
+Now that we have both the rankings of individual POIs as well as
+the POI-POI transition probabilities,
+we want to leverage both of them when recommending trajectories.
 
 \subsection{POI ranking and transitions}
 To recommend the \textit{most likely} trajectory with respect to query $(p_s, p_e, L)$,
