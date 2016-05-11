@@ -47,32 +47,27 @@ POI $p$ in trajectories grouped by query $(p_s, p_e, L)$,
 without counting the occurrence of $p$ when it is the origin or destination POI of a trajectory.
 We create another algorithm to recommend trajectory by utilising
 the ranking of POIs described above,
-the pseudo code of this algorithm, \textsc{PoiRank}, is described in Table~\ref{alg:poirank}.
+the pseudo code of this algorithm, \textsc{PoiRank}, is described in algorithm \ref{alg:poirank}.
 
 \cheng{Is there a way to show the performance of rankSVM? If so, add to appendix.}
 
-\begin{table}
-\centering
-\small
-\begin{tabular}{rl}
-\hline
-\multicolumn{2}{l}{\textsc{PoiRank}: recommend trajectory by ranking POIs.} \\
-\hline
- 1:& Input: $\mathcal{P}, p_s, p_e, L$ \\
- 2:& $\mathcal{T} = \{p_s\}$ \\
- 3:& Train a rankSVM using POI and query related features \\
- 4:& Produce a rank $<_{p_i, p_j} \subset \mathcal{P}^2$ w.r.t. query $(p_s, p_e, L)$\\
- 5:& \textbf{repeat} \\
- 6:&\hspace{10pt} Choose POI $p$ with highest rank from $\mathcal{P} \setminus \mathcal{T}$ \\
- 7:&\hspace{10pt} Add $p$ to $\mathcal{T}$ \\
- 8:&\textbf{until} $|\mathcal{T}| = L-1$ \\
- 9:& Add $p_e$ to $\mathcal{T}$ \\
-10:& \textbf{return} $\mathcal{T}$ \\
-\hline
-\end{tabular}
-\caption{\textsc{PoiRank}: recommend trajectory by ranking POIs.}
+\begin{algorithm}
+\caption{\textsc{PoiRank}: recommend trajectory by ranking POIs}
+%\caption{\textsc{PoiRank}}
 \label{alg:poirank}
-\end{table}
+\begin{algorithmic}[1]
+\STATE \textbf{Input}: $\mathcal{P}, p_s, p_e, L$ 
+\STATE $\mathcal{T} = \{p_s\}$
+\STATE Train a rankSVM using POI and query related features
+\STATE Produce a rank $<_{p_i, p_j} \subset \mathcal{P}^2$ w.r.t. query $(p_s, p_e, L)$
+\REPEAT
+    \STATE Choose POI $p$ with highest rank from $\mathcal{P} \setminus \mathcal{T}$
+    \STATE Add $p$ to $\mathcal{T}$
+\UNTIL{$|\mathcal{T}| = L-1$}
+\STATE Append $p_e$ to $\mathcal{T}$
+\RETURN $\mathcal{T}$
+\end{algorithmic}
+\end{algorithm}
 
 
 \subsection{Transition probabilities}
@@ -123,45 +118,35 @@ and then updating it based on the constraints above.
 Given the POI-POI transition probabilities, we recommend a trajectory with respect to query
 $(p_s, p_e, L)$ by maximising the likelihood. We call this approach that only uses the
 transition probabilities between POIs as \textsc{Markov}. The maximum likelihood solution
-can be found using a variant of the Viterbi algorithm, which is shown in Table~\ref{tab:markov}.
+can be found using a variant of the Viterbi algorithm, which is shown in algorithm \ref{alg:markov}.
 
 \cheng{Describe why this is not exactly standard Viterbi.}
 
-\begin{table}
-  \caption{\textsc{Markov}}
-  \label{tab:markov}
-\centering
-\small
-\begin{tabular}{rl}
-\hline
-\multicolumn{2}{l}{\textsc{Markov}: recommend trajectory by maximising its likelihood.} \\
-\hline
- 1:& Input: $\mathcal{P}, A, p_s, p_e, L$ \\
- 2:&\textbf{for} $p \in \mathcal{P}$ \\
- 3:&\hspace{10pt} $M_1[2, p] = \log A_{p_s, p}$ \\
- 4:&\hspace{10pt} $M_2[2, p] = p_s$ \\
- 5:&\textbf{end for} \\
- 6:&\textbf{for} $l=3$ \textbf{to} $L$ \\
- 7:&\hspace{10pt}\textbf{for} $p \in \mathcal{P}$ \\
- 8:&\hspace{20pt}   \(\displaystyle M_1[l, p] = \max_{p' \in \mathcal{P}} \{ M_1[l-1, p'] + \log A_{p', p} \) \\
- 9:&\hspace{20pt}   \(\displaystyle M_2[l, p] = \argmax_{p' \in \mathcal{P}} \{ M_1[l-1, p'] + \log A_{p', p} \) \\
-10:&\hspace{10pt}\textbf{end for} \\
-11:&\textbf{end for} \\
+\begin{algorithm}
+\caption{\textsc{Markov}: recommend trajectory by maximising likelihood}
+\label{alg:markov}
+\begin{algorithmic}[1]
+\STATE \textbf{Input}: $\mathcal{P}, p_s, p_e, L$
+\STATE Compute POI-to-POI transition matrix
+\FOR{$p \in \mathcal{P}$}
+    \STATE $M_1[2, p] = \log P(p|p_s)$
+    \STATE $M_2[2, p] = p_s$
+\ENDFOR
+\FOR{$l=2$ to $L-1$}
+    \FOR{$p \in \mathcal{P}$}
+        \STATE \(\displaystyle M_1[l+1, p] = \max_{p' \in \mathcal{P}} \{ M_1[l, p'] + \log P(p|p') \} \) 
+        \STATE \(\displaystyle M_2[l+1, p] = \argmax_{p' \in \mathcal{P}} \{ M_1[l, p'] + \log P(p|p') \} \)
+    \ENDFOR
+\ENDFOR
 % //trace back to find the actual path
-12:&$\mathcal{T} = \{p_e\}$ \\
-13:&$p = \mathcal{T}[0]$ \\
-14:&$l = L$ \\
-15:&\textbf{repeat} \\
-16:&\hspace{10pt}$\mathcal{T}$.prepend$(M_2[l, p])$ \\
-17:&\hspace{10pt}$p = \mathcal{T}[0]$ \\
-18:&\hspace{10pt}$l = l - 1$ \\
-19:&\textbf{until} $l < 2$ \\
-20:&\textbf{return} $\mathcal{T}$ \\
-\hline
-\end{tabular}
-%\caption{}
-%\label{}
-\end{table}
+\STATE $\mathcal{T} = \{p_e\}$, $p = \mathcal{T}_0$, $l = L$
+\REPEAT
+    \STATE Prepend $M_2[l, p]$ to $\mathcal{T}$
+    \STATE $p = \mathcal{T}_0$, $l = l - 1$
+\UNTIL{$l < 2$}
+\RETURN $\mathcal{T}$
+\end{algorithmic}
+\end{algorithm}
 
 
 
@@ -283,45 +268,34 @@ $M_2[l, p]$ stores the predecessor of $p$ in the (partial) trajectory.
 
 The maximum objective value is $M_1[L, p_e]$,
 and the corresponding trajectory can be found by tracing back from $M_2[L, p_e]$.
-The pseudo code of the above algorithm is show in table \ref{algo:dp}.
+The pseudo code of the above algorithm is show in algorithm \ref{alg:rank+markov}.
 
-
-\begin{table}
-\centering
-\small
-\begin{tabular}{rl}
-\hline
-\multicolumn{2}{l}{\textbf{Algorithm}: \textsc{Rank+Markov}} \\
-\hline
- 1:& Input: $p_s, p_e, L$ \\
- 2:&\textbf{for} $p \in \mathcal{P}$ \\
- 3:&\hspace{10pt}$M_1[2, p] = \alpha ( \log P_R(p_s|x) + \log P_R(p|x) ) ~+ $ \\
-   &\hspace{50pt}            $(1-\alpha) \log P(p|p_s)$ \\
- 4:&\hspace{10pt}$M_2[2, p] = p_s$ \\
- 5:&\textbf{end for} \\
- 6:&\textbf{for} $l=2$ \textbf{to} $L-1$ \\
- 7:&\hspace{10pt}\textbf{for} $p \in \mathcal{P}$ \\
- 8:&\hspace{20pt}   Compute $M_1[l+1, p]$ using equation (\ref{eq:max}) \\
- 9:&\hspace{20pt}   Compute $M_2[l+1, p]$ using equation (\ref{eq:argmax}) \\
-%\(\displaystyle M_1[l+1, p] = \min_{p' \in \mathcal{P}} \{ M_1[l, p'] - \alpha \log P_R(p|x) - (1-\alpha) \log P(p|p') \)
-%\(\displaystyle M_2[l+1, p] = \argmin_{p' \in \mathcal{P}} \{ M_1[l, p'] - \alpha \log P_R(p|x) - (1-\alpha) \log P(p|p') \)
-10:&\hspace{10pt}\textbf{end for} \\
-11:&\textbf{end for} \\
+\begin{algorithm}
+\caption{\textsc{Rank+Markov}: recommend trajectory by utilising both POI ranking and transition}
+\label{alg:rank+markov}
+\begin{algorithmic}[1]
+\STATE \textbf{Input}: $\mathcal{P}, p_s, p_e, L$
+\STATE Produce a rank $<_{p_i, p_j} \subset \mathcal{P}^2$ w.r.t. query $(p_s, p_e, L)$
+\STATE Compute POI-to-POI transition matrix
+\FOR{$p \in \mathcal{P}$}
+    \STATE $M_1[2, p] = \alpha ( \log P_R(p_s|x) + \log P_R(p|x) )$ $+$ \\ \hfill $(1-\alpha) \log P(p|p_s)$
+    \STATE $M_2[2, p] = p_s$
+\ENDFOR
+\FOR{$l=2$ to $L-1$}
+    \FOR{$p \in \mathcal{P}$}
+        \STATE Compute $M_1[l+1, p]$ using equation (\ref{eq:max})
+        \STATE Compute $M_2[l+1, p]$ using equation (\ref{eq:argmax})
+    \ENDFOR
+\ENDFOR
 % //trace back to find the actual path
-12:&$\mathcal{T}= [p_e]$ \\
-13:&$p = \mathcal{T}[0]$ \\
-14:&$l = L$ \\
-15:&\textbf{repeat} \\
-16:&\hspace{10pt}$\mathcal{T}$.prepend$(M_2[l, p])$ \\
-17:&\hspace{10pt}$p = \mathcal{T}[0]$ \\
-18:&\hspace{10pt}$l = l - 1$ \\
-19:&\textbf{until} $l < 2$ \\
-20:&\textbf{return} $\mathcal{T}$ \\
-\hline
-\end{tabular}
-    \caption{Recommend trajectory by utilising both POI ranking and transition}
-\label{algo:dp}
-\end{table}
+\STATE $\mathcal{T}= \{p_e\}$, $p = \mathcal{T}_0$, $l = L$
+\REPEAT
+    \STATE Prepend $M_2[l, p]$ to $\mathcal{T}$
+    \STATE $p = \mathcal{T}_0$, $l = l - 1$
+\UNTIL{$l < 2$}
+\RETURN $\mathcal{T}$
+\end{algorithmic}
+\end{algorithm}
 
 Similar to the \textsc{Markov} algorithm,
 the recommended trajectory by \textsc{Rank+Markov} could also contain sub-tours (e.g., tottering),
