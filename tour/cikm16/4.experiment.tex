@@ -89,62 +89,64 @@ recommended trajectory are exactly the same as these in the real trajectory,
 and $F_{1,\textsc{order}} = 0$ means that none of the recommended POI pairs was actually visited in the real trajectory.
 
 
-\subsection{Experimental Settings}
+\subsection{Experimental Setup}
 We use leave-one-out cross validation to evaluate different trajectory recommendation algorithms,
 i.e., when evaluating a trajectory of a specific user, all other trajectories of this user as well as
 all trajectories of other users were used to train the recommendation algorithms.
-In addition, we compared the experimental results on four trajectory datasets among the following $10$ algorithms.
 
-\textsc{Random}: choose POIs uniformly at random (without replacement)
-    from the set of POIs $\mathcal{P} \setminus \{p_s, p_e \}$ to visit.
+We conducted a comprehensive benchmark to compare the performance of different recommendation approaches.
+In addition to the \textsc{PoiPopularity}, we also applied the \textsc{Random} baseline which naively chooses 
+POIs uniformly at random (without replacement) from the set of POIs $\mathcal{P} \setminus \{p_s, p_e \}$ to visit.
 
-\textsc{PersTour}\cite{ijcai15}: personalised trajectory recommendation algorithm with time budget constraint.
+Among the related approaches, \textsc{PersTour}\cite{ijcai15} is the most similar one, it formulated 
+trajectory recommendation as an Orienteering Problem and use integer linear programming to maximise 
+an objective, which composes both the POI popularity and user interest at the recommended POIs.
+A user's interest on a specific category of POIs is modelled as the total ratios of his/her actual visit duration 
+over the average visit duration at these POIs in general.
+The recommended trajectory was also constrained by a time budget besides the origin and destination POIs.
+To make further comparison, we replace the time budget in \textsc{PersTour} with the trajectory length and
+denote this algorithm as \textsc{PersTour-L}.
 
-\textsc{PersTour-L}: the same setting as \textsc{PersTour} but constraining the total number of POIs to visit
-    instead of the time budget.
+Other recommendation approaches in this benchmark including \textsc{PoiRank} which utilises the ranking of POIs
+described in section \ref{sec:ranksvm}, and \textsc{Markov} that recommending trajectories uses only transition 
+probabilities between POIs, as described in section \ref{sec:transition}. Its variant \textsc{MarkovPath} that incorporates 
+sub-tour elimination constraints described in section \ref{sec:walkpath} is also included.
+Furthermore, \textsc{Rank+Markov} algorithm that leverage both POI ranking and transition probabilities as well as
+its non-sub-tour variant \textsc{Rank+MarkovPath} that detailed in section \ref{sec:recommendation} are also 
+benchmarked.
 
-\textsc{PoiPopularity}: choose POIs according to the ranking based on POI popularity only.
+Lastly, we have the \textsc{StructuredSVM} that not only utilises POI ranking and transition probabilities but also 
+jointly optimises their relative importance, as described in section \ref{sec:ssvm}.
+The information that captured by these algorithms is summarised in table \ref{tab:characteristic},
+and the associated parameters of these algorithms are detailed in the appendix.
 
-\textsc{PoiRank}: choose POIs according to the ranking based on POI specific and query specific features
-    described in section \ref{sec:ranksvm}.
 
-\textsc{Markov}: recommend trajectory according to the factorized transition matrix described in section \ref{sec:transition},
-    using Viterbi algorithm to compute the most likely trajectory with respect to query $(p_s, p_e, L)$.
-
-\textsc{MarkovPath}: the same as \textsc{Markov}, but with extra restriction that no sub-tours exist in the
-    recommended trajectory.
-
-\textsc{Rank+Markov}: a heuristic algorithm to combine POI ranking and the factorized transition matrix
-    to recommend the most likely trajectory with respect to query $(p_s, p_e, L)$.
-
-\textsc{Rank+MarkovPath}: the same as \textsc{Rank+Markov}, but with extra restriction that no sub-tours exist in
-    the recommended trajectory.
-
-\textsc{StructuredSVM}: structured prediction algorithm using POI rankings as well as transition probabilities
-    between POIs to recommend trajectory as described in section \ref{sec:ssvm}.
-
-% Parameters for IJCAI methods
-The trade-off parameter for both \textsc{PersTour} and \textsc{PersTour-L} were $0.5$.
-% Parameters for rankSVM
-The regularization parameter of rankSVM was $10$ for all algorithms that utilising POI rankings, namely,
-\textsc{PoiRank}, \textsc{Rank+Markov} and \textsc{Rank+MarkovPath}.
-% Parameters for transition matrix
-When computing the transition probabilities between POIs,
-POI popularity, the total number of visit at POI and the average visit duration at POI were discritized using
-$5$ bins uniformly in log-space, furthermore, POIs were grouped into $5$ clusters using K-means according to
-their geographical locations.
-% Parameters for Heuristics
-The trade-off parameters $\alpha$ was set to $0.5$ in both \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} algorithms.
-% Parameters for SSVM
-The regularization parameter to train \textsc{StructuredSVM} was $1$.
+\begin{table}
+\centering\small
+\begin{tabular}{l|cccccc} \hline
+                                    & Query    & POI      & Trans. & No sub- & Joint    \\
+                                    &     &       &  & tours &     \\ \hline
+\textsc{Random}                     & $\times$ & $\times$ & $\times$   & $\times$     & $\times$ \\
+\textsc{PersTour}\cite{ijcai15}     & $\times$ & $\surd$  & $\times$   & $\surd$      & $\times$ \\
+\textsc{PersTour-L}                 & $\times$ & $\surd$  & $\times$   & $\surd$      & $\times$ \\
+\textsc{PoiPopularity}              & $\times$ & $\surd$  & $\times$   & $\times$     & $\times$ \\
+\textsc{PoiRank}                    & $\surd$  & $\surd$  & $\times$   & $\times$     & $\times$ \\
+\textsc{Markov}                     & $\times$ & $\surd$  & $\surd$    & $\times$     & $\times$ \\
+\textsc{MarkovPath}                 & $\times$ & $\surd$  & $\surd$    & $\surd$      & $\times$ \\
+\textsc{Rank}+\textsc{Markov}     & $\surd$  & $\surd$  & $\surd$    & $\times$     & $\times$ \\
+\textsc{Rank}+\textsc{MarkovPath} & $\surd$  & $\surd$  & $\surd$    & $\surd$      & $\times$ \\
+\textsc{StructuredSVM}              & $\surd$  & $\surd$  & $\surd$    & $\times$     & $\surd$  \\ \hline
+\end{tabular}
+\caption{Characteristics of different algorithms}
+\label{tab:characteristic}
+\end{table}
 
 
 \subsection{Results}
 % tell the story: justify each row in the table, make comparison.
 The F$_1$-scores of the nine algorithms on all four datasets are shown in table \ref{table:f1}.
 The information utilized by these algorithms except \textsc{Random} range from POI specific and query specific
-information to transition patterns between different POIs and so on, table \ref{table:character} summarize the
-characteristics of all the nine algorithms.
+information to transition patterns between different POIs and so on, as is shown in table \ref{tab:characteristic}.
 
 From table \ref{table:f1}, one can observe that all algorithms that capture POI specific information
 outperform the one that does not use it, namely the \textsc{Random} baseline algorithm,
@@ -258,26 +260,6 @@ places that are very popular, but also following similar visiting orders when vi
 \label{table:tau}
 \end{table*}
 
-
-\begin{table}
-\centering\small
-\begin{tabular}{l|cccccc} \hline
-                                    & Query    & POI      & Trans. & No sub- & Joint    \\
-                                    &     &       &  & tours &     \\ \hline
-\textsc{Random}                     & $\times$ & $\times$ & $\times$   & $\times$     & $\times$ \\
-\textsc{PersTour}\cite{ijcai15}     & $\times$ & $\surd$  & $\times$   & $\surd$      & $\times$ \\
-\textsc{PersTour-L}                 & $\times$ & $\surd$  & $\times$   & $\surd$      & $\times$ \\
-\textsc{PoiPopularity}              & $\times$ & $\surd$  & $\times$   & $\times$     & $\times$ \\
-\textsc{PoiRank}                    & $\surd$  & $\surd$  & $\times$   & $\times$     & $\times$ \\
-\textsc{Markov}                     & $\times$ & $\surd$  & $\surd$    & $\times$     & $\times$ \\
-\textsc{MarkovPath}                 & $\times$ & $\surd$  & $\surd$    & $\surd$      & $\times$ \\
-\textsc{Rank}+\textsc{Markov}     & $\surd$  & $\surd$  & $\surd$    & $\times$     & $\times$ \\
-\textsc{Rank}+\textsc{MarkovPath} & $\surd$  & $\surd$  & $\surd$    & $\surd$      & $\times$ \\
-\textsc{StructuredSVM}              & $\surd$  & $\surd$  & $\surd$    & $\times$     & $\surd$  \\ \hline
-\end{tabular}
-\caption{Characteristics of different algorithms}
-\label{table:character}
-\end{table}
 
 
 

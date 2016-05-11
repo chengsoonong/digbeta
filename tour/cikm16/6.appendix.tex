@@ -85,6 +85,23 @@ a valid probability distribution
 the same transition probabilities, which can be easily proved. \cheng{Show proof}}.
 
 
+\section{Experiment parameters}
+% Parameters for IJCAI methods
+The trade-off parameter for both \textsc{PersTour} and \textsc{PersTour-L} were $0.5$.
+% Parameters for rankSVM
+The regularization parameter of rankSVM was $10$ for all algorithms that utilising POI rankings, namely,
+\textsc{PoiRank}, \textsc{Rank+Markov} and \textsc{Rank+MarkovPath}.
+% Parameters for transition matrix
+When computing the transition probabilities between POIs,
+POI popularity, the total number of visit at POI and the average visit duration at POI were discritized using
+$5$ bins uniformly in log-space, furthermore, POIs were grouped into $5$ clusters using K-means according to
+their geographical locations.
+% Parameters for Heuristics
+The trade-off parameters $\alpha$ was set to $0.5$ in both \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} algorithms.
+% Parameters for SSVM
+The regularization parameter to train \textsc{StructuredSVM} was $1$.
+
+
 \section{Implementation details}
 
 pyStruct, Gurobi, etc.

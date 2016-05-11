@@ -151,7 +151,7 @@ can be found using a variant of the Viterbi algorithm, which is shown in algorit
 
 
 \subsection{Walks vs Paths}
-\label{walkpath}
+\label{sec:walkpath}
 
 The tours recommended by \textsc{Markov} described in Section~\ref{sec:transition} are found
 using the maximum likelihood approach, and may contain multiple copies of the same POI.
@@ -375,21 +375,3 @@ its corresponding recommended trajectory, and Hamming loss was used in this work
 
 % describe SSVM inference (y^* = argmax_y w^T psi(x, y), viterbi?)
 %\end{itemize}
-
-\subsection{Related Work}
-%
-%Describe IJCAI15 paper, and show \textsc{PersTourL}.
-
-
-\cheng{This needs to be merged into Section~\ref{sec:relatedwork}.}
-The work that most similar to our approach was the \textsc{PersTour} algorithm proposed in \cite{ijcai15},
-it formulated trajectory recommendation as an Orienteering Problem and use integer linear programming to
-maximise an objective which is a composite of the total POI popularity in recommended trajectory and
-the total user interest at the recommended POIs.
-A user's interest on a specific category of POIs is modelled as the summation of ratios of the his/her
-actual visit duration at these POIs over the average visit duration in general.
-Furthermore, \textsc{PersTour} utilise a time budget to restrict the recommended trajectory besides the
-origin and destination.
-
-To make comparison with \textsc{PersTour}, the time budget was replaced with the total number of POIs to visit
-and was denoted by algorithm \textsc{PersTour-L} in this paper.
