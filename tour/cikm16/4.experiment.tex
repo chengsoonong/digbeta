@@ -56,27 +56,35 @@ $\mathcal{P}_{\mathcal{T}}$ be the set of POIs visited in $\mathcal{T}$,
 and $\mathcal{P}_{\hat{\mathcal{T}}}$ be the set of POIs visited in $\hat{\mathcal{T}}$,
 trajectory F$_1$-scores was defined as
 \begin{displaymath}
-    F_1 = \frac{2 |\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}|}
-               {|\mathcal{P}_{\mathcal{T}}| + |\mathcal{P}_{\hat{\mathcal{T}}}|}
-\end{displaymath}
-
-A perfect trajectory F$_1$-score (i.e., F$_1 = 1$) means the POIs in the recommended trajectory are exactly
-the same POIs as those in the ground truth, and a $0$ trajectory F$_1$-score means that unfortunately none of
-the POIs in the real trajectory was recommended.
-
-In addition, to measure the quality of recommended visiting order of POIs,
-we propose a new metric $F_{1,\textsc{order}}$,
-\begin{displaymath}
-F_{1,\textsc{order}} = \frac{2 \times P_{\textsc{order}} \times R_{\textsc{order}}}
-                           {P_{\textsc{order}} + R_{\textsc{order}}}
+F_{1,\textsc{point}} = \frac{2 \times P_{\textsc{point}} \times R_{\textsc{point}}}
+                            {P_{\textsc{point}} + R_{\textsc{point}}}
 \end{displaymath}
 where
 \begin{displaymath}
-P_{\textsc{order}} = \frac{N_c} {|\hat{\mathcal{T}}|(|\hat{\mathcal{T}}|-1) / 2},
-R_{\textsc{order}} = \frac{N_c} {|\mathcal{T}|(|\mathcal{T}|-1) / 2}
+P_{\textsc{point}} = \frac{|\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}|}
+                          {|\hat{\mathcal{T}}|},
+R_{\textsc{point}} = \frac{|\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}|}
+                          {|\mathcal{T}|}
+\end{displaymath}
+
+A perfect $F_{1,\textsc{point}}$ (i.e., $F_{1,\textsc{point}} = 1$) means the POIs in 
+the recommended trajectory are exactly the same POIs as those in the ground truth, 
+and a $0$ $F_{1,\textsc{point}}$ means that unfortunately none of the POIs in the 
+real trajectory was recommended.
+
+In addition, to measure the quality of recommended visiting order of POIs,
+we propose a new metric $F_{1,\textsc{pair}}$,
+\begin{displaymath}
+F_{1,\textsc{pair}} = \frac{2 \times P_{\textsc{pair}} \times R_{\textsc{pair}}}
+                           {P_{\textsc{pair}} + R_{\textsc{pair}}}
+\end{displaymath}
+where
+\begin{displaymath}
+P_{\textsc{pair}} = \frac{N_c} {|\hat{\mathcal{T}}|(|\hat{\mathcal{T}}|-1) / 2},
+R_{\textsc{pair}} = \frac{N_c} {|\mathcal{T}|(|\mathcal{T}|-1) / 2}
 \end{displaymath}
 and $N_c$ is the number of POI pairs $(p_j, p_k)$ that satisfies the following
-constraints\footnote{We define $F_{1,\textsc{order}}=0$ if $N_c$ is $0$.}:
+constraints\footnote{We define $F_{1,\textsc{pair}}=0$ if $N_c$ is $0$.}:
 \begin{align*}
     (p_j \prec_{\mathcal{T}} p_k ~\land~ p_j \prec_{\hat{\mathcal{T}}} p_k) & ~\lor~
     (p_j \succ_{\mathcal{T}} p_k ~\land~ p_j \succ_{\hat{\mathcal{T}}} p_k) \\
@@ -84,9 +92,9 @@ constraints\footnote{We define $F_{1,\textsc{order}}=0$ if $N_c$ is $0$.}:
     j \ne k, &~~ 1 \le j, k \le |\mathcal{T}|
 \end{align*}
 
-A perfect trajectory $F_{1,\textsc{order}}$, i.e., $F_{1,\textsc{order}} = 1$, means that both the POIs and their visiting order in the
+A perfect trajectory $F_{1,\textsc{pair}}$, i.e., $F_{1,\textsc{pair}} = 1$, means that both the POIs and their visiting order in the
 recommended trajectory are exactly the same as these in the real trajectory,
-and $F_{1,\textsc{order}} = 0$ means that none of the recommended POI pairs was actually visited in the real trajectory.
+and $F_{1,\textsc{pair}} = 0$ means that none of the recommended POI pairs was actually visited in the real trajectory.
 
 
 \subsection{Experimental Setup}
