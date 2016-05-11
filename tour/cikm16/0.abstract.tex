@@ -1,10 +1,12 @@
-Recommending Points of Interest (POIs) and trajectories to tourists by exploring data with 
-geographical information from online social media is an interesting and challenging task.
-We propose to utilize learning to rank and Markov Chain to capture the properties of POIs
-as well as the transition pattern between POIs, transition probabilities between POIs were
-factorized according to several POI features to deal with data sparsity.
-Furthermore, a probabilistic model and a structured support vector machine were leveraged 
-to combine the results of learning to rank as well as the factorized Markov Chain to recommend trajectories.
-Experimental results on four trajectory datasets extracted from Flickr photos show performance 
-improvements of our approach over the state-of-the-art and reveal many interesting properties 
+Consider the problem of recommending Points of Interest (POIs) and tours to travellers
+by exploring data with geographical information from online social media.
+We propose ranking POIs from their features, and capturing the transition patterns between POIs
+using a Markov Chain with factorised transition probabilities.
+In addition a probabilistic model and a structured support vector machine were used
+to combine the results of POI ranking as well as the POI-POI transitions.
+Experimental results on five trajectory datasets extracted from Flickr photos show performance
+improvements of our approach over the state-of-the-art and reveal many interesting properties
 of trajectories in different datasets.
+We demonstrate that using the F1 score on pairs of POIs in a tour provides a more
+meaningful performance measure than F1 score on individual POIs, and show empirically that
+combining ranks and routes recommends better trajectories.
