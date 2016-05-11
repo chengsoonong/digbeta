@@ -1,46 +1,45 @@
 \appendix
 \section{Details}
-\begin{itemize}
-\item \cheng{Show the set of POI categories} \\
-      Edinburgh: Cultural, Entertainment, Historical, Museum, Park, Structure \\
-      Glasgow: Education, Museum, Park, Religion, Shopping, Structure, Transport \\
-      Melbourne: City precincts, Entertainment, Institutions, Parks and spaces, Public galleries, Shopping,
-                 Sports stadiums, Structures, Transport \\
-      Osaka: Amusement, Entertainment, Historical, Park \\
-      Toronto: Amusement, Beach, Cultural, Shopping, Sport, Structure
-      The categories of POIs are shown in figure \ref{fig:poicats}.
-      \begin{figure}
-      \includegraphics[width=\columnwidth]{fig/poi_cats.pdf}
-      \caption{POI categories}
-      \label{fig:poicats}
-      \end{figure}
-\item The distribution of POI popularity is shown in figure \ref{fig:popularity}.
-      \begin{figure*}
-      \includegraphics[width=\textwidth]{fig/poi_popularity.pdf}
-      \caption{Distribution of POI popularity}
-      \label{fig:popularity}
-      \end{figure*}
-\item The distribution of the number of visit at POI is shown in figure \ref{fig:nvisit}.
-      \begin{figure*}
-      \includegraphics[width=\textwidth]{fig/poi_nvisit.pdf}
-      \caption{Distribution of the number of visit at POI}
-      \label{fig:nvisit}
-      \end{figure*}
-\item The distribution of POI visit duration is shown in figure \ref{fig:duration}.
-      \begin{figure*}
-      \includegraphics[width=\textwidth]{fig/visit_duration.pdf}
-      \caption{Distribution of POI visit duration}
-      \label{fig:duration}
-      \end{figure*}
-\item Heat map of POI transition matrix factorised according to $5$ POI features is shown in figure \ref{fig:transmat}
-      \begin{figure*}
-      \includegraphics[width=\textwidth]{fig/poi_transmat.pdf}
-      \caption{POI transition matrix factorised according to $5$ POI features (Melbourne)}
-      \label{fig:transmat}
-      \end{figure*}
-\item There are about $12$\% of trajectories in Melbourne dataset that were failed to be evaluated
-      using \textsc{PersTour} due to the timeout of integer programming solver, the timeout is $2$ hours.
-\end{itemize}
+We collected the POI categories in all of the five trajectory datasets
+and their names with the corresponding icons are shown in figure \ref{fig:poicats}.
+
+Three POI features used to rank POIs, namely, the popularity, 
+the total number of visits and the visit duration, in all five datasets are shown in 
+figure \ref{fig:popularity}, figure \ref{fig:nvisit} and figure \ref{fig:duration} respectively.
+
+Figure \ref{fig:transmat} shows the heat map of the transition matrices for $5$ individual POI features
+in Melbourne dataset.
+
+
+\begin{figure}
+\includegraphics[width=\columnwidth]{fig/poi_cats.pdf}
+\caption{POI categories}
+\label{fig:poicats}
+\end{figure}
+
+\begin{figure*}
+\includegraphics[width=\textwidth]{fig/poi_popularity.pdf}
+\caption{Distribution of POI popularity}
+\label{fig:popularity}
+\end{figure*}
+
+\begin{figure*}
+\includegraphics[width=\textwidth]{fig/poi_nvisit.pdf}
+\caption{Distribution of the number of visit at POI}
+\label{fig:nvisit}
+\end{figure*}
+
+\begin{figure*}
+\includegraphics[width=\textwidth]{fig/visit_duration.pdf}
+\caption{Distribution of POI visit duration}
+\label{fig:duration}
+\end{figure*}
+
+\begin{figure*}
+\includegraphics[width=\textwidth]{fig/poi_transmat.pdf}
+\caption{Transition matrices for $5$ individual POI features (Melbourne)}
+\label{fig:transmat}
+\end{figure*}
 
 
 \section{POIs with same features}
@@ -103,5 +102,7 @@ The regularization parameter to train \textsc{StructuredSVM} was $1$.
 
 
 \section{Implementation details}
+libsvmtools, PyStruct, Gurobi, etc.
 
-pyStruct, Gurobi, etc.
+There are about $12$\% of trajectories in Melbourne dataset that were failed to be evaluated
+using \textsc{PersTour} due to the timeout of integer programming solver, the timeout is $2$ hours.
