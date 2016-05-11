@@ -1,11 +1,11 @@
 \section{POI, Query and Path}
 \label{sec:method}
 
-We would like to recommend a particular tour such that the user will visit a sequence of points of interests (POIs), denoted $p_1, \ldots, p_L$, that maximises utility. We are given the desired start ($p_1=p_s$) and end point ($p_L=p_e$), and an associated number $l$ of POIs desired, from which we propose a trajectory through the city. In Figure~\ref{fig:problems}, an example tour is shown in light blue, which starts at the POI denoted as a red square, visits two intermediate POIs, and terminates on the fourth POI. The tour of length 3 can be modeled as a sequence of directed edges in a graph containing all POIs in the city as nodes.
+We would like to recommend a particular tour such that the user will visit a sequence of points of interests (POIs), denoted $p_1, \ldots, p_L$, that maximises utility. We are given the desired start ($p_1=p_s$) and end point ($p_L=p_e$), and an associated number $L$ of POIs desired, from which we propose a trajectory through the city. In Figure~\ref{fig:problems}, an example tour is shown in light blue, which starts at the POI denoted as a red square, visits two intermediate POIs, and terminates on the fourth POI. The tour of length 3 can be modeled as a sequence of directed edges in a graph containing POIs in the city as nodes.
 
-The training data consists of a set of tours of varying length in a particular city. We assume that all POIs in the city are visited at least once, and hence can construct a graph with POIs as nodes and potentially multiple directed edges between each pair of nodes. We extract the category, popularity, total number of visits and average visit duration for each POI. The set of categories are shown in Table~XX in the appendix, and the popularity is defined as the number of distinct users that visited the POI.
+The training data consists of a set of tours of varying length in a particular city. We assume that all POIs in the city are visited at least once, and hence can construct a graph with POIs as nodes and potentially multiple directed edges between each pair of nodes. We extract the category, popularity, total number of visits and average visit duration for each POI. The set of categories are shown in Table~XX in the appendix, and the popularity is defined as the number of distinct users that visited the POI\cite{ht10}.
 
-As a baseline approach, we recommend the trajectory based on the popularity of POIs only, that is we always suggest the top-$k$ most visited POIs for all visitors. This baseline approach, called \textsc{PoiPopularity}, ignores the start and end location, and its only adaptation to a particular request is to adjust $k$ to match the desired length.
+As a baseline approach, we recommend the trajectory based on the popularity of POIs only, that is we always suggest the top-$k$ most visited POIs for all visitors given the start and end location. This baseline approach, called \textsc{PoiPopularity}, and its only adaptation to a particular request is to adjust $k$ to match the desired length.
 
 \cheng{I have removed reference to user specific recommendations.}
 
@@ -30,8 +30,8 @@ candidate POIs with $p_s$ and $p_e$.
 
 For each of the POI features above, we construct two new features by taking the difference of
 the feature in POI $p$ with $(p_s, p_e)$ respectively.
-For the category, we set the feature to one when their categories are the same.
-For popularity and visit duration, we take the real valued difference.
+For the category, we set the feature to $1$ when their categories are the same and $-1$ otherwise.
+For popularity, total visits and visit duration, we take the real valued difference.
 The distance from POI $p$ to $p_s$ (and $p_e$) is computed using the haversine formula \cite{haversine},
 \begin{displaymath}
   d(p, p_s) = 2 R_1 \arcsin \sqrt{ \sin^2 \frac{\Delta \phi}{2} +
@@ -85,8 +85,8 @@ We model these transitions using a Markov Chain with discrete factored states.
 The transition probability from POI $p_i$ to POI $p_j$ is factorised according to
 individual POI features as described in Section~\ref{sec:ranksvm}. We directly model
 the transition between the category and neighbourhood of each POI as the conditional probability.
-The popularity and total number of visits are binned uniformly into 5 discrete counts,
-and the average visit duration is discretised by binning them uniformly on the log scale.
+The popularity, total number of visits and the average visit duration are discretised by binning 
+them uniformly into $5$ discrete intervals on the log scale.
 
 \cheng{Refer to plots}.
 
@@ -96,14 +96,14 @@ and the average visit duration is discretised by binning them uniformly on the l
 
 We compute the transition probabilities of the above individual POI features
 using maximum likelihood estimation,
-i.e., counting the number of transitions for each pair of features then normalizing each row,
+i.e., counting the number of transitions for each pair of features then normalising each row,
 taking care of zeros by adding a small number $\epsilon$
 \footnote{In our experiments, $\epsilon = 1$.}
-to each number before normalisation,
-which results a transition matrix for each of the above POI features.
+to each count before normalisation,
+which results in a transition matrix for each of the above POI features.
 
 Assuming independence between these features,
-the transition probability from two POIs ($p_i$ to $p_j$) can be defined as the product
+the transition probability from $p_i$ to $p_j$ can be defined as the product
 of the transition probabilities of each individual feature (and appropriately normalised),
 with two additional constraints.
 First we disallow self transitions by setting the probability of ($p_i$ to $p_i$) to zero.
@@ -111,9 +111,8 @@ Second we need to deal with the possibility that multiple POIs may share exactly
 feature vector.
 When a group of POIs have identical (discretised) features, we distribute the probability
 uniformly among the POIs in the group. More details of this procedure are provided in the Appendix.
-Given the transition matrices for the individual factors, the POI-POI transition probability
-can be efficiently computed by taking the Kronecker product of the individual features
-and then updating it based on the constraints above.
+The POI-POI transition matrix can be efficiently computed by taking the Kronecker product of 
+the transition matrices for the individual features and then updating it based on the constraints described above.
 
 Given the POI-POI transition probabilities, we recommend a trajectory with respect to query
 $(p_s, p_e, L)$ by maximising the likelihood. We call this approach that only uses the
@@ -173,25 +172,24 @@ that do not have circular sub-tours \textsc{MarkovPath}.
 
 \cheng{Use align instead of align*, name each constraint that you care about, and refer to it in the text below. Suppress numbers by using nolabel.}
 
-Given a set of POIs $\mathcal{P}$, transition matrix $A$ with transition probabilities
-between POIs in $\mathcal{P}$ and a query $(p_s, p_e, L)$,
+Given a set of POIs $\mathcal{P}$, the POI-POI transition matrix and a query $(p_s, p_e, L)$,
 we recommend a trajectory by solving the following integer linear program:
-\begin{align*}
-\text{Maximize} & \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} \log A_{p_i, p_j} \\
-\text{subject~to} & x_{ij} \in \{0, 1\}, \forall i, j = 1, \cdots, N \\
+\begin{align}
+\max ~& \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} \log P(p_j | p_i) \nonumber \\
+\text{s.t.} ~& x_{ij} \in \{0, 1\}, \forall i, j = 1, \cdots, N \\
      & \sum_{j=2}^N x_{1j} = \sum_{i=1}^{N-1} x_{iN} = 1 \\
      & \sum_{i=1}^{N-1} x_{ik} = \sum_{j=2}^N x_{kj} \le 1, \forall k=2, \cdots, N-1 \\
      & \sum_{i=1}^{N-1} \sum_{j=2}^N = L-1 \\
      & u_i - u_j + 1 \le (N-1) (1-x_{ij}), \forall i, j = 2, \cdots, N
-\end{align*}
-where $x_{ij}$ is a binary decision variable which determines whether transition from $p_i$ to $p_j$
+\end{align}
+where $x_{ij}$ in constraint $(1)$ is a binary decision variable which determines whether transition from $p_i$ to $p_j$
 occurred in the recommended trajectory.
-For brevity, we assume $x_{i1}$ and $x_{1j}$ corresponds to the incoming and outgoing transitions of POI $p_s$,
-similarly, $x_{iN}$ and $x_{Nj}$ corresponds to the incoming and outgoing transitions of POI $p_e$.
-The second constraint restricts that only one outgoing (and incoming) transition for $p_s$ ($p_e$)
+For brevity, we assume $x_{i1}$ and $x_{1j}$ correspond to the incoming and outgoing transitions of POI $p_s$,
+similarly, $x_{iN}$ and $x_{Nj}$ correspond to the incoming and outgoing transitions of POI $p_e$.
+Constraint $(2)$ restricts that only one outgoing (and incoming) transition for $p_s$ ($p_e$)
 is permitted, i.e., the recommended trajectory should start from $p_s$ and end at $p_e$.
-The third constraint restricts that any POI should be visited at most once and the fourth constraint
-restrict that only $L-1$ transitions between POIs are permitted, i.e., the number of visited POIs should be
+Constraint $(3)$ restricts that any POI should be visited at most once and constraint $(4)$
+restricts that only $L-1$ transitions between POIs are permitted, i.e., the number of visited POIs should be
 exactly $L$ (including $p_s$ and $p_e$).
 The last constraint restricts that no sub-tours are permitted in the recommended trajectory.
 
