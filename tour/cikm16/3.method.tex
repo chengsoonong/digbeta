@@ -1,9 +1,9 @@
 \section{POI, Query and Path}
 \label{sec:method}
 
-We would like to recommend a particular tour such that the user will visit a sequence of points of interests (POIs), denoted $p_1, \ldots, p_L$, that maximises utility. We are given the desired start ($p_1=p_s$) and end point ($p_L=p_e$), and an associated number $L$ of POIs desired, from which we propose a trajectory through the city. In Figure~\ref{fig:problems}, an example tour is shown in light blue, which starts at the POI denoted as a red square, visits two intermediate POIs, and terminates on the fourth POI. The tour of length 3 can be modeled as a sequence of directed edges in a graph containing POIs in the city as nodes.
+We would like to recommend a particular tour such that the user will visit a sequence of points of interests (POIs), denoted $p_1, \ldots, p_L$, that maximises utility. We are given the desired start ($p_1=p_s$) and end point ($p_L=p_e$), and an associated number $L$ of POIs desired, from which we propose a trajectory through the city. In Figure~\ref{fig:problems}, an example tour is shown in blue, which starts at the POI denoted as a grey star, visits two intermediate POIs, and terminates on the fourth POI denoted as a flag. The tour of length 3 can be modelled as a sequence of directed edges in a graph containing POIs in the city as nodes.
 
-The training data consists of a set of tours of varying length in a particular city. We assume that all POIs in the city are visited at least once, and hence can construct a graph with POIs as nodes and potentially multiple directed edges between each pair of nodes. We extract the category, popularity, total number of visits and average visit duration for each POI. The set of categories are shown in Table~XX in the appendix, and the popularity is defined as the number of distinct users that visited the POI\cite{ht10}.
+The training data consists of a set of tours of varying length in a particular city. We assume that all POIs in the city are visited at least once, and hence can construct a graph with POIs as nodes and potentially multiple directed edges between each pair of nodes. We extract the category, popularity, total number of visits and average visit duration for each POI. The set of categories are shown in figure \ref{fig:poicats} in the appendix, and the popularity is defined as the number of distinct users that visited the POI\cite{ht10}.
 
 As a baseline approach, we recommend the trajectory based on the popularity of POIs only, that is we always suggest the top-$k$ most visited POIs for all visitors given the start and end location. This baseline approach, called \textsc{PoiPopularity}, and its only adaptation to a particular request is to adjust $k$ to match the desired length.
 
@@ -12,6 +12,8 @@ As a baseline approach, we recommend the trajectory based on the popularity of P
 
 \subsection{Ranking using the origin and destination}
 \label{sec:ranksvm}
+
+\dawei{Features of target POI are already described here.} 
 
 In addition to popularity, we also can rank the recommended POIs based on the other three POI specific features (category, total visits and average duration).
 We can learn a ranking of POIs by using rankSVM with linear kernel and $L2$ loss\cite{lranksvm},
@@ -49,22 +51,16 @@ We create another algorithm to recommend trajectory by utilising
 the ranking of POIs described above,
 the pseudo code of this algorithm, \textsc{PoiRank}, is described in algorithm \ref{alg:poirank}.
 
-\cheng{Is there a way to show the performance of rankSVM? If so, add to appendix.}
-
 \begin{algorithm}
 \caption{\textsc{PoiRank}: recommend trajectory by ranking POIs}
 %\caption{\textsc{PoiRank}}
 \label{alg:poirank}
 \begin{algorithmic}[1]
 \STATE \textbf{Input}: $\mathcal{P}, p_s, p_e, L$ 
-\STATE $\mathcal{T} = \{p_s\}$
 \STATE Train a rankSVM using POI and query related features
 \STATE Produce a rank $<_{p_i, p_j} \subset \mathcal{P}^2$ w.r.t. query $(p_s, p_e, L)$
-\REPEAT
-    \STATE Choose POI $p$ with highest rank from $\mathcal{P} \setminus \mathcal{T}$
-    \STATE Add $p$ to $\mathcal{T}$
-\UNTIL{$|\mathcal{T}| = L-1$}
-\STATE Append $p_e$ to $\mathcal{T}$
+\STATE Take the top ranked $L-2$ POIs from $\mathcal{P} \setminus \{p_s, p_e\}$ and simply connect them in sequence, 
+       then connect the start point $p_s$ and end point $p_e$ to produce a trajectory $\mathcal{T}$.
 \RETURN $\mathcal{T}$
 \end{algorithmic}
 \end{algorithm}
@@ -87,10 +83,9 @@ individual POI features as described in Section~\ref{sec:ranksvm}. We directly m
 the transition between the category and neighbourhood of each POI as the conditional probability.
 The popularity, total number of visits and the average visit duration are discretised by binning 
 them uniformly into $5$ discrete intervals on the log scale.
+Furthermore, POIs are grouped into $5$ clusters using K-means according to their geographical locations.
 
 \cheng{Refer to plots}.
-
-\cheng{Describe the clustering to obtain neighbourhood. Appendix for now.}
 
 \cheng{Why is neighbourhood not used in the univariate (POI) features?}
 
@@ -120,6 +115,8 @@ transition probabilities between POIs as \textsc{Markov}. The maximum likelihood
 can be found using a variant of the Viterbi algorithm, which is shown in algorithm \ref{alg:markov}.
 
 \cheng{Describe why this is not exactly standard Viterbi.}
+
+\dawei{No emission probabilities in this case.}
 
 \begin{algorithm}
 \caption{\textsc{Markov}: recommend trajectory by maximising likelihood}
@@ -169,8 +166,6 @@ In particular, we find the best trajectory using an integer linear programming w
 sub-tour elimination constraints adapted from the Travelling Salesman Problem\cite{opt98}.
 We call our method that uses the transition matrix to recommend paths
 that do not have circular sub-tours \textsc{MarkovPath}.
-
-\cheng{Use align instead of align*, name each constraint that you care about, and refer to it in the text below. Suppress numbers by using nolabel.}
 
 Given a set of POIs $\mathcal{P}$, the POI-POI transition matrix and a query $(p_s, p_e, L)$,
 we recommend a trajectory by solving the following integer linear program:
