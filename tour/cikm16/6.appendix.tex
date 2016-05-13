@@ -12,34 +12,38 @@ in Melbourne dataset.
 
 
 \begin{figure}
-\includegraphics[width=\columnwidth]{fig/poi_cats.pdf}
+\centering
+%\includegraphics[width=\columnwidth]{fig/poi_cats.pdf}
+\includegraphics[scale=.32]{fig/poi_cats.pdf}
 \caption{POI categories}
 \label{fig:poicats}
 \end{figure}
 
 \begin{figure*}
-\includegraphics[width=\textwidth]{fig/poi_popularity.pdf}
-\caption{Distribution of POI popularity}
-\label{fig:popularity}
+\includegraphics[width=\textwidth]{fig/feature_distro.pdf}
+\caption{Distribution of POI popularity, the number of visit and visit duration}
+\label{fig:distro}
 \end{figure*}
 
 \begin{figure*}
-\includegraphics[width=\textwidth]{fig/poi_nvisit.pdf}
-\caption{Distribution of the number of visit at POI}
-\label{fig:nvisit}
-\end{figure*}
-
-\begin{figure*}
-\includegraphics[width=\textwidth]{fig/visit_duration.pdf}
-\caption{Distribution of POI visit duration}
-\label{fig:duration}
-\end{figure*}
-
-\begin{figure*}
-\includegraphics[width=\textwidth]{fig/poi_transmat.pdf}
+\includegraphics[width=\textwidth]{fig/poi_transmat.png}
 \caption{Transition matrices for $5$ individual POI features (Melbourne)}
 \label{fig:transmat}
 \end{figure*}
+
+An example of trajectory with four POIs from Toronto dataset was shown in figure \ref{fig:traj},
+%TODO: explain what is a POI/photo in the figure
+where the four colored marker icons represent the four POIs,
+and the colored round icons represent a sample of photos assign to these POIs.
+
+
+\begin{figure}
+\centering
+\epsfig{file=fig/traj_eg.eps, width=3.5in}
+\caption{An example of trajectory with four POIs}
+\label{fig:traj}
+\end{figure}
+
 
 
 \section{POIs with same features}
@@ -84,22 +88,25 @@ a valid probability distribution
 the same transition probabilities, which can be easily proved. \cheng{Show proof}}.
 
 
-\section{Experiment parameters}
-% Parameters for IJCAI methods
-The trade-off parameter for both \textsc{PersTour} and \textsc{PersTour-L} were $0.5$.
-% Parameters for rankSVM
-The regularization parameter of rankSVM was $10$ for all algorithms that utilising POI rankings, namely,
-\textsc{PoiRank}, \textsc{Rank+Markov} and \textsc{Rank+MarkovPath}.
-% Parameters for transition matrix
-When computing the transition probabilities between POIs,
-POI popularity, the total number of visit at POI and the average visit duration at POI were discritized using
-$5$ bins uniformly in log-space, furthermore, POIs were grouped into $5$ clusters using K-means according to
-their geographical locations.
-% Parameters for Heuristics
-The trade-off parameters $\alpha$ was set to $0.5$ in both \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} algorithms.
-% Parameters for SSVM
-The regularization parameter to train \textsc{StructuredSVM} was $1$.
+\section{Avoid Peeking}
+When working with machine learning algorithms, to make sure the reported performance is a good approximation
+of the generalization performance, it is critical to prevent information in test set from leaking into
+training set.
+Many algorithms in the above comparison utilizing both learning to rank and factorized transition matrix,
+e.g., \textsc{Rank+Markov}, \textsc{Rank+MarkovPath} and \textsc{StructuredSVM},
+both of them need to be trained or parameters be estimated before being utilized in other algorithms.
+Features such as popularity of a POI, the number of visits of a POI and the average visit duration at a POI are
+determined by not only the POI itself but also trajectories in training set, let's call them aggregated features as they are
+computed by aggregating a set of trajectories.
+To make sure the prediction performance is reliable, it is very important to exclude trajectories in test set
+when computing aggregated features.
+Unfortunately, it is quite easy, especially when utilizing multiple levels of machine learning models,
+to use all data, including those in test set, to compute aggregated features and many researchers and
+practitioners did not realize some bits of information in test set were leaked into training set via these aggregated features.
 
+%One may argue that many of these features will not change much when computed with or without data in test set,
+%but in certain areas, such as aerodynamics, some decisions are very sensitive to the quantity of certain features.
+%Nevertheless, the exact impact still needs further investigation.
 
 \section{Implementation details}
 libsvmtools, PyStruct, Gurobi, etc.
