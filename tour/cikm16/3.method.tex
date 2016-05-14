@@ -1,6 +1,13 @@
 \section{POI, Query and Path}
 \label{sec:method}
 
+\begin{figure*}
+\includegraphics[width=\textwidth]{fig/poi_transmat.png}
+\caption{Transition matrices for $5$ individual POI features (Melbourne)}
+\label{fig:transmat}
+\end{figure*}
+
+
 We would like to recommend a particular tour such that the user will visit a sequence of points of interests (POIs), denoted $p_1, \ldots, p_L$, that maximises utility. We are given the desired start ($p_1=p_s$) and end point ($p_L=p_e$), and an associated number $L$ of POIs desired, from which we propose a trajectory through the city. In Figure~\ref{fig:problems}, an example tour is shown in blue, which starts at the POI denoted as a grey star, visits two intermediate POIs, and terminates on the fourth POI denoted as a flag. The tour of length 3 can be modelled as a sequence of directed edges in a graph containing POIs in the city as nodes.
 
 The training data consists of a set of tours of varying length in a particular city. We assume that all POIs in the city are visited at least once, and hence can construct a graph with POIs as nodes and potentially multiple directed edges between each pair of nodes. We extract the category, popularity, total number of visits and average visit duration for each POI. The set of categories are shown in figure \ref{fig:poicats} in the appendix, and the popularity is defined as the number of distinct users that visited the POI\cite{ht10}.
