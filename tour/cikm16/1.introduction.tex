@@ -35,23 +35,24 @@ Figure~\ref{fig:threesettings}(b) illustrates the problem of next location recom
 	\label{fig:threesettings}
 \end{figure*}
 
+We propose a novel way to learn point and route preferences jointly. 
+Our solution consist of several main parts. 
+We propose a learning to rank formulation to capture the preference of POIs given the starting and ending points of a trajectory. We model pair-wise transition patterns between POIs by factorising the transition likelihoods along five different types of location properties, % of the Markov chain between POIs
+this alleviates data sparsity between each pair of POIs and allows POIs of the same type and neighborhood to share parameters.
+We combine the results of point and transition ranking using inference in a Markov chain and route planning techniques. We further propose a novel way to jointly learn point and transition scores with Structured Support Vector Machine (StructuredSVM). We evaluated the proposed algorithm on photo trajectories in five different cities, with a traditional metric F1 on POIs as well as a new pairs-F1 metric specifically designed for trajectories. We found that the learning-based approaches generally out-perform heuristic route recommendation~\cite{ijcai15}. Incorporating transition into point ranking improves the pairs-F1 metric for the correct sequencing of POIs, and that routing algorithms that disallow sub-tours generally out-perform Markov chain methods. 
 
-We propose using learning to rank to capture the properties of POIs, as well as a Markov chain to
-represent the transition patterns between POIs.
-We factorise the transition probabilities of the Markov chain between POIs
-according to several POI features to deal with data sparsity.
-We combine the results of learning to rank and the factorized Markov Chain using both a probabilistic model and a structured
-support vector machine, and evaluate the quality of POIs in recommended trajectories in terms of trajectory F$_1$-score~\cite{ijcai15}. One problem with the F$_1$-score on POIs is that it ignores
+\eat{and evaluate the quality of POIs in recommended trajectories in terms of trajectory F$_1$-score~\cite{ijcai15}. One problem with the F$_1$-score on POIs is that it ignores
 the order in which sites are visited.
 We propose a new performance measure by applying F$_1$-score on pairs of POIs.
 Experimental results on five trajectory datasets show performance improvements over the state-of-the-art methods and
 reveal many interesting properties of trajectories in different datasets.
-
+}
 
 The main contribution of this work is as follows: 
 \begin{itemize}
-\item joint optimization of point preference and route plan;
-\item feature-driven, incorporates information about time, location, POI categories and behavior history
-\item strong performance compared to IJCAI 2015. we can also quantify the contribution from both point ranking and routing.
-\item F1 on pairs.
+\setlength{\itemsep}{-2pt}
+\item We propose a novel algorithm to jointly optimize point preference and route plan.
+\item Our approach is feature-driven and learns from past behavior without having to design specialized treatment for spatial, temporal and social information. It currently incorporates information about location, POI categories and behavior history, and can use additional social or time information as long as they are  encoded in features. 
+\item We have shown strong performances compared to recent results~\cite{ijcai15}, we also quantify the contribution from the different components, such as point ranking, scoring transitions, and routing. 
+\item We propose a new metric to evaluate trajectories: pairs-F1, which has the property of being between 0 and 1, and being 1 if and only if two trajectories are exactly the same. Our benchmark data and results are publicly available.
 \end{itemize}

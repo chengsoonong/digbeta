@@ -20,7 +20,7 @@ Our work is in the last category, we formulate a learning problem to score the w
 
 %We group the methods for ranking and recommending location and trajectories into three broad categories. 
 {\bf Methods} for ranking locations and trajectories. 
-The first is collaborative filtering, or matrix factorization family of techniques applied to places and trajectories~\cite{shi2011personalized,ijcai13,zhang2015location}. The second type regard route recommendation as a planning problem. Gionis et al~\cite{wsdm14} formulates optimization problems with additive user satisfaction and coverage constraints. Lim et al.~\cite{ijcai15} uses a combination of user preference and POI popularity as objective function, and then solves a traveling salesman problem (TSP) to obtain a route. 
+The first is collaborative filtering, or matrix factorization family of techniques applied to places and trajectories~\cite{shi2011personalized,ijcai13,zhang2015location}. The second type regard route recommendation as a planning problem. Gionis et al~\cite{gioniswsdm14} formulates optimization problems with additive user satisfaction and coverage constraints. Lim et al.~\cite{ijcai15} uses a combination of user preference and POI popularity as objective function, and then solves a traveling salesman problem (TSP) to obtain a route. 
 The TripBuilder system~\cite{brilhante2013shall} first solves a maximum coverage problem for user preference and then solves TSP for routing. The collaborative filtering approaches ranks POI but do not take into account the sequence that a trip is taken. On the other hand, the planning approaches assume a fixed objective function that is not directly optimized to predict user behavior. There has been a few approaches that jointly optimize for POI preference and routes. Lu et al~\cite{lu2012personalized} uses heuristic combinations for point scoring, followed by branch-n-bound search for planning. Kurashima et al~\cite{kurashima2010geotag} modeled user preferences and his/her transition patterns between POIs using a hybrid of Markov chain and toipc models, the search for a best path is done by greedily maximizing the probability for the next point. The TripPlanner system~\cite{chen2015tripplanner} selects POIs based on input query and POI categories, and then scores routes using heuristic search strategies taking into account traffic and travel time constraints. 
 We propose a new approach that learns the importance of different POI features and POI-to-POI transition features, we also provide a comprehensive benchmark on how node- and edge- features contribute to the final trajectory ranking. 
 
@@ -30,7 +30,7 @@ We propose a new approach that learns the importance of different POI features a
 %time budget to get a set of candidate trajectories, which were then scheduled by solving a variant of Traveling Salesman Problem to form the 
 %final recommendation.
 %% WSDM'14
-%\cite{wsdm14} proposed a framework to recommend trajectories based on user provided constraints such as the visiting order of different 
+%\cite{gioniswsdm14} proposed a framework to recommend trajectories based on user provided constraints such as the visiting order of different 
 %categories of POIs, time and distance budget as well as the upper/lower bounds of the number of POIs in each category that a user wish 
 %to visit, user satisfaction at a POI was modeled by either associate a benefit or a set of other POIs and activities to that POI,
 %and proved the maximization of user satisfaction is NP-hard in both cases. 

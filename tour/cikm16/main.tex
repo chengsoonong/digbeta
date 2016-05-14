@@ -11,6 +11,34 @@
 \newcommand{\lexing}[1]{\textcolor{red}{\textbf{Lexing: }{\footnotesize #1}}}
 \newcommand{\dawei}[1]{\textcolor{blue}{\textbf{Dawei: }{\footnotesize #1}}}
 
+\newcommand{\etal}{{\em et al.}\xspace}
+\usepackage{url}
+\usepackage{hyperref}
+\newcommand{\surl}[1]
+{
+	\urlstyle{same}\url{#1}
+}
+
+\usepackage[svgnames]{xcolor}
+\definecolor{navy}{rgb}{0.1, 0.1, 0.8}
+\definecolor{gray}{rgb}{0.4, 0.4, 0.4}
+
+\newcommand{\eat}[1]{}
+\newcommand{\rev}[1]{{\color{navy}{#1}}}
+\newcommand{\verify}[1]{{\color{red}{#1}}}
+\usepackage{soul} %% needed for highlighting
+\newcommand{\TODO}[2]{ { [{\bf #1}:~{\hl{#2}}]}}
+
+% place holder spacing hacks
+\newcommand{\secmoveup}{\vspace{-0.0mm}}                %{\vspace{-0.12in}}
+\newcommand{\bigsecmoveup}{\secmoveup\vspace{-.0mm}}   %{\vspace{-0.08in}}
+\newcommand{\textmoveup}{\vspace{-0.mm}}               %{\vspace{-0.08in}}
+\newcommand{\bigtextmoveup}{\textmoveup\vspace{-0.0in}} %{\vspace{-0.06in}}
+\newcommand{\itemmoveup}{\vspace{-0mm}}              %{\vspace{-0.04in}}
+\newcommand{\eqmoveup}{\vspace{-0.0in}}                 %{\vspace{-0.16in}}
+\newcommand{\captionmoveup}{\eqmoveup\vspace{-0.0in}}   %{\vspace{-0.16in}}
+\newcommand{\refitemmoveup}{\vspace{-0mm}}            %{\vspace{-0.16in}}
+
 \begin{document}
 
 %\setcopyright{}
@@ -62,18 +90,10 @@
 \input{0.abstract.tex}
 \end{abstract}
 
-\keywords{Trajectory recommendation, Learning to rank, Markov Chain, Structured SVM}
+\keywords{Trajectory recommendation, Learning to rank, Planning, Structured SVM}
 
 \input{1.introduction.tex}
 
-\begin{figure*}[tp]
-	\centering
-	%\includegraphics[width=\textwidth,height=4cm]{fig/placeholder}
-	\includegraphics[width=\textwidth]{fig/fig1-flavours.pdf}
-	\caption{A figure illustrating different settings/flavours of trajectory recommendation problems. Namely: POI recommendation, next location, and trajectory/tour recommendation.
-}
-	\label{fig:problems}
-\end{figure*}
 
 \input{2.relatedwork.tex}
 \input{3.method.tex}
