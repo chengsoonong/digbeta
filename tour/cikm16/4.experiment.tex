@@ -2,6 +2,8 @@
 \label{sec:experiment}
 
 \begin{table}
+\caption{Statistics of trajectory dataset}
+\label{tab:data}
 \centering\small
 \begin{tabular}{lrrrrr} \hline
 \textbf{Dataset} & \textbf{\#Photos} & \textbf{\#Visits} & \textbf{\#Traj.} & \textbf{\#Users} \\ \hline
@@ -12,12 +14,12 @@ Osaka & 392,420 & 7,747 & 1,115 & 450 \\
 Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\
 \hline
 \end{tabular}
-\caption{Statistics of trajectory dataset}
-\label{tab:data}
 \end{table}
 
 
 \begin{table}
+\caption{Characteristics of different algorithms}
+\label{tab:algsummary}
 \centering\small
 \setlength{\tabcolsep}{3pt} % tweak the space between columns
 \begin{tabular}{l|*{5}{c}} \hline
@@ -34,12 +36,13 @@ Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\
 \textsc{Rank}+\textsc{MarkovPath} & $\surd$  & $\surd$  & $\surd$    & $\surd$      & $\times$ \\
 \textsc{StructuredSVM}            & $\surd$  & $\surd$  & $\surd$    & $\times$     & $\surd$  \\ \hline
 \end{tabular}
-\caption{Characteristics of different algorithms}
-\label{tab:algsummary}
 \end{table}
 
 
 \begin{table*}
+\caption{Performance comparison on four datasets in terms of trajectory $F_1$-score.
+         For each dataset (i.e., a column), the best method is shown in bold, the second best is shown in italic.}
+\label{tab:f1}
 \centering
 \begin{tabular}{l|ccccc} \hline
  & Edinburgh & Glasgow & Melbourne & Osaka & Toronto \\ \hline
@@ -55,13 +58,13 @@ Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\
 \textsc{StructuredSVM} & $0.659\pm0.186$ & $0.727\pm0.173$ & $0.597\pm0.171$ & $\mathit{0.715\pm0.170}$ & $\mathit{0.728\pm0.186}$ \\
 \hline
 \end{tabular}
-\caption{Performance comparison on four datasets in terms of trajectory $F_1$-score.
-         For each dataset (i.e., a column), the best method is shown in bold, the second best is shown in italic.}
-\label{tab:f1}
 \end{table*}
 
 
 \begin{table*}
+\caption{Performance comparison on four datasets in terms of Pair $F_1$.
+         For each dataset (i.e., a column), the best method is shown in bold, the second best is shown in italic.}
+\label{tab:pairf1}
 \centering
 \begin{tabular}{l|ccccc} \hline
  & Edinburgh & Glasgow & Melbourne & Osaka & Toronto \\ \hline
@@ -77,9 +80,6 @@ Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\
 \textsc{StructuredSVM} & $\mathbf{0.440\pm0.267}$ & $0.529\pm0.283$ & $\mathit{0.352\pm0.213}$ & $\mathbf{0.508\pm0.292}$ & $\mathbf{0.520\pm0.311}$ \\
 \hline
 \end{tabular}
-\caption{Performance comparison on four datasets in terms of Pair $F_1$.
-         For each dataset (i.e., a column), the best method is shown in bold, the second best is shown in italic.}
-\label{tab:pairf1}
 \end{table*}
 
 
