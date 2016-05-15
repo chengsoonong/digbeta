@@ -62,7 +62,7 @@ Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\
 
 
 \begin{table*}
-\caption{Performance comparison on four datasets in terms of Pair $F_1$.
+\caption{Performance comparison on four datasets in terms of pair-$F_1$.
          For each dataset (i.e., a column), the best method is shown in bold, the second best is shown in italic.}
 \label{tab:pairf1}
 \centering
@@ -118,10 +118,10 @@ correctly recommended. Let $\mathcal{T}$ be the trajectory that was visited in t
 and $\hat{\mathcal{T}}$ be the recommended trajectory,
 $\mathcal{P}_{\mathcal{T}}$ be the set of POIs visited in $\mathcal{T}$,
 and $\mathcal{P}_{\hat{\mathcal{T}}}$ be the set of POIs visited in $\hat{\mathcal{T}}$,
-trajectory $F_1$-scores was defined as
+trajectory $F_1$-score was defined as
 \begin{displaymath}
-F_1 = \frac{2 \times P_{\textsc{point}} \times R_{\textsc{point}}}
-           {P_{\textsc{point}} + R_{\textsc{point}}}
+F_1= \frac{2 \times P_{\textsc{point}} \times R_{\textsc{point}}}
+          {P_{\textsc{point}} + R_{\textsc{point}}}
 \end{displaymath}
 where
 \begin{displaymath}
@@ -131,15 +131,15 @@ R_{\textsc{point}} = \frac{|\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\ma
                           {|\mathcal{T}|}
 \end{displaymath}
 
-A perfect $F_1$-score (i.e., $F_1 = 1$) means the POIs in 
+A perfect trajectory $F_1$-score (i.e., $F_1 = 1$) means the POIs in 
 the recommended trajectory are exactly the same POIs as those in the ground truth, 
 and $F_1 = 0$ means that unfortunately none of the POIs in the 
 real trajectory was recommended.
 
 In addition, to measure the quality of recommended visiting order of POIs,
-we propose a new metric $\text{Pair} F_1$,
+we propose a new metric $\text{pair-}F_1$,
 \begin{displaymath}
-\text{Pair} F_1 = \frac{2 \times P_{\textsc{pair}} \times R_{\textsc{pair}}}
+\text{pair-}F_1 = \frac{2 \times P_{\textsc{pair}} \times R_{\textsc{pair}}}
                        {P_{\textsc{pair}} + R_{\textsc{pair}}}
 \end{displaymath}
 where
@@ -148,7 +148,7 @@ P_{\textsc{pair}} = \frac{N_c} {|\hat{\mathcal{T}}|(|\hat{\mathcal{T}}|-1) / 2},
 R_{\textsc{pair}} = \frac{N_c} {|\mathcal{T}|(|\mathcal{T}|-1) / 2}
 \end{displaymath}
 and $N_c$ is the number of POI pairs $(p_j, p_k)$ that satisfies the following
-constraints\footnote{We define Pair $F_1=0$ if $N_c$ is $0$.}:
+constraints\footnote{We define pair-$F_1=0$ if $N_c$ is $0$.}:
 \begin{align*}
     (p_j \prec_{\mathcal{T}} p_k ~\land~ p_j \prec_{\hat{\mathcal{T}}} p_k) & ~\lor~
     (p_j \succ_{\mathcal{T}} p_k ~\land~ p_j \succ_{\hat{\mathcal{T}}} p_k) \\
@@ -156,9 +156,9 @@ constraints\footnote{We define Pair $F_1=0$ if $N_c$ is $0$.}:
     j \ne k, &~~ 1 \le j, k \le |\mathcal{T}|
 \end{align*}
 
-A perfect Pair $F_1$, i.e., Pair $F_1 = 1$, means that both the POIs and their visiting order in the
+A perfect pair-$F_1$, i.e., pair-$F_1 = 1$, means that both the POIs and their visiting order in the
 recommended trajectory are exactly the same as these in the real trajectory,
-and Pair $F_1 = 0$ means that none of the recommended POI pairs was actually visited in the real trajectory.
+and pair-$F_1 = 0$ means that none of the recommended POI pairs was actually visited in the real trajectory.
 
 
 \subsection{Experimental Setup}
@@ -209,7 +209,7 @@ and $1$ for \textsc{StructuredSVM}.
 
 % compare both F1 and pair F1 at the same time
 The performance of ten algorithms on five trajectories datasets are shown in table \ref{tab:f1}
-and table \ref{tab:pairf1} in terms of trajectory $F_1$-score and Pair $F_1$ respectively.
+and table \ref{tab:pairf1} in terms of trajectory $F_1$-score and pair-$F_1$ respectively.
 %
 % 1. all vs Random 
 % always better than Random, except PersTour on Melbourne which we'll illustrate later
@@ -236,7 +236,7 @@ by exploring POI and query specific features.
 \textsc{PoiPopularity} baseline get pretty good performance despite its simplicity, 
 and \textsc{PoiRank} yields nice improvements by leveraging more POI features and query specific features,
 except slightly worse performance on Edinburgh dataset on which \textsc{PoiPopularity} is the best and 
-second best performer in terms trajectory $F_1$-score and Pair $F_1$ respectively.
+second best performer in terms trajectory $F_1$-score and pair-$F_1$ respectively.
 
 % go to transition based algorithms
 On the other hand, Algorithm that leverage transition probabilities alone does not perform particularly well.
@@ -247,26 +247,26 @@ In terms of trajectory $F_1$-score,
 \textsc{Markov} can not outperform \textsc{PoiRank} except on Osaka dataset, 
 on which the performance of both algorithms are comparable.
 
-% in terms of Pair F1, PoiRank is significantly better on Glasgow, Melbourne and Toronto, comparable on Edinburgh
+% in terms of pair F1, PoiRank is significantly better on Glasgow, Melbourne and Toronto, comparable on Edinburgh
 In addition, \textsc{PoiRank} performs significantly better than \textsc{Markov} on three datasets, namely,
 Glasgow, Melbourne and Toronto.
 %
-% at the first sight, it seems strange because Markov modelled the transitions and Pair F1 measures the visiting order
-% but actually Pair F1 is affected heavily by the number of correctly predicted POIs, once the POIs are correctly predicted, it will yield 
-% better Pair F1, this is consistent with the observation that, on Osaka dataset, Markov and PoiRank yield comparable F1, 
-% but Markov outperforms PoiRank significantly in terms of Pair F1.
+% at the first sight, it seems strange because Markov modelled the transitions and pair F1 measures the visiting order
+% but actually pair F1 is affected heavily by the number of correctly predicted POIs, once the POIs are correctly predicted, it will yield 
+% better pair F1, this is consistent with the observation that, on Osaka dataset, Markov and PoiRank yield comparable F1, 
+% but Markov outperforms PoiRank significantly in terms of pair F1.
 This result may seem strange at first sight because \textsc{Markov} modelled the transition pattern and it would leverage
-this advantage to accomplish better performance in terms of Pair $F_1$ given the fact that this metric is measuring the quality
+this advantage to accomplish better performance in terms of pair-$F_1$ given the fact that this metric is measuring the quality
 of visiting order.
-However, Pair $F_1$ is actually affected heavily by the proportion of correctly recommended POIs in trajectory,
-once the POIs are correctly predicted, a better Pair $F_1$ would be achieved, 
+However, pair-$F_1$ is actually affected heavily by the proportion of correctly recommended POIs in trajectory,
+once the POIs are correctly predicted, a better pair-$F_1$ would be achieved, 
 this supposition can be confirmed by the observation that, on Osaka dataset, \textsc{Markov} and \textsc{PoiRank} achieved
-comparable performance in terms of trajectory $F_1$, which means the proportion of corrected recommended POIs is comparable,
-\textsc{Markov} outperforms \textsc{PoiRank} significantly in terms of Pair $F_1$,
+comparable performance in terms of trajectory $F_1$-score, which means the proportion of corrected recommended POIs is comparable,
+\textsc{Markov} outperforms \textsc{PoiRank} significantly in terms of pair-$F_1$,
 which suggest the transition information is helpful in some situations.
 
 % 5. PoiRank vs. Markov vs. Rank+Markov
-% in terms of both F1 and Pair F1,
+% in terms of both F1 and pair F1,
 % when the advantage of PoiRank over Markov is large, Rank+Markov always brings improvements on Markov, but can't compete with PoiRank
 % as the advantage gap of PoiRank over Markov shrinks, performance of Rank+Markov becomes closer to PoiRank,
 % when the Markov is comparable or better than PoiRank, Rank+Markov outperforms both (Osaka)
@@ -290,7 +290,7 @@ From table \ref{tab:f1}, we can see both \textsc{Markov} and \textsc{Rank+Markov
 their non-sub-tour counterparts, namely, \textsc{MarkovPath} and \textsc{Rank+MarkovPath}, 
 in terms of trajectory $F_1$-score, which is not unexpected as sub-tours worsen the proportion of corrected
 recommended POIs when length constraint is used.
-On the contrary, they achieve better performance in terms of Pair $F_1$ which indicates sub-tours generally 
+On the contrary, they achieve better performance in terms of pair-$F_1$ which indicates sub-tours generally 
 respect the visiting order between POIs.
  
 % go to SSVM
@@ -309,7 +309,7 @@ and can further take advantage of the significantly larger number of parameters,
 when measured in terms of trajectory $F_1$-score, \textsc{StructuredSVM} can only yield comparable performance
 with the best performer among the three at most.
 On the other hand, \textsc{StructuredSVM} makes the best use of transition pattern which leads to comparable or
-better performance, in terms of Pair $F_1$, than both of them all the time.
+better performance, in terms of pair-$F_1$, than both of them all the time.
 This observation is consistent with the effect of sub-tours observed above
 as \textsc{StructuredSVM} do permit the existence of sub-tours in recommended trajectories.
 
@@ -321,7 +321,7 @@ as \textsc{StructuredSVM} do permit the existence of sub-tours in recommended tr
 % furthermore, a lot recommendations are suboptimal solutions of the ILP due to the $2$ timeout settings.
 % which leads to PersTour, which is always a strong performer on other datasets, performs inconsistently on Melbourne dataset.
 Lastly, we observed that \textsc{PersTour}, a very good performer in general, is outperformed by \textsc{Random} baseline
-on Melbourne dataset in terms of both trajectory $F_1$-score and Pair $F_1$.
+on Melbourne dataset in terms of both trajectory $F_1$-score and pair-$F_1$.
 It turns out that, on this very dataset, many of the integer linear programming (ILP) problems 
 which \textsc{PersTour} need to solve to get the recommendation results are hard ILP instances.
 In the leave-one-out evaluation, although we utilised a large scale computing cluster with modern hardware,
