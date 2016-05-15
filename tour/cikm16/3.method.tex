@@ -132,20 +132,20 @@ can be found using a variant of the Viterbi algorithm, which is shown in algorit
 \STATE \textbf{Input}: $\mathcal{P}, p_s, p_e, L$
 \STATE Compute POI-to-POI transition matrix
 \FOR{$p \in \mathcal{P}$}
-    \STATE $M_1[2, p] = \log P(p|p_s)$
-    \STATE $M_2[2, p] = p_s$
+    \STATE $A[2, p] = \log P(p|p_s)$
+    \STATE $B[2, p] = p_s$
 \ENDFOR
 \FOR{$l=2$ to $L-1$}
     \FOR{$p \in \mathcal{P}$}
-        \STATE \(\displaystyle M_1[l+1, p] = \max_{p' \in \mathcal{P}} \{ M_1[l, p'] + \log P(p|p') \} \) 
-        \STATE \(\displaystyle M_2[l+1, p] = \argmax_{p' \in \mathcal{P}} \{ M_1[l, p'] + \log P(p|p') \} \)
+        \STATE \(\displaystyle A[l+1, p] = \max_{p' \in \mathcal{P}} \{ A[l, p'] + \log P(p|p') \} \) 
+        \STATE \(\displaystyle B[l+1, p] = \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + \log P(p|p') \} \)
     \ENDFOR
 \ENDFOR
 % //trace back to find the actual path
-\STATE $\mathcal{T} = \{p_e\}$, $p = \mathcal{T}_0$, $l = L$
+\STATE $\mathcal{T} = \{p_e\}$, $p = \mathcal{T}.first$, $l = L$
 \REPEAT
-    \STATE Prepend $M_2[l, p]$ to $\mathcal{T}$
-    \STATE $p = \mathcal{T}_0$, $l = l - 1$
+    \STATE Prepend $B[l, p]$ to $\mathcal{T}$
+    \STATE $p = \mathcal{T}.first$, $l = l - 1$
 \UNTIL{$l < 2$}
 \RETURN $\mathcal{T}$
 \end{algorithmic}
@@ -178,7 +178,7 @@ Given a set of POIs $\mathcal{P}$, the POI-POI transition matrix and a query $(p
 we recommend a trajectory by solving the following integer linear program:
 \begin{align}
 \max ~& \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} \log P(p_j | p_i) \nonumber \\
-\text{s.t.} ~& x_{ij} \in \{0, 1\}, \forall i, j = 1, \cdots, N \\
+s.t. ~& x_{ij} \in \{0, 1\}, \forall i, j = 1, \cdots, N \\
      & \sum_{j=2}^N x_{1j} = \sum_{i=1}^{N-1} x_{iN} = 1 \\
      & \sum_{i=1}^{N-1} x_{ik} = \sum_{j=2}^N x_{kj} \le 1, \forall k=2, \cdots, N-1 \\
      & \sum_{i=1}^{N-1} \sum_{j=2}^N = L-1 \\
@@ -255,19 +255,19 @@ such that
 We optimize this objective by adapting the Viterbi algorithm using recursive relation
 \begin{equation}
     \label{eq:max}
-    M_1[l+1, p] = \max_{p' \in \mathcal{P}} \{ M_1[l, p'] + \alpha \log P_R(p|x) + (1-\alpha) \log P(p|p') \}
+    A[l+1, p] = \max_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|x) + (1-\alpha) \log P(p|p') \}
 \end{equation}
 and
 \begin{equation}
     \label{eq:argmax}
-    M_2[l+1, p] = \argmax_{p' \in \mathcal{P}} \{ M_1[l, p'] + \alpha \log P_R(p|x) + (1-\alpha) \log P(p|p') \}
+    B[l+1, p] = \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|x) + (1-\alpha) \log P(p|p') \}
 \end{equation}
-where $M_1[l, p]$ stores the maximum value that associated with the (partial) trajectory
+where $A[l, p]$ stores the maximum value that associated with the (partial) trajectory
 that starts at $p_s$ and ends at $p$ with exactly $l$ POIs,
-$M_2[l, p]$ stores the predecessor of $p$ in the (partial) trajectory.
+$B[l, p]$ stores the predecessor of $p$ in the (partial) trajectory.
 
-The maximum objective value is $M_1[L, p_e]$,
-and the corresponding trajectory can be found by tracing back from $M_2[L, p_e]$.
+The maximum objective value is $A[L, p_e]$,
+and the corresponding trajectory can be found by tracing back from $B[L, p_e]$.
 The pseudo code of the above algorithm is show in algorithm \ref{alg:rank+markov}.
 
 \begin{algorithm}
@@ -278,20 +278,20 @@ The pseudo code of the above algorithm is show in algorithm \ref{alg:rank+markov
 \STATE Produce a rank $<_{p_i, p_j} \subset \mathcal{P}^2$ w.r.t. query $(p_s, p_e, L)$
 \STATE Compute POI-to-POI transition matrix
 \FOR{$p \in \mathcal{P}$}
-    \STATE $M_1[2, p] = \alpha ( \log P_R(p_s|x) + \log P_R(p|x) )$ $+$ \\ \hfill $(1-\alpha) \log P(p|p_s)$
-    \STATE $M_2[2, p] = p_s$
+    \STATE $A[2, p] = \alpha ( \log P_R(p_s|x) + \log P_R(p|x) )$ $+$ \\ \hfill $(1-\alpha) \log P(p|p_s)$
+    \STATE $B[2, p] = p_s$
 \ENDFOR
 \FOR{$l=2$ to $L-1$}
     \FOR{$p \in \mathcal{P}$}
-        \STATE Compute $M_1[l+1, p]$ using equation (\ref{eq:max})
-        \STATE Compute $M_2[l+1, p]$ using equation (\ref{eq:argmax})
+        \STATE Compute $A[l+1, p]$ using equation (\ref{eq:max})
+        \STATE Compute $B[l+1, p]$ using equation (\ref{eq:argmax})
     \ENDFOR
 \ENDFOR
 % //trace back to find the actual path
-\STATE $\mathcal{T}= \{p_e\}$, $p = \mathcal{T}_0$, $l = L$
+\STATE $\mathcal{T}= \{p_e\}$, $p = \mathcal{T}.first$, $l = L$
 \REPEAT
-    \STATE Prepend $M_2[l, p]$ to $\mathcal{T}$
-    \STATE $p = \mathcal{T}_0$, $l = l - 1$
+    \STATE Prepend $B[l, p]$ to $\mathcal{T}$
+    \STATE $p = \mathcal{T}.first$, $l = l - 1$
 \UNTIL{$l < 2$}
 \RETURN $\mathcal{T}$
 \end{algorithmic}
@@ -302,7 +302,7 @@ the recommended trajectory by \textsc{Rank+Markov} could also contain sub-tours 
 we can use similar approach to restrict that no sub-tour exists in the recommended trajectory
 by maximising the following objective using integer linear programming
 \begin{displaymath}
-    \text{Maximize}  \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} (\alpha \log P_R(p_j | x) + (1-\alpha) \log A_{p_i, p_j})
+    \text{Maximize}  \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} (\alpha \log P_R(p_j | x) + (1-\alpha) \log P(p_j | p_i))
 \end{displaymath}
 The constraints are the same as those in algorithm \textsc{MarkovPath}.
 We denote this algorithm as \textsc{Rank+MarkovPath}.
@@ -340,11 +340,12 @@ the unary features of the other $L-2$ variables are the ranking probabilities of
 \end{displaymath}
 Pairwise features between the $j$-th variable and the $(j+1)$-th variable $\phi_{j, j+1}$ was defined as
 \begin{align*}
-    \phi_{j, j+1}(x, y_j, y_{j+1}) &= \phi_{j-1, j}(x, y_{j-1}, y_j) \times A \\
+    \phi_{j, j+1}(x, y_j, y_{j+1}) &= \phi_{j-1, j}(x, y_{j-1}, y_j) \times M \\
                                  j &=2, \dots, L-2
 \end{align*}
 where $\phi_{j-1, j}$ is the pairwise features between the $(j-1)$-th and $j$-th variables,
-and $A$ is the transition matrix between POIs described in section \ref{sec:transition}.
+and $M$ is the transition matrix between POIs described in section \ref{sec:transition} and
+$M_{ij} = P(p_j | p_i)$.
 In particular, the pairwise features between the first and the second variables is the
 outgoing transition probabilities of the first variable,
 and the pairwise features between the second-last and the last variables are a probability distribution
