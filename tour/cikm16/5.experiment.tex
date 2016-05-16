@@ -330,3 +330,29 @@ there are still $12\%$ of evaluations failed due to the ILP solver can not find 
 Furthermore, a lot of recommendations are produced from suboptimal solutions of the corresponding ILPs due to
 the $2$ hours timeout setting, these results lead to the generally strong performer \textsc{PerTour} performs
 inconsistently on Melbourne dataset.
+
+
+
+
+% Figures from the appendix
+\begin{table}
+\caption{Statistics of trajectory dataset}
+\label{tab:data}
+\centering\small
+\begin{tabular}{lrrrrr} \hline
+\textbf{Dataset} & \textbf{\#Photos} & \textbf{\#Visits} & \textbf{\#Traj.} & \textbf{\#Users} \\ \hline
+Edinburgh & 82,060 & 33,944 & 5,028 & 1,454 \\
+Glasgow & 29,019 & 11,434 & 2,227 & 601 \\
+Melbourne & 94,142 & 23,995 & 5,106 & 1,000 \\
+Osaka & 392,420 & 7,747 & 1,115 & 450 \\
+Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\
+\hline
+\end{tabular}
+\end{table}
+
+
+\begin{figure*}[t]
+\includegraphics[width=\textwidth]{fig/feature_distro.pdf}
+\caption{Distribution of POI popularity, the number of visit and visit duration}
+\label{fig:distro}
+\end{figure*}
