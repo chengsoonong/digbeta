@@ -133,10 +133,10 @@ We denote this algorithm as \textsc{Rank+MarkovPath}.
 \label{sec:ssvm}
 
 As trajectory is a sequence of POI visits,
-it can be modelled as a chain of $L$ variables, where each discrete variable has
-$|\mathcal{P}|$ states.
+it is natural to model the recommended trajectory $y$ with respect to query $x = (p_s, p_e, L)$
+as a chain of $L$ variables, where each discrete variable has $|\mathcal{P}|$ states.
 Structured prediction incorporates both the features of variables (unary features) and
-the features of interactions between neighboring variables (pairwise features) to make a
+the features of interactions between neighbouring variables (pairwise features) to make a
 prediction,
 \begin{displaymath}
     y^* = \argmax_{y \in \mathcal{P}^L} \sum_{j=1}^L \mathbf{w_u}^T \phi_j(x, y_j) +
@@ -185,7 +185,7 @@ all other POIs in $\mathcal{P} \setminus p_e$ are simply uniformly distributed.
 % describe unary/pairwise potentials?
 
 % describe SSVM training (1-slack formulation)
-To estimate the parameters $\mathbf{w_u}$ and $\mathbf{w_p}$, we train a structured support vector machine
+To estimate the parameters $\mathbf{w_u}$ and $\mathbf{w_p}$, we train a structured Support Vector Machine
 using the 1-slack formulation~\cite{ssvm09},
 \begin{align*}
     \min_{\mathbf{w}, \xi \ge 0} ~~& \frac{1}{2} \mathbf{w}^T \mathbf{w} + C \xi \\
@@ -194,12 +194,12 @@ using the 1-slack formulation~\cite{ssvm09},
          ~~& \forall \hat{y^{(i)}} \in \mathcal{P}^{|y^{(i)}|}, i = 1, \cdots, N
 \end{align*}
 where $\mathbf{w} = [\mathbf{w_u}^T, \mathbf{w_p}^T]^T$ is the parameter vector,
-$N$ is the total number of trajectories in training set, $C$ is the regularization parameter,
+$N$ is the total number of trajectories in training set, $C$ is the regularisation parameter,
 $\xi$ is the slack variable, and
 \begin{displaymath}
     \delta(\hat{y^{(i)}}) = \Psi(x^{(i)}, y^{(i)}) - \Psi(x^{(i)}, \hat{y^{(i)}})
 \end{displaymath}
-where $\Psi(x, y)$ is the joint feature vector which is a composite of unary features and pairwise features of the
+where $\Psi(x, y)$ is the joint feature vector which is a composite of unary and pairwise features of the
 $i$-th example in training set,
 $\Delta(y^{(i)}, \hat{y^{(i)}})$ is the loss associated with the $i$-th trajectory in training set and
-its corresponding recommended trajectory, and Hamming loss was used in this work.
+its corresponding recommendation trajectory, and Hamming loss was used in this work.
