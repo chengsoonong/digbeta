@@ -7,8 +7,10 @@
 \begin{table}
 \caption{Statistics of trajectory dataset}
 \label{tab:data}
-\centering\small
-\begin{tabular}{lrrrrr} \hline
+\centering
+%\small
+%\setlength{\tabcolsep}{3pt} % tweak the space between columns
+\begin{tabular}{l*{5}{r}} \hline
 \textbf{Dataset} & \textbf{\#Photos} & \textbf{\#Visits} & \textbf{\#Traj.} & \textbf{\#Users} \\ \hline
 Edinburgh & 82,060 & 33,944 & 5,028 & 1,454 \\
 Glasgow & 29,019 & 11,434 & 2,227 & 601 \\
@@ -39,7 +41,8 @@ that POI \cite{ht10, ijcai15}.
 \begin{figure}[t]
 	\centering
 	\includegraphics[width=\columnwidth]{fig/pairF1.pdf}
-	\caption{$F_1$ vs pairs-$F_1$}
+	\caption{$F_1$ vs pairs-$F_1$. Grey: ground truth transitions; dashed blue: recommended transitions. 
+    See the third paragraph of Section \ref{sec:metric} for details.}
 	\label{fig:pairf1}
 \end{figure}
 
@@ -70,8 +73,18 @@ the recommended trajectory are exactly the same POIs as those in the ground trut
 and $F_1 = 0$ means that unfortunately none of the POIs in the
 real trajectory was recommended.
 
-In addition, to measure the quality of recommended visiting order of POIs,
-we propose a new metric $\text{pairs-}F_1$,
+While trajectory $F_1$-score is good at measure whether POIs are correctly recommended,
+it ignores the routes, i.e., the visiting order between POIs.
+Two trajectories with the exactly same set of POIs can be completely different to visitors 
+given different routes.
+Figure \ref{fig:pairf1} illustrates this phenomenon,
+the grey lines represent the ground truth transitions that actually visited by tourists
+and the dashed blue lines are the recommended trajectory by one of the approaches described
+in table \ref{tab:algsummary}.
+Even with the exactly same places, the visiting experiences are completely different because 
+of dramatically disparate routes.
+Enlightened by this observation, we propose a new metric $\text{pairs-}F_1$ that takes into account 
+not only the points but also the routes in a trajectory,
 \begin{displaymath}
 \text{pairs-}F_1 = \frac{2 \times P_{\textsc{pair}} \times R_{\textsc{pair}}}
                        {P_{\textsc{pair}} + R_{\textsc{pair}}}
@@ -89,7 +102,8 @@ constraints\footnote{We define pairs-$F_1=0$ if $N_c$ is $0$.}:
     p_j \ne p_k, &~~ p_j, p_k \in \mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}} \\
     j \ne k, &~~ 1 \le j, k \le |\mathcal{T}|
 \end{align*}
-
+where $p_j \prec_{\mathcal{T}} p_k$ denotes POI $p_j$ was visited before POI $p_k$ in trajectory $\mathcal{T}$
+and $p_j \succ_{\mathcal{T}} p_k$ denotes $p_j$ was visited after $p_k$ in $\mathcal{T}$.
 A perfect pairs-$F_1$, i.e., pairs-$F_1 = 1$, means that both the POIs and their visiting order in the
 recommended trajectory are exactly the same as these in the real trajectory,
 and pairs-$F_1 = 0$ means that none of the recommended POI pairs was actually visited in the real trajectory.
@@ -99,8 +113,8 @@ and pairs-$F_1 = 0$ means that none of the recommended POI pairs was actually vi
 \label{sec:setup}
 
 \begin{table*}[t]
-\caption{Performance comparison on four datasets in terms of trajectory $F_1$-score.
-         For each dataset (i.e., a column), the best method is shown in bold, the second best is shown in italic.}
+\caption{Performance comparison on five datasets in terms of trajectory $F_1$-score.
+         The best method for each dataset (i.e., a column) is shown in bold, the second best is shown in italic.}
 \label{tab:f1}
 \centering
 \begin{tabular}{l|ccccc} \hline
@@ -121,8 +135,8 @@ and pairs-$F_1 = 0$ means that none of the recommended POI pairs was actually vi
 
 
 \begin{table*}[t]
-\caption{Performance comparison on four datasets in terms of pair-$F_1$.
-         For each dataset (i.e., a column), the best method is shown in bold, the second best is shown in italic.}
+\caption{Performance comparison on five datasets in terms of pairs-$F_1$.
+         The best method for each dataset (i.e., a column) is shown in bold, the second best is shown in italic.}
 \label{tab:pairf1}
 \centering
 \begin{tabular}{l|ccccc} \hline
@@ -319,7 +333,6 @@ inconsistently on Melbourne dataset.
 
 
 % Figures from the appendix
-
 \begin{figure*}[t]
 \includegraphics[width=\textwidth]{fig/feature_distro.pdf}
 \caption{Distribution of POI popularity, the number of visit and visit duration}
