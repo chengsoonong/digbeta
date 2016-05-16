@@ -1,4 +1,22 @@
 \section{Experimental Results}
+\label{sec:results}
+
+\begin{table}
+\caption{Statistics of trajectory dataset}
+\label{tab:data}
+\centering\small
+\begin{tabular}{lrrrrr} \hline
+\textbf{Dataset} & \textbf{\#Photos} & \textbf{\#Visits} & \textbf{\#Traj.} & \textbf{\#Users} \\ \hline
+Edinburgh & 82,060 & 33,944 & 5,028 & 1,454 \\
+Glasgow & 29,019 & 11,434 & 2,227 & 601 \\
+Melbourne & 94,142 & 23,995 & 5,106 & 1,000 \\
+Osaka & 392,420 & 7,747 & 1,115 & 450 \\
+Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\
+\hline
+\end{tabular}
+\end{table}
+
+
 \label{sec:experiment}
 
 \begin{figure*}[t]
@@ -130,44 +148,6 @@ and pairs-$F_1 = 0$ means that none of the recommended POI pairs was actually vi
 
 
 We use leave-one-out cross validation to evaluate different trajectory recommendation algorithms,
-i.e., when evaluating a trajectory of a specific user, all other trajectories of this user as well as
-all trajectories of other users were used to train the recommendation algorithms.
-
-We conducted a comprehensive benchmark to compare the performance of different recommendation approaches.
-In addition to the \textsc{PoiPopularity}, we also applied the \textsc{Random} baseline which naively chooses
-POIs uniformly at random (without replacement) from the set of POIs $\mathcal{P} \setminus \{p_s, p_e \}$ to visit.
-
-Among the related approaches, \textsc{PersTour}\cite{ijcai15} is the most similar one, it formulated
-trajectory recommendation as an Orienteering Problem and use integer linear programming to maximise
-an objective, which composes both the POI popularity and user interest at the recommended POIs.
-A user's interest on a specific category of POIs is modelled as the total ratios of his/her actual visit duration
-over the average visit duration at these POIs in general.
-The recommended trajectory was also constrained by a time budget besides the origin and destination POIs.
-To make further comparison, we replace the time budget in \textsc{PersTour} with the trajectory length and
-denote this algorithm as \textsc{PersTour-L}.
-
-Other recommendation approaches in this benchmark including \textsc{PoiRank} which utilises the ranking of POIs
-described in section \ref{sec:ranksvm}, and \textsc{Markov} that recommending trajectories uses only transition
-probabilities between POIs, as described in section \ref{sec:transition}. Its variant \textsc{MarkovPath} that incorporates
-sub-tour elimination constraints described in section \ref{sec:walkpath} is also included.
-Furthermore, \textsc{Rank+Markov} algorithm that leverage both POI ranking and transition probabilities as well as
-its non-sub-tour variant \textsc{Rank+MarkovPath} that detailed in section \ref{sec:recommendation} are also
-benchmarked.
-
-Lastly, we have the \textsc{StructuredSVM} that not only utilises POI ranking and transition probabilities but also
-jointly optimises their relative importance, as described in section \ref{sec:ssvm}.
-The information that captured by these algorithms is summarised in table \ref{tab:algsummary},
-and the associated parameters of these algorithms are detailed in the appendix.
-
-% Parameters for IJCAI methods
-The trade-off parameter for \textsc{PersTour} and \textsc{PersTour-L} was $0.5$,
-% Parameters for Heuristics
-the trade-off value was used in \textsc{Rank+Markov} and \textsc{Rank+MarkovPath}.
-% Parameters for rankSVM
-The regularization parameter for rankSVM was $10$
-% Parameters for SSVM
-and $1$ for \textsc{StructuredSVM}.
-=======
 i.e., when testing on a trajectory, all other trajectories are used for training.
 
 % baseline: Random, PersTour, PersTour-L, PoiPopularity
@@ -335,21 +315,6 @@ inconsistently on Melbourne dataset.
 
 
 % Figures from the appendix
-\begin{table}
-\caption{Statistics of trajectory dataset}
-\label{tab:data}
-\centering\small
-\begin{tabular}{lrrrrr} \hline
-\textbf{Dataset} & \textbf{\#Photos} & \textbf{\#Visits} & \textbf{\#Traj.} & \textbf{\#Users} \\ \hline
-Edinburgh & 82,060 & 33,944 & 5,028 & 1,454 \\
-Glasgow & 29,019 & 11,434 & 2,227 & 601 \\
-Melbourne & 94,142 & 23,995 & 5,106 & 1,000 \\
-Osaka & 392,420 & 7,747 & 1,115 & 450 \\
-Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\
-\hline
-\end{tabular}
-\end{table}
-
 
 \begin{figure*}[t]
 \includegraphics[width=\textwidth]{fig/feature_distro.pdf}
