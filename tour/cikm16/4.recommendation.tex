@@ -82,23 +82,22 @@ $p_{j_k} \in \mathcal{P}, 1 \le k \le L$,
 where $y = (p_{j_1}, \dots, p_{j_L})$ is any possible trajectory and
 $0 \le \alpha \le 1$ is a parameter to trade-off the importance between the ranking of POIs
 and the POI-POI transitions in the recommended trajectory.
-The objective can be optimised by adapting the Viterbi algorithm using recursions
-\begin{equation}
+The objective can be optimised by adapting the Viterbi algorithm using two recursions
+\begin{multline}
     \label{eq:max}
-    A[l+1, p] = \max_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|x) + (1-\alpha) \log P(p|p') \}
-\end{equation}
-and
-\begin{equation}
+    A[l+1, p] = \max_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|x) + \\ (1-\alpha) \log P(p|p') \}
+\end{multline}
+\begin{multline}
     \label{eq:argmax}
-    B[l+1, p] = \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|x) + (1-\alpha) \log P(p|p') \}
-\end{equation}
-where $A[l, p]$ stores the maximum value that associated with the (partial) trajectory
+    B[l+1, p] = \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|x) + \\ (1-\alpha) \log P(p|p') \}
+\end{multline}
+where $A[l, p]$ stores the maximum value that associated with the (partial) trajectory, 
 that starts at $p_s$ and ends at $p$ with exactly $l$ POIs,
 $B[l, p]$ stores the predecessor of $p$ in the (partial) trajectory.
 
 The maximum objective value is $A[L, p_e]$,
 and the corresponding trajectory can be found by tracing back from $B[L, p_e]$.
-We call this approach that uses both the ranking of POIs and the POI-POI transition probabilities
+We call this approach that uses both the ranking of POIs and POI-POI transition probabilities
 \textsc{Rank+Markov}, with the pseudo code described in algorithm \ref{alg:rank+markov}.
 
 \begin{algorithm}[t]
@@ -128,15 +127,15 @@ We call this approach that uses both the ranking of POIs and the POI-POI transit
 \end{algorithmic}
 \end{algorithm}
 
-Similar to the \textsc{Markov} algorithm,
+Similar to the \textsc{Markov} algorithm described in section \ref{sec:transition},
 sub-tours (e.g., tottering) may appear in trajectories recommended by \textsc{Rank+Markov}.
 We can apply sub-tour elimination constraints described in section \ref{sec:walkpath} and
 optimise the following objective using integer linear programming
 with the same constraints as the \textsc{MarkovPath} algorithm.
 \begin{displaymath}
-    \text{Maximize}  \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} (\alpha \log P_R(p_j | x) + (1-\alpha) \log P(p_j | p_i))
+    \max  \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} (\alpha \log P_R(p_j | x) + (1-\alpha) \log P(p_j | p_i))
 \end{displaymath}
-We denote this algorithm as \textsc{Rank+MarkovPath}.
+We call this algorithm \textsc{Rank+MarkovPath} in the experiments.
 
 \subsection{Structured SVM}
 \label{sec:ssvm}

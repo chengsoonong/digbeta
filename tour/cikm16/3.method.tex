@@ -102,7 +102,8 @@ First we disallow self transitions by setting the probability of ($p_i$ to $p_i$
 Second we need to deal with the possibility that multiple POIs may share exactly the same
 feature vector.
 When a group of POIs have identical (discretised) features, we distribute the probability
-uniformly among the POIs in the group. More details of this procedure are provided in the Appendix.
+uniformly among the POIs in the group. 
+%More details of this procedure are provided in the Appendix.
 The POI-POI transition matrix can be efficiently computed by taking the Kronecker product of
 the transition matrices for the individual features and then updating it based on the constraints described above.
 
