@@ -3,6 +3,15 @@
 \section{Related Work}
 \label{sec:relatedwork}
 
+
+\begin{figure*}[htbp]
+\includegraphics[width=\textwidth]{fig/poi_transmat.png}
+\caption{Transition matrices for $5$ individual POI features (Melbourne)}
+\label{fig:transmat}
+\end{figure*}
+
+
+
 %As geo-tagged travel data become widely available, problems in exploring routes and travel patterns has received increasing attention across several research communities -- including information retrieval and recommender systems, databases, social media, geographic information systems, and artificial intelligence.
 %Exhaustive surveying of the area is beyond the scope of this work, we refer the readers to a number of
 We summarise recent work most related to formulating and solving learning problems on assembling routes
@@ -31,9 +40,11 @@ Our work is in this category, we formulate a learning problem to score the whole
 
 %We group the methods for ranking and recommending location and trajectories into three broad categories.
 {\bf Methods} for ranking locations and trajectories.
-The first is collaborative filtering, or matrix factorisation family of techniques applied to places and trajectories~\cite{shi2011personalized,ijcai13,zhang2015location}. The second type regard route recommendation as a planning problem. Gionis et al~\cite{gioniswsdm14} formulates optimisation problems with additive user satisfaction and coverage constraints. Lim et al.~\cite{ijcai15} uses a combination of user preference and POI popularity as objective function, and then solves a travelling salesman problem (TSP) to obtain a route.
-The TripBuilder system~\cite{brilhante2013shall} first solves a maximum coverage problem for user preference and then solves TSP for routing. The collaborative filtering approaches rank POI but do not take into account the sequence that a trip is taken. On the other hand, the planning approaches assume a fixed objective function that is not directly optimised to predict user behaviour. There have been a few approaches that jointly optimise POI preference and routes. Lu et al~\cite{lu2012personalized} uses heuristic combinations for point scoring, followed by branch-n-bound search for planning. Kurashima et al~\cite{kurashima2010geotag} modelled user preferences and his/her transition patterns between POIs using a hybrid of Markov chain and topic models, the search for a best path is done by greedily maximising the probability for the next point. The TripPlanner system~\cite{chen2015tripplanner} selects POIs based on input query and POI categories, and then scores routes using heuristic search strategies taking into account traffic and travel time constraints.
-We propose a new approach that learns the importance of different POI features and POI-to-POI transition features, we also provide a comprehensive benchmark on how node- and edge- features contribute to the final trajectory ranking.
+The first is collaborative filtering, or matrix factorisation family of techniques applied to places and trajectories~\cite{shi2011personalized,ijcai13,zhang2015location}. The second type regards route recommendation as a planning problem~\cite{gioniswsdm14,ijcai15}.
+%Gionis et al~\cite{gioniswsdm14} formulates optimisation problems with additive user satisfaction and coverage constraints. Lim et al.~\cite{ijcai15} uses a combination of user preference and POI popularity as objective function, and then solves a travelling salesman problem (TSP) to obtain a route.
+The TripBuilder system~\cite{brilhante2013shall} first solves a maximum coverage problem for user preference and then solves TSP for routing. The collaborative filtering approaches rank POI but do not take into account the sequence that a trip is taken. On the other hand, the planning approaches assume a fixed objective function that is not directly optimised to predict user behaviour. There have been a few approaches that jointly consider POI preference and routes~\cite{lu2012personalized, kurashima2010geotag,chen2015tripplanner}.
+%Lu et al~\cite{lu2012personalized} uses heuristic combinations for point scoring, followed by branch-n-bound search for planning. Kurashima et al~\cite{kurashima2010geotag} modelled user preferences and his/her transition patterns between POIs using a hybrid of Markov chain and topic models, the search for a best path is done by greedily maximising the probability for the next point. The TripPlanner system~\cite{chen2015tripplanner} selects POIs based on input query and POI categories, and then scores routes using heuristic search strategies taking into account traffic and travel time constraints.
+We propose a new approach that combines different POI features and POI-to-POI transition features, while learning the relevant weights from data. We also provide a comprehensive benchmark on how node- and edge- features contribute to the final trajectory ranking.
 
 
 %planning:

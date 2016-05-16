@@ -3,28 +3,44 @@
 We collected the POI categories in all of the five trajectory datasets
 and their names with the corresponding icons are shown in figure \ref{fig:poicats}.
 
-Three POI features used to rank POIs, namely, the popularity, 
-the total number of visits and the visit duration, in all five datasets are shown in 
+Three POI features used to rank POIs, namely, the popularity,
+the total number of visits and the visit duration, in all five datasets are shown in
 figure \ref{fig:popularity}, figure \ref{fig:nvisit} and figure \ref{fig:duration} respectively.
 
 Figure \ref{fig:transmat} shows the heat map of the transition matrices for $5$ individual POI features
 in Melbourne dataset.
 
+\begin{table}
+\caption{Statistics of trajectory dataset}
+\label{tab:data}
+\centering\small
+\begin{tabular}{lrrrrr} \hline
+\textbf{Dataset} & \textbf{\#Photos} & \textbf{\#Visits} & \textbf{\#Traj.} & \textbf{\#Users} \\ \hline
+Edinburgh & 82,060 & 33,944 & 5,028 & 1,454 \\
+Glasgow & 29,019 & 11,434 & 2,227 & 601 \\
+Melbourne & 94,142 & 23,995 & 5,106 & 1,000 \\
+Osaka & 392,420 & 7,747 & 1,115 & 450 \\
+Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\
+\hline
+\end{tabular}
+\end{table}
 
-\begin{figure}
-\centering
+
+%\begin{figure}
+%\centering
 %\includegraphics[width=\columnwidth]{fig/poi_cats.pdf}
-\includegraphics[scale=.32]{fig/poi_cats.pdf}
-\caption{POI categories}
-\label{fig:poicats}
-\end{figure}
+%\includegraphics[scale=.32]{fig/poi_cats.pdf}
+%\caption{POI categories}
+%\label{fig:poicats}
+%\end{figure}
 
-\begin{figure*}
+\begin{figure*}[t]
 \includegraphics[width=\textwidth]{fig/feature_distro.pdf}
 \caption{Distribution of POI popularity, the number of visit and visit duration}
 \label{fig:distro}
 \end{figure*}
 
+\cheng{Report the proportion of recommended trajectories and actual trajectories with sub-tours, in the Appendix.}
 
 \section{POIs with same features}
 

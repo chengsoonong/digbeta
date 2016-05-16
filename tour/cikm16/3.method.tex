@@ -1,26 +1,16 @@
 \section{POI, Query and Path}
 \label{sec:method}
 
-\begin{figure*}
-\includegraphics[width=\textwidth]{fig/poi_transmat.png}
-\caption{Transition matrices for $5$ individual POI features (Melbourne)}
-\label{fig:transmat}
-\end{figure*}
 
+We aim to recommend a particular tour such that the user will visit a sequence of points-of-interests (POIs), denoted $p_1, \ldots, p_L$, that maximises utility. We are given the desired start ($p_1=p_s$) and end point ($p_L=p_e$), and an associated number $L$ of POIs desired, from which we propose a trajectory through the city. In Figure~\ref{fig:threesettings}(c), an example tour is shown in blue, which starts at the POI denoted as a grey star, visits two intermediate POIs, and terminates on the fourth POI denoted as a flag. The tour of length 4 can be modelled as a sequence of directed edges in a graph containing POIs in the city as nodes.
 
-We would like to recommend a particular tour such that the user will visit a sequence of points-of-interests (POIs), denoted $p_1, \ldots, p_L$, that maximises utility. We are given the desired start ($p_1=p_s$) and end point ($p_L=p_e$), and an associated number $L$ of POIs desired, from which we propose a trajectory through the city. In Figure~\ref{fig:threesettings}(c), an example tour is shown in blue, which starts at the POI denoted as a grey star, visits two intermediate POIs, and terminates on the fourth POI denoted as a flag. The tour of length 4 can be modelled as a sequence of directed edges in a graph containing POIs in the city as nodes.
+The training data consists of a set of tours of varying length in a particular city. We assume that all POIs in the city are visited at least once, and hence can construct a graph with POIs as nodes and potentially multiple directed edges between each pair of nodes. We extract the category, popularity, total number of visits and average visit duration for each POI.
+%The set of categories are shown in figure \ref{fig:poicats} in the appendix, and the popularity is defined as the number of distinct users that visited the POI\cite{ht10}.
 
-The training data consists of a set of tours of varying length in a particular city. We assume that all POIs in the city are visited at least once, and hence can construct a graph with POIs as nodes and potentially multiple directed edges between each pair of nodes. We extract the category, popularity, total number of visits and average visit duration for each POI. The set of categories are shown in figure \ref{fig:poicats} in the appendix, and the popularity is defined as the number of distinct users that visited the POI\cite{ht10}.
-
-As a baseline approach, we recommend the trajectory based on the popularity of POIs only, that is we always suggest the top-$k$ most popular POIs for all visitors given the start and end location. This baseline approach, called \textsc{PoiPopularity}, and its only adaptation to a particular request is to adjust $k$ to match the desired length.
-
-\cheng{I have removed reference to user specific recommendations.}
-
+As a baseline approach, we recommend the trajectory based on the popularity (number of distinct users) of POIs only~\cite{ht10}, that is we always suggest the top-$k$ most popular POIs for all visitors given the start and end location. This baseline approach, called \textsc{PoiPopularity}, and its only adaptation to a particular request is to adjust $k$ to match the desired length.
 
 \subsection{Ranking using the origin and destination}
 \label{sec:ranksvm}
-
-\dawei{Features of target POI are already described here.} 
 
 In addition to popularity, we also can rank the candidate POIs based on the other three POI specific features (category, total visits and average duration).
 We can learn a ranking of POIs by using rankSVM with linear kernel and $L2$ loss\cite{lranksvm},
@@ -29,7 +19,7 @@ We can learn a ranking of POIs by using rankSVM with linear kernel and $L2$ loss
                     C_r \sum_{(p_i, p_j) \in \mathcal{P}}
                     \max \left( 0, 1 - \mathbf{w_r}^T (\mathbf{f}_{p_i} - \mathbf{f}_{p_j}) \right)^2
 \end{displaymath}
-where $\mathcal{P}$ is the set of POIs to rank, 
+where $\mathcal{P}$ is the set of POIs to rank,
 $\mathbf{w_r}$ is a vector of parameters,
 $C_r > 0$ is the regularisation parameter and
 $\mathbf{f}_{p_i}$ is the feature vector for POI $p_i$ that will be described below.
@@ -38,39 +28,40 @@ Furthermore, since we are constrained by the fact that trajectories have to be o
 In other words, using the query $(p_s, p_e, L)$ we can construct new features by contrasting
 candidate POIs with $p_s$ and $p_e$.
 
-For each of the POI features above, we construct two new features by taking the difference of
+For each of the POI features (category, total visits and average duration),
+we construct two new features by taking the difference of
 the feature in POI $p$ with $(p_s, p_e)$ respectively.
 For the category, we set the feature to $1$ when their categories are the same and $-1$ otherwise.
 For popularity, total visits and visit duration, we take the real valued difference.
-The distance from POI $p$ to $p_s$ (and $p_e$) is computed using the haversine formula \cite{haversine},
-\begin{displaymath}
-  d(p, p_s) = 2 R_1 \arcsin \sqrt{ \sin^2 \frac{\Delta \varphi}{2} +
-    \cos \varphi_p \cos \varphi_{p_s} \sin^2 \frac{\Delta \lambda}{2} }
-\end{displaymath}
-where $R_1 = 6371.0088$ km is the mean earth radius \cite{earth_radius},
-$\Delta \varphi = \varphi_p - \varphi_{p_s}$, $\Delta \lambda = \lambda_p - \lambda_{p_s}$,
-and $\varphi_p$, $\lambda_p$ are the latitude and longitude of POI $p$ respectively.
+The distance from POI $p$ to $p_s$ (and $p_e$) is computed using the haversine formula \cite{haversine}.
+%\begin{displaymath}
+%  d(p, p_s) = 2 R_1 \arcsin \sqrt{ \sin^2 \frac{\Delta \varphi}{2} +
+%    \cos \varphi_p \cos \varphi_{p_s} \sin^2 \frac{\Delta \lambda}{2} }
+%\end{displaymath}
+%where $R_1 = 6371.0088$ km is the mean earth radius \cite{earth_radius},
+%$\Delta \varphi = \varphi_p - \varphi_{p_s}$, $\Delta \lambda = \lambda_p - \lambda_{p_s}$,
+%and $\varphi_p$, $\lambda_p$ are the latitude and longitude of POI $p$ respectively.
 Lastly we also include the required length $L$ of the trajectory as a feature for rankSVM.
 
 For training the rankSVM, the labels are generated using the number of occurrences of
 POI $p$ in trajectories grouped by query $(p_s, p_e, L)$,
 without counting the occurrence of $p$ when it is the origin or destination POI of a trajectory.
-We create another algorithm to recommend trajectory by utilising
-the ranking of POIs described above,
-the pseudo code of this algorithm, \textsc{PoiRank}, is described in algorithm \ref{alg:poirank}.
+We create another algorithm, \textsc{PoiRank}, to recommend trajectory by utilising
+the ranking of POIs described above. \textsc{PoiRank} takes the top ranked $L-2$ POIs
+and connects them in sequence of the ranks.
 
-\begin{algorithm}
-\caption{\textsc{PoiRank}: recommend trajectory by ranking POIs}
-\label{alg:poirank}
-\begin{algorithmic}[1]
-\STATE \textbf{Input}: $\mathcal{P}, p_s, p_e, L$ 
-\STATE Train a rankSVM using POI and query related features
-\STATE Produce a rank $<_{p_i, p_j} \subset \mathcal{P}^2$ w.r.t. query $(p_s, p_e, L)$
-\STATE Take the top ranked $L-2$ POIs from $\mathcal{P} \setminus \{p_s, p_e\}$ and simply connect them in sequence, 
-       then further connect the start point $p_s$ and end point $p_e$ to produce a trajectory $\mathcal{T}$.
-\RETURN $\mathcal{T}$
-\end{algorithmic}
-\end{algorithm}
+%\begin{algorithm}
+%\caption{\textsc{PoiRank}: recommend trajectory by ranking POIs}
+%\label{alg:poirank}
+%\begin{algorithmic}[1]
+%\STATE \textbf{Input}: $\mathcal{P}, p_s, p_e, L$
+%\STATE Train a rankSVM using POI and query related features
+%\STATE Produce a rank $<_{p_i, p_j} \subset \mathcal{P}^2$ w.r.t. query $(p_s, p_e, L)$
+%\STATE Take the top ranked $L-2$ POIs from $\mathcal{P} \setminus \{p_s, p_e\}$ and simply connect them in sequence,
+%       then further connect the start point $p_s$ and end point $p_e$ to produce a trajectory $\mathcal{T}$.
+%\RETURN $\mathcal{T}$
+%\end{algorithmic}
+%\end{algorithm}
 
 
 \subsection{Transition probabilities}
@@ -86,13 +77,14 @@ empirical data.
 
 We model these transitions using a Markov Chain with discrete factored states.
 The transition probability from POI $p_i$ to POI $p_j$ is factorised according to
-individual POI features described in Section~\ref{sec:ranksvm}. We directly model
+individual POI features described in Section~\ref{sec:ranksvm}.
+Figure \ref{fig:transmat} shows the transition matrices for individual POI features
+in Melbourne.
+We directly model
 the transition between the category and neighbourhood of each POI as the conditional probability.
-The popularity, total number of visits and the average visit duration are discretised by binning 
+The popularity, total number of visits and the average visit duration are discretised by binning
 them uniformly into $5$ discrete intervals on the log scale.
 In addition, POIs are grouped into $5$ clusters using K-means according to their geographical locations.
-
-\cheng{Why is neighbourhood not used in the univariate (POI) features?}
 
 We compute the transition probabilities of the above individual POI features
 using maximum likelihood estimation,
@@ -102,12 +94,8 @@ taking care of zeros by adding a small number $\epsilon$
 to each count before normalisation,
 which results in a transition matrix for each of the above POI features.
 
-\cheng{Refer to plots}.
-
-Figure \ref{fig:transmat} shows the transition matrices for individual POI features in Melbourne city.
-
 Assuming independence between these features,
-the transition probability from $p_i$ to $p_j$ can be defined as the product
+the transition probability $P(p_j | p_i)$ from $p_i$ to $p_j$ can be defined as the product
 of the transition probabilities of each individual feature (and appropriately normalised),
 with two additional constraints.
 First we disallow self transitions by setting the probability of ($p_i$ to $p_i$) to zero.
@@ -115,7 +103,7 @@ Second we need to deal with the possibility that multiple POIs may share exactly
 feature vector.
 When a group of POIs have identical (discretised) features, we distribute the probability
 uniformly among the POIs in the group. More details of this procedure are provided in the Appendix.
-The POI-POI transition matrix can be efficiently computed by taking the Kronecker product of 
+The POI-POI transition matrix can be efficiently computed by taking the Kronecker product of
 the transition matrices for the individual features and then updating it based on the constraints described above.
 
 Given the POI-POI transition probabilities, we recommend a trajectory with respect to query
@@ -124,11 +112,7 @@ transition probabilities between POIs as \textsc{Markov}. The maximum likelihood
 can be found using a variant of the Viterbi algorithm (with emission probabilities ignored),
 which is shown in algorithm \ref{alg:markov}.
 
-\cheng{Describe why this is not exactly standard Viterbi.}
-
-\dawei{No emission probabilities in this case.}
-
-\begin{algorithm}
+\begin{algorithm}[t]
 \caption{\textsc{Markov}: recommend trajectory by maximising likelihood}
 \label{alg:markov}
 \begin{algorithmic}[1]
@@ -140,7 +124,7 @@ which is shown in algorithm \ref{alg:markov}.
 \ENDFOR
 \FOR{$l=2$ to $L-1$}
     \FOR{$p \in \mathcal{P}$}
-        \STATE \(\displaystyle A[l+1, p] = \max_{p' \in \mathcal{P}} \{ A[l, p'] + \log P(p|p') \} \) 
+        \STATE \(\displaystyle A[l+1, p] = \max_{p' \in \mathcal{P}} \{ A[l, p'] + \log P(p|p') \} \)
         \STATE \(\displaystyle B[l+1, p] = \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + \log P(p|p') \} \)
     \ENDFOR
 \ENDFOR
@@ -168,11 +152,8 @@ visited again).
 We propose a method for eliminating sub-tours by specifying additional constraints
 when recommending trajectories.
 
-\cheng{Report the proportion of recommended trajectories and actual trajectories with sub-tours, in the Appendix.}
-
-
 %  \item ILP
-In particular, we find the best trajectory using an integer linear programming with
+In particular, we find the best trajectory using an integer linear program with
 sub-tour elimination constraints adapted from the Travelling Salesman Problem\cite{opt98}.
 We call our method that uses the transition matrix to recommend paths
 that do not have circular sub-tours \textsc{MarkovPath}.
