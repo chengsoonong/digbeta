@@ -1,5 +1,8 @@
 \section{Experimental Results}
-\label{sec:results}
+\label{sec:experiment}
+
+\subsection{Dataset}
+\label{sec:dataset}
 
 \begin{table}
 \caption{Statistics of trajectory dataset}
@@ -17,20 +20,6 @@ Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\
 \end{table}
 
 
-\label{sec:experiment}
-
-\begin{figure*}[t]
-	\centering
-	\includegraphics[width=\textwidth]{fig/example-tour.pdf}
-	\caption{A figure illustrating results of different results from algorithm variants.
-}
-	\label{fig:exampleresult}
-\end{figure*}
-
-
-
-\subsection{Dataset}
-\label{sec:dataset}
 We experiment on five trajectory datasets, four of them were provided by \cite{ijcai15}.
 Trajectories in these datasets were extracted from Yahoo! Flickr Creative Commons 100M
 (a.k.a. YFCC100M) dataset\cite{thomee2016yfcc100m} using metadata of photos and videos
@@ -47,6 +36,12 @@ that POI \cite{ht10, ijcai15}.
 \subsection{Performance metric}
 \label{sec:metric}
 
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=\columnwidth]{fig/pairF1.pdf}
+	\caption{$F_1$ vs pairs-$F_1$}
+	\label{fig:pairf1}
+\end{figure}
 
 
 \cheng{Let's try this here. Still needs polishing.}
@@ -145,6 +140,15 @@ and pairs-$F_1 = 0$ means that none of the recommended POI pairs was actually vi
 \hline
 \end{tabular}
 \end{table*}
+
+
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=\textwidth]{fig/example-tour.pdf}
+	\caption{A figure illustrating results of different results from algorithm variants.
+}
+	\label{fig:exampleresult}
+\end{figure*}
 
 
 We use leave-one-out cross validation to evaluate different trajectory recommendation algorithms,
