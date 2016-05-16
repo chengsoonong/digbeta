@@ -22,17 +22,21 @@ Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\
 \end{table}
 
 
-We experiment on five trajectory datasets, four of them were provided by \cite{ijcai15}.
-Trajectories in these datasets were extracted from Yahoo! Flickr Creative Commons 100M
-(a.k.a. YFCC100M) dataset\cite{thomee2016yfcc100m} using metadata of photos and videos
-such as geographical locations, timestamps, user identifications etc,
-the details of building trajectories are covered in \cite{ht10} and \cite{ijcai15} and
-we refer interested readers to these papers.
-Statistics of the four trajectory datasets are described in table \ref{tab:data}.
-%
-The time that a user arrived a POI was approximated by the time the first photo taken by the user at that POI,
-similarly, the time that a user leaved a POI was approximated by the time the last photo taken by the user at
-that POI \cite{ht10, ijcai15}.
+We experiment on five trajectory datasets, namely, Edinburgh, Glasgow, Osaka, Toronto and Melbourne.
+The statistics of these trajectory datasets are described in table \ref{tab:data}.
+The first four datasets are kindly provided by \cite{ijcai15} and the Melbourne dataset is built using
+the same approach introduced by \cite{ht10, ijcai15} which is briefly described below.
+
+Trajectories are extracted using  geo-tagged photos in the Yahoo! Flickr Creative Commons 100M
+(a.k.a. YFCC100M) dataset\cite{thomee2016yfcc100m} as well as the Wikipedia web-pages of points-of-interests (POIs).
+Photos are mapped to POIs according to their distances calculated by haversine formula\cite{haversine},
+and the time that a user arrived a POI is approximated by the time the first photo taken by the user at that POI,
+similarly, the time that a user left a POI is approximated by the time the last photo taken 
+by the user at that POI. Furthermore, POI visits by a specific user are divided into several pieces according to
+the time gap between consecutive POI visits, and the POI visits in each piece are connected in temporal order
+to form a trajectory. 
+For details of extracting trajectories from geo-tagged photos, please refer to \cite{ht10, ijcai15}.
+
 
 
 \subsection{Performance metric}
