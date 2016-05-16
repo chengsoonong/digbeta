@@ -1,8 +1,22 @@
 \section{Conclusion}
 \label{sec:conclusion}
+
+\eat{
 In this paper, we present an approach to utilize learning to rank as well as factorized Markov Chain to explore both
 POI properties and transition patterns between POIs, then combine them using a probabilistic model and structured 
 support vector machine to recommend trajectory. 
 We evaluate the performance of our approach on four trajectory datasets extracted from Flickr photos using both 
 trajectory F$_1$-score and trajectory $\tau$, experimental results show not only performance improvements over 
 state-of-the-art methods but also many interesting properties of trajectories in different datasets.
+}
+
+In this paper, we propose an approach to recommend trajectory by optimising ranks and routes jointly.
+Point preferences are learned by ranking according to POI and query features, 
+and transition probabilities between POIs are factorised according to individual POI features.
+
+By leveraging both point preference and transitions, when compared to recent works,
+we empirically show the proposed approach performs well in terms of both the traditional $F_1$-score
+as well as the newly proposed metric pairs-$F_1$, which takes into account both the correctly recommended POIs 
+and the transitions between POIs.
+
+
