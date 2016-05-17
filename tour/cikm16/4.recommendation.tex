@@ -32,7 +32,7 @@ to a probability distribution using the softmax function~\cite{bishop2006},
   \label{eq:poi-probability}
   P_R(p_j | q) = \frac{e^{R(p_j)}}{\sum_j e^{R(p_j)}}
 \end{equation}
-where $R(p_j)$ is the ranking score of POI $p_j$ with respect to query $q$.
+where $R(p_j)$ is the ranking score of POI $p_j$ from rankSVM with respect to query $q$.
 
 \eat{
 The logarithm of product of ranking probabilities of POIs in a trajectory
@@ -69,11 +69,11 @@ Similar to \textsc{Markov} algorithm above, the best path can be found using the
 %The objective can be optimised by adapting the Viterbi algorithm and using the two recursions below,
 \begin{multline}
     \label{eq:max}
-    A[l+1, p] = \max_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|q) + \\ (1-\alpha) \log P(p|p') \}
+    A[l+1, p] = \max_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|q) \\ + (1-\alpha) \log P(p|p') \}
 \end{multline}
 \begin{multline}
     \label{eq:argmax}
-    B[l+1, p] = \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|q) + \\ (1-\alpha) \log P(p|p') \}
+    B[l+1, p] = \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|q) \\ + (1-\alpha) \log P(p|p') \}
 \end{multline}
 where $A$ the score matrix and entry $A[l, p]$ stores the maximum value that associated with the (partial) trajectory, 
 that starts at $p_s$ and ends at $p$ with $l$ POI visits,
@@ -94,7 +94,7 @@ with the pseudo code shown in Algorithm~\ref{alg:rank+markov}.
 \STATE Compute POI-POI transition matrix
 \STATE Initialise score matrix $A$ and backtracking pointers $B$
 \FOR{$p \in \mathcal{P}$}
-    \STATE $A[2, p] = \alpha ( \log P_R(p_s|q) + \log P_R(p|q) )$ $+$ \\ \hfill $(1-\alpha) \log P(p|p_s)$
+    \STATE $A[2, p] = \alpha ( \log P_R(p_s|q) + \log P_R(p|q) )$ \\ \hfill $+ (1-\alpha) \log P(p|p_s)$
     \STATE $B[2, p] = p_s$
 \ENDFOR
 \FOR{$l=2$ to $L-1$}
@@ -138,7 +138,7 @@ prediction,
                     \sum_{j=1}^L \mathbf{w_u}^T \mathbf{\phi}_j \left( q, \mathcal{T}_j \right) +
                     \sum_{j=1}^{L-1} \mathbf{w_p}^T \mathbf{\phi}_{j, j+1} \left( q, \mathcal{T}_j, \mathcal{T}_{j+1} \right)
 \end{displaymath}
-where $\mathbf{\phi}_j$ is the unary features of the $j$-th variable and $\mathbf{\phi}_{j, j+1}$ is the pairwise features between
+where $\mathbf{\phi}_j$ are the unary features of the $j$-th variable and $\mathbf{\phi}_{j, j+1}$ are the pairwise features between
 the $j$-th and $(j+1)$-th variables, $\mathbf{w_u}$ and $\mathbf{w_p}$ are the
 parameters of unary and pairwise features.
 

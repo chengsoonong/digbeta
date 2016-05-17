@@ -5,7 +5,7 @@
 
 We aim to recommend a particular tour such that the user will visit a sequence of points-of-interests (POIs), denoted $p_1, \ldots, p_L$, that maximises utility. We are given the desired start ($p_1=p_s$) and end point ($p_L=p_e$), and an associated number $L$ of POIs desired, from which we propose a trajectory through the city. In Figure~\ref{fig:threesettings}(c), an example tour is shown in blue, which starts at the POI denoted as a grey star, visits two intermediate POIs, and terminates on the fourth POI denoted as a flag. The tour of length 4 can be modelled as a sequence of directed edges in a graph containing POIs in the city as nodes.
 
-The training data consists of a set of tours of varying length in a particular city. We assume that all POIs in the city are visited at least once, and hence can construct a graph with POIs as nodes and potentially multiple directed edges between each pair of nodes. We extract the category, popularity, total number of visits and average visit duration for each POI.
+The training data consists of a set of tours of varying length in a particular city. We assume that all POIs $\mathcal{P}$ in the city are visited at least once, and hence can construct a graph with POIs as nodes and potentially multiple directed edges between each pair of nodes. We extract the category, popularity, total number of visits and average visit duration for each POI.
 %The set of categories are shown in Figure~\ref{fig:poicats} in the appendix, and the popularity is defined as the number of distinct users that visited the POI\cite{ht10}.
 
 %As a baseline approach, we 
@@ -16,7 +16,7 @@ recommend the trajectory based on the popularity (number of distinct users)~\cit
 \label{sec:ranksvm}
 
 In addition to popularity, we also can rank the candidate POIs based on the other three POI specific features (category, total visits and average duration).
-We can learn a ranking of POIs by using rankSVM with linear kernel and $L2$ loss\cite{lranksvm},
+We can learn a ranking of POIs by using rankSVM with linear kernel and $L2$ loss~\cite{lranksvm},
 \begin{displaymath}
 \min_{\mathbf{w_r}} \frac{1}{2} \mathbf{w_r}^T \mathbf{w_r} +
                     C_r \sum_{(p_i, p_j) \in \mathcal{P}}
@@ -50,8 +50,8 @@ The frequency distribution of POI popularity, number of visits and visit duratio
 For training the rankSVM, the labels are generated using the number of occurrences of
 POI $p$ in trajectories grouped by query $(p_s, p_e, L)$,
 without counting the occurrence of $p$ when it is the origin or destination of a trajectory.
-We create another algorithm, \textsc{PoiRank}, to recommend trajectory by utilising
-the ranking of POIs described above. \textsc{PoiRank} takes the top ranked $L-2$ POIs
+We create another algorithm, \textsc{PoiRank}, to recommend trajectory by ranking POIs 
+utilising both POI and query specific features described above. \textsc{PoiRank} takes the top ranked $L-2$ POIs
 and connects them in sequence of the ranks.
 
 %\begin{algorithm}
@@ -73,13 +73,13 @@ and connects them in sequence of the ranks.
 
 In addition to information about each individual POI, a tour recommendation system would benefit
 from capturing the likelihood of transitioning between different POIs. One option would be to
-directly model the probability of going from one POI to another, but this has several weaknesses.
-This model would be unable to handle a new POI (one that has not yet been visited).
+directly model the probability of going from one POI to another, but this has several weaknesses:
+Such a model would be unable to handle a new POI (one that has not yet been visited).
 Furthermore, even if we restrict ourselves to known POIs, there may be many locations which
 are rarely visited, leading to significant challenges in estimating the probabilities from
 empirical data.
 
-We model these transitions using a Markov chain with discrete factored states.
+We model POI transitions using a Markov chain with discrete factored states.
 One difficulty of estimating the Markov chain is data sparsity, 
 i.e., not enough transitions have been observed between every pair of POIs. 
 We factorised the transition probability from POI $p_i$ to POI $p_j$ %is  according to
@@ -158,7 +158,7 @@ and entry $B[l, p]$ in the backtracking-point matrix $B$ stores the predecessor 
 
 The tours recommended by \textsc{Markov} described in Section~\ref{sec:transition} are found
 using the maximum likelihood approach, and may contain multiple visits to the same POI.
-This is because the best path from Viterbi decoding %random walk suggested by Viterbi 
+This is because the best path (or walk) from Viterbi decoding %random walk suggested by Viterbi 
 may have tottering (where the Markov chain transitions back and forth between two states),
 or may have circular sub-tours (where a POI already visited earlier in the tour is
 visited again).
@@ -179,10 +179,10 @@ s.t. ~& x_{ij} \in \{0, 1\}, ~\forall i, j = 1, \cdots, N \\
      & \sum_{j=2}^N x_{1j} = \sum_{i=1}^{N-1} x_{iN} = 1 \\
      & \sum_{i=1}^{N-1} x_{ik} = \sum_{j=2}^N x_{kj} \le 1, ~\forall k=2, \cdots, N-1 \\
      & \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} = L-1 \\
-     & u_i - u_j + 1 \le (N-1) (1-x_{ij}), ~\forall i, j = 2, \cdots, N
+     & u_i - u_j + 1 \le (N-1) (1-x_{ij}), ~\forall i, j = 2, \cdots, N.
 \end{align}
-where $x_{ij}$ is a binary decision variable which determines whether transition from POI $p_i$ to POI $p_j$
-occurred in the recommended trajectory.
+where $N=|\mathcal{P}|$ is the number of POIs and $x_{ij}$ is a binary decision variable 
+which determines whether transition from POI $p_i$ to POI $p_j$ occurred in the recommended trajectory.
 For brevity, we assume $x_{i1}$ and $x_{1j}$ represent the incoming and outgoing transitions of $p_s$,
 similarly, $x_{iN}$ and $x_{Nj}$ correspond to the incoming and outgoing transitions of $p_e$.
 Constraint $(2)$ restricts that only one outgoing (incoming) transition for $p_s$ ($p_e$)
