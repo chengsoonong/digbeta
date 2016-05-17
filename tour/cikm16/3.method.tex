@@ -113,14 +113,14 @@ can be found using a variant of the Viterbi algorithm (with emission probabiliti
 which is shown in algorithm \ref{alg:markov}.
 The entry $A[l, p]$ in score matrix $A$ stores the maximum likelihood associated with the (partial) trajectory 
 that starts from $p_s$ and ends at $p$ with $l$ POI visits, 
-and entry $B[l, p]$ in the backtracking point matrix $B$ stores the predecessor of $p$ in that (partial) trajectory.
+and entry $B[l, p]$ in the backtracking-point matrix $B$ stores the predecessor of $p$ in that (partial) trajectory.
 
 \begin{algorithm}[t]
 \caption{\textsc{Markov}: recommend trajectory by maximising likelihood}
 \label{alg:markov}
 \begin{algorithmic}[1]
 \STATE \textbf{Input}: $\mathcal{P}, p_s, p_e, L$
-\STATE \textbf{Output}: a trajectory $\mathcal{T} = (p_s, \cdots, p_e)$ with $L$ POIs
+\STATE \textbf{Output}: Trajectory $\mathcal{T} = (p_s, \cdots, p_e)$ with $L$ POIs
 \STATE Compute POI-POI transition matrix
 \STATE Initialise matrices $A$ and $B$
 \FOR{$p \in \mathcal{P}$}
