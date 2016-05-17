@@ -47,7 +47,7 @@ The main contributions of this work is as follows:
 \setlength{\itemsep}{-2pt}
 \item We propose a novel algorithm to jointly optimise point preference and route plan.
   We find that the learning-based approaches generally out-perform heuristic route recommendation~\cite{ijcai15}. Incorporating transitions to POI ranking improves the pairs-F1 metric for correct sequences of POIs, and that routing algorithms that disallow sub-tours generally out-perform Markov chain methods.
-\item Our approach is feature-driven and learns from past behaviour without having to design specialised treatment for spatial, temporal and social information. It currently incorporates information about location, POI categories and behaviour history, and can use additional social or time information.% as long as they are  encoded in features.
-\item We show good performance compared to recent results~\cite{ijcai15}, and also quantify the contribution from the different components, such as point ranking, scoring transitions, and routing.
+\item Our approach is feature-driven and learns from past behaviour without having to design specialised treatment for spatial, temporal and social information. It currently incorporates information about location, POI categories and behaviour history, and can use additional time, user, or social information if available.% as long as they are  encoded in features.
+\item We show good performance compared to recent results~\cite{ijcai15}, and also quantify the contribution from the different components, such as ranking points, scoring transitions, and routing.
 \item We propose a new metric to evaluate trajectories: pairs-F1, which has the property of being between 0 and 1, and being 1 if and only if the recommended trajectory is exactly the same as the ground truth. Our benchmark data and results are publicly available.
 \end{itemize}
