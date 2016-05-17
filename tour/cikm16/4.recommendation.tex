@@ -85,14 +85,14 @@ We call this approach that uses both the ranking of POIs and POI-POI transitions
 with the pseudo code shown in Algorithm~\ref{alg:rank+markov}.
 
 \begin{algorithm}[t]
-\caption{\textsc{Rank+Markov}: recommend trajectory by utilising both POI ranking and transition}
+\caption{\textsc{Rank+Markov}: recommend trajectory with both POI ranking and transition}
 \label{alg:rank+markov}
 \begin{algorithmic}[1]
 \STATE \textbf{Input}: $\mathcal{P}, p_s, p_e, L$
 \STATE \textbf{Output}: Trajectory $\mathcal{T} = (p_s, \cdots, p_e)$ with $L$ POIs
 \STATE Compute a rank $<_{p_i, p_j} \subset \mathcal{P}^2$ w.r.t. query $q = (p_s, p_e, L)$
 \STATE Compute POI-POI transition matrix
-\STATE Initialise matrices $A$ and $B$
+\STATE Initialise score matrix $A$ and backtracking pointers $B$
 \FOR{$p \in \mathcal{P}$}
     \STATE $A[2, p] = \alpha ( \log P_R(p_s|q) + \log P_R(p|q) )$ $+$ \\ \hfill $(1-\alpha) \log P(p|p_s)$
     \STATE $B[2, p] = p_s$
@@ -121,9 +121,11 @@ with the same constraints as those in \textsc{MarkovPath} algorithm described in
     \max  \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} (\alpha \log P_R(p_j | q) + (1-\alpha) \log P(p_j | p_i))
 \end{displaymath}
 We call this algorithm \textsc{Rank+MarkovPath} in experiments.
+Hyperparameter $\alpha$ is tuned using cross validation for both \textsc{Rank+Markov} and \textsc{Rank+MarkovPath}. 
 
 \subsection{Structured SVM}
 \label{sec:ssvm}
+\secmoveup
 
 As trajectory is a sequence of POI visits,
 it is natural to model the recommended trajectory $\mathcal{T}$ with respect to query $q = (p_s, p_e, L)$
