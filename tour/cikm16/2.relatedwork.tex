@@ -15,11 +15,11 @@
 %As geo-tagged travel data become widely available, problems in exploring routes and travel patterns has received increasing attention across several research communities -- including information retrieval and recommender systems, databases, social media, geographic information systems, and artificial intelligence.
 %Exhaustive surveying of the area is beyond the scope of this work, we refer the readers to a number of
 We summarise recent work most related to formulating and solving learning problems on assembling routes
-from points-of-interest (POI), according to the problem setting, the methods for ranking places and routes, as well as the use of different features and queries.
+from points-of-interest (POI), according to the problem setting, the method for ranking places and routes, as well as the use of different features and queries.
 
 {\bf Problem settings} for travel patterns and trajectory data.
 There are several settings of recommendation problems for locations and routes, as illustrated in Figure~\ref{fig:threesettings}.
-The first setting can be called points-of-interest (POI) recommendation (Figure~\ref{fig:threesettings}(a)). Each location (A to E) is scored with geographic and behavioural information such as category, reviews, popularity, spatial information such as distance and travel time uncertainty, and temporal information such as time of the day or day of the week.
+The first setting can be called points-of-interest (POI) recommendation (Figure~\ref{fig:threesettings}(a)). Each location (A to E) is scored with geographic and behavioural information such as category, reviews, popularity, spatial information such as distance, and temporal information such as travel time uncertainty, time of the day or day of the week.
 This can be in discovery mode, such as identifying points-of-interest~\cite{zheng2009mining,li2015instagram} and includes efficient querying of geographic objects for trips ~\cite{hashem2015efficient}
 A popular approach is based on the collaborative filtering model
 for learning user-location affinity~\cite{shi2011personalized}, with additional ways to incorporate spatial~\cite{lian2014geomf,liu2014exploiting}, or temporal~\cite{yuan2013timeaware,hsieh2014mining,gao2013temporal}, or spatial-temporal~\cite{yuan2014graph} information.
@@ -33,7 +33,7 @@ by formulating a binary decision or ranking problem~\cite{baraglia2013learnext},
 
 
 
-This paper considers the final setting: route recommendation, as illustrated in Figure~\ref{fig:threesettings}(c). Here the input are some factors about the desired route, e.g. starting point A and end point C, along with auxiliary information such as the desired length of trip. The algorithm needs to take into account location desirability (as indicated by node size) and transition compatibility (as indicated by edge width), and compare route hypotheses such as A-D-B-C and A-E-D-C. Existing work in this area either uses heuristic combinations of location and routes~\cite{lu2010photo2trip,ijcai15,lu2012personalized}, or formulates an optimisation problem that is not informed or evaluated by behaviour history~\cite{gioniswsdm14,chen2015tripplanner}. Joint learning of locations preferences and routes remains an open problem.
+This paper considers the final setting: route recommendation, as illustrated in Figure~\ref{fig:threesettings}(c). Here the input are some factors about the desired route, e.g. starting point A and end point C, along with auxiliary information such as the desired length of trip. The algorithm needs to take into account location desirability (as indicated by node size) and transition compatibility (as indicated by edge width), and compare route hypotheses such as A-D-B-C and A-E-D-C. Existing work in this area either uses heuristic combination of locations and routes~\cite{lu2010photo2trip,ijcai15,lu2012personalized}, or formulates an optimisation problem that is not informed or evaluated by behaviour history~\cite{gioniswsdm14,chen2015tripplanner}. Joint learning of locations preferences and routes remains an open problem.
 Our work is in this category, we formulate a learning problem to score the whole trajectory, taking into account individual POI properties and relationships among different POIs.
 
 
@@ -44,7 +44,7 @@ The first is collaborative filtering, or matrix factorisation family of techniqu
 %Gionis et al~\cite{gioniswsdm14} formulates optimisation problems with additive user satisfaction and coverage constraints. Lim et al.~\cite{ijcai15} uses a combination of user preference and POI popularity as objective function, and then solves a travelling salesman problem (TSP) to obtain a route.
 The TripBuilder system~\cite{brilhante2013shall} first solves a maximum coverage problem for user preference and then solves TSP for routing. The collaborative filtering approaches rank POI but do not take into account the sequence that a trip is taken. On the other hand, the planning approaches assume a fixed objective function that is not directly optimised to predict user behaviour. There have been a few approaches that jointly consider POI preference and routes~\cite{lu2012personalized, kurashima2010geotag,chen2015tripplanner}.
 %Lu et al~\cite{lu2012personalized} uses heuristic combinations for point scoring, followed by branch-n-bound search for planning. Kurashima et al~\cite{kurashima2010geotag} modelled user preferences and his/her transition patterns between POIs using a hybrid of Markov chain and topic models, the search for a best path is done by greedily maximising the probability for the next point. The TripPlanner system~\cite{chen2015tripplanner} selects POIs based on input query and POI categories, and then scores routes using heuristic search strategies taking into account traffic and travel time constraints.
-We propose a new approach that combines different POI features and POI-to-POI transition features, while learning the relevant weights from data. We also provide a comprehensive benchmark on how node- and edge- features contribute to the final trajectory ranking.
+We propose a new approach that combines different POI features and POI-POI transition features, while learning the relevant weights from data. We also provide a comprehensive benchmark on how node- and edge- features contribute to the final trajectory ranking.
 
 
 %planning:
@@ -77,7 +77,7 @@ We propose a new approach that combines different POI features and POI-to-POI tr
 {\bf A diverse set of available information},
 such as geographic, time, user properties, and subjective opinions.
 Approaches for modelling space include geolocation-informed matrix factorisation~\cite{lian2014geomf}, spatial topic models~\cite{hu2013spatialtopic}, neighbourhood information~\cite{liu2014exploiting}, exploiting sequential information with additive Markov chain~\cite{zhang2014lore}, and enriching location with the information for venues~\cite{deveaud2014importance,deveaud2015experiments}.
-Important variants to consider for modelling time include travel time~\cite{gao2013temporal}
+Important variants to consider for modelling time include travel time~\cite{gao2013temporal},
 constructing time-aware routes~\cite{yuan2013timeaware,hsieh2014mining}, time-of-day and day-of-week~\cite{chen2015tripplanner}, POI availability and uncertainty in travelling time~\cite{zhang2015personalized}. There are a number of approaches that jointly consider space and time\cite{yuan2014graph,zhang2015location}, such as modelling the correlation between check-in time and location~\cite{gao2013temporal}.
 Inferring user attributes and preferences has been an important consideration~\cite{liu2013personalized}.
 Chen et al~\cite{chen2013people} recommend places to travellers based on automatically mined user attributes

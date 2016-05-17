@@ -3,6 +3,15 @@
 \section{Introduction}
 \label{sec:intro}
 
+\begin{figure*}[ht]
+	\centering
+	\includegraphics[width=0.7\textwidth]{fig/fig1-flavours.pdf}
+	\caption{Three settings of trajectory recommendation problems: (a) POI recommendation, (b) next location recommendation, and (c) trajectory recommendation. Node size: POI score; edge width: transition score between pairs of POIs; grey: input query; star: starting location; flag: ending location. See the first four paragraphs of Section~\ref{sec:relatedwork} for details.
+}
+	\label{fig:threesettings}
+\end{figure*}
+
+
 This paper proposes a novel solution to recommend travel routes in cities.
 Large amount of location traces are becoming available from ubiquitous location tracking devices.
 For example FourSquare, the local search and discovery service, has 50 million monthly users who have made 8 billion check-ins~\cite{4sq}; Flickr, the online photo-sharing site, hosts over 2 billion geo-tagged public photos~\cite{flickr}. Such large amounts of travel data provides new opportunities for better
@@ -29,24 +38,16 @@ We propose a novel way to learn point and route preferences jointly.
 Our solution consists of several parts.
 We propose a learning to rank formulation to capture the preference of POIs given the starting and ending points of a trajectory (Section~\ref{sec:method}).
 We model pair-wise transition patterns between POIs by factorising the transition likelihoods along five different types of location properties,
-which alleviates data sparsity between each pair of POIs and allows POIs of the same type and neighborhood to share parameters.
+which alleviates data sparsity between each pair of POIs and allows POIs of the same type and neighbourhood to share parameters.
 We combine the results of point and transition ranking using Markov chain inference and route planning techniques (Section~\ref{sec:recommendation}). We further propose a novel way to jointly learn point and transition scores with a Structured Support Vector Machine (StructuredSVM). In Section~\ref{sec:experiment},
-we evaluate the proposed algorithms on photo trajectories in five different cities, with a traditional metric $F_1$ on POIs as well as a novel pairs-$F_1$ metric specifically designed for trajectories.
+we evaluate the proposed algorithms on photo trajectories in five different cities, with a traditional metric F1 on POIs as well as a novel pairs-F1 metric specifically designed for trajectories.
 
 The main contributions of this work is as follows:
 \begin{itemize}
 \setlength{\itemsep}{-2pt}
 \item We propose a novel algorithm to jointly optimise point preference and route plan.
-  We find that the learning-based approaches generally out-perform heuristic route recommendation~\cite{ijcai15}. Incorporating transitions to POI ranking improves the pairs-$F_1$ metric for correct sequences of POIs, and that routing algorithms that disallow sub-tours generally out-perform Markov chain methods.
+  We find that the learning-based approaches generally out-perform heuristic route recommendation~\cite{ijcai15}. Incorporating transitions to POI ranking improves the pairs-F1 metric for correct sequences of POIs, and that routing algorithms that disallow sub-tours generally out-perform Markov chain methods.
 \item Our approach is feature-driven and learns from past behaviour without having to design specialised treatment for spatial, temporal and social information. It currently incorporates information about location, POI categories and behaviour history, and can use additional social or time information.% as long as they are  encoded in features.
 \item We show good performance compared to recent results~\cite{ijcai15}, and also quantify the contribution from the different components, such as point ranking, scoring transitions, and routing.
-\item We propose a new metric to evaluate trajectories: pairs-$F_1$, which has the property of being between 0 and 1, and being 1 if and only if two trajectories are exactly the same. Our benchmark data and results are publicly available.
+\item We propose a new metric to evaluate trajectories: pairs-F1, which has the property of being between 0 and 1, and being 1 if and only if the recommended trajectory is exactly the same as the ground truth. Our benchmark data and results are publicly available.
 \end{itemize}
-
-\begin{figure*}[ht]
-	\centering
-	\includegraphics[width=0.7\textwidth]{fig/fig1-flavours.pdf}
-	\caption{Three settings of trajectory recommendation problems: (a) POI recommendation, (b) next location recommendation, and (c) trajectory recommendation. Node size: POI score; edge width: transition score between pairs of POIs; grey: input query; star: starting location; flag: ending location. See the second paragraph of Section~\ref{sec:intro} for details.
-}
-	\label{fig:threesettings}
-\end{figure*}
