@@ -7,7 +7,7 @@ We aim to recommend a particular tour such that the user will visit a sequence o
 The training data consists of a set of tours of varying length in a particular city. We assume that all POIs in the city are visited at least once, and hence can construct a graph with POIs as nodes and potentially multiple directed edges between each pair of nodes. We extract the category, popularity, total number of visits and average visit duration for each POI.
 %The set of categories are shown in figure \ref{fig:poicats} in the appendix, and the popularity is defined as the number of distinct users that visited the POI\cite{ht10}.
 
-As a baseline approach, we recommend the trajectory based on the popularity (number of distinct users) of POIs only~\cite{ht10}, that is we always suggest the top-$k$ most popular POIs for all visitors given the start and end location. This baseline approach, called \textsc{PoiPopularity}, and its only adaptation to a particular request is to adjust $k$ to match the desired length.
+As a baseline approach, we recommend the trajectory based on the popularity (number of distinct users)~\cite{ht10} of POIs only, that is we always suggest the top-$k$ most popular POIs for all visitors given the start and end location. We call this baseline approach \textsc{PoiPopularity}, and its only adaptation to a particular request is to adjust $k$ to match the desired length.
 
 \subsection{Ranking using the origin and destination}
 \label{sec:ranksvm}
@@ -45,7 +45,7 @@ Lastly we also include the required length $L$ of the trajectory as a feature fo
 
 For training the rankSVM, the labels are generated using the number of occurrences of
 POI $p$ in trajectories grouped by query $(p_s, p_e, L)$,
-without counting the occurrence of $p$ when it is the origin or destination POI of a trajectory.
+without counting the occurrence of $p$ when it is the origin or destination of a trajectory.
 We create another algorithm, \textsc{PoiRank}, to recommend trajectory by utilising
 the ranking of POIs described above. \textsc{PoiRank} takes the top ranked $L-2$ POIs
 and connects them in sequence of the ranks.
@@ -78,13 +78,12 @@ empirical data.
 We model these transitions using a Markov Chain with discrete factored states.
 The transition probability from POI $p_i$ to POI $p_j$ is factorised according to
 individual POI features described in Section~\ref{sec:ranksvm}.
-Figure \ref{fig:transmat} shows the transition matrices for individual POI features
-in Melbourne.
-We directly model
-the transition between the category and neighbourhood of each POI as the conditional probability.
+POIs are grouped into $5$ clusters using K-means according to their geographical locations
+to reflect their neighbourhood relations.
+We directly model the transition between the category and neighbourhood of each POI as the conditional probability.
 The popularity, total number of visits and the average visit duration are discretised by binning
 them uniformly into $5$ discrete intervals on the log scale.
-In addition, POIs are grouped into $5$ clusters using K-means according to their geographical locations.
+Figure \ref{fig:transmat} shows the transition matrices for individual POI features in Melbourne.
 
 We compute the transition probabilities of the above individual POI features
 using maximum likelihood estimation,
@@ -112,13 +111,18 @@ $(p_s, p_e, L)$ by maximising the (log) likelihood. We call this approach that o
 transition probabilities between POIs as \textsc{Markov}. The maximum likelihood solution
 can be found using a variant of the Viterbi algorithm (with emission probabilities ignored),
 which is shown in algorithm \ref{alg:markov}.
+The entry $A[l, p]$ in score matrix $A$ stores the maximum likelihood associated with the (partial) trajectory 
+that starts from $p_s$ and ends at $p$ with $l$ POI visits, 
+and entry $B[l, p]$ in the backtracking point matrix $B$ stores the predecessor of $p$ in that (partial) trajectory.
 
 \begin{algorithm}[t]
 \caption{\textsc{Markov}: recommend trajectory by maximising likelihood}
 \label{alg:markov}
 \begin{algorithmic}[1]
 \STATE \textbf{Input}: $\mathcal{P}, p_s, p_e, L$
-\STATE Compute POI-to-POI transition matrix
+\STATE \textbf{Output}: a trajectory $\mathcal{T} = (p_s, \cdots, p_e)$ with $L$ POIs
+\STATE Compute POI-POI transition matrix
+\STATE Initialise matrices $A$ and $B$
 \FOR{$p \in \mathcal{P}$}
     \STATE $A[2, p] = \log P(p|p_s)$
     \STATE $B[2, p] = p_s$
@@ -163,17 +167,17 @@ Given a set of POIs $\mathcal{P}$, the POI-POI transition matrix and a query $(p
 we recommend a trajectory by solving the following integer linear program:
 \begin{align}
 \max ~& \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} \log P(p_j | p_i) \nonumber \\
-s.t. ~& x_{ij} \in \{0, 1\}, \forall i, j = 1, \cdots, N \\
+s.t. ~& x_{ij} \in \{0, 1\}, ~\forall i, j = 1, \cdots, N \\
      & \sum_{j=2}^N x_{1j} = \sum_{i=1}^{N-1} x_{iN} = 1 \\
-     & \sum_{i=1}^{N-1} x_{ik} = \sum_{j=2}^N x_{kj} \le 1, \forall k=2, \cdots, N-1 \\
-     & \sum_{i=1}^{N-1} \sum_{j=2}^N = L-1 \\
-     & u_i - u_j + 1 \le (N-1) (1-x_{ij}), \forall i, j = 2, \cdots, N
+     & \sum_{i=1}^{N-1} x_{ik} = \sum_{j=2}^N x_{kj} \le 1, ~\forall k=2, \cdots, N-1 \\
+     & \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} = L-1 \\
+     & u_i - u_j + 1 \le (N-1) (1-x_{ij}), ~\forall i, j = 2, \cdots, N
 \end{align}
-where $x_{ij}$ in constraint $(1)$ is a binary decision variable which determines whether transition from $p_i$ to $p_j$
+where $x_{ij}$ is a binary decision variable which determines whether transition from POI $p_i$ to POI $p_j$
 occurred in the recommended trajectory.
-For brevity, we assume $x_{i1}$ and $x_{1j}$ represent the incoming and outgoing transitions of POI $p_s$,
-similarly, $x_{iN}$ and $x_{Nj}$ correspond to the incoming and outgoing transitions of POI $p_e$.
-Constraint $(2)$ restricts that only one outgoing (and incoming) transition for $p_s$ ($p_e$)
+For brevity, we assume $x_{i1}$ and $x_{1j}$ represent the incoming and outgoing transitions of $p_s$,
+similarly, $x_{iN}$ and $x_{Nj}$ correspond to the incoming and outgoing transitions of $p_e$.
+Constraint $(2)$ restricts that only one outgoing (incoming) transition for $p_s$ ($p_e$)
 is permitted, i.e., the recommended trajectory should start from $p_s$ and end at $p_e$.
 Constraint $(3)$ restricts that any POI could be visited at most once and constraint $(4)$
 restricts that only $L-1$ transitions between POIs are permitted, i.e., the number of visited POIs should be
