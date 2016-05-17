@@ -30,10 +30,10 @@ for general overviews of the area. %There are two notable gaps
 We note, however, that two desired qualities are still 
 missing from the current solutions to trajectory recommendation. 
 The first is principled method to jointly learn POI ranking, a prediction problem, 
-and optimize for route creation, a planning problem. 
+and optimise for route creation, a planning problem. 
 The second is a unified way to incorporate various features 
-such as local, time, distance, user profile, social interactions, 
-as they tend to get specialized and separate treatments. 
+such as location, time, distance, user profile, social interactions, 
+as they tend to get specialised and separate treatments. 
 This work aims to address these challenges. %bridge these gaps. 
 
 We propose a novel way to learn point and route preferences jointly.
@@ -49,7 +49,7 @@ The main contributions of this work are as follows:
 \setlength{\itemsep}{-2pt}
 \item We propose a novel algorithm to jointly optimise point preference and route plan.
   We find that the learning-based approaches generally out-perform heuristic route recommendation~\cite{ijcai15}. Incorporating transitions to POI ranking improves the pairs-F$_1$ metric for correct sequences of POIs, and that routing algorithms that disallow sub-tours generally out-perform Markov chain methods.
-\item Our approach is feature-driven and learns from past behaviour without having to design specialised treatment for spatial, temporal and social information. It incorporates information about location, POI categories and behaviour history, and can use additional time, user, or social information if available.% as long as they are  encoded in features.
-\item We show good performance compared to recent results~\cite{ijcai15}, and also quantify the contribution from the different components, such as ranking points, scoring transitions, and routing.
+\item Our approach is feature-driven and learns from past behaviour without having to design specialised treatment for spatial, temporal or social information. It incorporates information about location, POI categories and behaviour history, and can use additional time, user, or social information if available.% as long as they are  encoded in features.
+\item We show good performance compared to recent results~\cite{ijcai15}, and also quantify the contributions from different components, such as ranking points, scoring transitions, and routing.
 \item We propose a new metric to evaluate trajectories: pairs-F$_1$, which has the property of being between 0 and 1, and being 1 if and only if the recommended trajectory is exactly the same as the ground truth. Our benchmark data and results are publicly available.
 \end{itemize}

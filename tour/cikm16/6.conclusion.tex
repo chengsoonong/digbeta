@@ -2,7 +2,7 @@
 \label{sec:conclusion}
 
 In this paper, we propose an approach to recommend trajectories
-by jointly optimising ranks and routes.
+by jointly optimising points and routes.
 This is in contrast to related work which looks at
 POI recommendation or next location recommendation.
 Point preferences are learned by ranking according to POI and query features,
@@ -13,12 +13,12 @@ may recommend sub-tours) and propose an improved sequence prediction method.
 Our feature driven approach allows a natural combination of POI ranks and routes,
 and we proposed two ways (directly combining them, or learning a structured SVM)
 for unifying the two models.
-We argue that one should measure performance also with respect to the order of POIs, and
-suggest a new pairs-F$_1$ metric.
+We argue that one should measure performance also with respect to the visiting order of POIs, 
+and suggest a new pairs-F$_1$ metric.
 We empirically evaluated our tour recommendation approaches on five datasets extracted from
 Flickr photos, and demonstrate that our method improves on prior work, on both the traditional
 F$_1$ metric and our proposed performance measure.
-Our promising results from learning ranks and routes for trajectory recommendation suggests
+Our promising results from learning points and routes for trajectory recommendation suggests
 that research in this domain should consider both information sources simultaneously.
 Since our machine learning method captures domain knowledge in terms of the features,
 it does not rely on the fact that the current task uses spatial and social information,

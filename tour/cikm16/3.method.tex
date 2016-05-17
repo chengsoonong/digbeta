@@ -10,13 +10,13 @@ The training data consists of a set of tours of varying length in a particular c
 
 %As a baseline approach, we 
 A naive approach would be to
-recommend the trajectory based on the popularity (number of distinct users)~\cite{ht10} of POIs only, that is we always suggest the top-$k$ most popular POIs for all visitors given the start and end location. We call this baseline approach \textsc{PoiPopularity}, and its only adaptation to a particular request is to adjust $k$ to match the desired length.
+recommend the trajectory based on the popularity (number of distinct visitors)~\cite{ht10} of POIs only, that is we always suggest the top-$k$ most popular POIs for all visitors given the start and end location. We call this baseline approach \textsc{PoiPopularity}, and its only adaptation to a particular request is to adjust $k$ to match the desired length.
 
 \subsection{Ranking using the origin and destination}
 \label{sec:ranksvm}
 
 In addition to popularity, we also can rank the candidate POIs based on the other three POI specific features (category, total visits and average duration).
-We can learn a ranking of POIs by using rankSVM with linear kernel and $L2$ loss~\cite{lranksvm},
+We can learn a ranking of POIs using rankSVM with linear kernel and $L2$ loss~\cite{lranksvm},
 \begin{displaymath}
 \min_{\mathbf{w_r}} \frac{1}{2} \mathbf{w_r}^T \mathbf{w_r} +
                     C_r \sum_{(p_i, p_j) \in \mathcal{P}}
@@ -25,7 +25,7 @@ We can learn a ranking of POIs by using rankSVM with linear kernel and $L2$ loss
 where $\mathcal{P}$ is the set of POIs to rank,
 $\mathbf{w_r}$ is a vector of parameters,
 $C_r > 0$ is the regularisation parameter and
-$\mathbf{f}_{p_i}$ is the feature vector for POI $p_i$ that will be described below.
+$\mathbf{f}_{p_i}$ is the feature vector for POI $p_i$.
 
 Furthermore, since we are constrained by the fact that trajectories have to be of length $L$ and start and end at certain points, we hope to improve the recommendation by using this information.
 In other words, using the query $(p_s, p_e, L)$ we can construct new features by contrasting
@@ -36,7 +36,7 @@ we construct two new features by taking the difference of
 the feature in POI $p$ with $(p_s, p_e)$ respectively.
 For the category, we set the feature to $1$ when their categories are the same and $-1$ otherwise.
 For popularity, total visits and visit duration, we take the real valued difference.
-The distance from POI $p$ to $p_s$ (and $p_e$) is computed using the haversine formula \cite{haversine}.
+The distance from POI $p$ to $p_s$ (and $p_e$) is computed using the Haversine formula \cite{haversine}.
 %\begin{displaymath}
 %  d(p, p_s) = 2 R_1 \arcsin \sqrt{ \sin^2 \frac{\Delta \varphi}{2} +
 %    \cos \varphi_p \cos \varphi_{p_s} \sin^2 \frac{\Delta \lambda}{2} }
@@ -45,7 +45,7 @@ The distance from POI $p$ to $p_s$ (and $p_e$) is computed using the haversine f
 %$\Delta \varphi = \varphi_p - \varphi_{p_s}$, $\Delta \lambda = \lambda_p - \lambda_{p_s}$,
 %and $\varphi_p$, $\lambda_p$ are the latitude and longitude of POI $p$ respectively.
 Lastly we also include the required length $L$ of the trajectory as a feature for rankSVM.
-The frequency distribution of POI popularity, number of visits and visit duration are in Figure~\ref{fig:distro}.
+The frequency distribution of POI popularity, number of visits and visit duration of five datasets are shown in Figure~\ref{fig:distro}.
 
 For training the rankSVM, the labels are generated using the number of occurrences of
 POI $p$ in trajectories grouped by query $(p_s, p_e, L)$,
@@ -130,7 +130,7 @@ and entry $B[l, p]$ in the backtracking-point matrix $B$ stores the predecessor 
 \STATE \textbf{Input}: $\mathcal{P}, p_s, p_e, L$
 \STATE \textbf{Output}: Trajectory $\mathcal{T} = (p_s, \cdots, p_e)$ with $L$ POIs
 %\STATE Compute POI-POI transition matrix
-\STATE Initialise score matrix $A$ and backtrack pointer $B$
+\STATE Initialise score matrix $A$ and backtracking pointer $B$
 \FOR{$p \in \mathcal{P}$}
     \STATE $A[2, p] = \log P(p|p_s)$
     \STATE $B[2, p] = p_s$
@@ -179,7 +179,7 @@ s.t. ~& x_{ij} \in \{0, 1\}, ~\forall i, j = 1, \cdots, N \\
      & \sum_{j=2}^N x_{1j} = \sum_{i=1}^{N-1} x_{iN} = 1 \\
      & \sum_{i=1}^{N-1} x_{ik} = \sum_{j=2}^N x_{kj} \le 1, ~\forall k=2, \cdots, N-1 \\
      & \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} = L-1 \\
-     & u_i - u_j + 1 \le (N-1) (1-x_{ij}), ~\forall i, j = 2, \cdots, N.
+     & u_i - u_j + 1 \le (N-1) (1-x_{ij}), ~\forall i, j = 2, \cdots, N
 \end{align}
 where $N=|\mathcal{P}|$ is the number of POIs and $x_{ij}$ is a binary decision variable 
 which determines whether transition from POI $p_i$ to POI $p_j$ occurred in the recommended trajectory.
