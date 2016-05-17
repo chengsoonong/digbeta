@@ -129,7 +129,7 @@ and entry $B[l, p]$ in the backtracking-point matrix $B$ stores the predecessor 
 \begin{algorithmic}[1]
 \STATE \textbf{Input}: $\mathcal{P}, p_s, p_e, L$
 \STATE \textbf{Output}: Trajectory $\mathcal{T} = (p_s, \cdots, p_e)$ with $L$ POIs
-\STATE Compute POI-POI transition matrix
+%\STATE Compute POI-POI transition matrix
 \STATE Initialise score matrix $A$ and backtrack pointer $B$
 \FOR{$p \in \mathcal{P}$}
     \STATE $A[2, p] = \log P(p|p_s)$

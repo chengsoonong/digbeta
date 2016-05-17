@@ -90,8 +90,8 @@ with the pseudo code shown in Algorithm~\ref{alg:rank+markov}.
 \begin{algorithmic}[1]
 \STATE \textbf{Input}: $\mathcal{P}, p_s, p_e, L$
 \STATE \textbf{Output}: Trajectory $\mathcal{T} = (p_s, \cdots, p_e)$ with $L$ POIs
-\STATE Compute a rank $<_{p_i, p_j} \subset \mathcal{P}^2$ w.r.t. query $q = (p_s, p_e, L)$
-\STATE Compute POI-POI transition matrix
+%\STATE Compute a rank $<_{p_i, p_j} \subset \mathcal{P}^2$ w.r.t. query $q = (p_s, p_e, L)$
+%\STATE Compute POI-POI transition matrix
 \STATE Initialise score matrix $A$ and backtracking pointers $B$
 \FOR{$p \in \mathcal{P}$}
     \STATE $A[2, p] = \alpha ( \log P_R(p_s|q) + \log P_R(p|q) )$ $+$ \\ \hfill $(1-\alpha) \log P(p|p_s)$
