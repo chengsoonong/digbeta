@@ -1,3 +1,5 @@
+%!TEX root = main.tex
+
 \section{Tour Recommendation}
 \label{sec:recommendation}
 
@@ -12,29 +14,6 @@ We summarise the characteristics of the various trajectory recommendation approa
 
 We are now in a position to jointly optimise POI preferences and route plans.
 We want to leverage both POI ranking and POI-POI transitions when recommending trajectories.
-
-
-\begin{table}[t]
-\caption{Summary of information captured by different trajectory recommendation algorithms}
-\label{tab:algsummary}
-\centering
-%\small
-\setlength{\tabcolsep}{3pt} % tweak the space between columns
-\begin{tabular}{l|*{5}{c}} \hline
-                                & Query    & POI      & Trans.     & No sub-      & Joint    \\
-                                &          &          &            & tours        &          \\ \hline
-\textsc{Random}                 & $\times$ & $\times$ & $\times$   & $\times$     & $\times$ \\
-\textsc{PersTour}\cite{ijcai15} & $\times$ & $\surd$  & $\times$   & $\surd$      & $\times$ \\
-\textsc{PersTour-L}             & $\times$ & $\surd$  & $\times$   & $\surd$      & $\times$ \\
-\textsc{PoiPopularity}          & $\times$ & $\surd$  & $\times$   & $\times$     & $\times$ \\
-\textsc{PoiRank}                & $\surd$  & $\surd$  & $\times$   & $\times$     & $\times$ \\
-\textsc{Markov}                 & $\times$ & $\surd$  & $\surd$    & $\times$     & $\times$ \\
-\textsc{MarkovPath}             & $\times$ & $\surd$  & $\surd$    & $\surd$      & $\times$ \\
-\textsc{Rank+Markov}            & $\surd$  & $\surd$  & $\surd$    & $\times$     & $\times$ \\
-\textsc{Rank+MarkovPath}        & $\surd$  & $\surd$  & $\surd$    & $\surd$      & $\times$ \\
-\textsc{StructuredSVM}          & $\surd$  & $\surd$  & $\surd$    & $\times$     & $\surd$  \\ \hline
-\end{tabular}
-\end{table}
 
 
 

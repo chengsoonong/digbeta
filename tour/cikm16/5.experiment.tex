@@ -1,3 +1,5 @@
+%!TEX root = main.tex
+
 \section{Experimental Results}
 \label{sec:experiment}
 
@@ -116,49 +118,9 @@ and pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited
 \subsection{Experimental setup}
 \label{sec:setup}
 
-\begin{table*}[t]
-\caption{Performance comparison on five datasets in terms of trajectory $F_1$-score.
-         The best method for each dataset (i.e., a column) is shown in bold, the second best is shown in italic.}
-\label{tab:f1}
-\centering
-\begin{tabular}{l|ccccc} \hline
- & Edinburgh & Glasgow & Melbourne & Osaka & Toronto \\ \hline
-\textsc{Random} & $0.570\pm0.139$ & $0.632\pm0.124$ & $0.558\pm0.149$ & $0.621\pm0.117$ & $0.621\pm0.128$ \\
-\textsc{PersTour}\cite{ijcai15} & $0.656\pm0.223$ & $\mathbf{0.802\pm0.213}$ & $0.491\pm0.211$ & $0.702\pm0.230$ & $0.720\pm0.215$ \\
-\textsc{PersTour-L} & $0.651\pm0.143$ & $0.660\pm0.102$ & $0.578\pm0.140$ & $0.691\pm0.138$ & $0.642\pm0.112$ \\
-\textsc{PoiPopularity} & $\mathbf{0.701\pm0.160}$ & $0.745\pm0.166$ & $0.621\pm0.136$ & $0.661\pm0.128$ & $0.679\pm0.120$ \\
-\textsc{PoiRank} & $\mathit{0.694\pm0.157}$ & $\mathit{0.777\pm0.171}$ & $\mathbf{0.626\pm0.137}$ & $0.679\pm0.112$ & $\mathbf{0.748\pm0.166}$ \\
-\textsc{Markov} & $0.629\pm0.172$ & $0.714\pm0.168$ & $0.577\pm0.168$ & $0.679\pm0.162$ & $0.663\pm0.157$ \\
-\textsc{MarkovPath} & $0.678\pm0.148$ & $0.735\pm0.170$ & $0.596\pm0.147$ & $0.706\pm0.154$ & $0.689\pm0.140$ \\
-\textsc{Rank+Markov} & $0.642\pm0.171$ & $0.736\pm0.176$ & $0.598\pm0.169$ & $0.701\pm0.171$ & $0.689\pm0.170$ \\
-\textsc{Rank+MarkovPath} & $0.684\pm0.151$ & $0.760\pm0.170$ & $\mathit{0.625\pm0.150}$ & $\mathbf{0.719\pm0.161}$ & $0.724\pm0.152$ \\
-\textsc{StructuredSVM} & $0.659\pm0.186$ & $0.727\pm0.173$ & $0.597\pm0.171$ & $\mathit{0.715\pm0.170}$ & $\mathit{0.728\pm0.186}$ \\
-\hline
-\end{tabular}
-\end{table*}
+\input{table_10methods}
 
-
-\begin{table*}[t]
-\caption{Performance comparison on five datasets in terms of pairs-$F_1$.
-         The best method for each dataset (i.e., a column) is shown in bold, the second best is shown in italic.}
-\label{tab:pairf1}
-\centering
-\begin{tabular}{l|ccccc} \hline
- & Edinburgh & Glasgow & Melbourne & Osaka & Toronto \\ \hline
-\textsc{Random} & $0.261\pm0.155$ & $0.320\pm0.169$ & $0.249\pm0.148$ & $0.305\pm0.145$ & $0.311\pm0.167$ \\
-\textsc{PersTour}\cite{ijcai15} & $0.417\pm0.343$ & $\mathbf{0.646\pm0.366}$ & $0.225\pm0.274$ & $\mathit{0.491\pm0.377}$ & $0.503\pm0.353$ \\
-\textsc{PersTour-L} & $0.359\pm0.207$ & $0.352\pm0.162$ & $0.268\pm0.143$ & $0.415\pm0.243$ & $0.331\pm0.159$ \\
-\textsc{PoiPopularity} & $\mathit{0.436\pm0.259}$ & $0.509\pm0.299$ & $0.316\pm0.178$ & $0.363\pm0.195$ & $0.385\pm0.202$ \\
-\textsc{PoiRank} & $0.424\pm0.249$ & $\mathit{0.565\pm0.312}$ & $0.322\pm0.186$ & $0.376\pm0.173$ & $\mathit{0.512\pm0.295}$ \\
-\textsc{Markov} & $0.424\pm0.238$ & $0.488\pm0.283$ & $0.297\pm0.192$ & $0.449\pm0.262$ & $0.419\pm0.237$ \\
-\textsc{MarkovPath} & $0.400\pm0.234$ & $0.492\pm0.298$ & $0.294\pm0.187$ & $0.445\pm0.268$ & $0.407\pm0.234$ \\
-\textsc{Rank+Markov} & $0.434\pm0.251$ & $0.540\pm0.294$ & $\mathbf{0.357\pm0.210}$ & $0.483\pm0.277$ & $0.462\pm0.266$ \\
-\textsc{Rank+MarkovPath} & $0.408\pm0.239$ & $0.532\pm0.304$ & $0.331\pm0.213$ & $0.470\pm0.284$ & $0.465\pm0.266$ \\
-\textsc{StructuredSVM} & $\mathbf{0.440\pm0.267}$ & $0.529\pm0.283$ & $\mathit{0.352\pm0.213}$ & $\mathbf{0.508\pm0.292}$ & $\mathbf{0.520\pm0.311}$ \\
-\hline
-\end{tabular}
-\end{table*}
-
+\input{table_perfsummary}
 
 \begin{figure*}[t]
 	\centering
@@ -168,9 +130,10 @@ and pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited
 	\label{fig:exampleresult}
 \end{figure*}
 
-
 We use leave-one-out cross validation to evaluate different trajectory recommendation algorithms,
-i.e., when testing on a trajectory, all other trajectories are used for training.
+i.e., when testing on a trajectory, all other trajectories are used for training. 
+We compare with a number of baseline approaches from recent literature, the 10 approach variants 
+are summarized below, with an overview in Tabel~\ref{tab:algsummary}.
 
 % baseline: Random, PersTour, PersTour-L, PoiPopularity
 {\bf Baseline approaches} including \textsc{Random} which naively chooses POIs uniformly at random
