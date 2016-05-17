@@ -185,39 +185,68 @@ the regularisation parameter in \textsc{StructuredSVM} is $1.0$.
 
 \subsection{Results}
 \label{sec:result}
-
+\secmoveup
 
 % compare both F1 and pair F1 at the same time
-The performance of ten algorithms on five trajectories datasets are shown in Table~\ref{tab:f1}
-and Table~\ref{tab:pairf1} in terms of trajectory F$_1$-score and pairs-F$_1$ respectively.
-%
-% 1. all vs Random
-% always better than Random, except PersTour on Melbourne which we'll illustrate later
-It is obvious that algorithms captured a certain type of information as shown in Table~\ref{tab:algsummary}
-outperforms the \textsc{Random} baseline in terms of both performance metrics on all five datasets,
-except the performance of \textsc{PersTour}\cite{ijcai15} on Melbourne dataset which will be interpreted later.
+The performance of the baseline algorithm and the POI ranking and routing variants 
+on five trajectories datasets are summarised in Table~\ref{tab:f1}
+and Table~\ref{tab:pairf1}, in terms of trajectory F$_1$-score and pairs-F$_1$, respectively.
 
-% 2. PersTour vs. PersTour-L
-% PersTour always better except on Melbourne which analysed later
-\textsc{PersTour}\cite{ijcai15} always performs better than its variant \textsc{PersTour-L},
-especially on Glasgow and Toronto datasets, where the advantage gap of \textsc{PersTour}
-is significantly large in terms of both performance metrics,
+
+% 6. xxPath vs. xx:
+% MarkovPath vs Markov:
+% in terms of F1, MarkovPath (Rank+MarkovPath) is always better than Markov (Rank+Markov),
+% in terms of pair F1, MarkovPath (Rank+MarkovPath) yields comparable or worse performance than Markov.
+% which indicates that sub-tour elimination helps POI prediction but worsen the visiting order.
+Eliminating sub-tours improves point and trajectory recommendation, 
+while Markov chain approaches have better sequencing as measured by pairs-F1. % effect when recommending trajectories.
+We can see from Table~\ref{tab:f1} that \textsc{MarkovPath} and \textsc{Rank+MarkovPath} 
+outperform their corresponding variants \textsc{Markov} and \textsc{Rank+Markov} without the path constraints in terms of F1. 
+%always perform worse,
+%in terms of trajectory F$_1$, than
+%their counterparts that do not permit sub-tours, namely, \textsc{MarkovPath} and \textsc{Rank+MarkovPath},
+%which is not unexpected 
+This is expected, as sub-tours worsen the proportion of correctly
+recommended POIs when length constraint is used.
+On the contrary, most Markov chain entries has better performance in terms of pairs-F$_1$ 
+which indicates Markov chain approaches generally
+respect the transition patterns between POIs.
+% go to SSVM
+The effect of sub-tours on trajectory recommendation can be further observed through the performance of \textsc{StructuredSVM}.
 %
-% brief mention results of algorithms with and without utilising time budget constraint
-which indicate the time budget constraint is more helpful than length constraint for recommending trajectories.
-The exception on Melbourne dataset will again explained later.
+% 7. SSVM vs Rank+Markov and Rank+MarkovPath:
+% while SSVM using the same features as Rank+Markov and Rank+MarkovPath, and took advantage of its significantly larger number of parameters
+% but SSVM permit sub-tours
+% in terms of F1,
+% it either yield comparable performance with the better performer (Osaka/Toronto) or with the worse performer (Edinburgh/Glasgow/Melbourne)
+% which indicate how hurt sub-tours hurts POI recommendation.
+% on the other hand, in terms of pair F1.
+% it takes advantage of the transition patterns and yields comparable (Glasgow/Melbourne) or better performance than both of them
+While utilising the same features as \textsc{Rank+Markov} and \textsc{Rank+MarkovPath},
+it is more flexible with automatic tuning of the trade-off of points and routes. 
+%it can further take advantage of the significantly larger number of parameters.
+%However, \textsc{StructuredSVM} can only yield comparable performance with the best performer 
+%among the three at most, when measured in terms of trajectory F$_1$.
+While not achieving best F1 in any city, 
+\textsc{StructuredSVM} makes the best use of transition patterns 
+and consistently has better pairs-F1 than \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} in all cities. 
+%which leads to comparable or
+%better performance, in terms of pairs-F$_1$, than both of them all the time.
+%This observation is consistent with the effect of sub-tours observed above
+%as \textsc{StructuredSVM} does permit the existence of sub-tours in recommended trajectories.
+
 
 % go to ranking based algorithms
-Despite the utilisation of length constraint, algorithms based on points ranking yield strong performance
+Algorithms based on points ranking yield strong performance
 by exploring POI and query specific features.
 %
 % 3. PoiRank vs. PoiPopularity
 % PoiRank yields nice improvement on four datasets, only slightly downgraded on Edinburgh
-\textsc{PoiPopularity} baseline performs pretty well despite its simplicity,
-and \textsc{PoiRank} yields nice improvements by leveraging more POI features and query specific features,
-except slightly worse on Edinburgh dataset on which \textsc{PoiPopularity} is the best and
-second best performer in terms trajectory F$_1$ and pairs-F$_1$ respectively.
-
+%\textsc{PoiPopularity} baseline performs pretty well despite its simplicity,and 
+\textsc{PoiRank} improves notably upon \textsc{PoiPopularity} and \textsc{PersTour}
+ by leveraging more POI features and query specific features in 3 out of 5 datasets.
+%except slightly worse on Edinburgh dataset on which \textsc{PoiPopularity} is the best and
+%second best performer in terms trajectory F$_1$ and pairs-F$_1$ respectively.
 % go to transition based algorithms
 On the other hand, Algorithm that leverage transition probabilities alone does not perform particularly well.
 %
@@ -226,9 +255,10 @@ On the other hand, Algorithm that leverage transition probabilities alone does n
 In terms of trajectory F$_1$,
 \textsc{Markov} can not outperform \textsc{PoiRank} except on Osaka dataset,
 on which the performance of both algorithms are comparable.
+In particular, algorithms with ranking information (e.g. \textsc{Rank+Markov} and \textsc{Rank+MarkovPath}) always out-perform their respective variants with transition information alone (i.e. \textsc{Markov} and \textsc{MarkovPath}). 
 
 % in terms of pair F1, PoiRank is significantly better on Glasgow, Melbourne and Toronto, comparable on Edinburgh
-Furthermore, \textsc{PoiRank} performs significantly better than \textsc{Markov} on three datasets, namely,
+\textsc{PoiRank} performs significantly better than \textsc{Markov} on three datasets, namely,
 Glasgow, Melbourne and Toronto.
 %
 % at the first sight, it seems strange because Markov modelled the transitions and pair F1 measures the visiting order
@@ -251,48 +281,32 @@ which suggest the transition information is helpful in some situations.
 % as the advantage gap of PoiRank over Markov shrinks, performance of Rank+Markov becomes closer to PoiRank,
 % when the Markov is comparable or better than PoiRank, Rank+Markov outperforms both (Osaka)
 % which is consistent with the assumption that transition helps when ranking didn't performs very well
-In particular, when the advantage gap of \textsc{PoiRank} over \textsc{Markov} is large,
+Transition information helps point ranking when their performances are comparable. 
+When the advantage gap of \textsc{PoiRank} over \textsc{Markov} is large,
 i.e. Edinburgh, Glasgow, Melbourne and Toronto in Table~\ref{tab:f1} and Glasgow, Toronto in Table~\ref{tab:pairf1},
-transition information seems not very helpful as \textsc{Rank+Markov}, an algorithm that explores both POI ranking and transitions,
+transition information does not help \textsc{Rank+Markov}, an algorithm that explores both POI ranking and transitions,
 can not compete with \textsc{PoiRank} in both metrics, but nevertheless brings improvements to \textsc{Markov}.
 However, as the performance of \textsc{Markov} approaches or surpasses that of \textsc{PoiRank},
 i.e., Osaka in Table~\ref{tab:f1} and Edinburgh, Melbourne, Osaka in Table~\ref{tab:pairf1},
 \textsc{Rank+Markov} outperforms both of them, this observation indicates that transition information can be very helpful when
 ranking does not performs well enough.
 
-% 6. xxPath vs. xx:
-% MarkovPath vs Markov:
-% in terms of F1, MarkovPath (Rank+MarkovPath) is always better than Markov (Rank+Markov),
-% in terms of pair F1, MarkovPath (Rank+MarkovPath) yields comparable or worse performance than Markov.
-% which indicates that sub-tour elimination helps POI prediction but worsen the visiting order.
-Sub-tour has a non-ignorable effect when recommending trajectories.
-We can see from Table~\ref{tab:f1} that both \textsc{Markov} and \textsc{Rank+Markov} always perform worse,
-in terms of trajectory F$_1$, than
-their counterparts that do not permit sub-tours, namely, \textsc{MarkovPath} and \textsc{Rank+MarkovPath},
-which is not unexpected as sub-tours worsen the proportion of correctly
-recommended POIs when length constraint is used.
-On the contrary, they achieve better performance in terms of pairs-F$_1$ which indicates sub-tours generally
-respect the transition patterns between POIs.
 
-% go to SSVM
-The effect of sub-tours on trajectory recommendation can be further observed through the performance of \textsc{StructuredSVM}.
+% Baseline stuff, move to the end
+% always better than Random, except PersTour on Melbourne which we'll illustrate later
+\textsc{PersTour}~\cite{ijcai15} always performs better than its variant \textsc{PersTour-L}, 
+especially on Glasgow and Toronto datasets. 
+This indicate the time budget constraint is more helpful than length constraint for recommending trajectories.
+The exception on Melbourne dataset is explained next.
+It is obvious that algorithms captured a certain type of information as shown in Table~\ref{tab:algsummary}
+outperforms the \textsc{Random} baseline in terms of both performance metrics on all five datasets,
+except the performance of \textsc{PersTour}\cite{ijcai15} on Melbourne dataset which will be interpreted later.
+% 2. PersTour vs. PersTour-L
+% PersTour always better except on Melbourne which analysed later
+%where the advantage gap of \textsc{PersTour}
+%is significantly large in terms of both performance metrics,
 %
-% 7. SSVM vs Rank+Markov and Rank+MarkovPath:
-% while SSVM using the same features as Rank+Markov and Rank+MarkovPath, and took advantage of its significantly larger number of parameters
-% but SSVM permit sub-tours
-% in terms of F1,
-% it either yield comparable performance with the better performer (Osaka/Toronto) or with the worse performer (Edinburgh/Glasgow/Melbourne)
-% which indicate how hurt sub-tours hurts POI recommendation.
-% on the other hand, in terms of pair F1.
-% it takes advantage of the transition patterns and yields comparable (Glasgow/Melbourne) or better performance than both of them
-While utilising the same features as \textsc{Rank+Markov} and \textsc{Rank+MarkovPath},
-it can further take advantage of the significantly larger number of parameters.
-However, \textsc{StructuredSVM} can only yield comparable performance with the best performer 
-among the three at most, when measured in terms of trajectory F$_1$.
-On the other hand, \textsc{StructuredSVM} makes the best use of transition patterns which leads to comparable or
-better performance, in terms of pairs-F$_1$, than both of them all the time.
-This observation is consistent with the effect of sub-tours observed above
-as \textsc{StructuredSVM} does permit the existence of sub-tours in recommended trajectories.
+% brief mention results of algorithms with and without utilising time budget constraint
 
 % 8. PersTour on Melbourne:
 % we observed that PersTour was outperformed by Random on Melbourne dataset in terms of both F1 and pair F1.
@@ -301,31 +315,29 @@ as \textsc{StructuredSVM} does permit the existence of sub-tours in recommended 
 % there are 12\% of evaluations are failed due to ILP solver can't find a feasible solution in a $2$ hours
 % furthermore, a lot recommendations are suboptimal solutions of the ILP due to the $2$ timeout settings.
 % which leads to PersTour, which is always a strong performer on other datasets, performs inconsistently on Melbourne dataset.
-Lastly, we observed that \textsc{PersTour}, a very good performer in general, is surprisingly outperformed by \textsc{Random} baseline
+Lastly, we observed that \textsc{PersTour} is surprisingly outperformed by \textsc{Random} baseline
 on Melbourne dataset in terms of both metrics.
 It turns out that, on this very dataset, many of the integer linear programming (ILP) problems
-which \textsc{PersTour} need to solve to get the recommendations are hard ILP instances.
+which \textsc{PersTour} need to solve to get the recommendations are difficult ILP instances.
 In the leave-one-out evaluation, although we utilised a large scale computing cluster with modern hardware,
-there are still $12\%$ of evaluations failed due to the ILP solver could not find a feasible solution in $2$ hours.
+$12\%$ of evaluations failed due to the ILP solver could not find a feasible solution in $2$ hours.
 Furthermore, a lot of recommendations are produced from suboptimal solutions of the corresponding ILPs due to
 the $2$ hours timeout setting, these factors lead to the inconsistent performance of \textsc{PerTour} on Melbourne dataset.
 
 
 \subsection{Case study}
 \label{sec:casestudy}
-
+\secmoveup
 
 Figure~\ref{fig:exampleresult} illustrates a test case in Edinburgh dataset.
 The ground truth is a trajectory of length $4$ that starts at a POI of category \textit{Structures},
 visits two intermediate POIs of category \textit{Structures} and \textit{Cultural} and 
 terminates on a POI of category \textit{Structures}.
-
 The trajectory recommended by \textsc{PersTour} is a tour with $11$ POIs, as shown in Figure~\ref{fig:exampleresult}(a),
 with none of the desired intermediate POIs visited.
-\textsc{PoiRank} (Figure~\ref{fig:exampleresult}(b)) recommended a tour with correct POIs, but with completely different routes.
-On the other hand, \textsc{Markov} (Figure~\ref{fig:exampleresult}(c)) missed one POI but the recommended route for one of 
-the intermediate is consistent with the ground truth.
-
+\textsc{PoiRank} (Figure~\ref{fig:exampleresult}(b)) recommended a tour with correct POIs using features illustrated in Figure~\ref{fig:distro}, 
+but with completely different routes.
+On the other hand, \textsc{Markov} (Figure~\ref{fig:exampleresult}(c)) missed one POI but the recommended route for one of the intermediate is consistent with the ground truth.
 The best recommendation, as shown in Figure~\ref{fig:exampleresult}(d), with exactly the same points and routes as the ground truth,
 which in this case is achieved by \textsc{Rank+MarkovPath}.
 
