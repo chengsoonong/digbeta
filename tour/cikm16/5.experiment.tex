@@ -2,9 +2,11 @@
 
 \section{Experimental Results}
 \label{sec:experiment}
+\secmoveup
 
-\subsection{Dataset}
+\subsection{Photo trajectories from five cities}
 \label{sec:dataset}
+\secmoveup
 
 \begin{table}
 \caption{Statistics of trajectory dataset}
@@ -20,53 +22,58 @@ Melbourne & 94,142 & 23,995 & 5,106 & 1,000 \\
 Osaka & 392,420 & 7,747 & 1,115 & 450 \\
 Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\
 \hline
-\end{tabular}
+\end{tabular}\captionmoveup
 \end{table}
 
 
-We experiment on five trajectory datasets, namely, Edinburgh, Glasgow, Osaka, Toronto and Melbourne.
+We experiment on trajectory datasets from five cities, namely, Edinburgh, Glasgow, Osaka, Toronto and Melbourne.
 The statistics of these trajectory datasets are described in Table~\ref{tab:data}.
-The first four datasets are kindly provided by \cite{ijcai15} and the Melbourne dataset is built using
-the same approach introduced in \cite{ht10, ijcai15} which is briefly described below.
+The first four datasets are provided by Lim et al.~\cite{ijcai15} and the Melbourne dataset is built using
+the same approach introduced in earlier work~\cite{ht10, ijcai15} and briefly described below.
 
 Trajectories are extracted using  geo-tagged photos in the Yahoo! Flickr Creative Commons 100M
-(a.k.a. YFCC100M) dataset\cite{thomee2016yfcc100m} as well as the Wikipedia web-pages of points-of-interests (POIs).
-Photos are mapped to POIs according to their distances calculated using haversine formula\cite{haversine},
+(a.k.a. YFCC100M) dataset~\cite{thomee2016yfcc100m} as well as the Wikipedia web-pages of points-of-interests (POIs).
+Photos are mapped to POIs according to their distances calculated using the Haversine formula~\cite{haversine},
 the time a user arrived a POI is approximated by the time the first photo taken by the user at that POI,
 similarly, the time a user left a POI is approximated by the time the last photo taken 
 by the user at that POI. 
 Furthermore, sequence of POI visits by a specific user are divided into several pieces according to
 the time gap between consecutive POI visits, and the POI visits in each piece are connected in temporal order
 to form a trajectory. 
-For details of extracting trajectories from geo-tagged photos, please refer to \cite{ht10, ijcai15}.
+%%LX: said above, no need to repeat
+%For details of extracting trajectories from geo-tagged photos, please refer to \cite{ht10, ijcai15}.
 
 
-
-\subsection{Performance metric}
+\subsection{Performance metrics}
 \label{sec:metric}
+\secmoveup
 
 \begin{figure}[t]
 	\centering
 	\includegraphics[width=\columnwidth]{fig/pairF1.pdf}
-	\caption{$F_1$ vs pairs-$F_1$. Grey: ground truth transitions; dashed blue: recommended transitions. 
-    See the third paragraph of Section~\ref{sec:metric} for details.}
-	\label{fig:pairf1}
+	\caption{Two illustrative examples for $F_1$ vs pairs-$F_1$ as evaluation metric for trajectories. Solid grey: ground truth trajectories; dashed blue: recommended trajectories. 
+    See Section~\ref{sec:metric} for details.}
+	\label{fig:pairf1}\captionmoveup
 \end{figure}
 
 
-To evaluate the performance of different trajectory recommendation algorithms,
-we employ the trajectory F$_1$\cite{ijcai15} to measure the POIs that are
-correctly recommended. Let $\mathcal{T}$ be the trajectory that was visited in the real world,
-and $\hat{\mathcal{T}}$ be the recommended trajectory,
+%To evaluate the performance of different trajectory recommendation algorithms,
+%we employ the trajectory F$_1$\cite{ijcai15} to measure the POIs that are
+%correctly recommended. 
+A commonly used metric for POI recommendation and evaluating trajectories is 
+the F1 score on points. 
+Let $\mathcal{T}$ be the trajectory that was visited in the real world,
+and $\hat{\cal T}$ be the recommended trajectory,
 $\mathcal{P}_{\mathcal{T}}$ be the set of POIs visited in $\mathcal{T}$,
 and $\mathcal{P}_{\hat{\mathcal{T}}}$ be the set of POIs visited in $\hat{\mathcal{T}}$,
-trajectory F$_1$ was defined as
+we compute trajectory F$_1$ as the harmonic mean between the point-wise precision and recall. 
+%was defined as
 \begin{displaymath}
-F_1= \frac{2 \times P_{\textsc{point}} \times R_{\textsc{point}}}
+F_1= \frac{2  P_{\textsc{point}}  R_{\textsc{point}}}
           {P_{\textsc{point}} + R_{\textsc{point}}}
 \end{displaymath}
 where
-\begin{displaymath}
+\begin{displaymath}\eqmoveup
 P_{\textsc{point}} = \frac{|\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}|}
                           {|\hat{\mathcal{T}}|},
 R_{\textsc{point}} = \frac{|\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}|}
@@ -75,48 +82,55 @@ R_{\textsc{point}} = \frac{|\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\ma
 
 A perfect trajectory F$_1$ (i.e., F$_1 = 1$) means the POIs in
 the recommended trajectory are exactly the same POIs as those in the ground truth,
-and F$_1 = 0$ means that unfortunately none of the POIs in the
+and F$_1 = 0$ means that none of the POIs in the
 real trajectory was recommended.
 
 While trajectory F$_1$ is good at measuring whether POIs are correctly recommended,
-it ignores the routes, i.e., the visiting order between POIs.
-Two trajectories with the exactly same set of POIs can be completely different to visitors 
-given different routes.
+it ignores the visiting order between POIs.
+%Two trajectories with the exactly same set of POIs can be completely different to visitors 
+%given different routes.
 An illustration is shown in Figure~\ref{fig:pairf1},
 the grey lines represent the ground truth transitions that actually visited by travellers
 and the dashed blue lines are the recommended trajectory by one of the approaches listed
-in Table~\ref{tab:algsummary}.
-Even with the exactly same set of places, the visiting experiences are completely different because 
-of the dramatically disparate routes.
-Enlightened by this observation, we propose a new metric $\text{pairs-F}_1$ that takes into account 
-not only the points but also the routes in a trajectory,
+in Table~\ref{tab:algsummary}. Both examples have a perfect F1 score, but not a perfect 
+pairs-F1 score due to the difference in POI sequencing.
+%Even with the exactly same set of places, the visiting experiences are completely different because 
+%of the dramatically disparate routes.
+%Enlightened by this observation,
+We propose a new metric $\text{pairs-F}_1$ that takes into account 
+both the point indentify and the visiting orders in a trajectory. 
+This is done by measuring the F1 score of every pair of ordered POIs, whether they are adjacent or not. 
 \begin{displaymath}
-\text{pairs-F}_1 = \frac{2 \times P_{\textsc{pair}} \times R_{\textsc{pair}}}
+\text{pairs-F}_1 = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}
                        {P_{\textsc{pair}} + R_{\textsc{pair}}}
 \end{displaymath}
 where
-\begin{displaymath}
+\begin{displaymath}\eqmoveup
 P_{\textsc{pair}} = \frac{N_c} {|\hat{\mathcal{T}}|(|\hat{\mathcal{T}}|-1) / 2},
 R_{\textsc{pair}} = \frac{N_c} {|\mathcal{T}|(|\mathcal{T}|-1) / 2}
 \end{displaymath}
-and $N_c$ is the number of POI pairs $(p_j, p_k)$ that satisfies the following
-conditions\footnote{We define pairs-F$_1=0$ if $N_c$ is $0$.}:
+and $N_c$ is the number of ordered POI pairs $(p_j, p_k)$ that 
+appear in both the ground-truth and the recommended trajectories. 
+%satisfies the following
+%conditions\footnote{We define pairs-F$_1=0$ if $N_c$ is $0$.}:
 \begin{align*}
-    (p_j \prec_{\mathcal{T}} p_k ~\land~ p_j \prec_{\hat{\mathcal{T}}} p_k) & ~\lor~
+    (p_j \prec_{\mathcal{T}} p_k ~\land~ p_j \prec_{\hat{\mathcal{T}}} p_k)  ~\lor~
     (p_j \succ_{\mathcal{T}} p_k ~\land~ p_j \succ_{\hat{\mathcal{T}}} p_k) \\
-    p_j \ne p_k, &~~ p_j, p_k \in \mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}} \\
-    j \ne k, &~~ 1 \le j, k \le |\mathcal{T}|
+    \text{with } p_j \ne p_k, ~~ p_j, p_k \in \mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}, ~
+    j \ne k, ~~ 1 \le j, k \le |\mathcal{T}|
 \end{align*}
-where $p_j \prec_{\mathcal{T}} p_k$ denotes POI $p_j$ was visited before POI $p_k$ in trajectory $\mathcal{T}$
+Here $p_j \prec_{\mathcal{T}} p_k$ denotes POI $p_j$ was visited before POI $p_k$ in trajectory $\mathcal{T}$
 and $p_j \succ_{\mathcal{T}} p_k$ denotes $p_j$ was visited after $p_k$ in $\mathcal{T}$.
 
-A perfect pairs-F$_1$, i.e., pairs-F$_1 = 1$, means both the POIs and their visiting orders in the
-recommended trajectory are exactly the same as those in the ground truth,
-and pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited in the real trajectory.
+Pairs-$F_1$ takes values between 0 and 1. A perfect pairsF1 (1.0) is achieved if and only if 
+both the POIs and their visiting orders in the
+recommended trajectory are exactly the same as those in the ground truth. 
+Pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited in the real trajectory.
 
 
 \subsection{Experimental setup}
 \label{sec:setup}
+\secmoveup
 
 \input{table_10methods}
 
@@ -128,6 +142,7 @@ and pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited
 	\caption{Different recommendations from algorithm variants. 
     See the main text in Section~\ref{sec:casestudy} for description.}
 	\label{fig:exampleresult}
+	\captionmoveup
 \end{figure*}
 
 We use leave-one-out cross validation to evaluate different trajectory recommendation algorithms,
@@ -139,7 +154,7 @@ are summarized below, with an overview in Tabel~\ref{tab:algsummary}.
 {\bf Baseline approaches} including \textsc{Random} which naively chooses POIs uniformly at random
 (without replacement) from the set of POIs $\mathcal{P} \setminus \{p_s, p_e \}$ to form a trajectory.
 It does not utilise any features related to POI or query, as shown in Table~\ref{tab:algsummary}.
-Among the related approaches, \textsc{PersTour}\cite{ijcai15} is the most similar work and it
+Among the related approaches, \textsc{PersTour}~\cite{ijcai15} is the most similar work and it
 explores both POI features and the sub-tour elimination constraints described in Section~\ref{sec:walkpath},
 in addition, the recommended trajectory is constrained by a time budget.
 One variant of \textsc{PersTour} is applying the trajectory length instead of the time budget to constrain
@@ -161,10 +176,11 @@ as well as transition probabilities but also jointly optimises their relative im
 
 % Parameters
 {\bf Parameters} of these algorithms.
-We use a $0.5$ trade-off parameter for \textsc{PersTour} and \textsc{PersTour-L}
-and $10.0$ for the regularisation parameter in rankSVM.
+We use a $0.5$ trade-off parameter for \textsc{PersTour} and \textsc{PersTour-L},
+found to be the best weighting by \textsc{PersTour}~\cite{ijcai15}. 
+We set the regularisation parameter in rankSVM to  $10.0$, determined by cross-validation.
 The trade-off value in \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} is also $0.5$
-and $1.0$ is used as the regularisation parameter in \textsc{StructuredSVM}.
+the regularisation parameter in \textsc{StructuredSVM} is $1.0$.
 
 
 \subsection{Results}
@@ -319,5 +335,5 @@ which in this case is achieved by \textsc{Rank+MarkovPath}.
 \begin{figure*}[t]
 \includegraphics[width=\textwidth]{fig/feature_distro.pdf}
 \caption{Distribution of POI popularity, the number of visit and visit duration}
-\label{fig:distro}
+\label{fig:distro}\captionmoveup
 \end{figure*}
