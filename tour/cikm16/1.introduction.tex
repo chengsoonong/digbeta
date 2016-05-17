@@ -3,6 +3,15 @@
 \section{Introduction}
 \label{sec:intro}
 
+\begin{figure*}[ht]
+	\centering
+	\includegraphics[width=0.7\textwidth]{fig/fig1-flavours.pdf}
+	\caption{Three settings of trajectory recommendation problems: (a) POI recommendation, (b) next location recommendation, and (c) trajectory recommendation. Node size: POI score; edge width: transition score between pairs of POIs; grey: input query; star: starting location; flag: ending location. See the first four paragraphs of Section~\ref{sec:relatedwork} for details.
+}
+	\label{fig:threesettings}
+\end{figure*}
+
+
 This paper proposes a novel solution to recommend travel routes in cities.
 Large amount of location traces are becoming available from ubiquitous location tracking devices.
 For example FourSquare, the local search and discovery service, has 50 million monthly users who have made 8 billion check-ins~\cite{4sq}; Flickr, the online photo-sharing site, hosts over 2 billion geo-tagged public photos~\cite{flickr}. Such large amounts of travel data provides new opportunities for better
@@ -33,11 +42,3 @@ The main contributions of this work is as follows:
 \item We show good performance compared to recent results~\cite{ijcai15}, and also quantify the contribution from the different components, such as point ranking, scoring transitions, and routing.
 \item We propose a new metric to evaluate trajectories: pairs-F1, which has the property of being between 0 and 1, and being 1 if and only if the recommended trajectory is exactly the same as the ground truth. Our benchmark data and results are publicly available.
 \end{itemize}
-
-\begin{figure*}[ht]
-	\centering
-	\includegraphics[width=0.7\textwidth]{fig/fig1-flavours.pdf}
-	\caption{Three settings of trajectory recommendation problems: (a) POI recommendation, (b) next location recommendation, and (c) trajectory recommendation. Node size: POI score; edge width: transition score between pairs of POIs; grey: input query; star: starting location; flag: ending location. See the first four paragraphs of Section~\ref{sec:relatedwork} for details.
-}
-	\label{fig:threesettings}
-\end{figure*}
