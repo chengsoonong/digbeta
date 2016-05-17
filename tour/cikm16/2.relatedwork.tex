@@ -22,19 +22,19 @@ There are several settings of recommendation problems for locations and routes, 
 The first setting can be called points-of-interest (POI) recommendation (Figure~\ref{fig:threesettings}(a)). Each location (A to E) is scored with geographic and behavioural information such as category, reviews, popularity, spatial information such as distance, and temporal information such as travel time uncertainty, time of the day or day of the week.
 This can be in discovery mode, such as identifying points-of-interest~\cite{zheng2009mining,li2015instagram} and includes efficient querying of geographic objects for trips ~\cite{hashem2015efficient}
 A popular approach is based on the collaborative filtering model
-for learning user-location affinity~\cite{shi2011personalized}, with additional ways to incorporate spatial~\cite{lian2014geomf,liu2014exploiting}, or temporal~\cite{yuan2013timeaware,hsieh2014mining,gao2013temporal}, or spatial-temporal~\cite{yuan2014graph} information.
+for learning user-location affinity~\cite{shi2011personalized}, with additional ways to incorporate spatial~\cite{lian2014geomf,liu2014exploiting}, temporal~\cite{yuan2013timeaware,hsieh2014mining,gao2013temporal}, or spatial-temporal~\cite{yuan2014graph} information.
 There is a rich collection of recent literature on this problem~\cite{yin2015joint,shi2011personalized,lian2014geomf,liu2014exploiting,yuan2013timeaware,hsieh2014mining,gao2013temporal,yuan2014graph}, including recent surveys~\cite{bao2015recommendations,zheng2014urban}.
 
 
 Figure~\ref{fig:threesettings}(b) illustrates the second setting: next location recommendation~\cite{ijcai13,aaai16,baraglia2013learnext,zhang2015location}. Here the input is a partial trajectory (e.g. started at point A and currently at point B), the task of the algorithm is to score the next candidate location (e.g, C, D and E) based on the perceived POI score and transition compatibility with input $A\rightarrow B$.
 It is a variant of POI recommendation except given both the user and locations travelled to date. The solutions to this problem include incorporating Markov chains into collaborative filtering~\cite{fpmc10,ijcai13,zhang2015location},
 quantifying tourist traffic flow between points-of-interest~\cite{zheng2012patterns},
-by formulating a binary decision or ranking problem~\cite{baraglia2013learnext}, or with sequence models such as recurrent neural networks~\cite{aaai16}.
+by formulating a binary decision or ranking problem~\cite{baraglia2013learnext}, and with sequence models such as recurrent neural networks~\cite{aaai16}.
 
 
 
 This paper considers the final setting: route recommendation, as illustrated in Figure~\ref{fig:threesettings}(c). Here the input are some factors about the desired route, e.g. starting point A and end point C, along with auxiliary information such as the desired length of trip. The algorithm needs to take into account location desirability (as indicated by node size) and transition compatibility (as indicated by edge width), and compare route hypotheses such as A-D-B-C and A-E-D-C. Existing work in this area either uses heuristic combination of locations and routes~\cite{lu2010photo2trip,ijcai15,lu2012personalized}, or formulates an optimisation problem that is not informed or evaluated by behaviour history~\cite{gioniswsdm14,chen2015tripplanner}. Joint learning of locations preferences and routes remains an open problem.
-Our work is in this category, we formulate a learning problem to score the whole trajectory, taking into account individual POI properties and relationships among different POIs.
+Our work is in this category. We formulate a learning problem to score the whole trajectory, taking into account individual POI properties and relationships among different POIs.
 
 
 
@@ -44,7 +44,7 @@ The first is collaborative filtering, or matrix factorisation family of techniqu
 %Gionis et al~\cite{gioniswsdm14} formulates optimisation problems with additive user satisfaction and coverage constraints. Lim et al.~\cite{ijcai15} uses a combination of user preference and POI popularity as objective function, and then solves a travelling salesman problem (TSP) to obtain a route.
 The TripBuilder system~\cite{brilhante2013shall} first solves a maximum coverage problem for user preference and then solves TSP for routing. The collaborative filtering approaches rank POI but do not take into account the sequence that a trip is taken. On the other hand, the planning approaches assume a fixed objective function that is not directly optimised to predict user behaviour. There have been a few approaches that jointly consider POI preference and routes~\cite{lu2012personalized, kurashima2010geotag,chen2015tripplanner}.
 %Lu et al~\cite{lu2012personalized} uses heuristic combinations for point scoring, followed by branch-n-bound search for planning. Kurashima et al~\cite{kurashima2010geotag} modelled user preferences and his/her transition patterns between POIs using a hybrid of Markov chain and topic models, the search for a best path is done by greedily maximising the probability for the next point. The TripPlanner system~\cite{chen2015tripplanner} selects POIs based on input query and POI categories, and then scores routes using heuristic search strategies taking into account traffic and travel time constraints.
-We propose a new approach that combines different POI features and POI-POI transition features, while learning the relevant weights from data. We also provide a comprehensive benchmark on how node- and edge- features contribute to the final trajectory ranking.
+We propose a new approach that combines different POI features and POI-POI transition features, while learning the relevant weights from data. We also provide a comprehensive benchmark on how node and edge features contribute to the final trajectory ranking.
 
 
 %planning:
@@ -86,7 +86,7 @@ user demographics
 and travel group types (e.g., couple, family and friends) from online photos.
 Ference et al~\cite{ference2013location} tailors the recommendation for out of town users.
 Subjective opinion is an important information source for decision making, in addition to past behaviours. Zhang et al~\cite{Zhang2015OOP} use written reviews for POI recommendation.
-The novel work from Quercia et al~\cite{ht14} crowd-source judgements about the beauty, quietness and happiness about places, and then constructs routes with these subjective criteria.
+The novel work from Quercia et al~\cite{ht14} crowd-source judgements about the beauty, quietness and happiness of places, and then constructs routes with these subjective criteria.
 %aims to recommend a short and pleasant trajectory from the current POI to a destination POI by choosing the best average rank of all POIs in a trajectory from the $M$ shortest paths that connect the current location and destination,
 %POIs were ranked according to the degree of pleasure based on user votes and  crowd-sourced emotion scores on three aspects
 %(i.e., beauty, quietness and happiness).
