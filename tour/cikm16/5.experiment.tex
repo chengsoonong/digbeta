@@ -61,7 +61,7 @@ to form a trajectory.
 %we employ the trajectory F$_1$\cite{ijcai15} to measure the POIs that are
 %correctly recommended. 
 A commonly used metric for POI recommendation and evaluating trajectories is 
-the F1 score on points. 
+the F$_1$ score on points. 
 Let $\mathcal{T}$ be the trajectory that was visited in the real world,
 and $\hat{\cal T}$ be the recommended trajectory,
 $\mathcal{P}_{\mathcal{T}}$ be the set of POIs visited in $\mathcal{T}$,
@@ -90,16 +90,16 @@ it ignores the visiting order between POIs.
 %Two trajectories with the exactly same set of POIs can be completely different to visitors 
 %given different routes.
 An illustration is shown in Figure~\ref{fig:pairf1},
-the grey lines represent the ground truth transitions that actually visited by travellers
+the solid grey lines represent the ground truth transitions that actually visited by travellers
 and the dashed blue lines are the recommended trajectory by one of the approaches listed
-in Table~\ref{tab:algsummary}. Both examples have a perfect F1 score, but not a perfect 
-pairs-F1 score due to the difference in POI sequencing.
+in Table~\ref{tab:algsummary}. Both examples have a perfect F$_1$ score, but not a perfect 
+pairs-F$_1$ score due to the difference in POI sequencing.
 %Even with the exactly same set of places, the visiting experiences are completely different because 
 %of the dramatically disparate routes.
 %Enlightened by this observation,
 We propose a new metric $\text{pairs-F}_1$ that takes into account 
-both the point indentify and the visiting orders in a trajectory. 
-This is done by measuring the F1 score of every pair of ordered POIs, whether they are adjacent or not. 
+both the point identity and the visiting orders in a trajectory. 
+This is done by measuring the F$_1$ score of every pair of ordered POIs, whether they are adjacent or not. 
 \begin{displaymath}
 \text{pairs-F}_1 = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}
                        {P_{\textsc{pair}} + R_{\textsc{pair}}}
@@ -110,19 +110,19 @@ P_{\textsc{pair}} = \frac{N_c} {|\hat{\mathcal{T}}|(|\hat{\mathcal{T}}|-1) / 2},
 R_{\textsc{pair}} = \frac{N_c} {|\mathcal{T}|(|\mathcal{T}|-1) / 2}
 \end{displaymath}
 and $N_c$ is the number of ordered POI pairs $(p_j, p_k)$ that 
-appear in both the ground-truth and the recommended trajectories. 
+appear in both the ground-truth and the recommended trajectories:
 %satisfies the following
 %conditions\footnote{We define pairs-F$_1=0$ if $N_c$ is $0$.}:
 \begin{align*}
     (p_j \prec_{\mathcal{T}} p_k ~\land~ p_j \prec_{\hat{\mathcal{T}}} p_k)  ~\lor~
     (p_j \succ_{\mathcal{T}} p_k ~\land~ p_j \succ_{\hat{\mathcal{T}}} p_k) \\
     \text{with } p_j \ne p_k, ~~ p_j, p_k \in \mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}, ~
-    j \ne k, ~~ 1 \le j, k \le |\mathcal{T}|
+    j \ne k, ~~ 1 \le j, k \le |\mathcal{T}|.
 \end{align*}
 Here $p_j \prec_{\mathcal{T}} p_k$ denotes POI $p_j$ was visited before POI $p_k$ in trajectory $\mathcal{T}$
 and $p_j \succ_{\mathcal{T}} p_k$ denotes $p_j$ was visited after $p_k$ in $\mathcal{T}$.
 
-Pairs-$F_1$ takes values between 0 and 1. A perfect pairsF1 (1.0) is achieved if and only if 
+Pairs-F$_1$ takes values between 0 and 1. A perfect pairs-F$_1$ (1.0) is achieved if and only if 
 both the POIs and their visiting orders in the
 recommended trajectory are exactly the same as those in the ground truth. 
 Pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited in the real trajectory.
@@ -147,8 +147,8 @@ Pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited in 
 
 We use leave-one-out cross validation to evaluate different trajectory recommendation algorithms,
 i.e., when testing on a trajectory, all other trajectories are used for training. 
-We compare with a number of baseline approaches from recent literature, the 10 approach variants 
-are summarized below, with an overview in Tabel~\ref{tab:algsummary}.
+We compare with a number of baseline approaches from recent literature, the 10 variants of approaches
+are summarised below, with an overview in Table~\ref{tab:algsummary}.
 
 % baseline: Random, PersTour, PersTour-L, PoiPopularity
 {\bf Baseline approaches} including \textsc{Random} which naively chooses POIs uniformly at random
@@ -179,7 +179,7 @@ as well as transition probabilities but also jointly optimises their relative im
 We use a $0.5$ trade-off parameter for \textsc{PersTour} and \textsc{PersTour-L},
 found to be the best weighting by \textsc{PersTour}~\cite{ijcai15}. 
 We set the regularisation parameter in rankSVM to  $10.0$, determined by cross-validation.
-The trade-off value in \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} is also $0.5$
+The trade-off value in \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} is also $0.5$ and
 the regularisation parameter in \textsc{StructuredSVM} is $1.0$.
 
 
@@ -190,7 +190,7 @@ the regularisation parameter in \textsc{StructuredSVM} is $1.0$.
 % compare both F1 and pair F1 at the same time
 The performance of the baseline algorithm and the POI ranking and routing variants 
 on five trajectories datasets are summarised in Table~\ref{tab:f1}
-and Table~\ref{tab:pairf1}, in terms of trajectory F$_1$-score and pairs-F$_1$, respectively.
+and Table~\ref{tab:pairf1}, in terms of trajectory F$_1$ score and pairs-F$_1$, respectively.
 
 
 % 6. xxPath vs. xx:
@@ -199,9 +199,9 @@ and Table~\ref{tab:pairf1}, in terms of trajectory F$_1$-score and pairs-F$_1$, 
 % in terms of pair F1, MarkovPath (Rank+MarkovPath) yields comparable or worse performance than Markov.
 % which indicates that sub-tour elimination helps POI prediction but worsen the visiting order.
 Eliminating sub-tours improves point and trajectory recommendation, 
-while Markov chain approaches have better sequencing as measured by pairs-F1. % effect when recommending trajectories.
+while Markov chain approaches have better sequencing as measured by pairs-F$_1$. % effect when recommending trajectories.
 We can see from Table~\ref{tab:f1} that \textsc{MarkovPath} and \textsc{Rank+MarkovPath} 
-outperform their corresponding variants \textsc{Markov} and \textsc{Rank+Markov} without the path constraints in terms of F1. 
+outperform their corresponding variants \textsc{Markov} and \textsc{Rank+Markov} without the path constraints in terms of F$_1$. 
 %always perform worse,
 %in terms of trajectory F$_1$, than
 %their counterparts that do not permit sub-tours, namely, \textsc{MarkovPath} and \textsc{Rank+MarkovPath},
@@ -227,9 +227,9 @@ it is more flexible with automatic tuning of the trade-off of points and routes.
 %it can further take advantage of the significantly larger number of parameters.
 %However, \textsc{StructuredSVM} can only yield comparable performance with the best performer 
 %among the three at most, when measured in terms of trajectory F$_1$.
-While not achieving best F1 in any city, 
+While not achieving best F$_1$ in any city, 
 \textsc{StructuredSVM} makes the best use of transition patterns 
-and consistently has better pairs-F1 than \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} in all cities. 
+and consistently has better pairs-F$_1$ than \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} in all cities. 
 %which leads to comparable or
 %better performance, in terms of pairs-F$_1$, than both of them all the time.
 %This observation is consistent with the effect of sub-tours observed above
@@ -271,7 +271,7 @@ of visiting order.
 However, pairs-F$_1$ is actually affected heavily by the proportion of correctly recommended POIs in trajectory,
 once the POIs are correctly predicted, a better pairs-F$_1$ would be achieved,
 this supposition can be confirmed by the observation that, on Osaka dataset, \textsc{Markov} and \textsc{PoiRank} achieved
-comparable performance in terms of trajectory F$_1$, which means the proportion of corrected recommended POIs is comparable,
+comparable performance in terms of trajectory F$_1$, which means the proportion of correctly recommended POIs is comparable,
 but \textsc{Markov} outperforms \textsc{PoiRank} significantly in terms of pairs-F$_1$,
 which suggest the transition information is helpful in some situations.
 
@@ -284,7 +284,7 @@ which suggest the transition information is helpful in some situations.
 Transition information helps point ranking when their performances are comparable. 
 When the advantage gap of \textsc{PoiRank} over \textsc{Markov} is large,
 i.e. Edinburgh, Glasgow, Melbourne and Toronto in Table~\ref{tab:f1} and Glasgow, Toronto in Table~\ref{tab:pairf1},
-transition information does not help \textsc{Rank+Markov}, an algorithm that explores both POI ranking and transitions,
+transition information does not help \textsc{Rank+Markov}, which explores both POI ranking and transitions,
 can not compete with \textsc{PoiRank} in both metrics, but nevertheless brings improvements to \textsc{Markov}.
 However, as the performance of \textsc{Markov} approaches or surpasses that of \textsc{PoiRank},
 i.e., Osaka in Table~\ref{tab:f1} and Edinburgh, Melbourne, Osaka in Table~\ref{tab:pairf1},
@@ -335,7 +335,8 @@ visits two intermediate POIs of category \textit{Structures} and \textit{Cultura
 terminates on a POI of category \textit{Structures}.
 The trajectory recommended by \textsc{PersTour} is a tour with $11$ POIs, as shown in Figure~\ref{fig:exampleresult}(a),
 with none of the desired intermediate POIs visited.
-\textsc{PoiRank} (Figure~\ref{fig:exampleresult}(b)) recommended a tour with correct POIs using features illustrated in Figure~\ref{fig:distro}, 
+\textsc{PoiRank} (Figure~\ref{fig:exampleresult}(b)) recommended a tour with correct POIs using 
+POI specific features (illustrated in Figure~\ref{fig:distro}) as well as query specific features,
 but with completely different routes.
 On the other hand, \textsc{Markov} (Figure~\ref{fig:exampleresult}(c)) missed one POI but the recommended route for one of the intermediate is consistent with the ground truth.
 The best recommendation, as shown in Figure~\ref{fig:exampleresult}(d), with exactly the same points and routes as the ground truth,
