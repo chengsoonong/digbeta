@@ -2,24 +2,23 @@
 
 \section{Tour Recommendation}
 \label{sec:recommendation}
-
+\secmoveup
 
 Recall that in Section~\ref{sec:ranksvm} we described how to recommend trajectories by ranking points,
-i.e., the \textsc{PoiRank} algorithm and its simplified variant \textsc{PoiPopularity}.
-While algorithms based on points ranking utilise POI and/or query features, 
-the transitions between POIs are never considered.
-On the other hand, \textsc{Markov} and its variant \textsc{MarkovPath}
-only use POI-POI transitions but ignoring the point ranks.
-We summarise the characteristics of the various trajectory recommendation approaches in Table~\ref{tab:algsummary}.
-
-We are now in a position to jointly optimise POI preferences and route plans.
-We want to leverage both POI ranking and POI-POI transitions when recommending trajectories.
-
+i.e., \textsc{PoiRank} % and its simplified variant \textsc{PoiPopularity}.
+%While algorithms based on points ranking utilise POI and/or query features, 
+%the transitions between POIs are never considered.
+and ones that consider transitions between POIs, i.e., \textsc{Markov} and \textsc{MarkovPath}
+%only use POI-POI transitions but ignoring the point ranks.
+This section propose three approaches to %now in a position to 
+jointly optimise the recommendation with both POI preferences and route plans.
+%We want to leverage both POI ranking and POI-POI transitions when recommending trajectories.
+A summary of the various trajectory recommendation approaches can be found in Table~\ref{tab:algsummary}.
 
 
 \subsection{POI ranking and transitions}
 \label{sec:rank+markov}
-
+\secmoveup
 
 
 To recommend the \textit{most likely} trajectory with respect to a query,
@@ -28,7 +27,7 @@ i.e., we want to find a trajectory that maximise the points ranking of its POIs
 as well as its likelihood at the same time.
 
 Firstly, we transform the ranking scores of POIs with respect to query $q = (p_s, p_e, L)$
-to a probability distribution using softmax function~\cite{bishop2006},
+to a probability distribution using the softmax function~\cite{bishop2006},
 \begin{equation}
   \label{eq:poi-probability}
   P_R(p_j | q) = \frac{e^{R(p_j)}}{\sum_j e^{R(p_j)}}
@@ -66,7 +65,8 @@ $p_{j_k} \in \mathcal{P}, 1 \le k \le L$.
 $\mathcal{T} = (p_{j_1}, \dots, p_{j_L})$ is any possible trajectory and
 $0 \le \alpha \le 1$ is a parameter to trade-off the importance between the ranking of POIs
 and the POI-POI transitions in the recommended trajectory.
-The objective can be optimised by adapting the Viterbi algorithm and using the two recursions below,
+Similar to \textsc{Markov} algorithm above, the best path can be found using the Viterbi algorithm with both node and transition scores. 
+%The objective can be optimised by adapting the Viterbi algorithm and using the two recursions below,
 \begin{multline}
     \label{eq:max}
     A[l+1, p] = \max_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|q) + \\ (1-\alpha) \log P(p|p') \}
