@@ -14,8 +14,17 @@ Good solutions to these problems will in turn lead to better urban experiences f
 There are several settings of recommendation problems for locations and routes: POI recommendation,
 next location recommendation, and trajectory recommendation. This is described in more detail in
 Section~\ref{sec:relatedwork}, and we refer the reader to a number of recent
-surveys\cite{bao2015recommendations,zheng2015trajectory,zheng2014urban}
-for detailed profiles of the area.
+surveys~\cite{bao2015recommendations,zheng2015trajectory,zheng2014urban}
+for general overviews of the area. %There are two notable gaps 
+We note, however, that two desired qualities are still 
+missing from the current solutions to trajectory recommendation. 
+The first is principled method to jointly learn POI ranking, a prediction problem, 
+and optimize for route creation, a planning problem. 
+The second is a unified way to incorporate various features 
+such as local, time, distance, user profile, social interactions, 
+as they tend to get specialized and separate treatments. 
+This work aims to address these challenges. %bridge these gaps. 
+
 We propose a novel way to learn point and route preferences jointly.
 Our solution consists of several parts.
 We propose a learning to rank formulation to capture the preference of POIs given the starting and ending points of a trajectory (Section~\ref{sec:method}).
