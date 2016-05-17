@@ -135,10 +135,10 @@ the features of interactions between neighbouring variables (pairwise features) 
 prediction,
 \begin{displaymath}
     \mathcal{T}^* = \argmax_{\mathcal{T} \in \mathcal{P}^L} 
-                    \sum_{j=1}^L \mathbf{w_u}^T \phi_j \left( q, \mathcal{T}_j \right) +
-                    \sum_{j=1}^{L-1} \mathbf{w_p}^T \phi_{j, j+1} \left( q, \mathcal{T}_j, \mathcal{T}_{j+1} \right)
+                    \sum_{j=1}^L \mathbf{w_u}^T \mathbf{\phi}_j \left( q, \mathcal{T}_j \right) +
+                    \sum_{j=1}^{L-1} \mathbf{w_p}^T \mathbf{\phi}_{j, j+1} \left( q, \mathcal{T}_j, \mathcal{T}_{j+1} \right)
 \end{displaymath}
-where $\phi_j$ is the unary features of the $j$-th variable and $\phi_{j, j+1}$ is the pairwise features between
+where $\mathbf{\phi}_j$ is the unary features of the $j$-th variable and $\mathbf{\phi}_{j, j+1}$ is the pairwise features between
 the $j$-th and $(j+1)$-th variables, $\mathbf{w_u}$ and $\mathbf{w_p}$ are the
 parameters of unary and pairwise features.
 
@@ -184,18 +184,22 @@ To estimate the parameters $\mathbf{w_u}$ and $\mathbf{w_p}$, we train a structu
 using the 1-slack formulation~\cite{ssvm09},
 \begin{align*}
     \min_{\mathbf{w}, \xi \ge 0} ~~& \frac{1}{2} \mathbf{w}^T \mathbf{w} + C \xi \\
-    s.t. ~~& \frac{1}{N} \mathbf{w}^T \sum_{i=1}^N \delta \left( \hat{\mathcal{T}^{(i)}} \right) \ge
-             \frac{1}{N} \sum_{i=1}^N \Delta \left( \mathcal{T}^{(i)}, \hat{\mathcal{T}^{(i)}} \right) - \xi \\
-         ~~& \forall \hat{\mathcal{T}^{(i)}} \in \mathcal{P}^{|\mathcal{T}^{(i)}|}, i = 1, \cdots, N
+    s.t. ~~& \forall \left( \hat{\mathcal{T}}^{(1)}, \cdots, \hat{\mathcal{T}}^{(N)} \right) \in \mathscr{T}^N: \\
+         ~~& \frac{1}{N} \mathbf{w}^T \sum_{i=1}^N \delta \left( \hat{\mathcal{T}}^{(i)} \right) \ge
+             \frac{1}{N} \sum_{i=1}^N \Delta \left( \mathcal{T}^{(i)}, \hat{\mathcal{T}}^{(i)} \right) - \xi \\
+%         ~~& \forall \hat{\mathcal{T}}^{(i)} \in \mathcal{P}^{|\mathcal{T}^{(i)}|}, i = 1, \cdots, N
 \end{align*}
 where $\mathbf{w} = [\mathbf{w_u}^T, \mathbf{w_p}^T]^T$ is the parameter vector,
-$N$ is the total number of trajectories in training set, $C$ is the regularisation parameter,
+$\mathcal{T}^{(i)}$ and $\hat{\mathcal{T}}^{(i)}$ are the $i$-th trajectory in training set
+and its corresponding recommended trajectory respectively.
+$N$ is the training set size, $C$ is the regularisation parameter,
 $\xi$ is the slack variable, and
 \begin{displaymath}
-    \delta \left( \hat{\mathcal{T}^{(i)}} \right) = \Psi \left( q^{(i)}, \mathcal{T}^{(i)} \right) - 
-                                                    \Psi \left( q^{(i)}, \hat{\mathcal{T}^{(i)}} \right)
+    \delta \left( \hat{\mathcal{T}}^{(i)} \right) = \Psi \left( q^{(i)}, \mathcal{T}^{(i)} \right) - 
+                                                    \Psi \left( q^{(i)}, \hat{\mathcal{T}}^{(i)} \right)
 \end{displaymath}
-where $\Psi \left( q^{(i)}, \mathcal{T}^{(i)} \right)$ is the joint feature vector which is a composite of unary and 
-pairwise features of the $i$-th example in training set,
-$\Delta \left( \mathcal{T}^{(i)}, \hat{\mathcal{T}^{(i)}} \right)$ is the loss associated with the $i$-th trajectory 
-in training set and its corresponding recommendation, and Hamming loss is used in this work.
+where $q^{(i)}$ the query corresponds to the $i$-th trajectory in training set and
+$\Psi \left( q^{(i)}, \mathcal{T}^{(i)} \right)$ is the joint feature vector which is a composite of unary and 
+pairwise features of the $i$-th trajectory,
+$\Delta \left( \mathcal{T}^{(i)}, \hat{\mathcal{T}}^{(i)} \right)$ is the loss associated with the $i$-th trajectory 
+and its corresponding recommendation, and Hamming loss is used in this work.
