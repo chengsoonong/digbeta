@@ -1,13 +1,16 @@
+%!TEX root = main.tex
+
 \section{POI, Query and Path}
 \label{sec:method}
-
 
 We aim to recommend a particular tour such that the user will visit a sequence of points-of-interests (POIs), denoted $p_1, \ldots, p_L$, that maximises utility. We are given the desired start ($p_1=p_s$) and end point ($p_L=p_e$), and an associated number $L$ of POIs desired, from which we propose a trajectory through the city. In Figure~\ref{fig:threesettings}(c), an example tour is shown in blue, which starts at the POI denoted as a grey star, visits two intermediate POIs, and terminates on the fourth POI denoted as a flag. The tour of length 4 can be modelled as a sequence of directed edges in a graph containing POIs in the city as nodes.
 
 The training data consists of a set of tours of varying length in a particular city. We assume that all POIs in the city are visited at least once, and hence can construct a graph with POIs as nodes and potentially multiple directed edges between each pair of nodes. We extract the category, popularity, total number of visits and average visit duration for each POI.
 %The set of categories are shown in Figure~\ref{fig:poicats} in the appendix, and the popularity is defined as the number of distinct users that visited the POI\cite{ht10}.
 
-As a baseline approach, we recommend the trajectory based on the popularity (number of distinct users)~\cite{ht10} of POIs only, that is we always suggest the top-$k$ most popular POIs for all visitors given the start and end location. We call this baseline approach \textsc{PoiPopularity}, and its only adaptation to a particular request is to adjust $k$ to match the desired length.
+%As a baseline approach, we 
+A naive approach would be to
+recommend the trajectory based on the popularity (number of distinct users)~\cite{ht10} of POIs only, that is we always suggest the top-$k$ most popular POIs for all visitors given the start and end location. We call this baseline approach \textsc{PoiPopularity}, and its only adaptation to a particular request is to adjust $k$ to match the desired length.
 
 \subsection{Ranking using the origin and destination}
 \label{sec:ranksvm}
@@ -42,6 +45,7 @@ The distance from POI $p$ to $p_s$ (and $p_e$) is computed using the haversine f
 %$\Delta \varphi = \varphi_p - \varphi_{p_s}$, $\Delta \lambda = \lambda_p - \lambda_{p_s}$,
 %and $\varphi_p$, $\lambda_p$ are the latitude and longitude of POI $p$ respectively.
 Lastly we also include the required length $L$ of the trajectory as a feature for rankSVM.
+The frequency distribution of POI popularity, number of visits and visit duration are in Figure~\ref{fig:distro}.
 
 For training the rankSVM, the labels are generated using the number of occurrences of
 POI $p$ in trajectories grouped by query $(p_s, p_e, L)$,
@@ -75,15 +79,18 @@ Furthermore, even if we restrict ourselves to known POIs, there may be many loca
 are rarely visited, leading to significant challenges in estimating the probabilities from
 empirical data.
 
-We model these transitions using a Markov Chain with discrete factored states.
-The transition probability from POI $p_i$ to POI $p_j$ is factorised according to
-individual POI features described in Section~\ref{sec:ranksvm}.
+We model these transitions using a Markov chain with discrete factored states.
+One difficulty of estimating the Markov chain is data sparsity, 
+i.e., not enough transitions have been observed between every pair of POIs. 
+We factorised the transition probability from POI $p_i$ to POI $p_j$ %is  according to
+as a product of transition probabilities between pairs of 
+individual POI features (listed in Section~\ref{sec:ranksvm}).
 POIs are grouped into $5$ clusters using K-means according to their geographical locations
 to reflect their neighbourhood relations.
 We directly model the transition between the category and neighbourhood of each POI as the conditional probability.
 The popularity, total number of visits and the average visit duration are discretised by binning
 them uniformly into $5$ discrete intervals on the log scale.
-Figure~\ref{fig:transmat} shows the transition matrices for individual POI features in Melbourne.
+Figure~\ref{fig:transmat} visualises the transition matrices for individual POI features in Melbourne.
 
 We compute the transition probabilities of the above individual POI features
 using maximum likelihood estimation,
@@ -116,13 +123,14 @@ that starts from $p_s$ and ends at $p$ with $l$ POI visits,
 and entry $B[l, p]$ in the backtracking-point matrix $B$ stores the predecessor of $p$ in that (partial) trajectory.
 
 \begin{algorithm}[t]
-\caption{\textsc{Markov}: recommend trajectory by maximising likelihood}
+\caption{\textsc{Markov}: recommend trajectory with POI transitions}
+%recommend trajectory by maximising likelihood}
 \label{alg:markov}
 \begin{algorithmic}[1]
 \STATE \textbf{Input}: $\mathcal{P}, p_s, p_e, L$
 \STATE \textbf{Output}: Trajectory $\mathcal{T} = (p_s, \cdots, p_e)$ with $L$ POIs
 \STATE Compute POI-POI transition matrix
-\STATE Initialise matrices $A$ and $B$
+\STATE Initialise score matrix $A$ and backtrack pointer $B$
 \FOR{$p \in \mathcal{P}$}
     \STATE $A[2, p] = \log P(p|p_s)$
     \STATE $B[2, p] = p_s$
@@ -144,14 +152,14 @@ and entry $B[l, p]$ in the backtracking-point matrix $B$ stores the predecessor 
 \end{algorithm}
 
 
-
-\subsection{Walks vs Paths}
+%\subsection{Walks vs Paths}
+\subsection{Avoiding sub-tours} %%LX: walk vs path is never defined! but sub-tour seem to be??
 \label{sec:walkpath}
 
 The tours recommended by \textsc{Markov} described in Section~\ref{sec:transition} are found
-using the maximum likelihood approach, and may contain multiple copies of the same POI.
-This is because the random walk suggested by Viterbi may have
-tottering (where the Markov chain transitions back and forth between two states),
+using the maximum likelihood approach, and may contain multiple visits to the same POI.
+This is because the best path from Viterbi decoding %random walk suggested by Viterbi 
+may have tottering (where the Markov chain transitions back and forth between two states),
 or may have circular sub-tours (where a POI already visited earlier in the tour is
 visited again).
 We propose a method for eliminating sub-tours by specifying additional constraints
@@ -159,7 +167,7 @@ when recommending trajectories.
 
 %  \item ILP
 In particular, we find the best trajectory using an integer linear program with
-sub-tour elimination constraints adapted from the Travelling Salesman Problem\cite{opt98}.
+sub-tour elimination constraints adapted from the Travelling Salesman Problem~\cite{opt98}.
 We call our method that uses the transition matrix to recommend paths
 that do not have circular sub-tours \textsc{MarkovPath}.
 
