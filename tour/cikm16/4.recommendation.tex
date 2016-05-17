@@ -2,13 +2,13 @@
 \label{sec:recommendation}
 
 
-Recall that in section \ref{sec:ranksvm} we described how to recommend trajectories by ranking points,
+Recall that in Section~\ref{sec:ranksvm} we described how to recommend trajectories by ranking points,
 i.e., the \textsc{PoiRank} algorithm and its simplified variant \textsc{PoiPopularity}.
 While algorithms based on points ranking utilise POI and/or query features, 
 the transitions between POIs are never considered.
 On the other hand, \textsc{Markov} and its variant \textsc{MarkovPath}
 only use POI-POI transitions but ignoring the point ranks.
-We summarise the characteristics of the various trajectory recommendation approaches in table \ref{tab:algsummary}.
+We summarise the characteristics of the various trajectory recommendation approaches in Table~\ref{tab:algsummary}.
 
 We are now in a position to jointly optimise POI preferences and route plans.
 We want to leverage both POI ranking and POI-POI transitions when recommending trajectories.
@@ -103,7 +103,7 @@ $B$ is the backtracking-point matrix and entry $B[l, p]$ stores the predecessor 
 The maximum objective value is $A[L, p_e]$,
 and the corresponding trajectory can be found by tracing back from $B[L, p_e]$.
 We call this approach that uses both the ranking of POIs and POI-POI transitions \textsc{Rank+Markov},
-with the pseudo code shown in algorithm \ref{alg:rank+markov}.
+with the pseudo code shown in Algorithm~\ref{alg:rank+markov}.
 
 \begin{algorithm}[t]
 \caption{\textsc{Rank+Markov}: recommend trajectory by utilising both POI ranking and transition}
@@ -120,8 +120,8 @@ with the pseudo code shown in algorithm \ref{alg:rank+markov}.
 \ENDFOR
 \FOR{$l=2$ to $L-1$}
     \FOR{$p \in \mathcal{P}$}
-        \STATE Compute $A[l+1, p]$ using Equation (\ref{eq:max})
-        \STATE Compute $B[l+1, p]$ using Equation (\ref{eq:argmax})
+        \STATE Compute $A[l+1, p]$ using Equation~(\ref{eq:max})
+        \STATE Compute $B[l+1, p]$ using Equation~(\ref{eq:argmax})
     \ENDFOR
 \ENDFOR
 % //trace back to find the actual path
@@ -134,10 +134,10 @@ with the pseudo code shown in algorithm \ref{alg:rank+markov}.
 \end{algorithmic}
 \end{algorithm}
 
-Similar to the \textsc{Markov} algorithm described in section \ref{sec:transition},
+Similar to the \textsc{Markov} algorithm described in Section~\ref{sec:transition},
 sub-tours (e.g., tottering) may appear in trajectories recommended by \textsc{Rank+Markov}.
 To eliminate sub-tours, we can optimise the following objective using integer linear programming
-with the same constraints as those in \textsc{MarkovPath} algorithm described in section \ref{sec:walkpath}.
+with the same constraints as those in \textsc{MarkovPath} algorithm described in Section~\ref{sec:walkpath}.
 \begin{displaymath}
     \max  \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} (\alpha \log P_R(p_j | q) + (1-\alpha) \log P(p_j | p_i))
 \end{displaymath}
@@ -187,7 +187,7 @@ Pairwise features between the $j$-th variable and the $(j+1)$-th variable $\phi_
                                  j &=2, \dots, L-2
 \end{align*}
 where $\phi_{j-1, j}$ is the pairwise features between the $(j-1)$-th and $j$-th variables,
-and $M$ is the transition matrix between POIs described in section \ref{sec:transition} and
+and $M$ is the transition matrix between POIs described in Section~\ref{sec:transition} and
 $M_{ij} = P(p_j | p_i)$.
 In particular, the pairwise features between the first and the second variables is the
 outgoing transition probabilities of the first variable,

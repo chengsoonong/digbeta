@@ -23,7 +23,7 @@ Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\
 
 
 We experiment on five trajectory datasets, namely, Edinburgh, Glasgow, Osaka, Toronto and Melbourne.
-The statistics of these trajectory datasets are described in table \ref{tab:data}.
+The statistics of these trajectory datasets are described in Table~\ref{tab:data}.
 The first four datasets are kindly provided by \cite{ijcai15} and the Melbourne dataset is built using
 the same approach introduced in \cite{ht10, ijcai15} which is briefly described below.
 
@@ -47,12 +47,10 @@ For details of extracting trajectories from geo-tagged photos, please refer to \
 	\centering
 	\includegraphics[width=\columnwidth]{fig/pairF1.pdf}
 	\caption{$F_1$ vs pairs-$F_1$. Grey: ground truth transitions; dashed blue: recommended transitions. 
-    See the third paragraph of Section \ref{sec:metric} for details.}
+    See the third paragraph of Section~\ref{sec:metric} for details.}
 	\label{fig:pairf1}
 \end{figure}
 
-
-\cheng{Let's try this here. Still needs polishing.}
 
 To evaluate the performance of different trajectory recommendation algorithms,
 we employ the trajectory F$_1$\cite{ijcai15} to measure the POIs that are
@@ -82,10 +80,10 @@ While trajectory F$_1$ is good at measuring whether POIs are correctly recommend
 it ignores the routes, i.e., the visiting order between POIs.
 Two trajectories with the exactly same set of POIs can be completely different to visitors 
 given different routes.
-An illustration is shown in Figure \ref{fig:pairf1},
+An illustration is shown in Figure~\ref{fig:pairf1},
 the grey lines represent the ground truth transitions that actually visited by travellers
 and the dashed blue lines are the recommended trajectory by one of the approaches listed
-in table \ref{tab:algsummary}.
+in Table~\ref{tab:algsummary}.
 Even with the exactly same set of places, the visiting experiences are completely different because 
 of the dramatically disparate routes.
 Enlightened by this observation, we propose a new metric $\text{pairs-F}_1$ that takes into account 
@@ -166,7 +164,7 @@ and pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited
 	\centering
 	\includegraphics[width=\textwidth]{fig/example-tour.pdf}
 	\caption{Different recommendations from algorithm variants. 
-    See the main text in Section \ref{sec:casestudy} for description.}
+    See the main text in Section~\ref{sec:casestudy} for description.}
 	\label{fig:exampleresult}
 \end{figure*}
 
@@ -177,25 +175,25 @@ i.e., when testing on a trajectory, all other trajectories are used for training
 % baseline: Random, PersTour, PersTour-L, PoiPopularity
 {\bf Baseline approaches} including \textsc{Random} which naively chooses POIs uniformly at random
 (without replacement) from the set of POIs $\mathcal{P} \setminus \{p_s, p_e \}$ to form a trajectory.
-It does not utilise any features related to POI or query, as shown in  table \ref{tab:algsummary}.
+It does not utilise any features related to POI or query, as shown in Table~\ref{tab:algsummary}.
 Among the related approaches, \textsc{PersTour}\cite{ijcai15} is the most similar work and it
-explores both POI features and the sub-tour elimination constraints described in section \ref{sec:walkpath},
+explores both POI features and the sub-tour elimination constraints described in Section~\ref{sec:walkpath},
 in addition, the recommended trajectory is constrained by a time budget.
 One variant of \textsc{PersTour} is applying the trajectory length instead of the time budget to constrain
-the recommended trajectory, which is denoted as \textsc{PersTour-L} in table \ref{tab:algsummary}.
-Another baseline is \textsc{PoiPopularity} described at the beginning of section \ref{sec:method},
+the recommended trajectory, which is denoted as \textsc{PersTour-L} in Table~\ref{tab:algsummary}.
+Another baseline is \textsc{PoiPopularity} described at the beginning of Section~\ref{sec:method},
 it only uses POI popularity to recommend a trajectory.
 
 % variants: PoiRank, Markov, MarkovPath, Rank+Markov, Rank+MarkovPath, SSVM
-{\bf Variants of point- and route-ranking} approaches including \textsc{PoiRank} (section \ref{sec:ranksvm})
+{\bf Variants of point- and route-ranking} approaches including \textsc{PoiRank} (Section~\ref{sec:ranksvm})
 that utilises POI and query features, 
-and \textsc{Markov} (section \ref{sec:transition}), 
+and \textsc{Markov} (Section~\ref{sec:transition}), 
 that recommends trajectories uses only transition probabilities between POIs  
 and its variant \textsc{MarkovPath} that incorporates additional constraints to eliminate sub-tours.
-Both \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} (section \ref{sec:rank+markov})
+Both \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} (Section~\ref{sec:rank+markov})
 utilise POI and query features as well as transition probabilities, with the latter uses
 additional sub-tour elimination constraints.
-Lastly, we have the \textsc{StructuredSVM} (section \ref{sec:ssvm}) that not only utilises POI and query features 
+Lastly, we have the \textsc{StructuredSVM} (Section~\ref{sec:ssvm}) that not only utilises POI and query features 
 as well as transition probabilities but also jointly optimises their relative importance.
 
 % Parameters
@@ -211,12 +209,12 @@ and $1.0$ is used as the regularisation parameter in \textsc{StructuredSVM}.
 
 
 % compare both F1 and pair F1 at the same time
-The performance of ten algorithms on five trajectories datasets are shown in table \ref{tab:f1}
-and table \ref{tab:pairf1} in terms of trajectory F$_1$-score and pairs-F$_1$ respectively.
+The performance of ten algorithms on five trajectories datasets are shown in Table~\ref{tab:f1}
+and Table~\ref{tab:pairf1} in terms of trajectory F$_1$-score and pairs-F$_1$ respectively.
 %
 % 1. all vs Random
 % always better than Random, except PersTour on Melbourne which we'll illustrate later
-It is obvious that algorithms captured a certain type of information as shown in table \ref{tab:algsummary}
+It is obvious that algorithms captured a certain type of information as shown in Table~\ref{tab:algsummary}
 outperforms the \textsc{Random} baseline in terms of both performance metrics on all five datasets,
 except the performance of \textsc{PersTour}\cite{ijcai15} on Melbourne dataset which will be interpreted later.
 
@@ -275,11 +273,11 @@ which suggest the transition information is helpful in some situations.
 % when the Markov is comparable or better than PoiRank, Rank+Markov outperforms both (Osaka)
 % which is consistent with the assumption that transition helps when ranking didn't performs very well
 In particular, when the advantage gap of \textsc{PoiRank} over \textsc{Markov} is large,
-i.e. Edinburgh, Glasgow, Melbourne and Toronto in table \ref{tab:f1} and Glasgow, Toronto in table \ref{tab:pairf1},
+i.e. Edinburgh, Glasgow, Melbourne and Toronto in Table~\ref{tab:f1} and Glasgow, Toronto in Table~\ref{tab:pairf1},
 transition information seems not very helpful as \textsc{Rank+Markov}, an algorithm that explores both POI ranking and transitions,
 can not compete with \textsc{PoiRank} in both metrics, but nevertheless brings improvements to \textsc{Markov}.
 However, as the performance of \textsc{Markov} approaches or surpasses that of \textsc{PoiRank},
-i.e., Osaka in table \ref{tab:f1} and Edinburgh, Melbourne, Osaka in table \ref{tab:pairf1},
+i.e., Osaka in Table~\ref{tab:f1} and Edinburgh, Melbourne, Osaka in Table~\ref{tab:pairf1},
 \textsc{Rank+Markov} outperforms both of them, this observation indicates that transition information can be very helpful when
 ranking does not performs well enough.
 
@@ -289,7 +287,7 @@ ranking does not performs well enough.
 % in terms of pair F1, MarkovPath (Rank+MarkovPath) yields comparable or worse performance than Markov.
 % which indicates that sub-tour elimination helps POI prediction but worsen the visiting order.
 Sub-tour has a non-ignorable effect when recommending trajectories.
-We can see from table \ref{tab:f1} that both \textsc{Markov} and \textsc{Rank+Markov} always perform worse,
+We can see from Table~\ref{tab:f1} that both \textsc{Markov} and \textsc{Rank+Markov} always perform worse,
 in terms of trajectory F$_1$, than
 their counterparts that do not permit sub-tours, namely, \textsc{MarkovPath} and \textsc{Rank+MarkovPath},
 which is not unexpected as sub-tours worsen the proportion of correctly
@@ -338,18 +336,18 @@ the $2$ hours timeout setting, these factors lead to the inconsistent performanc
 \label{sec:casestudy}
 
 
-Figure \ref{fig:exampleresult} illustrates a test case in Edinburgh dataset.
+Figure~\ref{fig:exampleresult} illustrates a test case in Edinburgh dataset.
 The ground truth is a trajectory of length $4$ that starts at a POI of category \textit{Structures},
 visits two intermediate POIs of category \textit{Structures} and \textit{Cultural} and 
 terminates on a POI of category \textit{Structures}.
 
-The trajectory recommended by \textsc{PersTour} is a tour with $11$ POIs, as shown in figure \ref{fig:exampleresult}(a),
+The trajectory recommended by \textsc{PersTour} is a tour with $11$ POIs, as shown in Figure~\ref{fig:exampleresult}(a),
 with none of the desired intermediate POIs visited.
-\textsc{PoiRank} (figure \ref{fig:exampleresult}(b)) recommended a tour with correct POIs, but with completely different routes.
-On the other hand, \textsc{Markov} (figure \ref{fig:exampleresult}(c)) missed one POI but the recommended route for one of 
+\textsc{PoiRank} (Figure~\ref{fig:exampleresult}(b)) recommended a tour with correct POIs, but with completely different routes.
+On the other hand, \textsc{Markov} (Figure~\ref{fig:exampleresult}(c)) missed one POI but the recommended route for one of 
 the intermediate is consistent with the ground truth.
 
-The best recommendation, as shown in figure \ref{fig:exampleresult}(d), with exactly the same points and routes as the ground truth,
+The best recommendation, as shown in Figure~\ref{fig:exampleresult}(d), with exactly the same points and routes as the ground truth,
 which in this case is achieved by \textsc{Rank+MarkovPath}.
 
 
