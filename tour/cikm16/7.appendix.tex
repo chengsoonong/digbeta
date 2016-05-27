@@ -3,13 +3,6 @@
 \appendix
 
 \section{POI Categories}
-\begin{figure}[t]
-	\centering
-	\includegraphics[width=0.6\columnwidth]{fig/poi_cats.pdf}
-	\caption{POI Categories}
-	\label{fig:poicats}
-\end{figure}
-
 We collected the POI categories in all of the five trajectory datasets,
 their names with the corresponding icons are shown in figure \ref{fig:poicats}.
 
@@ -72,3 +65,62 @@ some bits of information in test set were leaked into training set via these agg
 %One may argue that many of these features will not change much when computed with or without data in test set,
 %but in certain areas, such as aerodynamics, some decisions are very sensitive to the quantity of certain features.
 %Nevertheless, the exact impact still needs further investigation.
+
+
+\section{Features}
+Features used for ranking POIs in rankSVM are described in Table~\ref{tab:featurerank}.
+POI features used to factorise the transition probabilities between POIs are described in Table~\ref{tab:featuretran}.
+
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.6\columnwidth]{fig/poi_cats.pdf}
+	\caption{POI Categories}
+	\label{fig:poicats}
+\end{figure}
+
+
+\begin{table}[t]
+\caption{POI features used to factorise POI-POI transition probabilities}
+\label{tab:featuretran}
+\centering
+\begin{tabular}{l|l} \hline
+\textbf{Feature}     & \textbf{Description} \\ \hline
+\texttt{category}    & category of POI \\
+\texttt{position}    & the cluster that a POI resides in \\
+\texttt{popularity}  & (discritised) popularity of POI \\
+\texttt{nVisit}      & (discritised) total number of visit at POI \\
+\texttt{avgDuration} & (discritised) average duration at POI \\ \hline
+\end{tabular}
+\end{table}
+
+
+\begin{table*}[t]
+\caption{Features of POI $p$ used in rankSVM given query $(p_s, p_e, L)$}
+\label{tab:featurerank}
+\centering
+%\small
+%\setlength{\tabcolsep}{2pt} % tweak the space between columns
+%\begin{tabular}{l|p{0.7\columnwidth}} \hline
+\begin{tabular}{l|l} \hline
+\textbf{Feature}  & \textbf{Description} \\ \hline
+\texttt{category}          & one-hot encoding of the category of $p$ \\
+\texttt{position}          & one-hot encoding of the POI cluster that $p$ resides in \\
+\texttt{popularity}        & logarithm of POI popularity of $p$ \\
+\texttt{nVisit}            & logarithm of the total number of visit by all users at $p$ \\
+\texttt{avgDuration}       & logarithm of the average duration at $p$ \\ \hline
+\texttt{trajLen}           & trajectory length $L$, i.e., the number of POIs required \\
+\texttt{sameCatStart}      & $1$ if the category of $p$ is the same as that of $p_s$, $-1$ otherwise \\
+\texttt{sameCatEnd}        & $1$ if the category of $p$ is the same as that of $p_e$, $-1$ otherwise \\
+\texttt{sameClusterStart}  & $1$ if $p$ resides in the same POI cluster as $p_s$, $-1$ otherwise \\
+\texttt{sameClusterEnd}    & $1$ if $p$ resides in the same POI cluster as $p_e$, $-1$ otherwise \\
+\texttt{distStart}         & distance between $p$ and $p_s$, calculated using the Haversine formula \\
+\texttt{distEnd}           & distance between $p$ and $p_e$, calculated using the Haversine formula \\
+\texttt{diffPopStart}      & real-valued difference in POI popularity of $p$ from that of $p_s$ \\
+\texttt{diffPopEnd}        & real-valued difference in POI popularity of $p$ from that of $p_e$ \\
+\texttt{diffNVisitStart}   & real-valued difference in the total number of visit at $p$ from that at $p_s$ \\
+\texttt{diffNVisitEnd}     & real-valued difference in the total number of visit at $p$ from that at $p_e$ \\
+\texttt{diffDurationStart} & real-valued difference in average duration at $p$ from that at $p_s$ \\
+\texttt{diffDurationEnd}   & real-valued difference in average duration at $p$ from that at $p_e$ \\ \hline
+\end{tabular}
+\end{table*}
