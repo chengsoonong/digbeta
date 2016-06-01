@@ -67,11 +67,6 @@ some bits of information in test set were leaked into training set via these agg
 %Nevertheless, the exact impact still needs further investigation.
 
 
-\section{Features}
-Features used for ranking POIs in rankSVM are described in Table~\ref{tab:featurerank}.
-POI features used to factorise the transition probabilities between POIs are described in Table~\ref{tab:featuretran}.
-
-
 \begin{figure}[t]
 	\centering
 	\includegraphics[width=0.6\columnwidth]{fig/poi_cats.pdf}
@@ -124,3 +119,103 @@ POI features used to factorise the transition probabilities between POIs are des
 \texttt{diffDurationEnd}   & real-valued difference in average duration at $p$ from that at $p_e$ \\ \hline
 \end{tabular}
 \end{table*}
+
+
+\section{RankSVM}
+\label{appendix:ranksvm}
+
+\subsection{Prediction}
+The ranking score for POI $p_i$ is $S_{p_i} = \mathbf{w_r} \mathbf{f}_{p_i}$,
+where $\mathbf{w_r}$ is a vector of parameters,
+and $\mathbf{f}_{p_i}$ is the (scaled) feature vector for POI $p_i$ as described in Table~\ref{tab:featurerank}.
+
+
+\subsection{Training}
+To estimate the parameters $\mathbf{w_r}$, we train a rankSVM with linear kernel and L$2$ loss:
+\begin{displaymath}
+\min_{\mathbf{w_r}} \frac{1}{2} \mathbf{w_r}^T \mathbf{w_r} +
+                    C_r \sum_{(p_i, p_j) \in \mathcal{P}}
+                    \max \left( 0, 1 - \mathbf{w_r}^T (\mathbf{f}_{p_i} - \mathbf{f}_{p_j}) \right)^2
+\end{displaymath}
+where $\mathcal{P}$ is the set of POIs to rank,
+$C_r > 0$ is the regularisation parameter.
+
+We generate a training example for each pair $(p, q)$ in the Cartesian product $\mathcal{P} \times \mathcal{Q}$,
+where $\mathcal{P}$ is the set of POIs and $\mathcal{Q}$ is the set of queries appeared in training set.
+The label of a training example is the number of occurrences of POI $p$ in trajectories grouped by query $q = (p_s, p_e, L)$,
+without counting the occurrence of $p$ when it is the origin or destination of a trajectory.
+
+
+\section{POI-POI transition matrix}
+
+\label{appendix:transition}
+We factorised the transition probability from POI $p_i$ to POI $p_j$
+as a product of transition probabilities between pairs of 
+individual POI features (and appropriately normalised), as described in Table~\ref{tab:featuretran}.
+
+
+\section{Structured SVM}
+\label{appendix:ssvm}
+
+To recommend a trajectory that starts from POI $p_s$, ends at POI $p_e$, and with $L$ POIs in total.
+We build a chain with $L$ random variables (nodes) and $L-1$ directed edges between neighbouring variables,
+each discrete variable has $|\mathcal{P}|$ states.
+The first variable corresponds to $p_s$, the last variable corresponds to $p_e$ and
+all intermediate variables corresponds to POIs to be recommended.
+
+
+\subsection{Node Features}
+\label{appendix:node}
+A naive approach to build node features:
+\begin{itemize}
+\item The feature vector for a node (variable) is computed by concatenating the feature vectors of all POIs in $\mathcal{P}$, 
+      the feature vector for a POI is the same as that used in rankSVM as described in Table~\ref{tab:featurerank}.
+\item All nodes (variables) share the same feature vector.
+\end{itemize}
+
+
+\subsection{Edge Features}
+\label{appendix:edge}
+A naive approach to build edge features:
+\begin{itemize}
+\item The feature vector for a directed edge is computed by unrolling the POI-POI transition matrix 
+      described in Section~\ref{appendix:transition}.
+\item All edges share the same feature vector.
+\end{itemize}
+
+
+\subsection{Prediction}
+The best trajectory to recommend with respect to query $q = (p_s, p_e, L)$ is
+\begin{displaymath}
+    \mathcal{T}^* = \argmax_{\mathcal{T} \in \mathcal{P}^L} 
+                    \sum_{j=1}^L \mathbf{w_u}^T \mathbf{\phi}_j \left( q, \mathcal{T}_j \right) +
+                    \sum_{j=1}^{L-1} \mathbf{w_p}^T \mathbf{\phi}_{j, j+1} \left( q, \mathcal{T}_j, \mathcal{T}_{j+1} \right)
+\end{displaymath}
+where $\mathbf{\phi}_j$ is the feature vector of the $j$-th node (variable), as described in Section~\ref{appendix:node},
+and $\mathbf{\phi}_{j, j+1}$ is the feature vector of the $j$-th edge, as described in Section~\ref{appendix:edge}.
+$\mathbf{w_u}$ and $\mathbf{w_p}$ are the parameters of node and edge features respectively.
+
+
+\subsection{Training}
+To estimate the parameters $\mathbf{w_u}$ and $\mathbf{w_p}$, we train a Structured Support Vector Machine
+using the 1-slack formulation,
+\begin{align*}
+    \min_{\mathbf{w}, \xi \ge 0} ~~& \frac{1}{2} \mathbf{w}^T \mathbf{w} + C \xi \\
+    s.t. ~~& \forall \left( \hat{\mathcal{T}}^{(1)}, \cdots, \hat{\mathcal{T}}^{(N)} \right) \in \mathscr{T}^N: \\
+         ~~& \frac{1}{N} \mathbf{w}^T \sum_{i=1}^N \delta \left( \hat{\mathcal{T}}^{(i)} \right) \ge
+             \frac{1}{N} \sum_{i=1}^N \Delta \left( \mathcal{T}^{(i)}, \hat{\mathcal{T}}^{(i)} \right) - \xi
+\end{align*}
+where $\mathbf{w} = [\mathbf{w_u}^T, \mathbf{w_p}^T]^T$ is the parameter vector,
+$\mathcal{T}^{(i)}$ is the $i$-th trajectory in training set, 
+and its corresponding recommendation is $\hat{\mathcal{T}}^{(i)}$.
+$N$ is the training set size, i.e., the number of trajectories in training set, 
+$C$ is the regularisation parameter, $\xi$ is the slack variable, and
+\begin{displaymath}
+    \delta \left( \hat{\mathcal{T}}^{(i)} \right) = \Psi \left( q^{(i)}, \mathcal{T}^{(i)} \right) - 
+                                                    \Psi \left( q^{(i)}, \hat{\mathcal{T}}^{(i)} \right)
+\end{displaymath}
+where $q^{(i)}$ and $\Psi \left( q^{(i)}, \mathcal{T}^{(i)} \right)$ are the query and the joint feature vector 
+correspond to the $i$-th trajectory in training set. 
+A joint feature vector is computed from the node and edge feature vectors.
+$\Delta \left( \mathcal{T}^{(i)}, \hat{\mathcal{T}}^{(i)} \right)$ is the loss associated with the $i$-th trajectory 
+and its corresponding recommendation, and Hamming loss is used in our experiment.
