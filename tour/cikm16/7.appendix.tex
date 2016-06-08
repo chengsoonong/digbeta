@@ -2,6 +2,8 @@
 
 \appendix
 
+\urlstyle{tt}
+
 \section{POI Categories}
 We collected the POI categories in all of the five trajectory datasets,
 their names with the corresponding icons are shown in figure \ref{fig:poicats}.
@@ -79,13 +81,14 @@ some bits of information in test set were leaked into training set via these agg
 \caption{POI features used to factorise POI-POI transition probabilities}
 \label{tab:featuretran}
 \centering
+\setlength{\tabcolsep}{2pt} % tweak the space between columns
 \begin{tabular}{l|l} \hline
-\textbf{Feature}     & \textbf{Description} \\ \hline
-\texttt{category}    & category of POI \\
-\texttt{position}    & the cluster that a POI resides in \\
-\texttt{popularity}  & (discritised) popularity of POI \\
-\texttt{nVisit}      & (discritised) total number of visit at POI \\
-\texttt{avgDuration} & (discritised) average duration at POI \\ \hline
+\textbf{Feature}       & \textbf{Description} \\ \hline
+\texttt{category}      & category of POI \\
+\texttt{neighbourhood} & the cluster that a POI resides in \\
+\texttt{popularity}    & (discretised) popularity of POI \\
+\texttt{nVisit}        & (discretised) total number of visit at POI \\
+\texttt{avgDuration}   & (discretised) average duration at POI \\ \hline
 \end{tabular}
 \end{table}
 
@@ -99,24 +102,24 @@ some bits of information in test set were leaked into training set via these agg
 %\begin{tabular}{l|p{0.7\columnwidth}} \hline
 \begin{tabular}{l|l} \hline
 \textbf{Feature}  & \textbf{Description} \\ \hline
-\texttt{category}          & one-hot encoding of the category of $p$ \\
-\texttt{position}          & one-hot encoding of the POI cluster that $p$ resides in \\
-\texttt{popularity}        & logarithm of POI popularity of $p$ \\
-\texttt{nVisit}            & logarithm of the total number of visit by all users at $p$ \\
-\texttt{avgDuration}       & logarithm of the average duration at $p$ \\ \hline
-\texttt{trajLen}           & trajectory length $L$, i.e., the number of POIs required \\
-\texttt{sameCatStart}      & $1$ if the category of $p$ is the same as that of $p_s$, $-1$ otherwise \\
-\texttt{sameCatEnd}        & $1$ if the category of $p$ is the same as that of $p_e$, $-1$ otherwise \\
-\texttt{sameClusterStart}  & $1$ if $p$ resides in the same POI cluster as $p_s$, $-1$ otherwise \\
-\texttt{sameClusterEnd}    & $1$ if $p$ resides in the same POI cluster as $p_e$, $-1$ otherwise \\
-\texttt{distStart}         & distance between $p$ and $p_s$, calculated using the Haversine formula \\
-\texttt{distEnd}           & distance between $p$ and $p_e$, calculated using the Haversine formula \\
-\texttt{diffPopStart}      & real-valued difference in POI popularity of $p$ from that of $p_s$ \\
-\texttt{diffPopEnd}        & real-valued difference in POI popularity of $p$ from that of $p_e$ \\
-\texttt{diffNVisitStart}   & real-valued difference in the total number of visit at $p$ from that at $p_s$ \\
-\texttt{diffNVisitEnd}     & real-valued difference in the total number of visit at $p$ from that at $p_e$ \\
-\texttt{diffDurationStart} & real-valued difference in average duration at $p$ from that at $p_s$ \\
-\texttt{diffDurationEnd}   & real-valued difference in average duration at $p$ from that at $p_e$ \\ \hline
+\texttt{category}               & one-hot encoding of the category of $p$ \\
+\texttt{neighbourhood}          & one-hot encoding of the POI cluster that $p$ resides in \\
+\texttt{popularity}             & logarithm of POI popularity of $p$ \\
+\texttt{nVisit}                 & logarithm of the total number of visit by all users at $p$ \\
+\texttt{avgDuration}            & logarithm of the average duration at $p$ \\ \hline
+\texttt{trajLen}                & trajectory length $L$, i.e., the number of POIs required \\
+\texttt{sameCatStart}           & $1$ if the category of $p$ is the same as that of $p_s$, $-1$ otherwise \\
+\texttt{sameCatEnd}             & $1$ if the category of $p$ is the same as that of $p_e$, $-1$ otherwise \\
+\texttt{sameNeighbourhoodStart} & $1$ if $p$ resides in the same POI cluster as $p_s$, $-1$ otherwise \\
+\texttt{sameNeighbourhoodEnd}   & $1$ if $p$ resides in the same POI cluster as $p_e$, $-1$ otherwise \\
+\texttt{distStart}              & distance between $p$ and $p_s$, calculated using the Haversine formula \\
+\texttt{distEnd}                & distance between $p$ and $p_e$, calculated using the Haversine formula \\
+\texttt{diffPopStart}           & real-valued difference in POI popularity of $p$ from that of $p_s$ \\
+\texttt{diffPopEnd}             & real-valued difference in POI popularity of $p$ from that of $p_e$ \\
+\texttt{diffNVisitStart}        & real-valued difference in the total number of visit at $p$ from that at $p_s$ \\
+\texttt{diffNVisitEnd}          & real-valued difference in the total number of visit at $p$ from that at $p_e$ \\
+\texttt{diffDurationStart}      & real-valued difference in average duration at $p$ from that at $p_s$ \\
+\texttt{diffDurationEnd}        & real-valued difference in average duration at $p$ from that at $p_e$ \\ \hline
 \end{tabular}
 \end{table*}
 
@@ -125,33 +128,41 @@ some bits of information in test set were leaked into training set via these agg
 \label{appendix:ranksvm}
 
 \subsection{Prediction}
-The ranking score for POI $p_i$ is $S_{p_i} = \mathbf{w_r} \mathbf{f}_{p_i}$,
+Given a set of $M$ POIs $\mathcal{P} = \{p_1, \cdots, p_M\}$, 
+and $N$ queries $\mathcal{Q} = \{q_1, \cdots, q_N\}$.
+The ranking score for POI $p_m$ with respect to query $q_n$ is 
+$S_{m,n} = \langle \mathbf{w_r}, \mathbf{\phi}(p_m, q_n) \rangle$,
 where $\mathbf{w_r}$ is a vector of parameters,
-and $\mathbf{f}_{p_i}$ is the (scaled) feature vector for POI $p_i$ as described in Table~\ref{tab:featurerank}.
+and $\mathbf{\phi}(p_m, q_n)$ is the scaled feature vector for $p_m$ with respect to query $q_n$,
+as described in Table~\ref{tab:featurerank}.
 
+\subsection{Feature scaling}
+We scale the features described in Table~\ref{tab:featurerank} to range $[-1, 1]$ using the same approach as that 
+utilised by libsvm \url{http://www.csie.ntu.edu.tw/~cjlin/libsvm/},
+i.e., we fit a linear function $f(x) = a x + b$ for feature $x$ such that the maximum value of $x$ maps to $1$ 
+and the minimum value of $x$ map to $-1$.
 
 \subsection{Training}
 To estimate the parameters $\mathbf{w_r}$, we train a rankSVM with linear kernel and L$2$ loss:
-\begin{displaymath}
-\min_{\mathbf{w_r}} \frac{1}{2} \mathbf{w_r}^T \mathbf{w_r} +
-                    C_r \sum_{(p_i, p_j) \in \mathcal{P}}
-                    \max \left( 0, 1 - \mathbf{w_r}^T (\mathbf{f}_{p_i} - \mathbf{f}_{p_j}) \right)^2
-\end{displaymath}
-where $\mathcal{P}$ is the set of POIs to rank,
-$C_r > 0$ is the regularisation parameter.
+%\begin{displaymath}
+\begin{multline}
+\min_{\mathbf{w_r}} \frac{1}{2} \mathbf{w_r}^T \mathbf{w_r} + \\ \hfill
+                    C_r \sum_{(p_i, q_n), (p_j, q_n) \in \mathcal{P} \times \mathcal{Q}}
+                    \max \left( 0, 1 - \mathbf{w_r}^T (\mathbf{\phi}(p_i, q_n) - \mathbf{\phi}(p_j, q_n)) \right)^2
+\end{multline}
+%\end{displaymath}
+where $C_r > 0$ is the regularisation parameter.
 
-We generate a training example for each pair $(p, q)$ in the Cartesian product $\mathcal{P} \times \mathcal{Q}$,
-where $\mathcal{P}$ is the set of POIs and $\mathcal{Q}$ is the set of queries appeared in training set.
-The label of a training example is the number of occurrences of POI $p$ in trajectories grouped by query $q = (p_s, p_e, L)$,
-without counting the occurrence of $p$ when it is the origin or destination of a trajectory.
+The label of a training example is the number of occurrences of POI $p_m$ in trajectories grouped by query $q = (p_s, p_e, L)$,
+without counting the occurrence of $p_m$ when it is the origin or destination of a trajectory.
 
 
-\section{POI-POI transition matrix}
+\section{Factorised POI-POI transitions}
 
 \label{appendix:transition}
-We factorised the transition probability from POI $p_i$ to POI $p_j$
-as a product of transition probabilities between pairs of 
-individual POI features (and appropriately normalised), as described in Table~\ref{tab:featuretran}.
+We factorise the transition probability from POI $p_i$ to POI $p_j$
+according to $5$ POI features described in Table~\ref{tab:featuretran},
+which result in a transition matrix for each individual POI feature.
 
 
 \section{Structured SVM}
@@ -160,40 +171,50 @@ individual POI features (and appropriately normalised), as described in Table~\r
 To recommend a trajectory that starts from POI $p_s$, ends at POI $p_e$, and with $L$ POIs in total.
 We build a chain with $L$ random variables (nodes) and $L-1$ directed edges between neighbouring variables,
 each discrete variable has $|\mathcal{P}|$ states.
-The first variable corresponds to $p_s$, the last variable corresponds to $p_e$ and
-all intermediate variables corresponds to POIs to be recommended.
+Both the first variable and the last variable are observed, i.e., they are $p_s$ and $p_e$ respectively,
+all intermediate variables corresponds to POIs that should be recommended.
 
 
 \subsection{Node Features}
 \label{appendix:node}
-A naive approach to build node features:
-\begin{itemize}
-\item The feature vector for a node (variable) is computed by concatenating the feature vectors of all POIs in $\mathcal{P}$, 
-      the feature vector for a POI is the same as that used in rankSVM as described in Table~\ref{tab:featurerank}.
-\item All nodes (variables) share the same feature vector.
-\end{itemize}
+Given a POI $p_m$ and a query $q_n$, the node features are the same as that described in Table~\ref{tab:featurerank}.
+Features are scaled the same way as that described in Section~\ref{appendix:ranksvm}.
 
 
 \subsection{Edge Features}
 \label{appendix:edge}
-A naive approach to build edge features:
-\begin{itemize}
-\item The feature vector for a directed edge is computed by unrolling the POI-POI transition matrix 
-      described in Section~\ref{appendix:transition}.
-\item All edges share the same feature vector.
-\end{itemize}
+Given an ordered pair of POIs $(p_i, p_j)$, 
+the edge/pairwise features are built from the factorised transition probabilities 
+according to features described in Table~\ref{tab:featuretran}:
+\begin{enumerate}
+\item The transition probability from the category of $p_i$ to the category of $p_j$.
+\item The transition probability from the cluster with $p_i$ to the cluster with $p_j$.
+\item The transition probability from the interval with the popularity of $p_i$ to the interval 
+      with the popularity of $p_j$.
+\item The transition probability from the interval with the number of visit at $p_i$ to the interval 
+      with the number of visit at $p_j$.
+\item The transition probability from the interval with the average duration at $p_i$ to the interval 
+      with the average duration at $p_j$.
+\end{enumerate}
 
 
 \subsection{Prediction}
-The best trajectory to recommend with respect to query $q = (p_s, p_e, L)$ is
+Given parameters for node and edge features $\mathbf{w_u}$ and $\mathbf{w_p}$, 
+we can compute the score of $\mathcal{T}$ as follows:
 \begin{displaymath}
-    \mathcal{T}^* = \argmax_{\mathcal{T} \in \mathcal{P}^L} 
-                    \sum_{j=1}^L \mathbf{w_u}^T \mathbf{\phi}_j \left( q, \mathcal{T}_j \right) +
-                    \sum_{j=1}^{L-1} \mathbf{w_p}^T \mathbf{\phi}_{j, j+1} \left( q, \mathcal{T}_j, \mathcal{T}_{j+1} \right)
+S'(\mathcal{T}) = \sum_{j=1}^L     \langle \mathbf{w_u}, \mathbf{\phi}_j (\mathcal{T}_j, q) \rangle +
+                  \sum_{j=1}^{L-1} \langle \mathbf{w_p}, \mathbf{\phi}_{j, j+1} (\mathcal{T}_j, \mathcal{T}_{j+1}) \rangle
 \end{displaymath}
-where $\mathbf{\phi}_j$ is the feature vector of the $j$-th node (variable), as described in Section~\ref{appendix:node},
+where $L = |\mathcal{T}|$ is the length of $\mathcal{T}$, 
+$\mathbf{\phi}_j$ is the feature vector of the $j$-th node (variable) described in Section~\ref{appendix:node},
+$q$ is the query corresponding to $\mathcal{T}$, i.e., $q = (\mathcal{T}_0, \mathcal{T}_L, L)$,
 and $\mathbf{\phi}_{j, j+1}$ is the feature vector of the $j$-th edge, as described in Section~\ref{appendix:edge}.
-$\mathbf{w_u}$ and $\mathbf{w_p}$ are the parameters of node and edge features respectively.
+
+One approach to recommend a trajectory with respect to query $q = (p_s, p_e, L)$ and parameters 
+$\mathbf{w_u}$ and $\mathbf{w_p}$ is recommending the one with the maximum score, i.e.,
+\begin{displaymath}
+    \mathcal{T}^* = \argmax_{\mathcal{T} \in \mathcal{P}^L} S'(\mathcal{T})
+\end{displaymath}
 
 
 \subsection{Training}
@@ -201,21 +222,25 @@ To estimate the parameters $\mathbf{w_u}$ and $\mathbf{w_p}$, we train a Structu
 using the 1-slack formulation,
 \begin{align*}
     \min_{\mathbf{w}, \xi \ge 0} ~~& \frac{1}{2} \mathbf{w}^T \mathbf{w} + C \xi \\
-    s.t. ~~& \forall \left( \hat{\mathcal{T}}^{(1)}, \cdots, \hat{\mathcal{T}}^{(N)} \right) \in \mathscr{T}^N: \\
-         ~~& \frac{1}{N} \mathbf{w}^T \sum_{i=1}^N \delta \left( \hat{\mathcal{T}}^{(i)} \right) \ge
-             \frac{1}{N} \sum_{i=1}^N \Delta \left( \mathcal{T}^{(i)}, \hat{\mathcal{T}}^{(i)} \right) - \xi
+    s.t. ~~& \forall \left( \bar{\mathcal{T}}^{(1)}, \cdots, \bar{\mathcal{T}}^{(N)} \right) \in \mathscr{T}^N: \\
+         ~~& \frac{1}{N} \mathbf{w}^T \sum_{i=1}^N \delta \left( \bar{\mathcal{T}}^{(i)} \right) \ge
+             \frac{1}{N} \sum_{i=1}^N \Delta \left( \mathcal{T}^{(i)}, \bar{\mathcal{T}}^{(i)} \right) - \xi
 \end{align*}
 where $\mathbf{w} = [\mathbf{w_u}^T, \mathbf{w_p}^T]^T$ is the parameter vector,
+$C > 0$ is the regularisation parameter, $\xi$ is the slack variable, 
+$N$ is the number of trajectories in training set, 
 $\mathcal{T}^{(i)}$ is the $i$-th trajectory in training set, 
-and its corresponding recommendation is $\hat{\mathcal{T}}^{(i)}$.
-$N$ is the training set size, i.e., the number of trajectories in training set, 
-$C$ is the regularisation parameter, $\xi$ is the slack variable, and
+and its corresponding recommendation is $\bar{\mathcal{T}}^{(i)}$, and
 \begin{displaymath}
-    \delta \left( \hat{\mathcal{T}}^{(i)} \right) = \Psi \left( q^{(i)}, \mathcal{T}^{(i)} \right) - 
-                                                    \Psi \left( q^{(i)}, \hat{\mathcal{T}}^{(i)} \right)
+    \delta \left( \bar{\mathcal{T}}^{(i)} \right) = \Psi \left( \mathcal{T}^{(i)}, q^{(i)} \right) - 
+                                                    \Psi \left( \bar{\mathcal{T}}^{(i)}, q^{(i)} \right)
 \end{displaymath}
-where $q^{(i)}$ and $\Psi \left( q^{(i)}, \mathcal{T}^{(i)} \right)$ are the query and the joint feature vector 
-correspond to the $i$-th trajectory in training set. 
-A joint feature vector is computed from the node and edge feature vectors.
-$\Delta \left( \mathcal{T}^{(i)}, \hat{\mathcal{T}}^{(i)} \right)$ is the loss associated with the $i$-th trajectory 
+where $q^{(i)}$ is the query corresponding to $\mathcal{T}^{(i)}$ and the joint feature vector of $\mathcal{T}^{(i)}$ is
+\begin{displaymath}
+\Psi \left( \mathcal{T}^{(i)}, q^{(i)} \right) = \left[
+\left( \sum_{j=1}^{|\mathcal{T}^{(i)}|}   \mathbf{\phi}_{j}      \left( \mathcal{T}_{j}^{(i)}, q^{(i)} \right) \right)^T,
+\left( \sum_{j=1}^{|\mathcal{T}^{(i)}|-1} \mathbf{\phi}_{j, j+1} \left( \mathcal{T}_{j}^{(i)}, \mathcal{T}_{j+1}^{(i)} \right) \right)^T 
+\right]^T
+\end{displaymath}
+$\Delta \left( \mathcal{T}^{(i)}, \bar{\mathcal{T}}^{(i)} \right)$ is the loss associated with the $i$-th trajectory 
 and its corresponding recommendation, and Hamming loss is used in our experiment.
