@@ -73,7 +73,8 @@ F_1= \frac{2  P_{\textsc{point}}  R_{\textsc{point}}}
           {P_{\textsc{point}} + R_{\textsc{point}}}
 \end{displaymath}
 where
-\begin{displaymath}\eqmoveup
+\vspace{-1.1em}
+\begin{displaymath}%\eqmoveup
 P_{\textsc{point}} = \frac{|\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}|}
                           {|\hat{\mathcal{T}}|},
 R_{\textsc{point}} = \frac{|\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}|}
@@ -105,8 +106,10 @@ This is done by measuring the F$_1$ score of every pair of ordered POIs, whether
                        {P_{\textsc{pair}} + R_{\textsc{pair}}}
 \end{displaymath}
 where
-\begin{displaymath}\eqmoveup
-P_{\textsc{pair}} = \frac{N_c} {|\hat{\mathcal{T}}|(|\hat{\mathcal{T}}|-1) / 2},
+\vspace{-2.0em}
+\begin{displaymath}%\eqmoveup
+~~
+P_{\textsc{pair}} = \frac{N_c} {|\hat{\mathcal{T}}|(|\hat{\mathcal{T}}|-1) / 2}, ~
 R_{\textsc{pair}} = \frac{N_c} {|\mathcal{T}|(|\mathcal{T}|-1) / 2}
 \end{displaymath}
 and $N_c$ is the number of ordered POI pairs $(p_j, p_k)$ that
@@ -115,11 +118,10 @@ appear in both the ground-truth and the recommended trajectories.
 %conditions\footnote{We define pairs-F$_1=0$ if $N_c$ is $0$.}:
 \begin{align*}
     (p_j \prec_{\mathcal{T}} p_k ~\land~ p_j \prec_{\hat{\mathcal{T}}} p_k)  ~\lor~
-    (p_j \succ_{\mathcal{T}} p_k ~\land~ p_j \succ_{\hat{\mathcal{T}}} p_k) \\
-    \text{with } p_j \ne p_k, ~~ p_j, p_k \in \mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}, ~
-    j \ne k, ~~ 1 \le j, k \le |\mathcal{T}|.
+    (p_j \succ_{\mathcal{T}} p_k ~\land~ p_j \succ_{\hat{\mathcal{T}}} p_k) 
 \end{align*}
-Here $p_j \prec_{\mathcal{T}} p_k$ denotes POI $p_j$ was visited before POI $p_k$ in trajectory $\mathcal{T}$
+with $p_j \ne p_k, ~p_j, p_k \in \mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}, ~1 \le j \ne k \le |\mathcal{T}|$.
+Here $p_j \prec_{\mathcal{T}} p_k$ denotes POI $p_j$ was visited before POI $p_k$ in $\mathcal{T}$
 and $p_j \succ_{\mathcal{T}} p_k$ denotes $p_j$ was visited after $p_k$ in $\mathcal{T}$.
 
 Pairs-F$_1$ takes values between 0 and 1. A perfect pairs-F$_1$ (1.0) is achieved if and only if
@@ -131,16 +133,16 @@ Pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited in 
 \subsection{Experimental setup}
 \label{sec:setup}
 \secmoveup
-
+%
 \input{table_10methods}
-
+%
 \input{table_perfsummary}
-
+%
 \begin{figure*}[t]
 	\centering
 	\includegraphics[width=\textwidth]{fig/example-tour.pdf}
 	\caption{Different recommendations from algorithm variants.
-    See the main text in Section~\ref{sec:casestudy} for description.}
+    See the main text in Section~\ref{sec:example} for description.}
 	\label{fig:exampleresult}
 	\captionmoveup
 \end{figure*}
@@ -171,16 +173,16 @@ and its variant \textsc{MarkovPath} that incorporates additional constraints to 
 Both \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} (Section~\ref{sec:rank+markov})
 utilise POI and query features as well as transition probabilities, with the latter uses
 additional sub-tour elimination constraints.
-Lastly, we have the \textsc{StructuredSVM} (Section~\ref{sec:ssvm}) that not only utilises POI and query features
-as well as transition probabilities but also jointly optimises their relative importance.
+%Lastly, we have the \textsc{StructuredSVM} (Section~\ref{sec:ssvm}) that not only utilises POI and query features
+%as well as transition probabilities but also jointly optimises their relative importance.
 
 % Parameters
 {\bf Parameters} of these algorithms.
 We use a $0.5$ trade-off parameter for \textsc{PersTour} and \textsc{PersTour-L},
 found to be the best weighting by \textsc{PersTour}~\cite{ijcai15}.
 We set the regularisation parameter in rankSVM to  $10.0$, determined by cross-validation.
-The trade-off value in \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} is also $0.5$ and
-the regularisation parameter in \textsc{StructuredSVM} is $1.0$.
+The trade-off value in \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} is also $0.5$.
+% and the regularisation parameter in \textsc{StructuredSVM} is $1.0$.
 
 
 \subsection{Results}
@@ -207,7 +209,7 @@ On the contrary, most Markov chain entries have better performance in terms of p
 which indicates Markov chain approaches generally
 respect the transition patterns between POIs.
 % go to SSVM
-The effect of sub-tours on trajectory recommendation can be further observed through the performance of \textsc{StructuredSVM}.
+%The effect of sub-tours on trajectory recommendation can be further observed through the performance of \textsc{StructuredSVM}.
 %
 % 7. SSVM vs Rank+Markov and Rank+MarkovPath:
 % while SSVM using the same features as Rank+Markov and Rank+MarkovPath, and took advantage of its significantly larger number of parameters
@@ -251,7 +253,8 @@ On the other hand, Algorithm that leverage transition probabilities alone does n
 In terms of trajectory F$_1$,
 \textsc{Markov} can not outperform \textsc{PoiRank} except on Osaka dataset,
 on which the performance of both algorithms are comparable.
-In particular, algorithms with ranking information (e.g. \textsc{Rank+Markov} and \textsc{Rank+MarkovPath}) always out-perform their respective variants with transition information alone (i.e. \textsc{Markov} and \textsc{MarkovPath}).
+In particular, algorithms with ranking information (e.g. \textsc{Rank+Markov} and \textsc{Rank+MarkovPath}) 
+always out-perform their respective variants with transition information alone (i.e. \textsc{Markov} and \textsc{MarkovPath}).
 
 % in terms of pair F1, PoiRank is significantly better on Glasgow, Melbourne and Toronto, comparable on Edinburgh
 \textsc{PoiRank} performs significantly better than \textsc{Markov} on three datasets, namely,
@@ -321,8 +324,8 @@ Furthermore, a lot of recommendations are produced from suboptimal solutions of 
 the $2$ hours timeout setting, these factors lead to the inconsistent performance of \textsc{PerTour} on Melbourne dataset.
 
 
-\subsection{Case study}
-\label{sec:casestudy}
+\subsection{Example}
+\label{sec:example}
 \secmoveup
 
 Figure~\ref{fig:exampleresult} illustrates a test case in Edinburgh dataset.
@@ -340,9 +343,4 @@ which in this case is achieved by \textsc{Rank+MarkovPath}.
 
 
 
-% Figures from the appendix
-\begin{figure*}[t]
-\includegraphics[width=\textwidth]{fig/feature_distro.pdf}
-\caption{Distribution of POI popularity, the number of visit and visit duration}
-\label{fig:distro}\captionmoveup
-\end{figure*}
+
