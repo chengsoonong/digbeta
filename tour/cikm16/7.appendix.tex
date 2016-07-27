@@ -39,6 +39,57 @@ Lastly, we normalise each row of the (unnormalised) POI-POI transition matrix
 to form a valid (outgoing) probability distribution for each POI.
 
 
+\section{POI Feature Distribution}
+% Figures from the appendix
+\begin{figure*}[t]
+\includegraphics[width=\textwidth]{fig/feature_distro.pdf}
+\caption{Distribution of POI popularity, the number of visit and visit duration}
+\label{fig:distro}\captionmoveup
+\end{figure*}
+
+
+\section{POI Transitions}
+\begin{figure*}[htbp]
+\includegraphics[width=\textwidth]{fig/poi_transmat_all.png}
+\caption{Transition matrices for five POI features: POI categories, neighborhood, popularity, number of visits, and visit duration. These statistics are from the Melbourne dataset. See Section~\ref{sec:transition} for descriptions.}
+\label{fig:transmat}
+\end{figure*}
+
+
+\section{Markov}
+
+\begin{algorithm}[t]
+\caption{\textsc{Markov}: recommend trajectory with POI transitions}
+%recommend trajectory by maximising likelihood}
+\label{alg:markov}
+\begin{algorithmic}[1]
+\STATE \textbf{Input}: $\mathcal{P}, p_s, p_e, L$
+\STATE \textbf{Output}: Trajectory $\mathcal{T} = (p_s, \cdots, p_e)$ with $L$ POIs
+%\STATE Compute POI-POI transition matrix
+\STATE Initialise score matrix $A$ and backtracking pointer $B$
+\FOR{$p \in \mathcal{P}$}
+    \STATE $A[2, p] = \log P(p|p_s)$
+    \STATE $B[2, p] = p_s$
+\ENDFOR
+\FOR{$l=2$ to $L-1$}
+    \FOR{$p \in \mathcal{P}$}
+        \STATE \(\displaystyle A[l+1, p] = \max_{p' \in \mathcal{P}} \{ A[l, p'] + \log P(p|p') \} \)
+        \STATE \(\displaystyle B[l+1, p] = \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + \log P(p|p') \} \)
+    \ENDFOR
+\ENDFOR
+% //trace back to find the actual path
+\STATE $\mathcal{T} = \{p_e\}$, $l = L$, $p = \mathcal{T}.first$
+\REPEAT
+    \STATE Prepend $B[l, p]$ to $\mathcal{T}$
+    \STATE $l = l - 1$, $p = \mathcal{T}.first$
+\UNTIL{$l < 2$}
+\RETURN $\mathcal{T}$
+\end{algorithmic}
+\end{algorithm}
+
+
+
+
 \section{Implementation details}
 We use the rankSVM implementation in libsvmtools \url{https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/},
 and the Structured SVM implementation in PyStruct \url{https://pystruct.github.io/}.
@@ -163,6 +214,89 @@ without counting the occurrence of $p_m$ when it is the origin or destination of
 We factorise the transition probability from POI $p_i$ to POI $p_j$
 according to $5$ POI features described in Table~\ref{tab:featuretran},
 which result in a transition matrix for each individual POI feature.
+
+
+\subsection{Structured SVM}
+\label{sec:ssvm}
+\secmoveup
+
+As trajectory is a sequence of POI visits,
+it is natural to model the recommended trajectory $\mathcal{T}$ with respect to query $q = (p_s, p_e, L)$
+as a chain of $L$ variables, where each discrete variable has $|\mathcal{P}|$ states.
+Structured prediction incorporates both the features of variables (unary features) and
+the features of interactions between neighbouring variables (pairwise features) to make a
+prediction,
+\begin{displaymath}
+    \mathcal{T}^* = \argmax_{\mathcal{T} \in \mathcal{P}^L} 
+                    \sum_{j=1}^L \mathbf{w_u}^T \mathbf{\phi}_j \left( q, \mathcal{T}_j \right) +
+                    \sum_{j=1}^{L-1} \mathbf{w_p}^T \mathbf{\phi}_{j, j+1} \left( q, \mathcal{T}_j, \mathcal{T}_{j+1} \right)
+\end{displaymath}
+where $\mathbf{\phi}_j$ are the unary features of the $j$-th variable and $\mathbf{\phi}_{j, j+1}$ are the pairwise features between
+the $j$-th and $(j+1)$-th variables, $\mathbf{w_u}$ and $\mathbf{w_p}$ are the
+parameters of unary and pairwise features respectively.
+
+The unary and pairwise features are constructed from the POI ranking and POI-POI transitions.
+In particular, unary features are defined as ranking probabilities (Equation~\ref{eq:poi-probability}).
+Recall that we have a query consisting of start ($p_s$) and end ($p_e$) locations, which
+we model as a 1-of-$K$ encoding in the unary features.
+The pairwise features are defined from the transition probabilities $P(p_j | p_i)$ described in
+Section~\ref{sec:transition}.
+This method is called \textsc{StructuredSVM} in the experiments.
+
+\eat{
+In the settings of trajectory recommendation, the ranking probabilities of POIs
+with respect to constraint $x = (p_s, p_e, L)$ were used to capture the unary features of individual variables
+and the transition probabilities between POIs were utilized to capture the pairwise features
+between the neighboring variables, in particular,
+the unary features of the first and last variables are binary vectors
+with true values at the corresponding POIs and false values anywhere else,
+the unary features of the other $L-2$ variables are the ranking probabilities of POIs in $\mathcal{P}$, i.e.,
+\begin{displaymath}
+    \phi_j(x, y_j) = P_R(y_j | x), y_j \in \mathcal{P}
+\end{displaymath}
+
+Pairwise features between the $j$-th variable and the $(j+1)$-th variable $\phi_{j, j+1}$ was defined as
+\begin{align*}
+    \phi_{j, j+1}(x, y_j, y_{j+1}) &= \phi_{j-1, j}(x, y_{j-1}, y_j) \times M \\
+                                 j &=2, \dots, L-2
+\end{align*}
+where $\phi_{j-1, j}$ is the pairwise features between the $(j-1)$-th and $j$-th variables,
+and $M$ is the transition matrix between POIs described in Section~\ref{sec:transition} and
+$M_{ij} = P(p_j | p_i)$.
+In particular, the pairwise features between the first and the second variables is the
+outgoing transition probabilities of the first variable,
+and the pairwise features between the second-last and the last variables are a probability distribution
+over all POIs in $\mathcal{P}$ where the probability mass is dominated by the variable corresponding to POI $p_e$,
+all other POIs in $\mathcal{P} \setminus p_e$ are simply uniformly distributed.
+}
+
+% describe unary/pairwise potentials?
+
+% describe SSVM training (1-slack formulation)
+To estimate the parameters $\mathbf{w_u}$ and $\mathbf{w_p}$, we train a Structured Support Vector Machine
+using the 1-slack formulation~\cite{ssvm09},
+\begin{align*}
+    \min_{\mathbf{w}, \xi \ge 0} ~~& \frac{1}{2} \mathbf{w}^T \mathbf{w} + C \xi \\
+    s.t. ~~& \forall \left( \hat{\mathcal{T}}^{(1)}, \cdots, \hat{\mathcal{T}}^{(N)} \right) \in \mathscr{T}^N: \\
+         ~~& \frac{1}{N} \mathbf{w}^T \sum_{i=1}^N \delta \left( \hat{\mathcal{T}}^{(i)} \right) \ge
+             \frac{1}{N} \sum_{i=1}^N \Delta \left( \mathcal{T}^{(i)}, \hat{\mathcal{T}}^{(i)} \right) - \xi \\
+%         ~~& \forall \hat{\mathcal{T}}^{(i)} \in \mathcal{P}^{|\mathcal{T}^{(i)}|}, i = 1, \cdots, N
+\end{align*}
+where $\mathbf{w} = [\mathbf{w_u}^T, \mathbf{w_p}^T]^T$ is the parameter vector,
+$\mathcal{T}^{(i)}$ and $\hat{\mathcal{T}}^{(i)}$ are the $i$-th trajectory in training set
+and its corresponding recommendation respectively.
+$N$ is the training set size, $C$ is the regularisation parameter,
+$\xi$ is the slack variable, and
+\begin{displaymath}
+    \delta \left( \hat{\mathcal{T}}^{(i)} \right) = \Psi \left( q^{(i)}, \mathcal{T}^{(i)} \right) - 
+                                                    \Psi \left( q^{(i)}, \hat{\mathcal{T}}^{(i)} \right)
+\end{displaymath}
+where $q^{(i)}$ the query corresponds to the $i$-th trajectory in training set,
+$\Psi \left( q^{(i)}, \mathcal{T}^{(i)} \right)$ is the joint feature vector which is a composite of unary and 
+pairwise features of the $i$-th trajectory,
+$\Delta \left( \mathcal{T}^{(i)}, \hat{\mathcal{T}}^{(i)} \right)$ is the loss associated with the $i$-th trajectory 
+and its corresponding recommendation, and Hamming loss is used in this work.
+
 
 
 \section{Structured SVM}
