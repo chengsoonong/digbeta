@@ -1,51 +1,54 @@
-\section{Trajectory Recommendation}
+\section{Tour Recommendation}
 \label{sec:recommendation}
 
 In this section, we describe a number of approaches to recommend trajectories that leverage POI ranking and/or route planning.
 
-\subsection{POI Ranking}
-\label{sec:ranksvm}
+\subsection{POI Ranking and Route Planning}
+\label{sec:rankplan}
 
-We detailed a set of POI features in Section~\ref{sec:poifeature}, 
-which can be leveraged to learn a ranking of POIs using rankSVM with linear kernel and $L2$ loss~\cite{lranksvm},
+We leverage the set of POI features described in Section~\ref{sec:poifeature}
+to learn a ranking of POIs using rankSVM with linear kernel and $L2$ loss~\cite{lranksvm},
 \begin{equation*}
-\min_{\mathbf{w_r}} \frac{1}{2} \mathbf{w_r}^T \mathbf{w_r} + 
-                    C_r \sum_{(p_i, q_n), (p_j, q_n) \in \mathcal{P} \times \mathcal{Q}}
-                    \max \left( 0,~ 1 - \mathbf{w_r}^T (\phi_{i,n} - \phi_{j,n}) \right)^2
+\min_{\mathbf{w_r}} \frac{1}{2} 
+                     \|\mathbf{w_r}\|^2 + 
+%                    \mathbf{w_r}^T \mathbf{w_r} + 
+%                    C_r \sum_{(p_i, q_n), (p_j, q_n) \in \mathcal{P} \times \mathcal{Q}}
+%                    C_r \sum_{p_i, p_j \in \mathcal{P}, q_n \in \mathcal{Q}}
+                    \underset{p_i, p_j \in \mathcal{P}, q_n \in \mathcal{Q}}{C_r ~\sum}
+                    \max \left( 0,~ 1 - \mathbf{w_r}^T (\phi_{i,n} - \phi_{j,n}) \right)^2,
 \end{equation*}
-where $\mathcal{P}$ is the set of POIs to rank,
-$\mathcal{Q}$ is the set of queries with respect to trajectories in training set.
-$\mathbf{w_r}$ is a vector of parameters,
-$C_r > 0$ is the regularisation constant and
-$\phi_{i,n}$ is the feature vector for POI $p_i$ with respect to the query $q_n$ in training set.
+where $\mathbf{w_r}$ is the parameter vector,
+$C_r > 0$ is a regularisation constant.
+$\mathcal{P}$ is the set of POIs to rank,
+$\mathcal{Q}$ is the queries corresponding to trajectories in training set,
+and $\phi_{i,n}$ is the feature vector for POI $p_i$ with respect to the query $q_n \in \mathcal{Q}$.
 
 For training the rankSVM, the labels are generated using the number of occurrences of
 POI $p$ in trajectories grouped by query $(p_s, p_e, L)$,
 without counting the occurrence of $p$ when it is the origin or destination of a trajectory.
 We create an algorithm, \textsc{PoiRank}, to recommend trajectory by ranking POIs 
 utilising both POI and query specific features described above. 
-\textsc{PoiRank} takes the top ranked $L-2$ POIs and connects them in sequence of the ranks.
+\textsc{PoiRank} takes the top ranked $L-2$ POIs and connects them in sequence according to the ranks.
 
 
 
-\subsection{Route Planning}
-\label{sec:markov}
+%\subsection{Route Planning}
+%\label{sec:markov}
 
 In addition to recommend trajectory by ranking POIs, we can leverage the POI-POI transition probabilities and 
 recommend a trajectory with respect to query $(p_s, p_e, L)$ by maximising the (log) likelihood. 
+The maximum likelihood solution can be found using a variant of the Viterbi algorithm (with emission probabilities ignored).
 We call this approach that only uses the transition probabilities between POIs as \textsc{Markov}.
 
-The maximum likelihood solution can be found using a variant of the Viterbi algorithm (with emission probabilities ignored).
 %which is shown in Algorithm~\ref{alg:markov}.
-The entry $A[l, p]$ in score matrix $A$ stores the maximum likelihood associated with the (partial) trajectory 
-that starts from $p_s$ and ends at $p$ with $l$ POI visits, 
-and entry $B[l, p]$ in the backtracking-point matrix $B$ stores the predecessor of $p$ in that (partial) trajectory.
+%The entry $A[l, p]$ in score matrix $A$ stores the maximum likelihood associated with the (partial) trajectory 
+%that starts from $p_s$ and ends at $p$ with $l$ POI visits, 
+%and entry $B[l, p]$ in the backtracking-point matrix $B$ stores the predecessor of $p$ in that (partial) trajectory.
 
 
 
 \subsection{Combine Ranking and Transition}
 \label{sec:rank+markov}
-
 
 \begin{algorithm}[t]
 \caption{\textsc{Rank+Markov}: recommend trajectory with POI ranking and transition}
@@ -57,7 +60,7 @@ and entry $B[l, p]$ in the backtracking-point matrix $B$ stores the predecessor 
 %\STATE Compute POI-POI transition matrix
 \STATE Initialise score matrix $A$ and backtracking pointers $B$
 \FOR{$p \in \mathcal{P}$}
-    \STATE $A[2, p] = \alpha ( \log P_R(p_s|q) + \log P_R(p|q) )$ \\ \hfill $+ (1-\alpha) \log P(p|p_s)$
+    \STATE $A[2, p] = \alpha \log P_R(p_s|q) + S(p; p_s, q)$
     \STATE $B[2, p] = p_s$
 \ENDFOR
 \FOR{$l=2$ to $L-1$}
@@ -75,6 +78,8 @@ and entry $B[l, p]$ in the backtracking-point matrix $B$ stores the predecessor 
 \RETURN $\mathcal{T}$
 \end{algorithmic}
 \end{algorithm}
+
+
 
 
 \eat{
@@ -100,7 +105,7 @@ Instead of recommend trajectory by either ranking POIs or planning routes with r
 we would like to combine both point ranking and transitions,
 i.e., we want to recommend a trajectory that maximise the points ranking of its POIs as well as its likelihood at the same time.
 
-Firstly, we transform the ranking scores of POIs with respect to query $q = (p_s, p_e, L)$
+We transform the ranking scores of POIs with respect to query $q = (p_s, p_e, L)$
 to a probability distribution using the softmax function,
 %~\cite{bishop2006},
 %\begin{equation*}
@@ -108,36 +113,37 @@ to a probability distribution using the softmax function,
 $P_R(p_j | q) = \frac{\exp(R_j)}{\sum_j \exp(R_j)}$,
 %\end{equation*}
 where $R_j$ is the ranking score of POI $p_j$ from rankSVM with respect to query $q$.
-
-
+%
 %  \item Heuristics: \textsc{Rank+Markov}, \textsc{Rank+MarkovPath}
 One heuristic to find a trajectory that simultaneously maximise the product of ranking probabilities
-of its POIs (with respect to query $q$) and its likelihood is optimising the following objective:
+of its POIs and its likelihood is optimising the following objective:
 \begin{equation*}
     \argmax_{\mathcal{T} \in \mathcal{P}^L} ~\alpha \prod_{k=1}^{L} P_R(p_{j_k} | q) +
-                                     (1-\alpha) \prod_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k})
+                                     (1-\alpha) \prod_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k}),
 %   =& \argmax_{y \in \mathcal{P}^L} ~\alpha \sum_{k=1}^{L} \log P_R(p_{j_k} | x) +
 %                                    (1-\alpha) \sum_{k=1}^{L-1} \log P(p_{j_{k+1}} | p_{j_k})
 \end{equation*}
 such that
 $p_{j_1} = p_s, ~ p_{j_L} = p_e$ and
-$p_{j_k} \in \mathcal{P}, 1 \le k \le L$.
-$\mathcal{T} = (p_{j_1}, \dots, p_{j_L})$ is any possible trajectory and
-$0 \le \alpha \le 1$ is a parameter to trade-off the importance between the ranking of POIs
-and the POI-POI transitions in the recommended trajectory, and can be tuned using cross validation.
-Similar to the \textsc{Markov} algorithm mentioned above, 
+$p_{j_k} \in \mathcal{P}, ~1 \le k \le L$.
+$\mathcal{T} = (p_{j_1}, \dots, p_{j_L})$ is any possible trajectory,
+$\alpha \in [0, 1]$ is a parameter to trade-off the importance between the ranking of POIs 
+and the POI-POI transitions in the recommended trajectory, and can be tuned using cross validation in practice.
+%Similar to the \textsc{Markov} algorithm mentioned above, 
+Let $S(p; p', q)$ be a convex combination of point ranking and transition,
+\begin{equation*}
+    S(p; p', q)  = \alpha \log P_R(p|q) + (1-\alpha) \log P(p|p') \},
+\end{equation*}
 the best path (or walk) can be found using the Viterbi algorithm with the two recursions below,
 %with both node and transition scores. 
 %The objective can be optimised by adapting the Viterbi algorithm and using the two recursions below,
-\begin{multline}
-\label{eq:max}
-A[l+1, p] = \max_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|q) \\ + (1-\alpha) \log P(p|p') \}
-\end{multline}
-\begin{multline}
-\label{eq:argmax}
-B[l+1, p] = \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|q) \\ + (1-\alpha) \log P(p|p') \}
-\end{multline}
-where $A$ the score matrix and entry $A[l, p]$ stores the maximum value that associated with the (partial) trajectory, 
+%A[l+1, p] = \max_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|q) \\ + (1-\alpha) \log P(p|p') \}
+%B[l+1, p] = \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|q) \\ + (1-\alpha) \log P(p|p') \}
+\begin{alignat}{2}
+&A[l+1, p]   &&= \max_{p' \in \mathcal{P}} \{ A[l, p'] + S(p; p', q) \}, \label{eq:max} \\
+&B[l+1, p]   &&= \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + S(p; p', q) \}, \label{eq:argmax}
+\end{alignat}
+where $A$ is the score matrix and entry $A[l, p]$ stores the maximum value that associated with the (partial) trajectory, 
 which starts at $p_s$ and ends at $p$ with $l$ POI visits,
 $B$ is the backtracking-point matrix and entry $B[l, p]$ stores the predecessor of $p$ in that (partial) trajectory.
 
@@ -145,34 +151,32 @@ The maximum objective value is $A[L, p_e]$,
 and the corresponding trajectory can be found by tracing back from $B[L, p_e]$.
 We call this approach that uses both the ranking of POIs and POI-POI transitions \textsc{Rank+Markov},
 with the pseudo code shown in Algorithm~\ref{alg:rank+markov}.
-Hyper-parameter $\alpha$ can be tuned using cross validation for both \textsc{Rank+Markov} and \textsc{Rank+MarkovPath}. 
 
 
 
 \subsection{Avoiding sub-tours} %%LX: walk vs path is never defined! but sub-tour seem to be??
 \label{sec:nosubtour}
 
-Trajectories recommended by \textsc{Markov} described in Section~\ref{sec:markov} are found
+Trajectories recommended by \textsc{Markov} described in Section~\ref{sec:rankplan} are found
 using the maximum likelihood approach, and may contain multiple visits to the same POI.
 This is because the best path (or walk) from Viterbi decoding %random walk suggested by Viterbi 
-may have tottering (where the Markov chain transitions back and forth between two states),
-or may have circular sub-tours (where a POI already visited earlier in the tour is visited again).
+may have 
+%tottering (where the Markov chain transitions back and forth between two states), or may have 
+circular sub-tours (where a POI already visited earlier in the tour is visited again).
 We propose a method for eliminating sub-tours by specifying additional constraints when recommending trajectories.
 
 %  \item ILP
 In particular, we find the best trajectory using an integer linear program (ILP) with
-sub-tour elimination constraints adapted from the Travelling Salesman Problem. %~\cite{opt98}.
-We call our method that uses the transition matrix to recommend paths that do not have circular sub-tours \textsc{MarkovPath}.
-
-Given a set of POIs $\mathcal{P}$, the POI-POI transition matrix and a query $(p_s, p_e, L)$,
+sub-tour elimination constraints adapted from the Travelling Salesman Problem~\cite{opt98}.
+Given a set of POIs $\mathcal{P}$, the POI-POI transition matrix and a query $q = (p_s, p_e, L)$,
 we recommend a trajectory by solving the following integer linear program:
 \begin{alignat}{5}
-& \max ~&& \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} \log P(p_j | p_i)                          \nonumber \\
-& s.t. ~&& x_{ij} \in \{0, 1\}, ~u_i \in \mathbf{Z}, ~\forall i, j = 1, \cdots, N          \label{eq:cons1} \\
-&        && \sum_{j=2}^N x_{1j} = \sum_{i=1}^{N-1} x_{iN} = 1                               \label{eq:cons2} \\
-&        && \sum_{i=1}^{N-1} x_{ik} = \sum_{j=2}^N x_{kj} \le 1, ~\forall k=2, \cdots, N-1  \label{eq:cons3} \\
-&        && \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} = L-1                                      \label{eq:cons4} \\
-&        && u_i - u_j + 1 \le (N-1) (1-x_{ij}), ~\forall i, j = 2, \cdots, N                \label{eq:cons5}
+& \max ~&& \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} \log P(p_j | p_i)                            \nonumber \\
+& s.t. ~&& x_{ij} \in \{0, 1\}, ~u_i \in \mathbf{Z},            ~\forall i, j = 1, \cdots, N \label{eq:cons1} \\
+&       && \sum_{j=2}^N x_{1j} = \sum_{i=1}^{N-1} x_{iN} = 1                                 \label{eq:cons2} \\
+&       && \sum_{i=1}^{N-1} x_{ik} = \sum_{j=2}^N x_{kj} \le 1, ~\forall k=2, \cdots, N-1    \label{eq:cons3} \\
+&       && \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} = L-1                                        \label{eq:cons4} \\
+&       && u_i - u_j + 1 \le (N-1) (1-x_{ij}),                  ~\forall i, j = 2, \cdots, N \label{eq:cons5}
 \end{alignat}
 where $N=|\mathcal{P}|$ is the number of POIs and $x_{ij}$ is a binary decision variable 
 which determines whether transition from POI $p_i$ to POI $p_j$ occurred in the recommended trajectory.
@@ -183,13 +187,17 @@ i.e., the recommended trajectory should start from $p_s$ and end at $p_e$.
 Constraint $(\ref{eq:cons3})$ restricts that any POI could be visited at most once and 
 constraint $(\ref{eq:cons4})$ restricts that only $L-1$ transitions between POIs are permitted, 
 i.e., the number of visited POIs should be exactly $L$ (including $p_s$ and $p_e$).
-The last constraint, where $u_i$ is an auxiliary variable, restricts that no sub-tours are permitted in the recommended trajectory.
+The last constraint, where $u_i$ is an auxiliary variable, 
+enforces that only a single sequence of POIs without sub-tours is permitted in the recommended trajectory.
+We call our method that uses the transition matrix to recommend paths that do not have circular sub-tours \textsc{MarkovPath}.
 
-Similar to the \textsc{Markov} algorithm (Section~\ref{sec:markov}),
-sub-tours (e.g., tottering) may appear in trajectories recommended by \textsc{Rank+Markov} algorithm (Section~\ref{sec:rank+markov}).
+
+Similar to the \textsc{Markov} algorithm (Section~\ref{sec:rankplan}),
+sub-tours may appear in trajectories recommended by \textsc{Rank+Markov} algorithm (Section~\ref{sec:rank+markov}).
 To eliminate sub-tours, we can optimise objective~(\ref{eq:rank+markovpath}) using ILP with the same constraints described above.
 We call this algorithm \textsc{Rank+MarkovPath}.
 \begin{equation}
 \label{eq:rank+markovpath}
-\max \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} (\alpha \log P_R(p_j | q) + (1-\alpha) \log P(p_j | p_i))
+%\max \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} (\alpha \log P_R(p_j | q) + (1-\alpha) \log P(p_j | p_i))
+\max \sum_{i=1}^{N-1} \sum_{j=2}^N ~x_{ij} ~S(p_j; p_i, q).
 \end{equation}

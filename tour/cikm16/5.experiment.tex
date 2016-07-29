@@ -26,23 +26,11 @@ Toronto & 157,505 & 39,419 & 6,057 & 1,395 \\
 \end{table}
 
 
-We experiment on trajectory datasets from five cities, namely, Edinburgh, Glasgow, Osaka, Toronto and Melbourne.
-The statistics of these trajectory datasets are described in Table~\ref{tab:data}.
+We experiment on datasets with trajectories extracted from Flickr photos~\cite{thomee2016yfcc100m} in five cities, 
+namely, Edinburgh, Glasgow, Osaka, Toronto and Melbourne.
+Statistics of datasets are shown in Table~\ref{tab:data}.
 The first four datasets are provided by Lim et al.~\cite{ijcai15} and the Melbourne dataset is built using
-the same approach introduced in earlier work~\cite{ht10, ijcai15} and briefly described below.
-
-Trajectories are extracted using  geo-tagged photos in the Yahoo! Flickr Creative Commons 100M
-(a.k.a. YFCC100M) dataset~\cite{thomee2016yfcc100m} as well as the Wikipedia web-pages of points-of-interests (POIs).
-Photos are mapped to POIs according to their distances calculated using the Haversine formula~\cite{haversine},
-the time a user arrived a POI is approximated by the time the first photo taken by the user at that POI,
-similarly, the time a user left a POI is approximated by the time the last photo taken
-by the user at that POI.
-Furthermore, sequence of POI visits by a specific user are divided into several pieces according to
-the time gap between consecutive POI visits, and the POI visits in each piece are connected in temporal order
-to form a trajectory.
-%%LX: said above, no need to repeat
-%For details of extracting trajectories from geo-tagged photos, please refer to \cite{ht10, ijcai15}.
-
+the same approach proposed in earlier work~\cite{ht10, ijcai15}.
 
 \subsection{Performance metrics}
 \label{sec:metric}
@@ -61,7 +49,9 @@ to form a trajectory.
 %we employ the trajectory F$_1$\cite{ijcai15} to measure the POIs that are
 %correctly recommended.
 A commonly used metric for POI recommendation and evaluating trajectories is
-the F$_1$ score on points.
+the F$_1$ score on points, which is the harmonic mean between the point-wise precision and recall~\cite{ijcai15}.
+%
+\eat{
 Let $\mathcal{T}$ be the trajectory that was visited in the real world,
 and $\hat{\cal T}$ be the recommended trajectory,
 $\mathcal{P}_{\mathcal{T}}$ be the set of POIs visited in $\mathcal{T}$,
@@ -80,32 +70,30 @@ P_{\textsc{point}} = \frac{|\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\ma
 R_{\textsc{point}} = \frac{|\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}|}
                           {|\mathcal{T}|}
 \end{displaymath}
-
-A perfect trajectory F$_1$ (i.e., F$_1 = 1$) means the POIs in
+A perfect F$_1$ score (i.e., F$_1 = 1$) means the POIs in
 the recommended trajectory are exactly the same POIs as those in the ground truth,
-and F$_1 = 0$ means that none of the POIs in the
-real trajectory was recommended.
-
-While trajectory F$_1$ is good at measuring whether POIs are correctly recommended,
+and F$_1 = 0$ means that none of the POIs in the real trajectory was recommended.
+}
+%
+While F$_1$ score on points is good at measuring whether POIs are correctly recommended,
 it ignores the visiting order between POIs.
 %Two trajectories with the exactly same set of POIs can be completely different to visitors
 %given different routes.
-An illustration is shown in Figure~\ref{fig:pairf1},
-the solid grey lines represent the ground truth transitions that actually visited by travellers
-and the dashed blue lines are the recommended trajectory by one of the approaches listed
-in Table~\ref{tab:algsummary}. Both examples have a perfect F$_1$ score, but not a perfect
-pairs-F$_1$ score due to the difference in POI sequencing.
 %Even with the exactly same set of places, the visiting experiences are completely different because
 %of the dramatically disparate routes.
 %Enlightened by this observation,
 We propose a new metric $\text{pairs-F}_1$ that takes into account
 both the point identity and the visiting orders in a trajectory.
-This is done by measuring the F$_1$ score of every pair of ordered POIs, whether they are adjacent or not.
+This is done by measuring the F$_1$ score of every pair of ordered POIs, whether they are adjacent or not,
+\vspace{-1.0em}
 \begin{displaymath}
 \text{pairs-F}_1 = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}
-                       {P_{\textsc{pair}} + R_{\textsc{pair}}}
+                        {P_{\textsc{pair}} + R_{\textsc{pair}}},
 \end{displaymath}
-where
+where $P_{\textsc{pair}}$ and $R_{\textsc{pair}}$ the precision and recall of POI pairs respectively.
+%
+%
+\eat{
 \vspace{-2.0em}
 \begin{displaymath}%\eqmoveup
 ~~
@@ -123,11 +111,18 @@ appear in both the ground-truth and the recommended trajectories.
 with $p_j \ne p_k, ~p_j, p_k \in \mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}, ~1 \le j \ne k \le |\mathcal{T}|$.
 Here $p_j \prec_{\mathcal{T}} p_k$ denotes POI $p_j$ was visited before POI $p_k$ in $\mathcal{T}$
 and $p_j \succ_{\mathcal{T}} p_k$ denotes $p_j$ was visited after $p_k$ in $\mathcal{T}$.
-
-Pairs-F$_1$ takes values between 0 and 1. A perfect pairs-F$_1$ (1.0) is achieved if and only if
+}
+%
+%
+pairs-F$_1$ takes values between 0 and 1. A perfect pairs-F$_1$ (1.0) is achieved if and only if
 both the POIs and their visiting orders in the
 recommended trajectory are exactly the same as those in the ground truth.
-Pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited in the real trajectory.
+pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited in the real trajectory.
+An illustration is shown in Figure~\ref{fig:pairf1},
+the solid grey lines represent the ground truth transitions that actually visited by travellers
+and the dashed blue lines are the recommended trajectory by one of the approaches described in Section~\ref{sec:recommendation}.
+%in Table~\ref{tab:algsummary}. 
+Both examples have a perfect F$_1$ score, but not a perfect pairs-F$_1$ score due to the difference in POI sequencing.
 
 
 \subsection{Experimental setup}
