@@ -43,6 +43,7 @@ the same approach proposed in earlier work~\cite{ht10, ijcai15}.
     See Section~\ref{sec:metric} for details.}
 	\label{fig:pairf1}\captionmoveup
 \end{figure}
+%
 
 
 %To evaluate the performance of different trajectory recommendation algorithms,
@@ -129,44 +130,43 @@ Both examples have a perfect F$_1$ score, but not a perfect pairs-F$_1$ score du
 \label{sec:setup}
 \secmoveup
 %
+%
 \input{table_10methods}
 %
 \input{table_perfsummary}
 %
-\begin{figure*}[t]
-	\centering
-	\includegraphics[width=\textwidth]{fig/example-tour.pdf}
-	\caption{Different recommendations from algorithm variants.
-    See the main text in Section~\ref{sec:example} for description.}
-	\label{fig:exampleresult}
-	\captionmoveup
-\end{figure*}
 
 We use leave-one-out cross validation to evaluate different trajectory recommendation algorithms,
 i.e., when testing on a trajectory, all other trajectories are used for training.
-We compare with a number of baseline approaches from recent literature, the 10 variants of approaches
+We compare with a number of baseline approaches from recent literature, the 9 variants of approaches
 are summarised below, with an overview in Table~\ref{tab:algsummary}.
 
 % baseline: Random, PersTour, PersTour-L, PoiPopularity
 {\bf Baseline approaches} including \textsc{Random} which naively chooses POIs uniformly at random
 (without replacement) from the set of POIs $\mathcal{P} \setminus \{p_s, p_e \}$ to form a trajectory.
-It does not utilise any features related to POI or query, as shown in Table~\ref{tab:algsummary}.
+%It does not utilise any features related to POI or query, as shown in Table~\ref{tab:algsummary}.
 Among the related approaches, \textsc{PersTour}~\cite{ijcai15} is the most similar work and it
-explores both POI features and the sub-tour elimination constraints described in Section~\ref{sec:walkpath},
-in addition, the recommended trajectory is constrained by a time budget.
-One variant of \textsc{PersTour} is applying the trajectory length instead of the time budget to constrain
-the recommended trajectory, which is denoted as \textsc{PersTour-L} in Table~\ref{tab:algsummary}.
-Another baseline is \textsc{PoiPopularity} described at the beginning of Section~\ref{sec:method},
-it only uses POI popularity to recommend a trajectory.
-
+explores both POI features and the sub-tour elimination constraints (Section~\ref{sec:nosubtour}),
+with an additional time budget, and its variant \textsc{PersTour-L} which replace time budget with
+trajectory length constraint.
+%in addition, the recommended trajectory is constrained by a time budget.
+%One variant of \textsc{PersTour} is applying the trajectory length instead of the time budget to constrain
+%the recommended trajectory, which is denoted as \textsc{PersTour-L} in Table~\ref{tab:algsummary}.
+Another baseline is \textsc{PoiPopularity} %described at the beginning of Section~\ref{sec:method},
+%it only uses POI popularity to recommend a trajectory.
+which ranks POI with regard to popularity to recommend a trajectory (Section~\ref{sec:method}.
+%
 % variants: PoiRank, Markov, MarkovPath, Rank+Markov, Rank+MarkovPath, SSVM
-{\bf Variants of point- and route-ranking} approaches including \textsc{PoiRank} (Section~\ref{sec:ranksvm})
-that utilises POI and query features,
-and \textsc{Markov} (Section~\ref{sec:transition}),
-that recommends trajectories uses only transition probabilities between POIs
-and its variant \textsc{MarkovPath} that incorporates additional constraints to eliminate sub-tours.
-Both \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} (Section~\ref{sec:rank+markov})
-utilise POI and query features as well as transition probabilities, with the latter uses
+{\bf Variants of point- and route-ranking} approaches including \textsc{PoiRank} and \textsc{Markov} (Section~\ref{sec:rankplan}),
+which utilises either POI features or POI-POI transition probabilities,
+%that utilises POI and query features,
+%and \textsc{Markov} (Section~\ref{sec:transition}),
+%that recommends trajectories uses only transition probabilities between POIs
+%and its variant \textsc{MarkovPath} that incorporates additional constraints to eliminate sub-tours.
+%Both \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} (Section~\ref{sec:rank+markov})
+with \textsc{Rank+Markov} (Section~\ref{sec:rank+markov}) that incorporates both. %POI features and transition probabilities.
+\textsc{MarkovPath} and \textsc{Rank+MarkovPath} (Section~\ref{sec:nosubtour} are variants that employ 
+% with the latter uses
 additional sub-tour elimination constraints.
 %Lastly, we have the \textsc{StructuredSVM} (Section~\ref{sec:ssvm}) that not only utilises POI and query features
 %as well as transition probabilities but also jointly optimises their relative importance.
@@ -183,6 +183,18 @@ The trade-off value in \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} is also
 \subsection{Results}
 \label{sec:result}
 \secmoveup
+
+%
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=\textwidth]{fig/example-tour.pdf}
+	\caption{Different recommendations from algorithm variants.
+    See the main text in Section~\ref{sec:example} for description.}
+	\label{fig:exampleresult}
+	\captionmoveup
+\end{figure*}
+
+
 
 % compare both F1 and pair F1 at the same time
 The performance of the baseline algorithm and the POI ranking and routing variants
@@ -206,27 +218,9 @@ respect the transition patterns between POIs.
 % go to SSVM
 %The effect of sub-tours on trajectory recommendation can be further observed through the performance of \textsc{StructuredSVM}.
 %
-% 7. SSVM vs Rank+Markov and Rank+MarkovPath:
-% while SSVM using the same features as Rank+Markov and Rank+MarkovPath, and took advantage of its significantly larger number of parameters
-% but SSVM permit sub-tours
-% in terms of F1,
-% it either yield comparable performance with the better performer (Osaka/Toronto) or with the worse performer (Edinburgh/Glasgow/Melbourne)
-% which indicate how hurt sub-tours hurts POI recommendation.
-% on the other hand, in terms of pair F1.
-% it takes advantage of the transition patterns and yields comparable (Glasgow/Melbourne) or better performance than both of them
-While utilising the same features as \textsc{Rank+Markov} and \textsc{Rank+MarkovPath},
-it is more flexible with automatic tuning of the trade-off of points and routes, resulting in
-the best performance with respect to pair-F1 in Edinburgh, Osaka and Toronto.
-%it can further take advantage of the significantly larger number of parameters.
-%However, \textsc{StructuredSVM} can only yield comparable performance with the best performer
-%among the three at most, when measured in terms of trajectory F$_1$.
-%While not achieving best point F1 in any city,
-%\textsc{StructuredSVM} makes the best use of transition patterns
-%and consistently has better pairs-F1 than \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} in all cities.
-%which leads to comparable or
-%better performance, in terms of pairs-F$_1$, than both of them all the time.
-%This observation is consistent with the effect of sub-tours observed above
-%as \textsc{StructuredSVM} does permit the existence of sub-tours in recommended trajectories.
+%While utilising the same features as \textsc{Rank+Markov} and \textsc{Rank+MarkovPath},
+%it is more flexible with automatic tuning of the trade-off of points and routes, resulting in
+%the best performance with respect to pair-F1 in Edinburgh, Osaka and Toronto.
 
 
 % go to ranking based algorithms
@@ -234,8 +228,6 @@ Algorithms based on POI rankings yield strong performance
 by exploring POI and query specific features.
 %
 % 3. PoiRank vs. PoiPopularity
-% PoiRank yields nice improvement on four datasets, only slightly downgraded on Edinburgh
-%\textsc{PoiPopularity} baseline performs pretty well despite its simplicity,and
 \textsc{PoiRank} improves notably upon \textsc{PoiPopularity} and \textsc{PersTour}
  by leveraging more POI features and query specific features in 3 out of 5 datasets.
 %except slightly worse on Edinburgh dataset on which \textsc{PoiPopularity} is the best and
@@ -291,17 +283,12 @@ ranking does not performs well enough.
 \textsc{PersTour}~\cite{ijcai15} always performs better than its variant \textsc{PersTour-L},
 especially on Glasgow and Toronto datasets.
 This indicate the time budget constraint is more helpful than length constraint for recommending trajectories.
-The exception on Melbourne dataset is explained next.
-It is obvious that algorithms captured a certain type of information as shown in Table~\ref{tab:algsummary}
-outperforms the \textsc{Random} baseline in terms of both performance metrics on all five datasets,
-except the performance of \textsc{PersTour}\cite{ijcai15} on Melbourne dataset which will be interpreted later.
-% 2. PersTour vs. PersTour-L
-% PersTour always better except on Melbourne which analysed later
-%where the advantage gap of \textsc{PersTour}
-%is significantly large in terms of both performance metrics,
-%
-% brief mention results of algorithms with and without utilising time budget constraint
+%The exception on Melbourne dataset is explained next.
+%It is obvious that algorithms captured a certain type of information as shown in Table~\ref{tab:algsummary}
+%outperforms the \textsc{Random} baseline in terms of both performance metrics on all five datasets,
+%except the performance of \textsc{PersTour}\cite{ijcai15} on Melbourne dataset which will be interpreted later.
 
+% 2. PersTour vs. PersTour-L
 % 8. PersTour on Melbourne:
 % we observed that PersTour was outperformed by Random on Melbourne dataset in terms of both F1 and pair F1.
 % it turns out on Melbourne dataset, the many of the ILPs which PersTour solve to get the recommendation result are very hard ILP instances
@@ -329,11 +316,13 @@ visits two intermediate POIs of category \textit{Structures} and \textit{Cultura
 terminates on a POI of category \textit{Structures}.
 The trajectory recommended by \textsc{PersTour} is a tour with $11$ POIs, as shown in Figure~\ref{fig:exampleresult}(a),
 with none of the desired intermediate POIs visited.
-\textsc{PoiRank} (Figure~\ref{fig:exampleresult}(b)) recommended a tour with correct POIs using
-POI specific features (illustrated in Figure~\ref{fig:distro}) as well as query specific features,
+\textsc{PoiRank} (Figure~\ref{fig:exampleresult}(b)) recommended a tour with correct POIs,
+%using POI specific features (illustrated in Figure~\ref{fig:distro}) as well as query specific features,
 but with completely different routes.
 On the other hand, \textsc{Markov} (Figure~\ref{fig:exampleresult}(c)) missed one POI but the recommended route for one of the intermediate is consistent with the ground truth.
-The best recommendation, as shown in Figure~\ref{fig:exampleresult}(d), with exactly the same points and routes as the ground truth,
+The best recommendation%, as shown in Figure~\ref{fig:exampleresult}(d), 
+(Figure~\ref{fig:exampleresult}(d)) 
+with exactly the same points and routes as the ground truth,
 which in this case is achieved by \textsc{Rank+MarkovPath}.
 
 
