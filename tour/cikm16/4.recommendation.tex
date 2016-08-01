@@ -1,12 +1,12 @@
 \section{Tour Recommendation}
 \label{sec:recommendation}
 
-In this section, we describe a number of approaches to recommend trajectories that leverage POI ranking and/or route planning.
+%In this section, we describe a number of approaches to recommend trajectories that leverage POI ranking and/or route planning.
 
 \subsection{POI Ranking and Route Planning}
 \label{sec:rankplan}
 
-We leverage the set of POI features described in Section~\ref{sec:poifeature}
+We leverage the set of POI features described in Section~\ref{sec:feature}
 to learn a ranking of POIs using rankSVM with linear kernel and $L2$ loss~\cite{lranksvm},
 \begin{equation*}
 \min_{\mathbf{w_r}} \frac{1}{2} 
@@ -26,9 +26,10 @@ and $\phi_{i,n}$ is the feature vector for POI $p_i$ with respect to the query $
 For training the rankSVM, the labels are generated using the number of occurrences of
 POI $p$ in trajectories grouped by query $(p_s, p_e, L)$,
 without counting the occurrence of $p$ when it is the origin or destination of a trajectory.
-We create an algorithm, \textsc{PoiRank}, to recommend trajectory by ranking POIs 
-utilising both POI and query specific features described above. 
-\textsc{PoiRank} takes the top ranked $L-2$ POIs and connects them in sequence according to the ranks.
+We create an algorithm, \textsc{PoiRank}, to recommend trajectory by first ranking POIs 
+%utilising both POI and query specific features described above. 
+%\textsc{PoiRank} 
+then takes the top ranked $L-2$ POIs and connects them in sequence according to the ranks.
 
 
 
@@ -36,7 +37,7 @@ utilising both POI and query specific features described above.
 %\label{sec:markov}
 
 In addition to recommend trajectory by ranking POIs, we can leverage the POI-POI transition probabilities and 
-recommend a trajectory with respect to query $(p_s, p_e, L)$ by maximising the (log) likelihood. 
+recommend a trajectory with respect to a query by maximising the (log) likelihood. 
 The maximum likelihood solution can be found using a variant of the Viterbi algorithm (with emission probabilities ignored).
 We call this approach that only uses the transition probabilities between POIs as \textsc{Markov}.
 
@@ -49,6 +50,80 @@ We call this approach that only uses the transition probabilities between POIs a
 
 \subsection{Combine Ranking and Transition}
 \label{sec:rank+markov}
+
+
+\eat{
+Recall that in Section~\ref{sec:ranksvm} we described how to recommend trajectories by ranking points,
+i.e., \textsc{PoiRank} % and its simplified variant \textsc{PoiPopularity}.
+While algorithms based on points ranking utilise POI and/or query features, 
+the transitions between POIs are never considered.
+and ones that consider transitions between POIs, i.e., \textsc{Markov} and \textsc{MarkovPath}.
+only use POI-POI transitions but ignoring the point ranks.
+In this section, we propose three approaches to %now in a position to 
+jointly optimise the recommendation with both POI preferences and route plans.
+We want to leverage both POI ranking and POI-POI transitions when recommending trajectories.
+A summary of the various trajectory recommendation approaches can be found in Table~\ref{tab:algsummary}.
+}
+
+
+%\subsection{POI ranking and transitions}
+%\label{sec:rank+markov}
+
+Instead of recommend trajectory by either ranking POIs or planning routes with regard to POI-POI transition probabilities, 
+%To recommend the \textit{most likely} trajectory with respect to a query,
+%we want to combine the ranking of POIs with the transition probabilities,
+we would like to leverage both point ranking and transitions,
+i.e., recommending a trajectory that maximise the points ranking of its POIs as well as its likelihood at the same time.
+
+We transform the ranking scores of POIs with respect to query $q$
+to a probability distribution using the softmax function,
+%~\cite{bishop2006},
+%\begin{equation*}
+%  \label{eq:poi-probability}
+$P_R(p_j | q) = \frac{\exp(R_j)}{\sum_j \exp(R_j)}$,
+%\end{equation*}
+where $R_j$ is the ranking score of POI $p_j$ from rankSVM with respect to query $q$.
+%
+%  \item Heuristics: \textsc{Rank+Markov}, \textsc{Rank+MarkovPath}
+One heuristic to find a trajectory that simultaneously maximise the product of ranking probabilities
+of its POIs as well as its likelihood is optimising the following objective:
+\begin{equation*}
+    \argmax_{\mathcal{T} \in \mathcal{P}^L} ~\alpha \prod_{k=1}^{L} P_R(p_{j_k} | q) +
+                                     (1-\alpha) \prod_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k}),
+%   =& \argmax_{y \in \mathcal{P}^L} ~\alpha \sum_{k=1}^{L} \log P_R(p_{j_k} | x) +
+%                                    (1-\alpha) \sum_{k=1}^{L-1} \log P(p_{j_{k+1}} | p_{j_k})
+\end{equation*}
+such that
+$p_{j_1} = p_s, ~ p_{j_L} = p_e$ and
+$p_{j_k} \in \mathcal{P}, ~1 \le k \le L$.
+$\mathcal{T} = (p_{j_1}, \dots, p_{j_L})$ is any possible trajectory,
+$\alpha \in [0, 1]$ is a parameter to trade-off the importance between the point ranking and transition, 
+%of POIs and the POI-POI transitions in the recommended trajectory, 
+and can be tuned using cross validation in practice.
+%Similar to the \textsc{Markov} algorithm mentioned above, 
+Let $S(p; p', q)$ be a convex combination of point ranking and transition,
+\begin{equation*}
+    S(p; p', q)  = \alpha \log P_R(p|q) + (1-\alpha) \log P(p|p') \},
+\end{equation*}
+the best path (or walk) can be found using the Viterbi algorithm with the two recursions below,
+%with both node and transition scores. 
+%The objective can be optimised by adapting the Viterbi algorithm and using the two recursions below,
+%A[l+1, p] = \max_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|q) \\ + (1-\alpha) \log P(p|p') \}
+%B[l+1, p] = \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|q) \\ + (1-\alpha) \log P(p|p') \}
+\begin{alignat}{2}
+&A[l+1, p]   &&= \max_{p' \in \mathcal{P}} \{ A[l, p'] + S(p; p', q) \}, \label{eq:max} \\
+&B[l+1, p]   &&= \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + S(p; p', q) \}, \label{eq:argmax}
+\end{alignat}
+where $A$ is the score matrix, and entry $A[l, p]$ stores the maximum value that associated with the (partial) trajectory
+that starts at $p_s$ and ends at $p$ with $l$ POI visits.
+$B$ is the backtracking-point matrix, and entry $B[l, p]$ stores the predecessor of $p$ in that (partial) trajectory.
+
+The maximum objective value is $A[L, p_e]$,
+and the corresponding trajectory can be found by tracing back from $B[L, p_e]$.
+We call this approach %that uses both the ranking of POIs and POI-POI transitions 
+\textsc{Rank+Markov},
+with pseudo code shown in Algorithm~\ref{alg:rank+markov}.
+
 
 \begin{algorithm}[t]
 \caption{\textsc{Rank+Markov}: recommend trajectory with POI ranking and transition}
@@ -82,106 +157,36 @@ We call this approach that only uses the transition probabilities between POIs a
 
 
 
-\eat{
-Recall that in Section~\ref{sec:ranksvm} we described how to recommend trajectories by ranking points,
-i.e., \textsc{PoiRank} % and its simplified variant \textsc{PoiPopularity}.
-While algorithms based on points ranking utilise POI and/or query features, 
-the transitions between POIs are never considered.
-and ones that consider transitions between POIs, i.e., \textsc{Markov} and \textsc{MarkovPath}.
-only use POI-POI transitions but ignoring the point ranks.
-In this section, we propose three approaches to %now in a position to 
-jointly optimise the recommendation with both POI preferences and route plans.
-We want to leverage both POI ranking and POI-POI transitions when recommending trajectories.
-A summary of the various trajectory recommendation approaches can be found in Table~\ref{tab:algsummary}.
-}
-
-
-%\subsection{POI ranking and transitions}
-%\label{sec:rank+markov}
-
-Instead of recommend trajectory by either ranking POIs or planning routes with regard to POI-POI transition probabilities, 
-%To recommend the \textit{most likely} trajectory with respect to a query,
-%we want to combine the ranking of POIs with the transition probabilities,
-we would like to combine both point ranking and transitions,
-i.e., we want to recommend a trajectory that maximise the points ranking of its POIs as well as its likelihood at the same time.
-
-We transform the ranking scores of POIs with respect to query $q = (p_s, p_e, L)$
-to a probability distribution using the softmax function,
-%~\cite{bishop2006},
-%\begin{equation*}
-%  \label{eq:poi-probability}
-$P_R(p_j | q) = \frac{\exp(R_j)}{\sum_j \exp(R_j)}$,
-%\end{equation*}
-where $R_j$ is the ranking score of POI $p_j$ from rankSVM with respect to query $q$.
-%
-%  \item Heuristics: \textsc{Rank+Markov}, \textsc{Rank+MarkovPath}
-One heuristic to find a trajectory that simultaneously maximise the product of ranking probabilities
-of its POIs and its likelihood is optimising the following objective:
-\begin{equation*}
-    \argmax_{\mathcal{T} \in \mathcal{P}^L} ~\alpha \prod_{k=1}^{L} P_R(p_{j_k} | q) +
-                                     (1-\alpha) \prod_{k=1}^{L-1} P(p_{j_{k+1}} | p_{j_k}),
-%   =& \argmax_{y \in \mathcal{P}^L} ~\alpha \sum_{k=1}^{L} \log P_R(p_{j_k} | x) +
-%                                    (1-\alpha) \sum_{k=1}^{L-1} \log P(p_{j_{k+1}} | p_{j_k})
-\end{equation*}
-such that
-$p_{j_1} = p_s, ~ p_{j_L} = p_e$ and
-$p_{j_k} \in \mathcal{P}, ~1 \le k \le L$.
-$\mathcal{T} = (p_{j_1}, \dots, p_{j_L})$ is any possible trajectory,
-$\alpha \in [0, 1]$ is a parameter to trade-off the importance between the ranking of POIs 
-and the POI-POI transitions in the recommended trajectory, and can be tuned using cross validation in practice.
-%Similar to the \textsc{Markov} algorithm mentioned above, 
-Let $S(p; p', q)$ be a convex combination of point ranking and transition,
-\begin{equation*}
-    S(p; p', q)  = \alpha \log P_R(p|q) + (1-\alpha) \log P(p|p') \},
-\end{equation*}
-the best path (or walk) can be found using the Viterbi algorithm with the two recursions below,
-%with both node and transition scores. 
-%The objective can be optimised by adapting the Viterbi algorithm and using the two recursions below,
-%A[l+1, p] = \max_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|q) \\ + (1-\alpha) \log P(p|p') \}
-%B[l+1, p] = \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|q) \\ + (1-\alpha) \log P(p|p') \}
-\begin{alignat}{2}
-&A[l+1, p]   &&= \max_{p' \in \mathcal{P}} \{ A[l, p'] + S(p; p', q) \}, \label{eq:max} \\
-&B[l+1, p]   &&= \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + S(p; p', q) \}, \label{eq:argmax}
-\end{alignat}
-where $A$ is the score matrix and entry $A[l, p]$ stores the maximum value that associated with the (partial) trajectory, 
-which starts at $p_s$ and ends at $p$ with $l$ POI visits,
-$B$ is the backtracking-point matrix and entry $B[l, p]$ stores the predecessor of $p$ in that (partial) trajectory.
-
-The maximum objective value is $A[L, p_e]$,
-and the corresponding trajectory can be found by tracing back from $B[L, p_e]$.
-We call this approach that uses both the ranking of POIs and POI-POI transitions \textsc{Rank+Markov},
-with the pseudo code shown in Algorithm~\ref{alg:rank+markov}.
-
 
 
 \subsection{Avoiding sub-tours} %%LX: walk vs path is never defined! but sub-tour seem to be??
 \label{sec:nosubtour}
 
-Trajectories recommended by \textsc{Markov} described in Section~\ref{sec:rankplan} are found
+Trajectories recommended by \textsc{Markov} algorithm (Section~\ref{sec:rankplan}) are found
 using the maximum likelihood approach, and may contain multiple visits to the same POI.
 This is because the best path (or walk) from Viterbi decoding %random walk suggested by Viterbi 
 may have 
 %tottering (where the Markov chain transitions back and forth between two states), or may have 
 circular sub-tours (where a POI already visited earlier in the tour is visited again).
 We propose a method for eliminating sub-tours by specifying additional constraints when recommending trajectories.
-
+%
 %  \item ILP
-In particular, we find the best trajectory using an integer linear program (ILP) with
+In particular, we find the best path using an integer linear program (ILP) with
 sub-tour elimination constraints adapted from the Travelling Salesman Problem~\cite{opt98}.
 Given a set of POIs $\mathcal{P}$, the POI-POI transition matrix and a query $q = (p_s, p_e, L)$,
 we recommend a trajectory by solving the following integer linear program:
 \begin{alignat}{5}
-& \max ~&& \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} \log P(p_j | p_i)                            \nonumber \\
-& s.t. ~&& x_{ij} \in \{0, 1\}, ~u_i \in \mathbf{Z},            ~\forall i, j = 1, \cdots, N \label{eq:cons1} \\
-&       && \sum_{j=2}^N x_{1j} = \sum_{i=1}^{N-1} x_{iN} = 1                                 \label{eq:cons2} \\
-&       && \sum_{i=1}^{N-1} x_{ik} = \sum_{j=2}^N x_{kj} \le 1, ~\forall k=2, \cdots, N-1    \label{eq:cons3} \\
-&       && \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} = L-1                                        \label{eq:cons4} \\
-&       && u_i - u_j + 1 \le (N-1) (1-x_{ij}),                  ~\forall i, j = 2, \cdots, N \label{eq:cons5}
+& \max ~&& \sum_{i=1}^{M-1} \sum_{j=2}^M x_{ij} \log P(p_j | p_i)                            \nonumber \\
+& s.t. ~&& x_{ij} \in \{0, 1\}, ~u_i \in \mathbf{Z},            ~\forall i, j = 1, \cdots, M \label{eq:cons1} \\
+&       && \sum_{j=2}^M x_{1j} = \sum_{i=1}^{M-1} x_{iM} = 1                                 \label{eq:cons2} \\
+&       && \sum_{i=1}^{M-1} x_{ik} = \sum_{j=2}^M x_{kj} \le 1, ~\forall k=2, \cdots, M-1    \label{eq:cons3} \\
+&       && \sum_{i=1}^{M-1} \sum_{j=2}^M x_{ij} = L-1                                        \label{eq:cons4} \\
+&       && u_i - u_j + 1 \le (M-1) (1-x_{ij}),                   \forall i, j = 2, \cdots, M \label{eq:cons5}
 \end{alignat}
-where $N=|\mathcal{P}|$ is the number of POIs and $x_{ij}$ is a binary decision variable 
+where $M=|\mathcal{P}|$ is the number of POIs and $x_{ij}$ is a binary decision variable 
 which determines whether transition from POI $p_i$ to POI $p_j$ occurred in the recommended trajectory.
 For brevity, we assume $x_{i1}$ and $x_{1j}$ represent the incoming and outgoing transitions of $p_s$,
-similarly, $x_{iN}$ and $x_{Nj}$ correspond to the incoming and outgoing transitions of $p_e$.
+similarly, $x_{iM}$ and $x_{Mj}$ correspond to the incoming and outgoing transitions of $p_e$.
 Constraint $(\ref{eq:cons2})$ restricts that only one outgoing (incoming) transition for $p_s$ ($p_e$) is permitted, 
 i.e., the recommended trajectory should start from $p_s$ and end at $p_e$.
 Constraint $(\ref{eq:cons3})$ restricts that any POI could be visited at most once and 
@@ -199,5 +204,58 @@ We call this algorithm \textsc{Rank+MarkovPath}.
 \begin{equation}
 \label{eq:rank+markovpath}
 %\max \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} (\alpha \log P_R(p_j | q) + (1-\alpha) \log P(p_j | p_i))
-\max \sum_{i=1}^{N-1} \sum_{j=2}^N ~x_{ij} ~S(p_j; p_i, q).
+\max \sum_{i=1}^{M-1} \sum_{j=2}^M ~x_{ij} ~S(p_j; p_i, q).
 \end{equation}
+
+
+\subsection{Structured SVM}
+\label{sec:ssvm}
+\secmoveup
+
+As trajectory is a sequence of POI visits,
+it is natural to model the recommended trajectory $\mathcal{T}$ with respect to query $q = (p_s, p_e, L)$
+as a chain of $L$ variables, where each discrete variable has $|\mathcal{P}|$ states.
+Structured prediction incorporates both the features of variables (unary features) and
+the features of interactions between neighbouring variables (pairwise features) to make a
+prediction,
+\begin{displaymath}
+    \mathcal{T}^* = \argmax_{\mathcal{T} \in \mathcal{P}^L} 
+                    \sum_{j=1}^L \mathbf{w_u}^T \mathbf{\phi}_j \left( q, \mathcal{T}_j \right) +
+                    \sum_{j=1}^{L-1} \mathbf{w_p}^T \mathbf{\phi}_{j, j+1} \left( q, \mathcal{T}_j, \mathcal{T}_{j+1} \right)
+\end{displaymath}
+where $\mathbf{\phi}_j$ are the unary features of the $j$-th variable and $\mathbf{\phi}_{j, j+1}$ are the pairwise features between
+the $j$-th and $(j+1)$-th variables, $\mathbf{w_u}$ and $\mathbf{w_p}$ are the
+parameters of unary and pairwise features respectively.
+
+The unary and pairwise features are constructed from the POI ranking and POI-POI transitions.
+In particular, unary features are defined as ranking probabilities (Equation~\ref{eq:poi-probability}).
+Recall that we have a query consisting of start ($p_s$) and end ($p_e$) locations, which
+we model as a 1-of-$K$ encoding in the unary features.
+The pairwise features are defined from the transition probabilities $P(p_j | p_i)$ described in
+Section~\ref{sec:transition}.
+This method is called \textsc{StructuredSVM} in the experiments.
+
+% describe SSVM training (1-slack formulation)
+To estimate the parameters $\mathbf{w_u}$ and $\mathbf{w_p}$, we train a Structured Support Vector Machine
+using the 1-slack formulation~\cite{ssvm09},
+\begin{align*}
+    \min_{\mathbf{w}, \xi \ge 0} ~~& \frac{1}{2} \mathbf{w}^T \mathbf{w} + C \xi \\
+    s.t. ~~& \forall \left( \hat{\mathcal{T}}^{(1)}, \cdots, \hat{\mathcal{T}}^{(N)} \right) \in \mathscr{T}^N: \\
+         ~~& \frac{1}{N} \mathbf{w}^T \sum_{i=1}^N \delta \left( \hat{\mathcal{T}}^{(i)} \right) \ge
+             \frac{1}{N} \sum_{i=1}^N \Delta \left( \mathcal{T}^{(i)}, \hat{\mathcal{T}}^{(i)} \right) - \xi \\
+%         ~~& \forall \hat{\mathcal{T}}^{(i)} \in \mathcal{P}^{|\mathcal{T}^{(i)}|}, i = 1, \cdots, N
+\end{align*}
+where $\mathbf{w} = [\mathbf{w_u}^T, \mathbf{w_p}^T]^T$ is the parameter vector,
+$\mathcal{T}^{(i)}$ and $\hat{\mathcal{T}}^{(i)}$ are the $i$-th trajectory in training set
+and its corresponding recommendation respectively.
+$N$ is the training set size, $C$ is the regularisation parameter,
+$\xi$ is the slack variable, and
+\begin{displaymath}
+    \delta \left( \hat{\mathcal{T}}^{(i)} \right) = \Psi \left( q^{(i)}, \mathcal{T}^{(i)} \right) - 
+                                                    \Psi \left( q^{(i)}, \hat{\mathcal{T}}^{(i)} \right)
+\end{displaymath}
+where $q^{(i)}$ the query corresponds to the $i$-th trajectory in training set,
+$\Psi \left( q^{(i)}, \mathcal{T}^{(i)} \right)$ is the joint feature vector which is a composite of unary and 
+pairwise features of the $i$-th trajectory,
+$\Delta \left( \mathcal{T}^{(i)}, \hat{\mathcal{T}}^{(i)} \right)$ is the loss associated with the $i$-th trajectory 
+and its corresponding recommendation, and Hamming loss is used in this work.

@@ -83,8 +83,8 @@ it ignores the visiting order between POIs.
 %Even with the exactly same set of places, the visiting experiences are completely different because
 %of the dramatically disparate routes.
 %Enlightened by this observation,
-We propose a new metric $\text{pairs-F}_1$ that takes into account
-both the point identity and the visiting orders in a trajectory.
+We propose a new metric $\text{pairs-F}_1$ 
+%%that takes into account both the point identity and the visiting orders in a trajectory.
 This is done by measuring the F$_1$ score of every pair of ordered POIs, whether they are adjacent or not,
 \vspace{-1.0em}
 \begin{displaymath}
@@ -131,16 +131,16 @@ Both examples have a perfect F$_1$ score, but not a perfect pairs-F$_1$ score du
 \secmoveup
 %
 %
-\input{table_10methods}
+%\input{table_10methods}
 %
 \input{table_perfsummary}
 %
 
 We use leave-one-out cross validation to evaluate different trajectory recommendation algorithms,
 i.e., when testing on a trajectory, all other trajectories are used for training.
-We compare with a number of baseline approaches from recent literature, the 9 variants of approaches
-are summarised below, with an overview in Table~\ref{tab:algsummary}.
-
+We compare with a number of baseline approaches from recent literature.
+%, the 9 variants of approaches are summarised below, with an overview in Table~\ref{tab:algsummary}.
+%
 % baseline: Random, PersTour, PersTour-L, PoiPopularity
 {\bf Baseline approaches} including \textsc{Random} which naively chooses POIs uniformly at random
 (without replacement) from the set of POIs $\mathcal{P} \setminus \{p_s, p_e \}$ to form a trajectory.
