@@ -39,8 +39,8 @@ the same approach proposed in earlier work~\cite{ht10, ijcai15}.
 \begin{figure}[t]
 	\centering
 	\includegraphics[width=\columnwidth]{fig/pairF1.pdf}
-	\caption{Two illustrative examples for $F_1$ vs pairs-$F_1$ as evaluation metric for trajectories. Solid grey: ground truth trajectories; dashed blue: recommended trajectories.
-    See Section~\ref{sec:metric} for details.}
+	\caption{Two illustrative examples for F$_1$ vs pairs-F$_1$ as evaluation metric for trajectories. 
+Solid grey: ground truth trajectories; dashed blue: recommended trajectories. See Section~\ref{sec:metric} for details.}
 	\label{fig:pairf1}\captionmoveup
 \end{figure}
 %
@@ -86,7 +86,7 @@ it ignores the visiting order between POIs.
 We propose a new metric $\text{pairs-F}_1$ 
 %%that takes into account both the point identity and the visiting orders in a trajectory.
 This is done by measuring the F$_1$ score of every pair of ordered POIs, whether they are adjacent or not,
-\vspace{-1.0em}
+%\vspace{-1.0em}
 \begin{displaymath}
 \text{pairs-F}_1 = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}
                         {P_{\textsc{pair}} + R_{\textsc{pair}}},
@@ -172,13 +172,14 @@ additional sub-tour elimination constraints.
 %as well as transition probabilities but also jointly optimises their relative importance.
 
 % Parameters
+\eat{
 {\bf Parameters} of these algorithms.
 We use a $0.5$ trade-off parameter for \textsc{PersTour} and \textsc{PersTour-L},
 found to be the best weighting by \textsc{PersTour}~\cite{ijcai15}.
 We set the regularisation parameter in rankSVM to  $10.0$, determined by cross-validation.
 The trade-off value in \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} is also $0.5$.
 % and the regularisation parameter in \textsc{StructuredSVM} is $1.0$.
-
+}
 
 \subsection{Results}
 \label{sec:result}
