@@ -1,8 +1,10 @@
-\section{Related Work}
-\label{sec:relatedwork}
+%\section{Related Work}
+%\label{sec:relatedwork}
 
-We summarise recent work most related to formulating and solving learning problems on assembling routes from POIs.
-There are three settings of recommendation problems for locations and routes, as illustrated in Figure~\ref{fig:threesettings}.
+There are several settings of recommendation problems for locations and routes, as illustrated in Figure~\ref{fig:threesettings}.
+We summarise recent work most related to formulating and solving learning problems on assembling routes from POIs,
+and refer the reader to a number of recent surveys~\cite{bao2015recommendations,zheng2015trajectory,zheng2014urban} for general overviews of the area.
+%There are three settings of recommendation problems for locations and routes, as illustrated in Figure~\ref{fig:threesettings}.
 The first setting can be called POI recommendation (Figure~\ref{fig:threesettings}(a)). Each location (A to E) is scored with geographic and behavioural information such as category, reviews, popularity, spatial information such as distance, and temporal information such as travel time uncertainty, time of the day or day of the week.
 This can be in discovery mode, such as identifying points-of-interest~\cite{zheng2009mining,li2015instagram} and includes efficient querying of geographic objects for trips ~\cite{hashem2015efficient}.
 A popular approach is based on the collaborative filtering model
@@ -15,5 +17,56 @@ quantifying tourist traffic flow between points-of-interest~\cite{zheng2012patte
 formulating a binary decision or ranking problem~\cite{baraglia2013learnext}, and with sequence models such as recurrent neural networks~\cite{aaai16}.
 
 
-This paper considers the final setting: tour recommendation, as illustrated in Figure~\ref{fig:threesettings}(c). Here the input are some factors about the desired route, e.g. starting point A and end point C, along with auxiliary information such as the desired length of trip. The algorithm needs to take into account location desirability (as indicated by node size) and transition compatibility (as indicated by edge width), and compare route hypotheses such as A-D-B-C and A-E-D-C. Existing work in this area either uses heuristic combination of locations and routes~\cite{lu2010photo2trip,ijcai15,lu2012personalized}, or formulates an optimisation problem that is not informed or evaluated by behaviour history~\cite{gioniswsdm14,chen2015tripplanner}. Joint learning of location preferences and routes remains an open problem.
-Our work is in this category. We formulate a learning problem to score the whole trajectory, taking into account individual POI properties and relationships among different POIs.
+This paper considers the final setting: tour recommendation (Figure~\ref{fig:threesettings}(c)). Here the input are some factors about the desired route, e.g. starting point A and end point C, along with auxiliary information such as the desired length of trip. The algorithm needs to take into account location desirability (as indicated by node size) and transition compatibility (as indicated by edge width), and compare route hypotheses such as A-D-B-C and A-E-D-C. Existing work in this area either uses heuristic combination of locations and routes~\cite{lu2010photo2trip,ijcai15,lu2012personalized}, or formulates an optimisation problem that is not informed or evaluated by behaviour history~\cite{gioniswsdm14,chen2015tripplanner}. 
+%Joint learning of location preferences and routes remains an open problem.
+%Our work is in this category. We formulate a learning problem to score the whole trajectory, taking into account individual POI properties and relationships among different POIs.
+%
+We note, however, that two desired qualities are still 
+missing from the current solutions to trajectory recommendation. 
+The first is principled method to jointly learn POI ranking (a prediction problem),
+and optimise for route creation (a planning problem).
+The second is a unified way to incorporate various features 
+such as location, time, distance, user profile, social interactions, 
+as they tend to get specialised and separate treatments. 
+This work aims to address these challenges. %bridge these gaps. 
+We propose a novel way to learn point and route preferences jointly.
+In Section~\ref{sec:feature}, we describe the features that are used to ranking points,
+and pairwise transitions that are factorised along %five 
+different types of location properties.
+Section~\ref{sec:recommendation} details a number of our proposed approaches to recommend trajectory.
+%leveraging techniques including learning to rank, Markov chain inference and route planning.
+%%
+%%
+\eat{
+Our solution consists of several parts.
+We propose a learning to rank formulation to capture the preference of POIs given the starting and ending points of a trajectory (Section~\ref{sec:method}).
+We model pair-wise transition patterns between POIs by factorising the transition likelihoods along five different types of location properties,
+which alleviates data sparsity between each pair of POIs and allows POIs of the same type and neighbourhood to share parameters.
+We combine the results of point and transition ranking using Markov chain inference and route planning techniques (Section~\ref{sec:recommendation}).
+We further propose a novel way to jointly learn point and transition scores with a Structured Support Vector Machine (StructuredSVM). 
+In Section~\ref{sec:experiment},
+}
+%%
+%%
+We evaluate the proposed algorithms on photo trajectories from five different cities in Section~\ref{sec:experiment}.
+% with a traditional metric F$_1$ on POIs as well as a novel pairs-F$_1$ metric specifically designed for trajectories (Section~\ref{sec:experiment}).
+The main contributions of this work are as follows:
+\begin{itemize}
+\setlength{\itemsep}{-2pt}
+\item We propose a novel algorithm to jointly optimise point preference and route plan.
+Our approach is feature-driven and learns from past behaviour without having to design specialised treatment for spatial, temporal or social information.
+%It incorporates information about location, POI categories and behaviour history, and can use additional time, user, or social information if available.
+%%
+%%
+\eat{
+We find that the learning-based approaches generally out-perform heuristic route recommendation~\cite{ijcai15}. Incorporating transitions to POI ranking improves the pairs-F$_1$ metric for correct sequences of POIs, and that routing algorithms that disallow sub-tours generally out-perform Markov chain methods.
+\item Our approach is feature-driven and learns from past behaviour without having to design specialised treatment for spatial, temporal or social information. It incorporates information about location, POI categories and behaviour history, and can use additional time, user, or social information if available.
+}
+%%
+%%
+\item We show good performance compared to recent results~\cite{ijcai15}, and also quantify the contributions from different components, such as ranking points, scoring transitions, and routing.
+\item We propose a new metric to evaluate trajectories: pairs-F$_1$, 
+which takes into account both the point identity and the visiting orders in a trajectory.
+%which has the property of being between 0 and 1, and being 1 if and only if the recommended trajectory is exactly the same as the ground truth. 
+Our benchmark data and results are publicly available.
+\end{itemize}
