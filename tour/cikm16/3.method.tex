@@ -15,7 +15,7 @@ in the city are visited at least once by some user, and hence can construct a gr
 %\subsection{POI Features and Query}
 %\label{sec:poifeature}
 
-We extract the category, popularity, total number of visits and average visit duration for each POI.
+We extract the category, popularity (number of distinct visitors)~\cite{ht10}, total number of visits and average visit duration for each POI.
 %A naive approach would be to recommend the trajectory based on the popularity (number of distinct visitors)~\cite{ht10} of POIs only,
 %that is we always suggest the top-$k$ most popular POIs for all visitors given the start and end location, 
 %and its only adaptation to a particular request is to adjust $k$ to match the desired length.
