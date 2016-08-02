@@ -74,7 +74,7 @@ Instead of recommend trajectory by either ranking POIs or planning routes with r
 %we want to combine the ranking of POIs with the transition probabilities,
 we would like to leverage both point ranking and transitions,
 i.e., recommending a trajectory that maximise the points ranking of its POIs as well as its likelihood at the same time.
-We transform the ranking scores of POIs with respect to query $q$
+To begin with, we transform the ranking scores of POIs with respect to query $q$
 to a probability distribution using the softmax function,
 %~\cite{bishop2006},
 \begin{equation}
@@ -102,7 +102,7 @@ Let $S(p; p', q)$ be a convex combination of point ranking and transition,
 \begin{equation*}
     S(p; p', q)  = \alpha \log P_R(p|q) + (1-\alpha) \log P(p|p') \},
 \end{equation*}
-the best path (or walk) can be found using the Viterbi algorithm with the two recursions below,
+then the best path (or walk) can be found using the Viterbi algorithm with the two recursions below,
 %with both node and transition scores. 
 %The objective can be optimised by adapting the Viterbi algorithm and using the two recursions below,
 %A[l+1, p] = \max_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|q) \\ + (1-\alpha) \log P(p|p') \}
@@ -111,7 +111,7 @@ the best path (or walk) can be found using the Viterbi algorithm with the two re
 &A[l+1, p]   &&= \max_{p' \in \mathcal{P}} \{ A[l, p'] + S(p; p', q) \}, \label{eq:max} \\
 &B[l+1, p]   &&= \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + S(p; p', q) \}, \label{eq:argmax}
 \end{alignat}
-where $A$ is the score matrix, and entry $A[l, p]$ stores the maximum value that associated with the (partial) trajectory
+where $A$ is the score matrix, and entry $A[l, p]$ stores the maximum value associated with the (partial) trajectory
 that starts at $p_s$ and ends at $p$ with $l$ POI visits.
 $B$ is the backtracking-point matrix, and entry $B[l, p]$ stores the predecessor of $p$ in that (partial) trajectory.
 
@@ -158,52 +158,63 @@ with pseudo code shown in Algorithm~\ref{alg:rank+markov}.
 \subsection{Avoiding sub-tours} %%LX: walk vs path is never defined! but sub-tour seem to be??
 \label{sec:nosubtour}
 
-Trajectories recommended by \textsc{Markov} algorithm (Section~\ref{sec:rankplan}) are found
-using the maximum likelihood approach, and may contain multiple visits to the same POI.
-This is because the best path (or walk) from Viterbi decoding %random walk suggested by Viterbi 
+Trajectories recommended by \textsc{Markov} (Section~\ref{sec:rankplan}) and \textsc{Rank+Markov} (Section~\ref{sec:rank+markov})
+are found using the maximum likelihood approach, and may contain multiple visits to the same POI.
+This is because the best solution from Viterbi decoding %best path (or walk) from Viterbi decoding %random walk suggested by Viterbi 
 may have 
 %tottering (where the Markov chain transitions back and forth between two states), or may have 
 circular sub-tours (where a POI already visited earlier in the tour is visited again).
-We propose a method for eliminating sub-tours by specifying additional constraints when recommending trajectories.
+We propose a method for eliminating sub-tours by %specifying additional constraints. % when recommending trajectories.
 %
 %  \item ILP
-In particular, we find the best path using an integer linear program (ILP) with
+%In particular, we find the best path using an integer linear program (ILP) with
+finding the best path using an integer linear program (ILP) with
 sub-tour elimination constraints adapted from the Travelling Salesman Problem~\cite{opt98}.
-Given a set of POIs $\mathcal{P}$, the POI-POI transition matrix and a query $q = (p_s, p_e, L)$,
-we recommend a trajectory by solving the following integer linear program:
+In particular, given a set of POIs $\mathcal{P}$, the POI-POI transition matrix and a query $q = (p_s, p_e, L)$,
+we recommend a trajectory by solving the following ILP:
 \begin{alignat}{5}
-& \max  ~&& \sum_{i=1}^{M-1} \sum_{j=2}^M x_{ij} \log P(p_j | p_i)                                                 \nonumber \\
-& ~s.t. ~&& x_{ij} \in \{0, 1\}, ~x_{ii} = 0, ~u_i \in \mathbf{Z}, ~\forall i, j = 1, \cdots, M                    \label{eq:cons1} \\
-&        && \sum_{j=2}^M x_{1j} = \sum_{i=1}^{M-1} x_{iM} = 1, ~\sum_{i=2}^M x_{i1} = \sum_{j=1}^{M-1} x_{Mj} = 0  \label{eq:cons2} \\
-&        && \sum_{i=1}^{M-1} x_{ik} = \sum_{j=2}^M x_{kj} \le 1,   ~\forall k=2, \cdots, M-1                       \label{eq:cons3} \\
-&        && \sum_{i=1}^{M-1} \sum_{j=2}^M x_{ij} = L-1                                                             \label{eq:cons4} \\
-&        && u_i - u_j + 1 \le (M-1) (1-x_{ij}),                     \forall i, j = 2, \cdots, M                    \label{eq:cons5}
+& \max  ~&& \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} \log P(p_j | p_i)                                                 \label{eq:obj} \\ %\nonumber \\
+& ~s.t. ~&& x_{ij} \in \{0, 1\}, ~x_{ii} = 0, ~u_i \in \mathbf{Z}, ~\forall i, j = 1, \cdots, N                    \label{eq:cons1} \\
+&        && \sum_{j=2}^N x_{1j} = \sum_{i=1}^{M-1} x_{iN} = 1, ~\sum_{i=2}^N x_{i1} = \sum_{j=1}^{N-1} x_{Nj} = 0  \label{eq:cons2} \\
+&        && \sum_{i=1}^{N-1} x_{ik} = \sum_{j=2}^N x_{kj} \le 1,   ~\forall k=2, \cdots, N-1                       \label{eq:cons3} \\
+&        && \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} = L-1,                                                            \label{eq:cons4} \\
+&        && u_i - u_j + 1 \le (N-1) (1-x_{ij}),                     \forall i, j = 2, \cdots, N                    \label{eq:cons5}
 \end{alignat}
-where $M=|\mathcal{P}|$ is the number of POIs and $x_{ij}$ is a binary decision variable 
-which determines whether transition from $p_i$ to $p_j$ would be allowed in the recommended trajectory.
-For brevity, we arrange the POIs such that $p_1 = p_s$ and $p_M = p_e$.
+where $N=|\mathcal{P}|$ is the number of available POIs and $x_{ij}$ is a binary decision variable 
+that determines whether transition from $p_i$ to $p_j$ would be allowed in the recommended trajectory.
+For brevity, we arrange the POIs such that $p_1 = p_s$ and $p_N = p_e$.
 %assume $x_{i1}$ and $x_{1j}$ represent the incoming and outgoing transitions of $p_s$,
-%similarly, $x_{iM}$ and $x_{Mj}$ correspond to the incoming and outgoing transitions of $p_e$.
-Constraint $(\ref{eq:cons2})$ restricts that %only one outgoing (incoming) transition for $p_s$ ($p_e$) is permitted, i.e., 
-the recommended trajectory should start from $p_s$ and end at $p_e$.
-Constraint $(\ref{eq:cons3})$ restricts that any POI could be visited at most once.
-Constraint $(\ref{eq:cons4})$ restricts that only $L-1$ transitions between POIs are permitted, 
+%similarly, $x_{iN}$ and $x_{Nj}$ correspond to the incoming and outgoing transitions of $p_e$.
+%Constraint $(\ref{eq:cons2})$ restricts that %only one outgoing (incoming) transition for $p_s$ ($p_e$) is permitted, i.e., 
+%Constraint $(\ref{eq:cons3})$ restricts that any POI could be visited at most once.
+%Constraint $(\ref{eq:cons4})$ restricts that only $L-1$ transitions between POIs are permitted, 
+Firstly, the recommended trajectory should start from $p_s$ and end at $p_e$ (Constraint~\ref{eq:cons2}),
+in addition, any POI could be visited at most once (Constraint~\ref{eq:cons3}).
+Moreover, only $L-1$ transitions between POIs are permitted (Constraint~\ref{eq:cons4}),
 i.e., the number of visited POIs should be exactly $L$ (including $p_s$ and $p_e$).
 The last constraint, where $u_i$ is an auxiliary variable, 
 enforces that only a single sequence of POIs without sub-tours is permitted in the recommended trajectory.
-We call our method that uses the transition matrix to recommend paths that do not have circular sub-tours \textsc{MarkovPath}.
+We call our method that uses the transition matrix to recommend paths 
+%that do not have circular sub-tours \textsc{MarkovPath}.
+without circular sub-tours \textsc{MarkovPath}.
 
 
 %Similar to the \textsc{Markov} algorithm (Section~\ref{sec:rankplan}),
-Similarly,
-sub-tours may appear in trajectories recommended by \textsc{Rank+Markov} algorithm (Section~\ref{sec:rank+markov}).
-To eliminate sub-tours, we can optimise Objective~(\ref{eq:rank+markovpath}) using ILP with the same constraints described above.
+Sub-tours in trajectories recommended by \textsc{Rank+Markov} can be eliminated in a similar manner,
+simply replace Objective~(\ref{eq:obj}) with $\max \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} S(p_j; p_i, q)$.
 We call this algorithm \textsc{Rank+MarkovPath}.
-\begin{equation}
-\label{eq:rank+markovpath}
+
+%sub-tours may appear in trajectories recommended by \textsc{Rank+Markov} algorithm (Section~\ref{sec:rank+markov}).
+%we can optimise Objective~(\ref{eq:rank+markovpath}) using ILP with the same constraints described above.
+%we solve an ILP with Objective~(\ref{eq:rank+markovpath})
+%We eliminate sub-tours by solving an ILP to maximise objective 
+%$\sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} S(p_j; p_i, q)$ 
+%with respect to constraints (\ref{eq:cons1}) to (\ref{eq:cons5}) described above.
+%\begin{equation}
+%\label{eq:rank+markovpath}
 %\max \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} (\alpha \log P_R(p_j | q) + (1-\alpha) \log P(p_j | p_i))
-\max \sum_{i=1}^{M-1} \sum_{j=2}^M ~x_{ij} ~S(p_j; p_i, q).
-\end{equation}
+%\max \sum_{i=1}^{N-1} \sum_{j=2}^N ~x_{ij} ~S(p_j; p_i, q).
+%\end{equation}
 
 
 \subsection{Structured SVM}
@@ -211,45 +222,42 @@ We call this algorithm \textsc{Rank+MarkovPath}.
 \secmoveup
 
 As trajectory is a sequence of POI visits,
-given query $q = (p_s, p_e, L)$, we can model the desired trajectory $\mathcal{T}$
-%it is natural to model the recommended trajectory $\mathcal{T}$ with respect to query $q = (p_s, p_e, L)$
-as a chain of $L$ random variables, where each discrete variable has $|\mathcal{P}|$ states.
-Structured prediction incorporates both the features of variables (unary features) and
+%given query $q = (p_s, p_e, L)$, we can model the desired trajectory $\mathcal{T}$
+it is natural to model the desired trajectory %$\mathcal{T}$ with respect to query $q = (p_s, p_e, L)$
+as a chain of discrete variables, where each variable has $|\mathcal{P}|$ states.
+Structured prediction can incorporates both the features of variables (unary features) and
 the features of interactions between neighbouring variables (pairwise features) to make a
 prediction,
 \begin{displaymath}
     \mathcal{T}^* = \argmax_{\mathcal{T} \in \mathcal{P}^L} 
                     \sum_{j=1}^L \mathbf{w_u}^T \mathbf{\phi}_j + \sum_{j=1}^{L-1} \mathbf{w_p}^T \mathbf{\phi}_{j, j+1}
 \end{displaymath}
-where $\mathbf{\phi}_j$ are features of the $j$-th variable and $\mathbf{\phi}_{j, j+1}$ are the pairwise features between
-the $j$-th and $(j+1)$-th variables, $\mathbf{w_u}$ and $\mathbf{w_p}$ are the
-parameters of unary and pairwise features respectively.
+where $L$ is the number of expected POI visits, 
+$\mathbf{\phi}_j$ are features of the $j$-th variable,
+$\mathbf{\phi}_{j, j+1}$ are the pairwise features between the $j$-th and $(j+1)$-th variables, 
+$\mathbf{w_u}$ and $\mathbf{w_p}$ are the parameters of unary and pairwise features respectively.
 
-We construct the unary and pairwise features from the POI ranking and POI-POI transitions.
-In particular, unary features are defined as ranking probabilities (Equation~\ref{eq:rankprob}).
-Recall that we have a query consisting of start ($p_s$) and end ($p_e$) locations, 
-which we model as a 1-of-$K$ encoding in the unary features.
-The pairwise features are defined from the transition probabilities $P(p_j | p_i)$ described in Section~\ref{sec:feature}.
-This method is called \textsc{StructuredSVM} in the experiments.
-
+We construct the unary features from the POI ranking and pairwise features from POI-POI transitions.
+In particular, unary features are defined as ranking probabilities (Equation~\ref{eq:rankprob}),
+recall that we have a query consisting of start ($p_s$) and end ($p_e$) locations, 
+which we model as a $1$-of-$K$ encoding in the unary features.
+Pairwise features are defined from the transition probabilities %$P(p_j | p_i)$ 
+described in Section~\ref{sec:feature}.
+%
 % describe SSVM training (1-slack formulation)
 To estimate the parameters, we train a Structured Support Vector Machine using the 1-slack formulation~\cite{ssvm09},
 \begin{align*}
-    \min_{\mathbf{w}, \xi \ge 0} ~~& \frac{1}{2} \|\mathbf{w}\|^2 + C \xi \\
-    s.t. ~~& \forall \left( \bar{\mathcal{T}}^{(1)}, \cdots, \bar{\mathcal{T}}^{(N)} \right) \in \mathscr{T}^N: \\
-         ~~& \frac{1}{N} \mathbf{w}^T \sum_{i=1}^N \delta \left( \bar{\mathcal{T}}^{(i)} \right) \ge
-             \frac{1}{N} \sum_{i=1}^N \Delta \left( \mathcal{T}^{(i)}, \bar{\mathcal{T}}^{(i)} \right) - \xi \\
+    \min_{\mathbf{w}} & ~\frac{1}{2} \|\mathbf{w}\|^2 + C \xi \\
+    s.t. & ~\forall \left( \bar{\mathcal{T}}_1, \cdots, \bar{\mathcal{T}}_M \right) \in \mathscr{T}^M: \\
+         & \frac{1}{M} \mathbf{w}^T \sum_{i=1}^M \left[ \Psi(q_i, \mathcal{T}_i) - \Psi(q_i, \bar{\mathcal{T}}_i) \right] \ge 
+           \frac{1}{M} \sum_{i=1}^M \Delta(\mathcal{T}_i, \bar{\mathcal{T}}_i) - \xi,
 \end{align*}
 where $\mathbf{w} = [\mathbf{w_u}^T, \mathbf{w_p}^T]^T$ is the parameter vector,
-$\mathcal{T}^{(i)}$ and $\bar{\mathcal{T}}^{(i)}$ are the $i$-th trajectory in training set
-and its corresponding prediction respectively.
-$N$ is the training set size, $C$ is a regularisation constant,
-$\xi$ is the slack variable, and
-\begin{displaymath}
-    \delta \left( \bar{\mathcal{T}}^{(i)} \right) = \Psi \left( q_i, \mathcal{T}^{(i)} \right) - 
-                                                    \Psi \left( q_i, \bar{\mathcal{T}}^{(i)} \right)
-\end{displaymath}
-where $q_i$ the query corresponds to the $i$-th trajectory in training set,
-$\Psi \left( q_i, \mathcal{T}^{(i)} \right)$ is the joint feature vector that is built from the unary and pairwise features of the $i$-th trajectory,
-$\Delta \left( \mathcal{T}^{(i)}, \bar{\mathcal{T}}^{(i)} \right)$ is the loss associated with the $i$-th trajectory 
-and its corresponding prediction, and Hamming loss is used in this work.
+$C$ is a regularisation constant, $\xi \ge 0$ is the slack variable, $M$ is the training set size, 
+$q_i$ is the query corresponds to the $i$-th trajectory in training set.
+$\mathcal{T}_i$ and $\bar{\mathcal{T}}_i$ are the $i$-th trajectory and its corresponding prediction respectively.
+$\Psi$ is a joint feature map~\cite{joachims2009predicting} built from the unary and pairwise features with regard to
+ a query and a label (the ground truth or prediction).
+$\Delta(\mathcal{T}_i, \bar{\mathcal{T}}_i)$ is a loss associated with the ground truth $\mathcal{T}_i$ 
+and prediction $\bar{\mathcal{T}}_i$, and Hamming loss is used in this work.
+We call this method \textsc{StructuredSVM} in experiments.
