@@ -6,7 +6,12 @@
 \subsection{POI Ranking and Route Planning}
 \label{sec:rankplan}
 
-We leverage the set of POI features described in Section~\ref{sec:feature}
+A naive approach would be to recommend the trajectory based on the popularity (number of distinct visitors)~\cite{ht10} of POIs only,
+that is we always suggest the top-$k$ most popular POIs for all visitors given the start and end location.
+We call this baseline approach \textsc{PoiPopularity},
+and its only adaptation to a particular request is to adjust $k$ to match the desired length.
+
+On the other hand, we can leverage the whole set of POI features described in Section~\ref{sec:feature}
 to learn a ranking of POIs using rankSVM with linear kernel and $L2$ loss~\cite{lranksvm},
 \begin{equation*}
 \min_{\mathbf{w_r}} \frac{1}{2} 
@@ -77,10 +82,11 @@ i.e., recommending a trajectory that maximise the points ranking of its POIs as 
 To begin with, we transform the ranking scores of POIs with respect to query $q$
 to a probability distribution using the softmax function,
 %~\cite{bishop2006},
-\begin{equation}
+\vspace{-0.5em}
+\begin{equation*}
 \label{eq:rankprob}
 P_R(p_j | q) = \frac{\exp(R_j)}{\sum_j \exp(R_j)},
-\end{equation}
+\end{equation*}
 where $R_j$ is the ranking score of POI $p_j$ from rankSVM with respect to query $q$.
 
 %  \item Heuristics: \textsc{Rank+Markov}, \textsc{Rank+MarkovPath}
@@ -173,7 +179,7 @@ sub-tour elimination constraints adapted from the Travelling Salesman Problem~\c
 In particular, given a set of POIs $\mathcal{P}$, the POI-POI transition matrix and a query $q = (p_s, p_e, L)$,
 we recommend a trajectory by solving the following ILP:
 \begin{alignat}{5}
-& \max  ~&& \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} \log P(p_j | p_i)                                                 \label{eq:obj} \\ %\nonumber \\
+& \max  ~&& \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} \log P(p_j | p_i)                                                 \nonumber \\
 & ~s.t. ~&& x_{ij} \in \{0, 1\}, ~x_{ii} = 0, ~u_i \in \mathbf{Z}, ~\forall i, j = 1, \cdots, N                    \label{eq:cons1} \\
 &        && \sum_{j=2}^N x_{1j} = \sum_{i=1}^{M-1} x_{iN} = 1, ~\sum_{i=2}^N x_{i1} = \sum_{j=1}^{N-1} x_{Nj} = 0  \label{eq:cons2} \\
 &        && \sum_{i=1}^{N-1} x_{ik} = \sum_{j=2}^N x_{kj} \le 1,   ~\forall k=2, \cdots, N-1                       \label{eq:cons3} \\
@@ -201,8 +207,14 @@ without circular sub-tours \textsc{MarkovPath}.
 
 %Similar to the \textsc{Markov} algorithm (Section~\ref{sec:rankplan}),
 Sub-tours in trajectories recommended by \textsc{Rank+Markov} can be eliminated in a similar manner,
-simply replace Objective~(\ref{eq:obj}) with $\max \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} S(p_j; p_i, q)$.
-We call this algorithm \textsc{Rank+MarkovPath}.
+we solve an ILP by optimising Objective~(\ref{eq:obj2}) with the same constraints described above.
+This algorithm is called \textsc{Rank+MarkovPath} in the experiments.
+%simply replace Objective~(\ref{eq:obj}) with \ref{eq:obj2}.
+\vspace{-1.5em}
+\begin{equation}
+\label{eq:obj2}
+\max \sum_{i=1}^{N-1} \sum_{j=2}^N ~x_{ij} ~S(p_j; p_i, q).
+\end{equation}
 
 %sub-tours may appear in trajectories recommended by \textsc{Rank+Markov} algorithm (Section~\ref{sec:rank+markov}).
 %we can optimise Objective~(\ref{eq:rank+markovpath}) using ILP with the same constraints described above.
@@ -217,6 +229,8 @@ We call this algorithm \textsc{Rank+MarkovPath}.
 %\end{equation}
 
 
+
+\eat{
 \subsection{Structured SVM}
 \label{sec:ssvm}
 \secmoveup
@@ -261,3 +275,4 @@ $\Psi$ is a joint feature map~\cite{joachims2009predicting} built from the unary
 $\Delta(\mathcal{T}_i, \bar{\mathcal{T}}_i)$ is a loss associated with the ground truth $\mathcal{T}_i$ 
 and prediction $\bar{\mathcal{T}}_i$, and Hamming loss is used in this work.
 We call this method \textsc{StructuredSVM} in experiments.
+}
