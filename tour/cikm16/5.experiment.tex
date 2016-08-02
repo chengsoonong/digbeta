@@ -41,7 +41,7 @@ We use leave-one-out cross validation to evaluate different trajectory recommend
 i.e., when testing on a trajectory, all other trajectories are used for training.
 We compare with a number of baseline approaches such as \textsc{Random}, 
 which naively chooses POIs uniformly at random (without replacement) from the set $\mathcal{P} \setminus \{p_s, p_e \}$ to form a trajectory,
-and \textsc{PoiPopularity}, which recommends trajectories based on the popularity of POIs only.
+and \textsc{PoiPopularity} (Section~\ref{sec:rankplan}), which recommends trajectories based on the popularity of POIs only.
 %, the 9 variants of approaches are summarised below, with an overview in Table~\ref{tab:algsummary}.
 %
 % baseline: Random, PersTour, PersTour-L, PoiPopularity
@@ -135,7 +135,7 @@ by measuring the F$_1$ score of every pair of ordered POIs, whether they are adj
 \text{pairs-F}_1 = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}
                         {P_{\textsc{pair}} + R_{\textsc{pair}}},
 \end{displaymath}
-where $P_{\textsc{pair}}$ and $R_{\textsc{pair}}$ the precision and recall of POI pairs respectively.
+where $P_{\textsc{pair}}$ and $R_{\textsc{pair}}$ are the precision and recall of ordered POI pairs respectively.
 %%
 %%
 \eat{
