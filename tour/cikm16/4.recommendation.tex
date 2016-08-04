@@ -83,10 +83,10 @@ To begin with, we transform the ranking scores of POIs with respect to query $q$
 to a probability distribution using the softmax function,
 %~\cite{bishop2006},
 \vspace{-0.5em}
-\begin{equation*}
+\begin{equation}
 \label{eq:rankprob}
 P_R(p_j | q) = \frac{\exp(R_j)}{\sum_j \exp(R_j)},
-\end{equation*}
+\end{equation}
 where $R_j$ is the ranking score of POI $p_j$ from rankSVM with respect to query $q$.
 
 %  \item Heuristics: \textsc{Rank+Markov}, \textsc{Rank+MarkovPath}
@@ -105,9 +105,9 @@ $\alpha \in [0, 1]$ is a parameter to trade-off the importance between the point
 and can be tuned using cross validation in practice.
 %Similar to the \textsc{Markov} algorithm mentioned above, 
 Let $S(p; p', q)$ be a convex combination of point ranking and transition,
-\begin{equation*}
+\begin{equation}
     S(p; p', q)  = \alpha \log P_R(p|q) + (1-\alpha) \log P(p|p') \},
-\end{equation*}
+\end{equation}
 then the best path (or walk) can be found using the Viterbi algorithm with the two recursions below,
 %with both node and transition scores. 
 %The objective can be optimised by adapting the Viterbi algorithm and using the two recursions below,
@@ -179,7 +179,7 @@ sub-tour elimination constraints adapted from the Travelling Salesman Problem~\c
 In particular, given a set of POIs $\mathcal{P}$, the POI-POI transition matrix and a query $q = (p_s, p_e, L)$,
 we recommend a trajectory by solving the following ILP:
 \begin{alignat}{5}
-& \max  ~&& \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} \log P(p_j | p_i)                                                 \nonumber \\
+& \max  ~&& \sum_{i=1}^{N-1} \sum_{j=2}^N ~x_{ij} ~\log P(p_j | p_i)                                                 \nonumber \\
 & ~s.t. ~&& x_{ij} \in \{0, 1\}, ~x_{ii} = 0, ~u_i \in \mathbf{Z}, ~\forall i, j = 1, \cdots, N                    \label{eq:cons1} \\
 &        && \sum_{j=2}^N x_{1j} = \sum_{i=1}^{M-1} x_{iN} = 1, ~\sum_{i=2}^N x_{i1} = \sum_{j=1}^{N-1} x_{Nj} = 0  \label{eq:cons2} \\
 &        && \sum_{i=1}^{N-1} x_{ik} = \sum_{j=2}^N x_{kj} \le 1,   ~\forall k=2, \cdots, N-1                       \label{eq:cons3} \\
