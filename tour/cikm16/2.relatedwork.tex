@@ -51,22 +51,21 @@ In Section~\ref{sec:experiment},
 We evaluate the proposed algorithms on photo trajectories from five different cities in Section~\ref{sec:experiment}.
 % with a traditional metric F$_1$ on POIs as well as a novel pairs-F$_1$ metric specifically designed for trajectories (Section~\ref{sec:experiment}).
 The main contributions of this work are as follows:
+%\begin{itemize}
+%\setlength{\itemsep}{-2pt}
+%\item We propose a novel algorithm to jointly optimise point preference and route plan.
+%Our approach is feature-driven and learns from past behaviour without having to design specialised treatment for spatial, temporal or social information.
+%\item We show good performance compared to recent results~\cite{ijcai15}, and also quantify the contributions from different components, 
+%such as ranking points, scoring transitions, and routing.
+%\item We propose a new metric to evaluate trajectories: pairs-F$_1$, 
+%which takes into account both the point identity and the visiting orders in a trajectory.
+%Our benchmark data and results are publicly available.
+%\end{itemize}
 \begin{itemize}
 \setlength{\itemsep}{-2pt}
 \item We propose a novel algorithm to jointly optimise point preference and route plan.
-Our approach is feature-driven and learns from past behaviour without having to design specialised treatment for spatial, temporal or social information.
-%It incorporates information about location, POI categories and behaviour history, and can use additional time, user, or social information if available.
-%%
-%%
-\eat{
-We find that the learning-based approaches generally out-perform heuristic route recommendation~\cite{ijcai15}. Incorporating transitions to POI ranking improves the pairs-F$_1$ metric for correct sequences of POIs, and that routing algorithms that disallow sub-tours generally out-perform Markov chain methods.
+  We find that the learning-based approaches generally out-perform heuristic route recommendation~\cite{ijcai15}. Incorporating transitions to POI ranking improves the pairs-F$_1$ metric for correct sequences of POIs, and that routing algorithms that disallow sub-tours generally out-perform Markov chain methods.
 \item Our approach is feature-driven and learns from past behaviour without having to design specialised treatment for spatial, temporal or social information. It incorporates information about location, POI categories and behaviour history, and can use additional time, user, or social information if available.
-}
-%%
-%%
 \item We show good performance compared to recent results~\cite{ijcai15}, and also quantify the contributions from different components, such as ranking points, scoring transitions, and routing.
-\item We propose a new metric to evaluate trajectories: pairs-F$_1$, 
-which takes into account both the point identity and the visiting orders in a trajectory.
-%which has the property of being between 0 and 1, and being 1 if and only if the recommended trajectory is exactly the same as the ground truth. 
-Our benchmark data and results are publicly available.
+\item We propose a new metric to evaluate trajectories: pairs-F$_1$, which has the property of being between 0 and 1, and being 1 if and only if the recommended trajectory is exactly the same as the ground truth. Our benchmark data and results are publicly available.
 \end{itemize}
