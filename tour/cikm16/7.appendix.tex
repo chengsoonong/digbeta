@@ -1,46 +1,53 @@
-\newpage
+%\newpage
+
+\onecolumn
 
 \appendix
 
 \urlstyle{tt}
 
-\section{POI Categories}
-We collected the POI categories in all of the five trajectory datasets,
-their names with the corresponding icons are shown in figure \ref{fig:poicats}.
 
-%\cheng{Report the proportion of recommended trajectories and actual trajectories with sub-tours, in the Appendix.}
+\section{POI Features for Ranking}
 
-\section{POIs sharing the same feature vector}
-When a group of POIs sharing identical (discretised) features,
-we distribute the probability uniformly among the POIs in the group as follows.
+\begin{table*}[t]
+\caption{Features of POI $p$ used in rankSVM given query $(p_s, p_e, L)$}
+\label{tab:featurerank}
+\centering
+%\small
+\setlength{\tabcolsep}{10pt} % tweak the space between columns
+%\begin{tabular}{l|p{0.7\columnwidth}} \hline
+\begin{tabular}{l|l} \hline
+\textbf{Feature}  & \textbf{Description} \\ \hline
+\texttt{category}               & one-hot encoding of the category of $p$ \\
+\texttt{neighbourhood}          & one-hot encoding of the POI cluster that $p$ resides in \\
+\texttt{popularity}             & logarithm of POI popularity of $p$ \\
+\texttt{nVisit}                 & logarithm of the total number of visit by all users at $p$ \\
+\texttt{avgDuration}            & logarithm of the average duration at $p$ \\ \hline
+\texttt{trajLen}                & trajectory length $L$, i.e., the number of POIs required \\
+\texttt{sameCatStart}           & $1$ if the category of $p$ is the same as that of $p_s$, $-1$ otherwise \\
+\texttt{sameCatEnd}             & $1$ if the category of $p$ is the same as that of $p_e$, $-1$ otherwise \\
+\texttt{sameNeighbourhoodStart} & $1$ if $p$ resides in the same POI cluster as $p_s$, $-1$ otherwise \\
+\texttt{sameNeighbourhoodEnd}   & $1$ if $p$ resides in the same POI cluster as $p_e$, $-1$ otherwise \\
+\texttt{distStart}              & distance between $p$ and $p_s$, calculated using the Haversine formula \\
+\texttt{distEnd}                & distance between $p$ and $p_e$, calculated using the Haversine formula \\
+\texttt{diffPopStart}           & real-valued difference in POI popularity of $p$ from that of $p_s$ \\
+\texttt{diffPopEnd}             & real-valued difference in POI popularity of $p$ from that of $p_e$ \\
+\texttt{diffNVisitStart}        & real-valued difference in the total number of visit at $p$ from that at $p_s$ \\
+\texttt{diffNVisitEnd}          & real-valued difference in the total number of visit at $p$ from that at $p_e$ \\
+\texttt{diffDurationStart}      & real-valued difference in average duration at $p$ from that at $p_s$ \\
+\texttt{diffDurationEnd}        & real-valued difference in average duration at $p$ from that at $p_e$ \\ \hline
+\end{tabular}
+\end{table*}
 
-Firstly, the incoming (unnormalised) transition probability of the group computed by taking 
-the Kronecker product is divided uniformly among POIs in the group,
-which is equivalent to choose a POI in the group uniformly at random.
 
-On the other hand, the outgoing (unnormalised) transition probability of each POI 
-should be the same as that of the POI group, 
-since in this case, the transition from any POI in the group to one outside the group 
-represents an outgoing transition from the POI group.
-
-Furthermore, the self-loop transition of the POI group represents transitions from any POI in the group
-to any other POI in the same group, we distribute the self-loop transition probability uniformly 
-among all these pairs.
-In particular, suppose the (unnormalised) self-loop transition probability is $P_o$,
-and the number of POIs in the group is $N_o$,
-the transition probability from $p_i$ to $p_j$ in the same group is
-\begin{displaymath}
-    P(p_j | p_i) = \delta(i \ne j) \frac{P_o}{N_o - 1}, \forall 1 \le i, j \le N_o
-\end{displaymath}
-Where $\delta(i \ne j) = 1$ if $i \ne j$ and $0$ otherwise, which is the same constraint that no POI
-self-loops are allowed, as described in Section~\ref{sec:transition}.
-
-Lastly, we normalise each row of the (unnormalised) POI-POI transition matrix 
-to form a valid (outgoing) probability distribution for each POI.
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=0.8\textwidth]{fig/poi_cats_fat.pdf}
+	\caption{POI Categories}
+	\label{fig:poicats}
+\end{figure*}
 
 
-\section{POI Feature Distribution}
-% Figures from the appendix
 \begin{figure*}[t]
 \includegraphics[width=\textwidth]{fig/feature_distro.pdf}
 \caption{Distribution of POI popularity, the number of visit and visit duration}
@@ -48,12 +55,164 @@ to form a valid (outgoing) probability distribution for each POI.
 \end{figure*}
 
 
-\section{POI Transitions}
-\begin{figure*}[htbp]
+
+We described an algorithm to recommend trajectories based on ranking POIs (\textsc{PoiRank}) in Section~\ref{sec:rankplan},
+the features used to rank POIs are POI and query specific, which is shown in Table~\ref{tab:featurerank}.
+
+Categories of POIs in all of the five trajectory datasets are show in Figure~\ref{fig:poicats}.
+The distribution of POI popularity, the number of visit and average visit duration are shown in Figure~\ref{fig:distro}.
+
+Features described in Table~\ref{tab:featurerank} are scale to range $[-1.0, 1.0]$ using the same approach 
+as that utilised by libsvm (\url{http://www.csie.ntu.edu.tw/~cjlin/libsvm/}),
+i.e., fitting a linear function $f(x) = a x + b$ for feature $x$ such that the maximum value of $x$ maps to $1.0$ 
+and the minimum value of $x$ maps to $-1.0$.
+
+
+
+\section{Transition Probabilities}
+
+\begin{table}[ht]
+\caption{POI features used to factorise POI-POI transition probabilities}
+\label{tab:featuretran}
+\centering
+\setlength{\tabcolsep}{28pt} % tweak the space between columns
+\begin{tabular}{l|l} \hline
+\textbf{Feature}       & \textbf{Description} \\ \hline
+\texttt{category}      & category of POI \\
+\texttt{neighbourhood} & the cluster that a POI resides in \\
+\texttt{popularity}    & (discretised) popularity of POI \\
+\texttt{nVisit}        & (discretised) total number of visit at POI \\
+\texttt{avgDuration}   & (discretised) average duration at POI \\ \hline
+\end{tabular}
+\end{table}
+
+
+\begin{figure*}[b]
 \includegraphics[width=\textwidth]{fig/poi_transmat_all.png}
-\caption{Transition matrices for five POI features: POI categories, neighborhood, popularity, number of visits, and visit duration. These statistics are from the Melbourne dataset. See Section~\ref{sec:transition} for descriptions.}
+\caption{Transition matrices for five POI features: POI categories, neighborhood, popularity, number of visits, and visit duration. These statistics are from the Melbourne dataset.}
 \label{fig:transmat}
 \end{figure*}
+
+We compute the POI-POI transition matrix by factorising transition probabilities from POI $p_i$ to POI $p_j$ as a product of transition probabilities
+between pairs of individual POI features, these features are described in Table~\ref{tab:featuretran}.
+
+Transition matrices of individual POI features are computed using maximum likelihood estimation,
+i.e., counting the number of transitions for each pair of features then normalising each row,
+taking care of zeros by adding a small number $\epsilon$
+\footnote{In our experiments, $\epsilon = 1$.}
+to each count before normalisation.
+Figure~\ref{fig:transmat} visualises the transition matrices for individual POI features in Melbourne.
+
+The POI-POI transition matrix is computed by taking the Kronecker product of the transition matrices for the individual features,
+and then updating it with two additional constraints.
+
+Firstly, we disallow self transitions by setting probability of ($p_i$ to $p_i$) to zero.
+
+Secondly, when a group of POIs have identical (discretised) features (say a group with $N_g$ POIs), 
+we distribute the probability uniformly among POIs in the group,
+in particular, the incoming (unnormalised) transition probability (say, $P_i$) of the group computed by taking the Kronecker product is divided uniformly 
+among POIs in the group (i.e., $\frac{P_i}{N_g}$), which is equivalent to choose a POI in the group uniformly at random.
+Moreover, the outgoing (unnormalised) transition probability of each POI is the same as that of the group, 
+since in this case, \textit{the transition from any POI in the group to one outside the group represents an outgoing transition from that group}.
+In addition, the self-loop transition of the group represents transitions from a POI in the group to other POIs ($N_g-1$ POIs) in the same group, 
+\textit{similar to the outgoing case}, the (unnormalised) self-loop transition probability (say $P_o$) is divided uniformly (i.e., $\frac{P_o}{N_g-1}$),
+which corresponds to choose a transition (from $p_i$) among all transitions to the other $N_g-1$ POIs (exclude self-loop $p_i$ to $p_i$)
+in that group uniformly at random.
+
+Lastly, we normalise each row of the (unnormalised) POI-POI transition matrix to form a valid (outgoing) probability distribution for each POI.
+
+
+
+\section{Experiment}
+
+\subsection{Dataset}
+Trajectories used in experiment are extracted using geo-tagged photos in the Yahoo! Flickr Creative Commons 100M
+(a.k.a. YFCC100M) dataset~\cite{thomee2016yfcc100m} as well as the Wikipedia web-pages of points-of-interests (POIs).
+Photos are mapped to POIs according to their distances calculated using the Haversine formula~\cite{haversine},
+the time a user arrived a POI is approximated by the time the first photo taken by the user at that POI,
+similarly, the time a user left a POI is approximated by the time the last photo taken
+by the user at that POI.
+Furthermore, sequence of POI visits by a specific user are divided into several pieces according to
+the time gap between consecutive POI visits, and the POI visits in each piece are connected in temporal order
+to form a trajectory.
+
+\subsection{Parameters}
+Parameters of algorithms (Table~\ref{tab:algsummary}) in experiment.
+We use a $0.5$ trade-off parameter for \textsc{PersTour} and \textsc{PersTour-L}, found to be the best weighting by \textsc{PersTour}~\cite{ijcai15}.
+The regularisation parameter $C$ in rankSVM is $10.0$.
+The trade-off parameter $\alpha$ in \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} is tuned using cross validation.
+In particular, we split a dataset into two (roughly) equal parts, and use the first part to tune $\alpha$ (leave-one-out cross validation),
+then test on the second part (leave-one-out cross validation) using the tuned $\alpha$, and vice verse. 
+
+\subsection{Implementation}
+We employ the rankSVM implementation in libsvmtools (\url{https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/}).
+Integer linear programming (ILP) are solved using Gurobi Optimizer (\url{http://www.gurobi.com/})
+and lp\_solve (\url{http://lpsolve.sourceforge.net/}).
+
+\subsection{Performance metric}
+A commonly used metric for POI recommendation and evaluating trajectories is
+the F$_1$ score on points.
+Let $\mathcal{T}$ be the trajectory that was visited in the real world,
+and $\hat{\cal T}$ be the recommended trajectory,
+$\mathcal{P}_{\mathcal{T}}$ be the set of POIs visited in $\mathcal{T}$,
+and $\mathcal{P}_{\hat{\mathcal{T}}}$ be the set of POIs visited in $\hat{\mathcal{T}}$,
+we compute trajectory F$_1$ as the harmonic mean between the point-wise precision and recall.
+%was defined as
+\begin{displaymath}
+F_1= \frac{2  P_{\textsc{point}}  R_{\textsc{point}}}
+          {P_{\textsc{point}} + R_{\textsc{point}}}
+\end{displaymath}
+where
+\vspace{-1.1em}
+\begin{displaymath}%\eqmoveup
+P_{\textsc{point}} = \frac{|\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}|}
+                          {|\hat{\mathcal{T}}|},
+R_{\textsc{point}} = \frac{|\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}|}
+                          {|\mathcal{T}|}
+\end{displaymath}
+
+A perfect trajectory F$_1$ (i.e., F$_1 = 1$) means the POIs in
+the recommended trajectory are exactly the same POIs as those in the ground truth,
+and F$_1 = 0$ means that none of the POIs in the
+real trajectory was recommended.
+
+While trajectory F$_1$ is good at measuring whether POIs are correctly recommended,
+it ignores the visiting order between POIs.
+We propose a new metric $\text{pairs-F}_1$ that takes into account
+both the point identity and the visiting orders in a trajectory.
+This is done by measuring the F$_1$ score of every pair of ordered POIs, whether they are adjacent or not,
+\begin{displaymath}
+\text{pairs-F}_1 = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}
+                       {P_{\textsc{pair}} + R_{\textsc{pair}}}
+\end{displaymath}
+where
+\vspace{-2.0em}
+\begin{displaymath}%\eqmoveup
+~~
+P_{\textsc{pair}} = \frac{N_c} {|\hat{\mathcal{T}}|(|\hat{\mathcal{T}}|-1) / 2}, ~
+R_{\textsc{pair}} = \frac{N_c} {|\mathcal{T}|(|\mathcal{T}|-1) / 2}
+\end{displaymath}
+and $N_c$ is the number of ordered POI pairs $(p_j, p_k)$ that
+appear in both the ground-truth and the recommended trajectories,
+\begin{align*}
+    (p_j \prec_{\mathcal{T}} p_k ~\land~ p_j \prec_{\hat{\mathcal{T}}} p_k)  ~\lor~
+    (p_j \succ_{\mathcal{T}} p_k ~\land~ p_j \succ_{\hat{\mathcal{T}}} p_k) 
+\end{align*}
+with $p_j \ne p_k, ~p_j, p_k \in \mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}, ~1 \le j \ne k \le |\mathcal{T}|$.
+Here $p_j \prec_{\mathcal{T}} p_k$ denotes POI $p_j$ was visited before POI $p_k$ in $\mathcal{T}$
+and $p_j \succ_{\mathcal{T}} p_k$ denotes $p_j$ was visited after $p_k$ in $\mathcal{T}$.
+
+Pairs-F$_1$ takes values between 0 and 1. A perfect pairs-F$_1$ (1.0) is achieved if and only if
+both the POIs and their visiting orders in the
+recommended trajectory are exactly the same as those in the ground truth.
+Pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited in the real trajectory.
+
+
+
+
+
+\eat{
+%\cheng{Report the proportion of recommended trajectories and actual trajectories with sub-tours, in the Appendix.}
 
 
 \section{Markov}
@@ -90,12 +249,6 @@ to form a valid (outgoing) probability distribution for each POI.
 
 
 
-\section{Implementation details}
-We use the rankSVM implementation in libsvmtools \url{https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/},
-and the Structured SVM implementation in PyStruct \url{https://pystruct.github.io/}.
-Integer linear programming are solved using both Gurobi Optimizer \url{http://www.gurobi.com/} 
-and lp\_solve \url{http://lpsolve.sourceforge.net/}.
-
 
 \section{Avoid Peeking}
 When working with machine learning algorithms, to make sure the reported performance is a good approximation
@@ -120,59 +273,7 @@ some bits of information in test set were leaked into training set via these agg
 %Nevertheless, the exact impact still needs further investigation.
 
 
-\begin{figure}[t]
-	\centering
-	\includegraphics[width=0.6\columnwidth]{fig/poi_cats.pdf}
-	\caption{POI Categories}
-	\label{fig:poicats}
-\end{figure}
 
-
-\begin{table}[t]
-\caption{POI features used to factorise POI-POI transition probabilities}
-\label{tab:featuretran}
-\centering
-\setlength{\tabcolsep}{2pt} % tweak the space between columns
-\begin{tabular}{l|l} \hline
-\textbf{Feature}       & \textbf{Description} \\ \hline
-\texttt{category}      & category of POI \\
-\texttt{neighbourhood} & the cluster that a POI resides in \\
-\texttt{popularity}    & (discretised) popularity of POI \\
-\texttt{nVisit}        & (discretised) total number of visit at POI \\
-\texttt{avgDuration}   & (discretised) average duration at POI \\ \hline
-\end{tabular}
-\end{table}
-
-
-\begin{table*}[t]
-\caption{Features of POI $p$ used in rankSVM given query $(p_s, p_e, L)$}
-\label{tab:featurerank}
-\centering
-%\small
-%\setlength{\tabcolsep}{2pt} % tweak the space between columns
-%\begin{tabular}{l|p{0.7\columnwidth}} \hline
-\begin{tabular}{l|l} \hline
-\textbf{Feature}  & \textbf{Description} \\ \hline
-\texttt{category}               & one-hot encoding of the category of $p$ \\
-\texttt{neighbourhood}          & one-hot encoding of the POI cluster that $p$ resides in \\
-\texttt{popularity}             & logarithm of POI popularity of $p$ \\
-\texttt{nVisit}                 & logarithm of the total number of visit by all users at $p$ \\
-\texttt{avgDuration}            & logarithm of the average duration at $p$ \\ \hline
-\texttt{trajLen}                & trajectory length $L$, i.e., the number of POIs required \\
-\texttt{sameCatStart}           & $1$ if the category of $p$ is the same as that of $p_s$, $-1$ otherwise \\
-\texttt{sameCatEnd}             & $1$ if the category of $p$ is the same as that of $p_e$, $-1$ otherwise \\
-\texttt{sameNeighbourhoodStart} & $1$ if $p$ resides in the same POI cluster as $p_s$, $-1$ otherwise \\
-\texttt{sameNeighbourhoodEnd}   & $1$ if $p$ resides in the same POI cluster as $p_e$, $-1$ otherwise \\
-\texttt{distStart}              & distance between $p$ and $p_s$, calculated using the Haversine formula \\
-\texttt{distEnd}                & distance between $p$ and $p_e$, calculated using the Haversine formula \\
-\texttt{diffPopStart}           & real-valued difference in POI popularity of $p$ from that of $p_s$ \\
-\texttt{diffPopEnd}             & real-valued difference in POI popularity of $p$ from that of $p_e$ \\
-\texttt{diffNVisitStart}        & real-valued difference in the total number of visit at $p$ from that at $p_s$ \\
-\texttt{diffNVisitEnd}          & real-valued difference in the total number of visit at $p$ from that at $p_e$ \\
-\texttt{diffDurationStart}      & real-valued difference in average duration at $p$ from that at $p_s$ \\
-\texttt{diffDurationEnd}        & real-valued difference in average duration at $p$ from that at $p_e$ \\ \hline
-\end{tabular}
-\end{table*}
 
 
 \section{RankSVM}
@@ -187,12 +288,6 @@ where $\mathbf{w_r}$ is a vector of parameters,
 and $\mathbf{\phi}(p_m, q_n)$ is the scaled feature vector for $p_m$ with respect to query $q_n$,
 as described in Table~\ref{tab:featurerank}.
 
-\subsection{Feature scaling}
-We scale the features described in Table~\ref{tab:featurerank} to range $[-1, 1]$ using the same approach as that 
-utilised by libsvm \url{http://www.csie.ntu.edu.tw/~cjlin/libsvm/},
-i.e., we fit a linear function $f(x) = a x + b$ for feature $x$ such that the maximum value of $x$ maps to $1$ 
-and the minimum value of $x$ map to $-1$.
-
 \subsection{Training}
 To estimate the parameters $\mathbf{w_r}$, we train a rankSVM with linear kernel and L$2$ loss:
 %\begin{displaymath}
@@ -206,56 +301,6 @@ where $C_r > 0$ is the regularisation parameter.
 
 The label of a training example is the number of occurrences of POI $p_m$ in trajectories grouped by query $q = (p_s, p_e, L)$,
 without counting the occurrence of $p_m$ when it is the origin or destination of a trajectory.
-
-
-\section{Transition probabilities}
-
-In addition to information about each individual POI, a tour recommendation system would benefit
-from capturing the likelihood of transitioning between different POIs. One option would be to
-directly model the probability of going from one POI to another, but this has several weaknesses:
-Such a model would be unable to handle a new POI (one that has not yet been visited).
-Furthermore, even if we restrict ourselves to known POIs, there may be many locations which
-are rarely visited, leading to significant challenges in estimating the probabilities from
-empirical data.
-
-We model POI transitions using a Markov chain with discrete factored states.
-One difficulty of estimating the Markov chain is data sparsity, 
-i.e., not enough transitions have been observed between every pair of POIs. 
-We factorised the transition probability from POI $p_i$ to POI $p_j$ %is  according to
-as a product of transition probabilities between pairs of individual POI features.
-%as described in Table~\ref{tab:featuretran}.
-POIs are grouped into $5$ clusters using K-means according to their geographical locations
-to reflect their neighbourhood relations.
-We directly model the transition between the category and neighbourhood of each POI as the conditional probability.
-The popularity, total number of visits and the average visit duration are discretised by binning
-them uniformly into $5$ discrete intervals on the log scale.
-Figure~\ref{fig:transmat} visualises the transition matrices for individual POI features in Melbourne.
-
-We compute the transition probabilities of the above individual POI features
-using maximum likelihood estimation,
-i.e., counting the number of transitions for each pair of features then normalising each row,
-taking care of zeros by adding a small number $\epsilon$
-%\footnote{In our experiments, $\epsilon = 1$.}
-to each count before normalisation,
-which results in a transition matrix for each of the above POI features.
-%
-Assuming independence between these features,
-the transition probability $P(p_j | p_i)$ from $p_i$ to $p_j$ can be defined as the product
-of the transition probabilities of each individual feature (and appropriately normalised),
-with two additional constraints.
-First we disallow self transitions by setting the probability of ($p_i$ to $p_i$) to zero.
-Second we need to deal with the possibility that multiple POIs may share exactly the same feature vector.
-When a group of POIs have identical (discretised) features, we distribute the probability uniformly among the POIs in the group. 
-%More details of this procedure are provided in the Appendix.
-The POI-POI transition matrix can be efficiently computed by taking the Kronecker product of
-the transition matrices for the individual features and then updating it based on the constraints described above.
-
-\section{Factorised POI-POI transitions}
-
-\label{appendix:transition}
-We factorise the transition probability from POI $p_i$ to POI $p_j$
-according to $5$ POI features described in Table~\ref{tab:featuretran},
-which result in a transition matrix for each individual POI feature.
 
 
 \subsection{Structured SVM}
@@ -420,92 +465,4 @@ where $q^{(i)}$ is the query corresponding to $\mathcal{T}^{(i)}$ and the joint 
 \end{displaymath}
 $\Delta \left( \mathcal{T}^{(i)}, \bar{\mathcal{T}}^{(i)} \right)$ is the loss associated with the $i$-th trajectory 
 and its corresponding recommendation, and Hamming loss is used in our experiment.
-
-
-\section{Experiment}
-Trajectories are extracted using  geo-tagged photos in the Yahoo! Flickr Creative Commons 100M
-(a.k.a. YFCC100M) dataset~\cite{thomee2016yfcc100m} as well as the Wikipedia web-pages of points-of-interests (POIs).
-Photos are mapped to POIs according to their distances calculated using the Haversine formula~\cite{haversine},
-the time a user arrived a POI is approximated by the time the first photo taken by the user at that POI,
-similarly, the time a user left a POI is approximated by the time the last photo taken
-by the user at that POI.
-Furthermore, sequence of POI visits by a specific user are divided into several pieces according to
-the time gap between consecutive POI visits, and the POI visits in each piece are connected in temporal order
-to form a trajectory.
-%%LX: said above, no need to repeat
-%For details of extracting trajectories from geo-tagged photos, please refer to \cite{ht10, ijcai15}.
-
-
-%To evaluate the performance of different trajectory recommendation algorithms,
-%we employ the trajectory F$_1$\cite{ijcai15} to measure the POIs that are
-%correctly recommended.
-A commonly used metric for POI recommendation and evaluating trajectories is
-the F$_1$ score on points.
-Let $\mathcal{T}$ be the trajectory that was visited in the real world,
-and $\hat{\cal T}$ be the recommended trajectory,
-$\mathcal{P}_{\mathcal{T}}$ be the set of POIs visited in $\mathcal{T}$,
-and $\mathcal{P}_{\hat{\mathcal{T}}}$ be the set of POIs visited in $\hat{\mathcal{T}}$,
-we compute trajectory F$_1$ as the harmonic mean between the point-wise precision and recall.
-%was defined as
-\begin{displaymath}
-F_1= \frac{2  P_{\textsc{point}}  R_{\textsc{point}}}
-          {P_{\textsc{point}} + R_{\textsc{point}}}
-\end{displaymath}
-where
-\vspace{-1.1em}
-\begin{displaymath}%\eqmoveup
-P_{\textsc{point}} = \frac{|\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}|}
-                          {|\hat{\mathcal{T}}|},
-R_{\textsc{point}} = \frac{|\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}|}
-                          {|\mathcal{T}|}
-\end{displaymath}
-
-A perfect trajectory F$_1$ (i.e., F$_1 = 1$) means the POIs in
-the recommended trajectory are exactly the same POIs as those in the ground truth,
-and F$_1 = 0$ means that none of the POIs in the
-real trajectory was recommended.
-
-While trajectory F$_1$ is good at measuring whether POIs are correctly recommended,
-it ignores the visiting order between POIs.
-%Two trajectories with the exactly same set of POIs can be completely different to visitors
-%given different routes.
-An illustration is shown in Figure~\ref{fig:pairf1},
-the solid grey lines represent the ground truth transitions that actually visited by travellers
-and the dashed blue lines are the recommended trajectory by one of the approaches listed
-in Table~\ref{tab:algsummary}. Both examples have a perfect F$_1$ score, but not a perfect
-pairs-F$_1$ score due to the difference in POI sequencing.
-%Even with the exactly same set of places, the visiting experiences are completely different because
-%of the dramatically disparate routes.
-%Enlightened by this observation,
-We propose a new metric $\text{pairs-F}_1$ that takes into account
-both the point identity and the visiting orders in a trajectory.
-This is done by measuring the F$_1$ score of every pair of ordered POIs, whether they are adjacent or not.
-\begin{displaymath}
-\text{pairs-F}_1 = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}
-                       {P_{\textsc{pair}} + R_{\textsc{pair}}}
-\end{displaymath}
-where
-\vspace{-2.0em}
-\begin{displaymath}%\eqmoveup
-~~
-P_{\textsc{pair}} = \frac{N_c} {|\hat{\mathcal{T}}|(|\hat{\mathcal{T}}|-1) / 2}, ~
-R_{\textsc{pair}} = \frac{N_c} {|\mathcal{T}|(|\mathcal{T}|-1) / 2}
-\end{displaymath}
-and $N_c$ is the number of ordered POI pairs $(p_j, p_k)$ that
-appear in both the ground-truth and the recommended trajectories.
-%satisfies the following
-%conditions\footnote{We define pairs-F$_1=0$ if $N_c$ is $0$.}:
-\begin{align*}
-    (p_j \prec_{\mathcal{T}} p_k ~\land~ p_j \prec_{\hat{\mathcal{T}}} p_k)  ~\lor~
-    (p_j \succ_{\mathcal{T}} p_k ~\land~ p_j \succ_{\hat{\mathcal{T}}} p_k) 
-\end{align*}
-with $p_j \ne p_k, ~p_j, p_k \in \mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}, ~1 \le j \ne k \le |\mathcal{T}|$.
-Here $p_j \prec_{\mathcal{T}} p_k$ denotes POI $p_j$ was visited before POI $p_k$ in $\mathcal{T}$
-and $p_j \succ_{\mathcal{T}} p_k$ denotes $p_j$ was visited after $p_k$ in $\mathcal{T}$.
-
-Pairs-F$_1$ takes values between 0 and 1. A perfect pairs-F$_1$ (1.0) is achieved if and only if
-both the POIs and their visiting orders in the
-recommended trajectory are exactly the same as those in the ground truth.
-Pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited in the real trajectory.
-
-
+}
