@@ -1,5 +1,6 @@
 \section{POI, Query and Transition}
 \label{sec:feature}
+\secmoveup
 
 
 We aim to recommend a particular tour such that the user will visit a sequence of POIs, denoted $p_1, \ldots, p_L$, that maximises utility. We are given the desired start ($p_1=p_s$) and end point ($p_L=p_e$), and an associated number $L$ of POIs desired, from which we propose a trajectory through the city.
@@ -42,7 +43,7 @@ and also include the required length $L$ of the trajectory as a feature.
 \includegraphics[width=\columnwidth]{fig/poi_transmat.png}
 \caption{Example of transition matrices for two POI features: POI categories and neighborhood
 These statistics are from the Melbourne dataset. See Section~\ref{sec:feature} for descriptions.}
-\label{fig:transmat}
+\label{fig:transmat}\captionmoveup
 \end{figure}
 
 
@@ -55,7 +56,7 @@ are rarely visited, leading to significant challenges in estimating the probabil
 empirical data.
 
 We model POI transitions using a Markov chain with discrete %factored
-states by factorising the transition probability from POI $p_i$ to POI $p_j$ 
+states by factorising the transition probability of ($p_i$ to $p_j$) %from POI $p_i$ to POI $p_j$ 
 as a product of transition probabilities between pairs of individual POI features, %(listed in Section~\ref{sec:poifeature}),
 assuming independence between these features.
 POIs are grouped into $5$ clusters using K-means according to their geographical locations to reflect their neighbourhood relations.

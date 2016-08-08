@@ -1,19 +1,23 @@
 \section{Tour Recommendation}
 \label{sec:recommendation}
+\secmoveup
 
 %In this section, we describe a number of approaches to recommend trajectories that leverage POI ranking and/or route planning.
 
 \subsection{POI Ranking and Route Planning}
 \label{sec:rankplan}
+\secmoveup
 
-A naive approach would be to recommend the trajectory based on the popularity (number of distinct visitors)~\cite{ht10} of POIs only,
+A naive approach would be to recommend trajectory based on the popularity (number of distinct visitors)~\cite{ht10} of POIs only,
 that is we always suggest the top-$k$ most popular POIs for all visitors given the start and end location.
 We call this baseline approach \textsc{PoiPopularity},
 and its only adaptation to a particular request is to adjust $k$ to match the desired length.
-
+%
 On the other hand, we can leverage the whole set of POI features described in Section~\ref{sec:feature}
 to learn a ranking of POIs using rankSVM with linear kernel and $L2$ loss~\cite{lranksvm},
+\eqmoveup
 \begin{equation*}
+\eqmoveup
 \min_{\mathbf{w_r}} \frac{1}{2} 
                      \|\mathbf{w_r}\|^2 + 
 %                    \mathbf{w_r}^T \mathbf{w_r} + 
@@ -55,6 +59,7 @@ We call this approach that only uses the transition probabilities between POIs a
 
 \subsection{Combine Ranking and Transition}
 \label{sec:rank+markov}
+\secmoveup
 
 
 \eat{
@@ -82,8 +87,10 @@ i.e., recommending a trajectory that maximise the points ranking of its POIs as 
 To begin with, we transform the ranking scores of POIs with respect to query $q$
 to a probability distribution using the softmax function,
 %~\cite{bishop2006},
-\vspace{-0.5em}
+\eqmoveup
+\eqmoveup
 \begin{equation}
+\eqmoveup
 \label{eq:rankprob}
 P_R(p_j | q) = \frac{\exp(R_j)}{\sum_j \exp(R_j)},
 \end{equation}
@@ -92,7 +99,8 @@ where $R_j$ is the ranking score of POI $p_j$ from rankSVM with respect to query
 %  \item Heuristics: \textsc{Rank+Markov}, \textsc{Rank+MarkovPath}
 One heuristic to find a trajectory that simultaneously maximise the ranking probabilities of its POIs and its likelihood 
 could be optimising the following objective:
-\begin{equation*}
+\eqmoveup
+\begin{equation*}\eqmoveup
     \argmax_{\mathcal{T} \in \mathcal{P}^L} ~\alpha \sum_{k=1}^{L} \log P_R(p_{j_k} | q) +
                                      (1-\alpha) \sum_{k=1}^{L-1} \log P(p_{j_{k+1}} | p_{j_k}),
 \end{equation*}
@@ -105,6 +113,7 @@ $\alpha \in [0, 1]$ is a parameter to trade-off the importance between the point
 and can be tuned using cross validation in practice.
 %Similar to the \textsc{Markov} algorithm mentioned above, 
 Let $S(p; p', q)$ be a convex combination of point ranking and transition,
+\eqmoveup
 \begin{equation}
     S(p; p', q)  = \alpha \log P_R(p|q) + (1-\alpha) \log P(p|p') \},
 \end{equation}
@@ -113,7 +122,8 @@ then the best path (or walk) can be found using the Viterbi algorithm with the t
 %The objective can be optimised by adapting the Viterbi algorithm and using the two recursions below,
 %A[l+1, p] = \max_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|q) \\ + (1-\alpha) \log P(p|p') \}
 %B[l+1, p] = \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + \alpha \log P_R(p|q) \\ + (1-\alpha) \log P(p|p') \}
-\begin{alignat}{2}
+\eqmoveup
+\begin{alignat}{2}\eqmoveup
 &A[l+1, p]   &&= \max_{p' \in \mathcal{P}} \{ A[l, p'] + S(p; p', q) \}, \label{eq:max} \\
 &B[l+1, p]   &&= \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + S(p; p', q) \}, \label{eq:argmax}
 \end{alignat}
@@ -125,7 +135,6 @@ The maximum objective value is $A[L, p_e]$,
 and the corresponding trajectory can be found by tracing back from $B[L, p_e]$.
 We call this approach that uses both the points ranking and transitions \textsc{Rank+Markov},
 with pseudo code shown in Algorithm~\ref{alg:rank+markov}.
-
 
 \begin{algorithm}[t]
 \caption{\textsc{Rank+Markov}: recommend trajectory with POI ranking and transition}
@@ -160,9 +169,9 @@ with pseudo code shown in Algorithm~\ref{alg:rank+markov}.
 
 
 
-
 \subsection{Avoiding sub-tours} %%LX: walk vs path is never defined! but sub-tour seem to be??
 \label{sec:nosubtour}
+\secmoveup
 
 Trajectories recommended by \textsc{Markov} (Section~\ref{sec:rankplan}) and \textsc{Rank+Markov} (Section~\ref{sec:rank+markov})
 are found using the maximum likelihood approach, and may contain multiple visits to the same POI.
@@ -178,7 +187,9 @@ finding the best path using an integer linear program (ILP) with
 sub-tour elimination constraints adapted from the Travelling Salesman Problem~\cite{opt98}.
 In particular, given a set of POIs $\mathcal{P}$, the POI-POI transition matrix and a query $q = (p_s, p_e, L)$,
 we recommend a trajectory by solving the following ILP:
+\eqmoveup
 \begin{alignat}{5}
+\eqmoveup
 & \max  ~&& \sum_{i=1}^{N-1} \sum_{j=2}^N ~x_{ij} ~\log P(p_j | p_i)                                                 \nonumber \\
 & ~s.t. ~&& x_{ij} \in \{0, 1\}, ~x_{ii} = 0, ~u_i \in \mathbf{Z}, ~\forall i, j = 1, \cdots, N                    \label{eq:cons1} \\
 &        && \sum_{j=2}^N x_{1j} = \sum_{i=1}^{M-1} x_{iN} = 1, ~\sum_{i=2}^N x_{i1} = \sum_{j=1}^{N-1} x_{Nj} = 0  \label{eq:cons2} \\
@@ -208,9 +219,12 @@ without circular sub-tours \textsc{MarkovPath}.
 %Similar to the \textsc{Markov} algorithm (Section~\ref{sec:rankplan}),
 Sub-tours in trajectories recommended by \textsc{Rank+Markov} can be eliminated in a similar manner,
 we solve an ILP by optimising Objective~(\ref{eq:obj2}) with the same constraints described above.
+%we solve an ILP by maximising $\sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} S(p_j; p_i, q)$ with the same constraints described above.
 This algorithm is called \textsc{Rank+MarkovPath} in the experiments.
 %simply replace Objective~(\ref{eq:obj}) with \ref{eq:obj2}.
 %\vspace{-1.5em}
+\eqmoveup
+\eqmoveup
 \begin{equation}
 \label{eq:obj2}
 \max \sum_{i=1}^{N-1} \sum_{j=2}^N ~x_{ij} ~S(p_j; p_i, q).

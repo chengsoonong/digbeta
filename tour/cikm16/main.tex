@@ -31,13 +31,16 @@
 \newcommand{\TODO}[2]{ { [{\bf #1}:~{\hl{#2}}]}}
 
 % place holder spacing hacks
-\newcommand{\secmoveup}{\vspace{-0.0mm}}                %{\vspace{-0.12in}}
+%\newcommand{\secmoveup}{\vspace{-0.0mm}}                %{\vspace{-0.12in}}
+\newcommand{\secmoveup}{\vspace{-0.12mm}}                %{\vspace{-0.12in}}
 \newcommand{\bigsecmoveup}{\secmoveup\vspace{-.0mm}}   %{\vspace{-0.08in}}
 \newcommand{\textmoveup}{\vspace{-0.mm}}               %{\vspace{-0.08in}}
 \newcommand{\bigtextmoveup}{\textmoveup\vspace{-0.0in}} %{\vspace{-0.06in}}
 \newcommand{\itemmoveup}{\vspace{-0mm}}              %{\vspace{-0.04in}}
-\newcommand{\eqmoveup}{\vspace{-0.0in}}                 %{\vspace{-0.16in}}
-\newcommand{\captionmoveup}{\eqmoveup\vspace{-0.0in}}   %{\vspace{-0.16in}}
+%\newcommand{\eqmoveup}{\vspace{-0.0in}}                 %{\vspace{-0.16in}}
+\newcommand{\eqmoveup}{\vspace{-0.04in}}                 %{\vspace{-0.16in}}
+%\newcommand{\captionmoveup}{\eqmoveup\vspace{-0.0in}}   %{\vspace{-0.16in}}
+\newcommand{\captionmoveup}{\eqmoveup\vspace{-0.16in}}   %{\vspace{-0.16in}}
 \newcommand{\refitemmoveup}{\vspace{-0mm}}            %{\vspace{-0.16in}}
 
 \begin{document}
@@ -114,6 +117,6 @@ This work is supported in part by the Australian Research Council via the Discov
 \bibliography{ref}
 }
 
-%\input{7.appendix.tex}
+\input{7.appendix.tex}
 
 \end{document}
