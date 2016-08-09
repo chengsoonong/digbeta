@@ -1,7 +1,7 @@
 %!TEX root = main.tex
 \section{Experiment}
 \label{sec:experiment}
-\secmoveup
+%\secmoveup
 
 
 %\section{Experimental Results}
@@ -135,8 +135,9 @@ We can see from Table~\ref{tab:f1} that, in terms of F$_1$, \textsc{MarkovPath} 
 outperform their corresponding variants \textsc{Markov} and \textsc{Rank+Markov} without the path constraints,
 which demonstrates that eliminating sub-tours improves point recommendation.
 This is expected, as sub-tours worsen the proportion of correctly recommended POIs since a length constraint is used.
-On the contrary, most Markov chain entries have better performance in terms of pairs-F$_1$, as shown in Table~\ref{tab:pairf1},
-which indicates that Markov chain approaches generally respect the transition patterns between POIs.
+On the contrary, most Markov chain entries have better performance in terms of pairs-F$_1$ (Table~\ref{tab:pairf1}), %as shown in Table~\ref{tab:pairf1},
+which indicates %that 
+Markov chain approaches generally respect the transition patterns between POIs.
 %We make similar observations about the performance of 
 
 
@@ -151,7 +152,7 @@ The exception on Melbourne dataset is explained next.
 
 
 %% Exception of PersTour on Melbourne
-It is apparent that algorithms captured a certain type of information %as shown in Table~\ref{tab:algsummary}
+It is apparent that algorithms captured a certain type of information as shown in Table~\ref{tab:algsummary}
 outperforms the \textsc{Random} baseline in terms of both performance metrics on all five datasets.
 Surprisingly, we observed that \textsc{PersTour} is outperformed by \textsc{Random} baseline on Melbourne dataset. % in terms of both metrics.
 It turns out that, on this very dataset, many of the ILP problems
@@ -197,5 +198,3 @@ which in this case is achieved by \textsc{Rank+MarkovPath}.
 	\captionmoveup
 \end{figure*}
 }
-
-
