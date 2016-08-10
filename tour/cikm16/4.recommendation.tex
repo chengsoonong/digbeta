@@ -8,13 +8,13 @@
 \label{sec:rankplan}
 \secmoveup
 
-A naive approach would be to recommend trajectory based on the popularity (number of distinct visitors)~\cite{ht10} of POIs only,
+A naive approach would be to recommend trajectory based on the popularity of POIs only,
 that is we always suggest the top-$k$ most popular POIs for all visitors given the start and end location.
 We call this baseline approach \textsc{PoiPopularity},
 and its only adaptation to a particular request is to adjust $k$ to match the desired length.
 %
 On the other hand, we can leverage the whole set of POI features described in Section~\ref{sec:feature}
-to learn a ranking of POIs using rankSVM with linear kernel and $L2$ loss~\cite{lranksvm},
+to learn a ranking of POIs using rankSVM with linear kernel and L$2$ loss~\cite{lranksvm},
 \eqmoveup
 \begin{equation*}
 \eqmoveup
@@ -29,7 +29,7 @@ to learn a ranking of POIs using rankSVM with linear kernel and $L2$ loss~\cite{
 where $\mathbf{w_r}$ is the parameter vector,
 $C_r > 0$ is a regularisation constant.
 $\mathcal{P}$ is the set of POIs to rank,
-$\mathcal{Q}$ is the queries corresponding to trajectories in training set,
+$\mathcal{Q}$ denotes the queries corresponding to trajectories in training set,
 and $\phi_{i,n}$ is the feature vector for POI $p_i$ with respect to the query $q_n \in \mathcal{Q}$.
 
 For training the rankSVM, the labels are generated using the number of occurrences of
@@ -83,7 +83,7 @@ Instead of recommend trajectory by either ranking POIs or planning routes with r
 %To recommend the \textit{most likely} trajectory with respect to a query,
 %we want to combine the ranking of POIs with the transition probabilities,
 we would like to leverage both point ranking and transitions,
-i.e., recommending a trajectory that maximise the points ranking of its POIs as well as its likelihood at the same time.
+i.e., recommending a trajectory that maximises the points ranking of its POIs as well as its likelihood at the same time.
 To begin with, we transform the ranking scores of POIs with respect to query $q$
 to a probability distribution using the softmax function,
 %~\cite{bishop2006},
@@ -97,7 +97,7 @@ P_R(p_j | q) = \frac{\exp(R_j)}{\sum_j \exp(R_j)},
 where $R_j$ is the ranking score of POI $p_j$ from rankSVM with respect to query $q$.
 
 %  \item Heuristics: \textsc{Rank+Markov}, \textsc{Rank+MarkovPath}
-One heuristic to find a trajectory that simultaneously maximise the ranking probabilities of its POIs and its likelihood 
+One heuristic to find a trajectory that simultaneously maximises the ranking probabilities of its POIs and its likelihood 
 could be optimising the following objective:
 \eqmoveup
 \begin{equation*}\eqmoveup
@@ -192,25 +192,25 @@ we recommend a trajectory by solving the following ILP:
 \eqmoveup
 & \max  ~&& \sum_{i=1}^{N-1} \sum_{j=2}^N ~x_{ij} ~\log P(p_j | p_i)                                                 \nonumber \\
 & ~s.t. ~&& x_{ij} \in \{0, 1\}, ~x_{ii} = 0, ~u_i \in \mathbf{Z}, ~\forall i, j = 1, \cdots, N                    \label{eq:cons1} \\
-&        && \sum_{j=2}^N x_{1j} = \sum_{i=1}^{M-1} x_{iN} = 1, ~\sum_{i=2}^N x_{i1} = \sum_{j=1}^{N-1} x_{Nj} = 0  \label{eq:cons2} \\
+&        && \sum_{j=2}^N x_{1j} = \sum_{i=1}^{N-1} x_{iN} = 1, ~\sum_{i=2}^N x_{i1} = \sum_{j=1}^{N-1} x_{Nj} = 0  \label{eq:cons2} \\
 &        && \sum_{i=1}^{N-1} x_{ik} = \sum_{j=2}^N x_{kj} \le 1,   ~\forall k=2, \cdots, N-1                       \label{eq:cons3} \\
 &        && \sum_{i=1}^{N-1} \sum_{j=2}^N x_{ij} = L-1,                                                            \label{eq:cons4} \\
 &        && u_i - u_j + 1 \le (N-1) (1-x_{ij}),                     \forall i, j = 2, \cdots, N                    \label{eq:cons5}
 \end{alignat}
 where $N=|\mathcal{P}|$ is the number of available POIs and $x_{ij}$ is a binary decision variable 
-that determines whether transition from $p_i$ to $p_j$ would be allowed in the recommended trajectory.
+that determines whether transition from $p_i$ to $p_j$ would be allowed in the desired trajectory.
 For brevity, we arrange the POIs such that $p_1 = p_s$ and $p_N = p_e$.
 %assume $x_{i1}$ and $x_{1j}$ represent the incoming and outgoing transitions of $p_s$,
 %similarly, $x_{iN}$ and $x_{Nj}$ correspond to the incoming and outgoing transitions of $p_e$.
 %Constraint $(\ref{eq:cons2})$ restricts that %only one outgoing (incoming) transition for $p_s$ ($p_e$) is permitted, i.e., 
 %Constraint $(\ref{eq:cons3})$ restricts that any POI could be visited at most once.
 %Constraint $(\ref{eq:cons4})$ restricts that only $L-1$ transitions between POIs are permitted, 
-Firstly, the recommended trajectory should start from $p_s$ and end at $p_e$ (Constraint~\ref{eq:cons2}),
+Firstly, the desired trajectory should start from $p_s$ and end at $p_e$ (Constraint~\ref{eq:cons2}),
 in addition, any POI could be visited at most once (Constraint~\ref{eq:cons3}).
 Moreover, only $L-1$ transitions between POIs are permitted (Constraint~\ref{eq:cons4}),
 i.e., the number of visited POIs should be exactly $L$ (including $p_s$ and $p_e$).
 The last constraint, where $u_i$ is an auxiliary variable, 
-enforces that only a single sequence of POIs without sub-tours is permitted in the recommended trajectory.
+enforces that only a single sequence of POIs without sub-tours is permitted in the desired trajectory.
 We call our method that uses the transition matrix to recommend paths 
 %that do not have circular sub-tours \textsc{MarkovPath}.
 without circular sub-tours \textsc{MarkovPath}.

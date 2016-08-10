@@ -42,7 +42,7 @@
 
 \begin{figure*}[t]
 	\centering
-	\includegraphics[width=0.8\textwidth]{fig/poi_cats_fat.pdf}
+	\includegraphics[width=0.7\textwidth]{fig/poi_cats_fat.pdf}
 	\caption{POI Categories}
 	\label{fig:poicats}
 \end{figure*}
@@ -57,12 +57,12 @@
 
 
 We described an algorithm to recommend trajectories based on ranking POIs (\textsc{PoiRank}) in Section~\ref{sec:rankplan},
-the features used to rank POIs are POI and query specific, which is shown in Table~\ref{tab:featurerank}.
+the features used to rank POIs are POI and query specific, as described in Table~\ref{tab:featurerank}.
 
 Categories of POIs in all of the five trajectory datasets are show in Figure~\ref{fig:poicats}.
 The distribution of POI popularity, the number of visit and average visit duration are shown in Figure~\ref{fig:distro}.
 
-Features described in Table~\ref{tab:featurerank} are scale to range $[-1.0, 1.0]$ using the same approach 
+To rank POIs, features described in Table~\ref{tab:featurerank} are scaled to range $[-1.0, 1.0]$ using the same approach 
 as that utilised by libsvm (\url{http://www.csie.ntu.edu.tw/~cjlin/libsvm/}),
 i.e., fitting a linear function $f(x) = a x + b$ for feature $x$ such that the maximum value of $x$ maps to $1.0$ 
 and the minimum value of $x$ maps to $-1.0$.
@@ -90,7 +90,7 @@ and the minimum value of $x$ maps to $-1.0$.
 \begin{figure*}[b]
 \includegraphics[width=\textwidth]{fig/poi_transmat_all.png}
 \caption{Transition matrices for five POI features: POI categories, neighborhood, popularity, number of visits, and visit duration. These statistics are from the Melbourne dataset.}
-\label{fig:transmat}
+\label{fig:transmat_all}
 \end{figure*}
 
 We compute the POI-POI transition matrix by factorising transition probabilities from POI $p_i$ to POI $p_j$ as a product of transition probabilities
@@ -101,7 +101,7 @@ i.e., counting the number of transitions for each pair of features then normalis
 taking care of zeros by adding a small number $\epsilon$
 \footnote{In our experiments, $\epsilon = 1$.}
 to each count before normalisation.
-Figure~\ref{fig:transmat} visualises the transition matrices for individual POI features in Melbourne.
+Figure~\ref{fig:transmat_all} visualises the transition matrices for individual POI features in Melbourne.
 
 The POI-POI transition matrix is computed by taking the Kronecker product of the transition matrices for the individual features,
 and then updating it with two additional constraints.
@@ -119,7 +119,7 @@ In addition, the self-loop transition of the group represents transitions from a
 which corresponds to choose a transition (from $p_i$) among all transitions to the other $N_g-1$ POIs (exclude self-loop $p_i$ to $p_i$)
 in that group uniformly at random.
 
-Lastly, we normalise each row of the (unnormalised) POI-POI transition matrix to form a valid (outgoing) probability distribution for each POI.
+Lastly, we normalise each row of the (unnormalised) POI-POI transition matrix to form a valid probability distribution for each POI.
 
 
 
@@ -134,11 +134,11 @@ similarly, the time a user left a POI is approximated by the time the last photo
 by the user at that POI.
 Furthermore, sequence of POI visits by a specific user are divided into several pieces according to
 the time gap between consecutive POI visits, and the POI visits in each piece are connected in temporal order
-to form a trajectory.
+to form a trajectory~\cite{ht10, ijcai15}.
 
 \subsection{Parameters}
-Parameters of algorithms (Table~\ref{tab:algsummary}) in experiment.
-We use a $0.5$ trade-off parameter for \textsc{PersTour} and \textsc{PersTour-L}, found to be the best weighting by \textsc{PersTour}~\cite{ijcai15}.
+For parameters of algorithms in experiment,
+we use a $0.5$ trade-off parameter for \textsc{PersTour} and \textsc{PersTour-L}, found to be the best weighting by \textsc{PersTour}~\cite{ijcai15}.
 The regularisation parameter $C$ in rankSVM is $10.0$.
 The trade-off parameter $\alpha$ in \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} is tuned using cross validation.
 In particular, we split a dataset into two (roughly) equal parts, and use the first part to tune $\alpha$ (leave-one-out cross validation),
@@ -148,6 +148,7 @@ then test on the second part (leave-one-out cross validation) using the tuned $\
 We employ the rankSVM implementation in libsvmtools (\url{https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/}).
 Integer linear programming (ILP) are solved using Gurobi Optimizer (\url{http://www.gurobi.com/})
 and lp\_solve (\url{http://lpsolve.sourceforge.net/}).
+Dataset and code for this work are available in repository \url{https://bitbucket.org/d-chen/cikm16}.
 
 \subsection{Performance metric}
 A commonly used metric for POI recommendation and evaluating trajectories is
@@ -156,7 +157,7 @@ Let $\mathcal{T}$ be the trajectory that was visited in the real world,
 and $\hat{\cal T}$ be the recommended trajectory,
 $\mathcal{P}_{\mathcal{T}}$ be the set of POIs visited in $\mathcal{T}$,
 and $\mathcal{P}_{\hat{\mathcal{T}}}$ be the set of POIs visited in $\hat{\mathcal{T}}$,
-we compute trajectory F$_1$ as the harmonic mean between the point-wise precision and recall.
+we compute F$_1$ score on points as the harmonic mean between the point-wise precision and recall,
 %was defined as
 \begin{displaymath}
 F_1= \frac{2  P_{\textsc{point}}  R_{\textsc{point}}}
@@ -171,42 +172,44 @@ R_{\textsc{point}} = \frac{|\mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\ma
                           {|\mathcal{T}|}
 \end{displaymath}
 
-A perfect trajectory F$_1$ (i.e., F$_1 = 1$) means the POIs in
+A perfect F$_1$ (i.e., F$_1 = 1$) means the POIs in
 the recommended trajectory are exactly the same POIs as those in the ground truth,
 and F$_1 = 0$ means that none of the POIs in the
 real trajectory was recommended.
 
-While trajectory F$_1$ is good at measuring whether POIs are correctly recommended,
+While F$_1$ score on points is good at measuring whether POIs are correctly recommended,
 it ignores the visiting order between POIs.
-We propose a new metric $\text{pairs-F}_1$ that takes into account
-both the point identity and the visiting orders in a trajectory.
+$\text{pairs-F}_1$ takes into account both the point identity and the visiting orders in a trajectory.
 This is done by measuring the F$_1$ score of every pair of ordered POIs, whether they are adjacent or not,
 \begin{displaymath}
 \text{pairs-F}_1 = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}
-                       {P_{\textsc{pair}} + R_{\textsc{pair}}}
+                        {P_{\textsc{pair}} + R_{\textsc{pair}}},
 \end{displaymath}
 where
 \vspace{-2.0em}
 \begin{displaymath}%\eqmoveup
 ~~
-P_{\textsc{pair}} = \frac{N_c} {|\hat{\mathcal{T}}|(|\hat{\mathcal{T}}|-1) / 2}, ~
-R_{\textsc{pair}} = \frac{N_c} {|\mathcal{T}|(|\mathcal{T}|-1) / 2}
+P_{\textsc{pair}} = \frac{N_c} {|\hat{\mathcal{T}}|(|\hat{\mathcal{T}}|-1) / 2}, ~~
+R_{\textsc{pair}} = \frac{N_c} {|\mathcal{T}|(|\mathcal{T}|-1) / 2},
 \end{displaymath}
-and $N_c$ is the number of ordered POI pairs $(p_j, p_k)$ that
+and $N_c$
+\footnote{We define pairs-F$_1 = 0$ when $N_c = 0$.}
+is the number of ordered POI pairs $(p_j, p_k)$ that
 appear in both the ground-truth and the recommended trajectories,
 \begin{align*}
     (p_j \prec_{\mathcal{T}} p_k ~\land~ p_j \prec_{\hat{\mathcal{T}}} p_k)  ~\lor~
-    (p_j \succ_{\mathcal{T}} p_k ~\land~ p_j \succ_{\hat{\mathcal{T}}} p_k) 
+    (p_j \succ_{\mathcal{T}} p_k ~\land~ p_j \succ_{\hat{\mathcal{T}}} p_k),
 \end{align*}
 with $p_j \ne p_k, ~p_j, p_k \in \mathcal{P}_{\mathcal{T}} \cap \mathcal{P}_{\hat{\mathcal{T}}}, ~1 \le j \ne k \le |\mathcal{T}|$.
-Here $p_j \prec_{\mathcal{T}} p_k$ denotes POI $p_j$ was visited before POI $p_k$ in $\mathcal{T}$
+Here $p_j \prec_{\mathcal{T}} p_k$ denotes POI $p_j$ was visited before POI $p_k$ in trajectory $\mathcal{T}$
 and $p_j \succ_{\mathcal{T}} p_k$ denotes $p_j$ was visited after $p_k$ in $\mathcal{T}$.
 
 Pairs-F$_1$ takes values between 0 and 1. A perfect pairs-F$_1$ (1.0) is achieved if and only if
-both the POIs and their visiting orders in the
-recommended trajectory are exactly the same as those in the ground truth.
+both the POIs and their visiting orders in the recommended trajectory are exactly the same as those in the ground truth.
 Pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited in the real trajectory.
 
+Performance data reported in Table~\ref{tab:f1} and Table~\ref{tab:pairf1} are the mean and standard deviation of instances successfully recommended by
+all methods shown in Table~\ref{tab:algsummary}.
 
 
 
@@ -329,35 +332,6 @@ we model as a 1-of-$K$ encoding in the unary features.
 The pairwise features are defined from the transition probabilities $P(p_j | p_i)$ described in
 Section~\ref{sec:transition}.
 This method is called \textsc{StructuredSVM} in the experiments.
-
-\eat{
-In the settings of trajectory recommendation, the ranking probabilities of POIs
-with respect to constraint $x = (p_s, p_e, L)$ were used to capture the unary features of individual variables
-and the transition probabilities between POIs were utilized to capture the pairwise features
-between the neighboring variables, in particular,
-the unary features of the first and last variables are binary vectors
-with true values at the corresponding POIs and false values anywhere else,
-the unary features of the other $L-2$ variables are the ranking probabilities of POIs in $\mathcal{P}$, i.e.,
-\begin{displaymath}
-    \phi_j(x, y_j) = P_R(y_j | x), y_j \in \mathcal{P}
-\end{displaymath}
-
-Pairwise features between the $j$-th variable and the $(j+1)$-th variable $\phi_{j, j+1}$ was defined as
-\begin{align*}
-    \phi_{j, j+1}(x, y_j, y_{j+1}) &= \phi_{j-1, j}(x, y_{j-1}, y_j) \times M \\
-                                 j &=2, \dots, L-2
-\end{align*}
-where $\phi_{j-1, j}$ is the pairwise features between the $(j-1)$-th and $j$-th variables,
-and $M$ is the transition matrix between POIs described in Section~\ref{sec:transition} and
-$M_{ij} = P(p_j | p_i)$.
-In particular, the pairwise features between the first and the second variables is the
-outgoing transition probabilities of the first variable,
-and the pairwise features between the second-last and the last variables are a probability distribution
-over all POIs in $\mathcal{P}$ where the probability mass is dominated by the variable corresponding to POI $p_e$,
-all other POIs in $\mathcal{P} \setminus p_e$ are simply uniformly distributed.
-}
-
-% describe unary/pairwise potentials?
 
 % describe SSVM training (1-slack formulation)
 To estimate the parameters $\mathbf{w_u}$ and $\mathbf{w_p}$, we train a Structured Support Vector Machine

@@ -50,8 +50,8 @@ with an additional time budget, and its variant \textsc{PersTour-L},
 which replaces the time budget with a constraint of trajectory length (number of POIs to visit).
 Variants of point- and route-ranking approaches including \textsc{PoiRank} and \textsc{Markov} (Section~\ref{sec:rankplan}),
 which utilises either POI features or POI-POI transitions,
-and \textsc{Rank+Markov} (Section~\ref{sec:rank+markov}) that incorporates both, %POI features and transition probabilities.
-variants that employ additional sub-tour elimination constraints 
+and \textsc{Rank+Markov} (Section~\ref{sec:rank+markov}) that captures both types of information. %POI features and transition probabilities.
+Variants that employ additional sub-tour elimination constraints 
 (\textsc{MarkovPath} and \textsc{Rank+MarkovPath}, Section~\ref{sec:nosubtour}) are also included.
 
 \input{table_9methods}
@@ -80,6 +80,7 @@ F$_1$ score on points ignores the visiting order between POIs.
 We propose a new metric $\text{pairs-F}_1$ that considers both points identity and visiting orders, 
 by measuring the F$_1$ score of every pair of ordered POIs, whether they are adjacent or not,
 %\vspace{-1.0em}
+\eqmoveup
 \begin{displaymath}
 \text{pairs-F}_1 = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}
                         {P_{\textsc{pair}} + R_{\textsc{pair}}},
@@ -121,9 +122,9 @@ in terms of F$_1$ and pairs-F$_1$ scores respectively.
 
 %% PoiRank: best (F1 and pairs-F1) & rank based
 %We can see from Table~\ref{tab:f1} and Table~\ref{tab:pairf1} that 
-Algorithms based on POI rankings yield strong performance, in terms of both metrics, by exploring POI and query specific features.
+Algorithms based on POI ranking yield strong performance, in terms of both metrics, by exploring POI and query specific features.
 %\textsc{PoiRank} significantly outperforms all other methods in 3 out of 5 datasets.
-\textsc{PoiRank} improves notably upon \textsc{PoiPopularity} and \textsc{PersTour} by leveraging more features in $3$ out of $5$ datasets.
+\textsc{PoiRank} improves notably upon \textsc{PoiPopularity} and \textsc{PersTour} by leveraging more features. % in $3$ out of $5$ datasets.
 In contrast, \textsc{Markov} which leverages only POI transitions does not perform quite well.
 In particular, algorithms with ranking information (e.g. \textsc{Rank+Markov} and \textsc{Rank+MarkovPath}) 
 always outperform their respective variants with transition information alone (i.e. \textsc{Markov} and \textsc{MarkovPath}).
@@ -146,11 +147,9 @@ Markov chain approaches generally respect the transition patterns between POIs.
 in terms of both metrics, especially on Glasgow and Toronto datasets.
 This indicates the time budget constraint is more helpful than length constraint for recommending trajectories.
 The exception on Melbourne dataset is explained next.
-
-
+%%
 %% How to make good use of transitions patterns? Simple Heuristics seems NOT
-
-
+%%
 %% Exception of PersTour on Melbourne
 It is apparent that algorithms captured a certain type of information as shown in Table~\ref{tab:algsummary}
 outperforms the \textsc{Random} baseline in terms of both performance metrics on all five datasets.
@@ -186,15 +185,3 @@ The best recommendation, as shown in Figure~\ref{fig:exampleresult}(d),
 %(Figure~\ref{fig:exampleresult}(d)) 
 with exactly the same points and routes as the ground truth,
 which in this case is achieved by \textsc{Rank+MarkovPath}.
-
-
-\eat{
-\begin{figure*}[t]
-	\centering
-	\includegraphics[width=\textwidth]{fig/example-tour.pdf}
-	\caption{Different recommendations from algorithm variants.
-    See the main text in Section~\ref{sec:example} for description.}
-	\label{fig:exampleresult}
-	\captionmoveup
-\end{figure*}
-}
