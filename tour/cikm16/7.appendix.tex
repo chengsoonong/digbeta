@@ -141,14 +141,15 @@ For parameters of algorithms in experiment,
 we use a $0.5$ trade-off parameter for \textsc{PersTour} and \textsc{PersTour-L}, found to be the best weighting by \textsc{PersTour}~\cite{ijcai15}.
 The regularisation parameter $C$ in rankSVM is $10.0$.
 The trade-off parameter $\alpha$ in \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} is tuned using cross validation.
-In particular, we split a dataset into two (roughly) equal parts, and use the first part to tune $\alpha$ (leave-one-out cross validation),
+In particular, we split trajectories with more than $2$ POIs in a dataset into two (roughly) equal parts, 
+and use the first part (i.e., validation set) to tune $\alpha$ (i.e., searching value of $\alpha$ such that \textsc{Rank+Markov} achieves the best performance on validation set, in terms of the mean of pairs-F$_1$ scores got by leave-one-out cross validation),
 then test on the second part (leave-one-out cross validation) using the tuned $\alpha$, and vice verse. 
 
 \subsection{Implementation}
 We employ the rankSVM implementation in libsvmtools (\url{https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/}).
 Integer linear programming (ILP) are solved using Gurobi Optimizer (\url{http://www.gurobi.com/})
 and lp\_solve (\url{http://lpsolve.sourceforge.net/}).
-Dataset and code for this work are available in repository \url{https://bitbucket.org/d-chen/cikm16}.
+Dataset and code for this work are available in repository \url{https://bitbucket.org/d-chen/tour-cikm16}.
 
 \subsection{Performance metric}
 A commonly used metric for POI recommendation and evaluating trajectories is
