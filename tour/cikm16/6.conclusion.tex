@@ -1,23 +1,30 @@
-\section{Conclusion}
+%!TEX root = main.tex
+
+\section{Discussion and Conclusion}
 \label{sec:conclusion}
 \secmoveup
 
 In this paper, we propose an approach to recommend trajectories
 by jointly optimising points and routes.
-This is in contrast to related work which looks at POI %recommendation 
+This is in contrast to related work which looks at only POI %recommendation
 or next location recommendation.
 Point preferences are learned by ranking according to POI and query features,
-and transition probabilities between POIs are learned from previous trajectories extracted
+and factorised transition probabilities between POIs
+are learned from previous trajectories extracted
 from social media.
 We investigate the weaknesses of a naive maximum likelihood sequence approach (which
-may recommend sub-tours) and propose an improved sequence prediction method,
-our feature driven approach allows a natural combination of POI ranks and routes.
-%and we proposed two ways (directly combining them, or learning a structured SVM)
-%and we propose a probabilistic model for unifying the two models.
-We argue that one should measure performance also with respect to the visiting order of POIs, 
+may recommend sub-tours) and propose an improved sequence prediction method.
+Our feature driven approach allows a natural combination of POI ranks and routes, and
+future work includes using recent advances in structured prediction to jointly
+learn the combined model.
+%Furthermore, one could investigate the setting
+%where instead of recommending trajectories
+%with a certain number of POIs, we recommend trajectories that satisfy a certain time limit.
+
+We argue that one should measure performance also with respect to the visiting order of POIs,
 and suggest a new pairs-F$_1$ metric.
 We empirically evaluated our tour recommendation approaches on five datasets extracted from
-Flickr photos, and demonstrate that our method improves on prior work, 
+Flickr photos, and demonstrate that our method improves on prior work,
 on both the traditional F$_1$ metric and our proposed performance measure.
 Our promising results from learning points and routes for trajectory recommendation suggests
 that research in this domain should consider both information sources simultaneously.

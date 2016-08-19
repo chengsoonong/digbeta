@@ -1,5 +1,7 @@
+%!TEX root = main.tex
+
 The problem of recommending tours to travellers is an important and broadly studied area.
-Suggested solutions include various approaches of points-of-interest (POI) 
+Suggested solutions include various approaches of points-of-interest (POI)
 recommendation and route planning.
 We consider the task of recommending a sequence of POIs as a tour
 to travellers, that simultaneously uses information about POIs and routes.
@@ -10,11 +12,11 @@ Information about POIs are used to learn a POI ranking model
 that accounts for the start and end points of tours.
 Data about previous trajectories are used for learning transition patterns between POIs that
 enable us to recommend popular routes.
-In addition, a probabilistic model is proposed 
+In addition, a probabilistic model is proposed
 %and a Structured Support Vector Machine are used
 to combine the results of POI ranking as well as the POI-POI transitions.
-To measure performance, such that we respect the order of visits, we propose
-a new F$_1$ score on pairs of POIs.
-Empirical results on trajectory datasets show that our approach improves over 
-previous cutting edge attempts, which demonstrates that
+We propose a new F$_1$ score on pairs of POIs
+that capture the order of visits.
+Empirical results show that our approach improves on
+previous methods, demonstrating that
 combining points and routes enables better trajectory recommendations.

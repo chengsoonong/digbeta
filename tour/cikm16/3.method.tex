@@ -1,14 +1,18 @@
+%!TEX root = main.tex
+
 \section{POI, Query and Transition}
 \label{sec:feature}
 \secmoveup
 
 
-We aim to recommend a particular tour such that the user will visit a sequence of POIs, denoted $p_1, \ldots, p_L$, that maximises utility. We are given the desired start ($p_1=p_s$) and end point ($p_L=p_e$), and an associated number $L$ of POIs desired, from which we propose a trajectory through the city.
+The goal of tour recommendation is to suggest a sequence of POIs, $p_1, \ldots, p_L$, of length $L$ such that the user's utility is maximised. The user provides the desired start ($p_1=p_s$) and end point ($p_L=p_e$), as well as the number $L$ of POIs desired, from which we propose a trajectory through the city.
 %
 %In Figure~\ref{fig:threesettings}(c), an example tour is shown in blue, which starts at the POI denoted as a grey star, visits two intermediate POIs, and terminates on the fourth POI denoted as a flag. The tour of length 4 can be modelled as a sequence of directed edges in a graph containing POIs in the city as nodes.
 %
-The training data consists of a set of tours of varying length in a particular city. We assume that all POIs %$\mathcal{P}$ 
-in the city are visited at least once by some user, and hence can construct a graph with POIs as nodes and potentially multiple directed edges between each pair of nodes. 
+The training data consists of a set of tours of varying length in a particular city.
+We consider only POIs that have been visited by at least one user in the past, and
+construct a graph with POIs as nodes and directed edges between each pair of nodes representing
+the observed transitions in a set of tours.
 %The set of categories are shown in Figure~\ref{fig:poicats} in the appendix, and the popularity is defined as the number of distinct users that visited the POI\cite{ht10}.
 
 
@@ -17,21 +21,21 @@ in the city are visited at least once by some user, and hence can construct a gr
 %\label{sec:poifeature}
 
 We extract the category, popularity (number of distinct visitors)~\cite{ht10}, total number of visits and average visit duration for each POI.
+POIs are grouped into $5$ clusters using K-means according to their geographical locations to reflect their neighbourhood.
 %A naive approach would be to recommend the trajectory based on the popularity (number of distinct visitors)~\cite{ht10} of POIs only,
-%that is we always suggest the top-$k$ most popular POIs for all visitors given the start and end location, 
+%that is we always suggest the top-$k$ most popular POIs for all visitors given the start and end location,
 %and its only adaptation to a particular request is to adjust $k$ to match the desired length.
-%In addition to popularity, 
+%In addition to popularity,
 %we can also rank the candidate POIs based on the other three POI specific features (category, total visits and average duration).
 Furthermore, since we are constrained by the fact that trajectories have to be of length $L$ and start and end at certain points, we hope to improve the recommendation by using this information.
 In other words, using the \textit{query} $q = (p_s, p_e, L)$ we can construct new features by contrasting candidate POIs with $p_s$ and $p_e$.
 %
-For each of the POI features (category, popularity, total visits and average duration),
+For each of the POI features (category, neighbourhood, popularity, total visits and average duration),
 we construct two new features by taking the difference of the feature in POI $p$ with $(p_s, p_e)$ respectively.
-For the category, we set the feature to $1$ when their categories are the same and $-1$ otherwise.
+For the category and neighbourhood, we set the feature to $1$ when their categories are the same and $-1$ otherwise.
 For popularity, total visits and visit duration, we take the real valued difference.
 Lastly, we compute the distance from POI $p$ to $p_s$ (and $p_e$) using the Haversine formula~\cite{haversine},
-and also include the required length $L$ of the trajectory as a feature.
-
+and also include the required length $L$.
 
 
 %\subsection{Transition probabilities}
@@ -41,8 +45,9 @@ and also include the required length $L$ of the trajectory as a feature.
 \begin{figure}[t]
 %\includegraphics[width=\textwidth]{fig/poi_transmat.png}
 \includegraphics[width=\columnwidth]{fig/poi_transmat.png}
-\caption{Example of transition matrices for two POI features: POI categories and neighborhood
-These statistics are from the Melbourne dataset. See Section~\ref{sec:feature} for descriptions.}
+\caption{Transition matrices for two POI features from Melbourne: POI categories and neighborhood.
+%See Section~\ref{sec:feature} for details.
+}
 \label{fig:transmat}\captionmoveup
 \end{figure}
 
@@ -50,24 +55,24 @@ These statistics are from the Melbourne dataset. See Section~\ref{sec:feature} f
 In addition to information about each individual POI, a tour recommendation system would benefit
 from capturing the likelihood of transitioning between different POIs. One option would be to
 directly model the probability of going from one POI to another, but this has several weaknesses:
-Such a model would be unable to handle a new POI (one that has not yet been visited).
-Furthermore, even if we restrict ourselves to known POIs, there may be many locations which
-are rarely visited, leading to significant challenges in estimating the probabilities from
-empirical data.
+Such a model would be unable to handle a new POI (one that has not yet been visited),
+and existing pairs of POIs may not have had a transition in the data.
+Furthermore, even if we restrict ourselves to known POIs and transitions,
+there may be locations which are rarely visited,
+leading to significant challenges in estimating the probabilities from empirical data.
 
 We model POI transitions using a Markov chain with discrete %factored
-states by factorising the transition probability of ($p_i$ to $p_j$) %from POI $p_i$ to POI $p_j$ 
+states by factorising the transition probability of ($p_i$ to $p_j$) %from POI $p_i$ to POI $p_j$
 as a product of transition probabilities between pairs of individual POI features, %(listed in Section~\ref{sec:poifeature}),
 assuming independence between these features.
-POIs are grouped into $5$ clusters using K-means according to their geographical locations to reflect their neighbourhood relations.
 %We directly model the transition between the category and neighbourhood of each POI as the conditional probability.
 The popularity, total number of visits and average visit duration are discretised by binning
 them uniformly into $5$ discrete intervals on the log scale.
 %Transition matrices of individual POI features are computed using maximum likelihood estimation.
 The POI-POI transition matrix can be efficiently computed by taking the Kronecker product of
-the transition matrices for the individual features, which are estimated using maximum likelihood principle, 
+the transition matrices for the individual features, which are estimated using maximum likelihood principle,
 then updating it based on two additional constraints (and appropriately normalised).
 First we disallow self-loops by setting the probability of ($p_i$ to $p_i$) to zero.
-Secondly, when a group of POIs have identical (discretised) features, we distribute the probability uniformly among POIs in the group. 
+Secondly, when multiple POIs have identical (discretised) features, we distribute the probability uniformly among POIs in the group.
 Figure~\ref{fig:transmat} visualises the transition matrices for two of the POI features in Melbourne.
 %More details of this procedure are provided in the Appendix.

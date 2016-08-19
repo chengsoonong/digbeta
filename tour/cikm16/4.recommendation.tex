@@ -150,10 +150,10 @@ with pseudo code shown in Algorithm~\ref{alg:rank+markov}.
 %\STATE Compute POI-POI transition matrix
 %\STATE Initialise score matrix $A$ and backtracking pointers $B$
 \FOR{$p \in \mathcal{P}$}
-    \STATE $A[1, p] = S(p; p_s, q)$
-    \STATE $B[1, p] = p_s$
+    \STATE $A[2, p] = S(p; p_s, q)$
+    \STATE $B[2, p] = p_s$
 \ENDFOR
-\FOR{$l=1$ to $L-1$}
+\FOR{$l=2$ to $L-1$}
     \FOR{$p \in \mathcal{P}$}
         \STATE $A[l+1, p]   &&= \max_{p' \in \mathcal{P}} \{ A[l, p'] + S(p; p', q) \}$ \label{eq:max}
         \STATE $B[l+1, p]   &&= \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + S(p; p', q) \}$ \label{eq:argmax}

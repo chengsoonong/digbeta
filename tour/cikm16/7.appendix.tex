@@ -1,3 +1,5 @@
+%!TEX root = main.tex
+
 %\newpage
 
 \onecolumn
@@ -9,7 +11,7 @@
 
 \section{POI Features for Ranking}
 
-\begin{table*}[t]
+\begin{table*}[ht]
 \caption{Features of POI $p$ used in rankSVM given query $(p_s, p_e, L)$}
 \label{tab:featurerank}
 \centering
@@ -40,7 +42,7 @@
 \end{table*}
 
 
-\begin{figure*}[t]
+\begin{figure*}[ht]
 	\centering
 	\includegraphics[width=0.7\textwidth]{fig/poi_cats_fat.pdf}
 	\caption{POI Categories}
@@ -62,9 +64,9 @@ the features used to rank POIs are POI and query specific, as described in Table
 Categories of POIs in all of the five trajectory datasets are show in Figure~\ref{fig:poicats}.
 The distribution of POI popularity, the number of visit and average visit duration are shown in Figure~\ref{fig:distro}.
 
-To rank POIs, features described in Table~\ref{tab:featurerank} are scaled to range $[-1.0, 1.0]$ using the same approach 
+To rank POIs, features described in Table~\ref{tab:featurerank} are scaled to range $[-1.0, 1.0]$ using the same approach
 as that utilised by libsvm (\url{http://www.csie.ntu.edu.tw/~cjlin/libsvm/}),
-i.e., fitting a linear function $f(x) = a x + b$ for feature $x$ such that the maximum value of $x$ maps to $1.0$ 
+i.e., fitting a linear function $f(x) = a x + b$ for feature $x$ such that the maximum value of $x$ maps to $1.0$
 and the minimum value of $x$ maps to $-1.0$.
 
 
@@ -108,13 +110,13 @@ and then updating it with two additional constraints.
 
 Firstly, we disallow self transitions by setting probability of ($p_i$ to $p_i$) to zero.
 
-Secondly, when a group of POIs have identical (discretised) features (say a group with $N_g$ POIs), 
+Secondly, when a group of POIs have identical (discretised) features (say a group with $N_g$ POIs),
 we distribute the probability uniformly among POIs in the group,
-in particular, the incoming (unnormalised) transition probability (say, $P_i$) of the group computed by taking the Kronecker product is divided uniformly 
+in particular, the incoming (unnormalised) transition probability (say, $P_i$) of the group computed by taking the Kronecker product is divided uniformly
 among POIs in the group (i.e., $\frac{P_i}{N_g}$), which is equivalent to choose a POI in the group uniformly at random.
-Moreover, the outgoing (unnormalised) transition probability of each POI is the same as that of the group, 
+Moreover, the outgoing (unnormalised) transition probability of each POI is the same as that of the group,
 since in this case, \textit{the transition from any POI in the group to one outside the group represents an outgoing transition from that group}.
-In addition, the self-loop transition of the group represents transitions from a POI in the group to other POIs ($N_g-1$ POIs) in the same group, 
+In addition, the self-loop transition of the group represents transitions from a POI in the group to other POIs ($N_g-1$ POIs) in the same group,
 \textit{similar to the outgoing case}, the (unnormalised) self-loop transition probability (say $P_o$) is divided uniformly (i.e., $\frac{P_o}{N_g-1}$),
 which corresponds to choose a transition (from $p_i$) among all transitions to the other $N_g-1$ POIs (exclude self-loop $p_i$ to $p_i$)
 in that group uniformly at random.
@@ -141,9 +143,9 @@ For parameters of algorithms in experiment,
 we use a $0.5$ trade-off parameter for \textsc{PersTour} and \textsc{PersTour-L}, found to be the best weighting by \textsc{PersTour}~\cite{ijcai15}.
 The regularisation parameter $C$ in rankSVM is $10.0$.
 The trade-off parameter $\alpha$ in \textsc{Rank+Markov} and \textsc{Rank+MarkovPath} is tuned using cross validation.
-In particular, we split trajectories with more than $2$ POIs in a dataset into two (roughly) equal parts, 
+In particular, we split trajectories with more than $2$ POIs in a dataset into two (roughly) equal parts,
 and use the first part (i.e., validation set) to tune $\alpha$ (i.e., searching value of $\alpha$ such that \textsc{Rank+Markov} achieves the best performance on validation set, in terms of the mean of pairs-F$_1$ scores got by leave-one-out cross validation),
-then test on the second part (leave-one-out cross validation) using the tuned $\alpha$, and vice verse. 
+then test on the second part (leave-one-out cross validation) using the tuned $\alpha$, and vice verse.
 
 \subsection{Implementation}
 We employ the rankSVM implementation in libsvmtools (\url{https://www.csie.ntu.edu.tw/~cjlin/libsvmtools/}).
@@ -258,18 +260,18 @@ all methods shown in Table~\ref{tab:algsummary}.
 When working with machine learning algorithms, to make sure the reported performance is a good approximation
 of the generalisation performance, it is critical to prevent information in test set from leaking into
 training set.
-Many algorithms shown in Table~\ref{tab:algsummary} leveraging both learning to rank and 
+Many algorithms shown in Table~\ref{tab:algsummary} leveraging both learning to rank and
 factorised POI-POI transition matrix,
 e.g., \textsc{Rank+Markov}, \textsc{Rank+MarkovPath} and \textsc{StructuredSVM},
 both of them need to be trained or parameters be estimated before being utilised in other algorithms.
 POI features such as popularity, the number of visits and average visit duration are
-determined by not only the POI itself but also trajectories in training set, 
+determined by not only the POI itself but also trajectories in training set,
 let's call them aggregated features, as they are computed by aggregating a set of trajectories.
-To make sure the prediction performance is reliable, 
+To make sure the prediction performance is reliable,
 it is very important to exclude trajectories in test set when computing aggregated features.
 Unfortunately, it is quite easy, especially when utilising multiple levels of machine learning models,
-to use all data, including those in test set, to compute aggregated features, 
-and many researchers and practitioners did not realise the fact that 
+to use all data, including those in test set, to compute aggregated features,
+and many researchers and practitioners did not realise the fact that
 some bits of information in test set were leaked into training set via these aggregated features.
 
 %One may argue that many of these features will not change much when computed with or without data in test set,
@@ -284,9 +286,9 @@ some bits of information in test set were leaked into training set via these agg
 \label{appendix:ranksvm}
 
 \subsection{Prediction}
-Given a set of $M$ POIs $\mathcal{P} = \{p_1, \cdots, p_M\}$, 
+Given a set of $M$ POIs $\mathcal{P} = \{p_1, \cdots, p_M\}$,
 and $N$ queries $\mathcal{Q} = \{q_1, \cdots, q_N\}$.
-The ranking score for POI $p_m$ with respect to query $q_n$ is 
+The ranking score for POI $p_m$ with respect to query $q_n$ is
 $S_{m,n} = \langle \mathbf{w_r}, \mathbf{\phi}(p_m, q_n) \rangle$,
 where $\mathbf{w_r}$ is a vector of parameters,
 and $\mathbf{\phi}(p_m, q_n)$ is the scaled feature vector for $p_m$ with respect to query $q_n$,
@@ -318,7 +320,7 @@ Structured prediction incorporates both the features of variables (unary feature
 the features of interactions between neighbouring variables (pairwise features) to make a
 prediction,
 \begin{displaymath}
-    \mathcal{T}^* = \argmax_{\mathcal{T} \in \mathcal{P}^L} 
+    \mathcal{T}^* = \argmax_{\mathcal{T} \in \mathcal{P}^L}
                     \sum_{j=1}^L \mathbf{w_u}^T \mathbf{\phi}_j \left( q, \mathcal{T}_j \right) +
                     \sum_{j=1}^{L-1} \mathbf{w_p}^T \mathbf{\phi}_{j, j+1} \left( q, \mathcal{T}_j, \mathcal{T}_{j+1} \right)
 \end{displaymath}
@@ -350,13 +352,13 @@ and its corresponding recommendation respectively.
 $N$ is the training set size, $C$ is the regularisation parameter,
 $\xi$ is the slack variable, and
 \begin{displaymath}
-    \delta \left( \hat{\mathcal{T}}^{(i)} \right) = \Psi \left( q^{(i)}, \mathcal{T}^{(i)} \right) - 
+    \delta \left( \hat{\mathcal{T}}^{(i)} \right) = \Psi \left( q^{(i)}, \mathcal{T}^{(i)} \right) -
                                                     \Psi \left( q^{(i)}, \hat{\mathcal{T}}^{(i)} \right)
 \end{displaymath}
 where $q^{(i)}$ the query corresponds to the $i$-th trajectory in training set,
-$\Psi \left( q^{(i)}, \mathcal{T}^{(i)} \right)$ is the joint feature vector which is a composite of unary and 
+$\Psi \left( q^{(i)}, \mathcal{T}^{(i)} \right)$ is the joint feature vector which is a composite of unary and
 pairwise features of the $i$-th trajectory,
-$\Delta \left( \mathcal{T}^{(i)}, \hat{\mathcal{T}}^{(i)} \right)$ is the loss associated with the $i$-th trajectory 
+$\Delta \left( \mathcal{T}^{(i)}, \hat{\mathcal{T}}^{(i)} \right)$ is the loss associated with the $i$-th trajectory
 and its corresponding recommendation, and Hamming loss is used in this work.
 
 
@@ -379,34 +381,34 @@ Features are scaled the same way as that described in Section~\ref{appendix:rank
 
 \subsection{Edge Features}
 \label{appendix:edge}
-Given an ordered pair of POIs $(p_i, p_j)$, 
-the edge/pairwise features are built from the factorised transition probabilities 
+Given an ordered pair of POIs $(p_i, p_j)$,
+the edge/pairwise features are built from the factorised transition probabilities
 according to features described in Table~\ref{tab:featuretran}:
 \begin{enumerate}
 \item The transition probability from the category of $p_i$ to the category of $p_j$.
 \item The transition probability from the cluster with $p_i$ to the cluster with $p_j$.
-\item The transition probability from the interval with the popularity of $p_i$ to the interval 
+\item The transition probability from the interval with the popularity of $p_i$ to the interval
       with the popularity of $p_j$.
-\item The transition probability from the interval with the number of visit at $p_i$ to the interval 
+\item The transition probability from the interval with the number of visit at $p_i$ to the interval
       with the number of visit at $p_j$.
-\item The transition probability from the interval with the average duration at $p_i$ to the interval 
+\item The transition probability from the interval with the average duration at $p_i$ to the interval
       with the average duration at $p_j$.
 \end{enumerate}
 
 
 \subsection{Prediction}
-Given parameters for node and edge features $\mathbf{w_u}$ and $\mathbf{w_p}$, 
+Given parameters for node and edge features $\mathbf{w_u}$ and $\mathbf{w_p}$,
 we can compute the score of $\mathcal{T}$ as follows:
 \begin{displaymath}
 S'(\mathcal{T}) = \sum_{j=1}^L     \langle \mathbf{w_u}, \mathbf{\phi}_j (\mathcal{T}_j, q) \rangle +
                   \sum_{j=1}^{L-1} \langle \mathbf{w_p}, \mathbf{\phi}_{j, j+1} (\mathcal{T}_j, \mathcal{T}_{j+1}) \rangle
 \end{displaymath}
-where $L = |\mathcal{T}|$ is the length of $\mathcal{T}$, 
+where $L = |\mathcal{T}|$ is the length of $\mathcal{T}$,
 $\mathbf{\phi}_j$ is the feature vector of the $j$-th node (variable) described in Section~\ref{appendix:node},
 $q$ is the query corresponding to $\mathcal{T}$, i.e., $q = (\mathcal{T}_0, \mathcal{T}_L, L)$,
 and $\mathbf{\phi}_{j, j+1}$ is the feature vector of the $j$-th edge, as described in Section~\ref{appendix:edge}.
 
-One approach to recommend a trajectory with respect to query $q = (p_s, p_e, L)$ and parameters 
+One approach to recommend a trajectory with respect to query $q = (p_s, p_e, L)$ and parameters
 $\mathbf{w_u}$ and $\mathbf{w_p}$ is recommending the one with the maximum score, i.e.,
 \begin{displaymath}
     \mathcal{T}^* = \argmax_{\mathcal{T} \in \mathcal{P}^L} S'(\mathcal{T})
@@ -423,21 +425,21 @@ using the 1-slack formulation,
              \frac{1}{N} \sum_{i=1}^N \Delta \left( \mathcal{T}^{(i)}, \bar{\mathcal{T}}^{(i)} \right) - \xi
 \end{align*}
 where $\mathbf{w} = [\mathbf{w_u}^T, \mathbf{w_p}^T]^T$ is the parameter vector,
-$C > 0$ is the regularisation parameter, $\xi$ is the slack variable, 
-$N$ is the number of trajectories in training set, 
-$\mathcal{T}^{(i)}$ is the $i$-th trajectory in training set, 
+$C > 0$ is the regularisation parameter, $\xi$ is the slack variable,
+$N$ is the number of trajectories in training set,
+$\mathcal{T}^{(i)}$ is the $i$-th trajectory in training set,
 and its corresponding recommendation is $\bar{\mathcal{T}}^{(i)}$, and
 \begin{displaymath}
-    \delta \left( \bar{\mathcal{T}}^{(i)} \right) = \Psi \left( \mathcal{T}^{(i)}, q^{(i)} \right) - 
+    \delta \left( \bar{\mathcal{T}}^{(i)} \right) = \Psi \left( \mathcal{T}^{(i)}, q^{(i)} \right) -
                                                     \Psi \left( \bar{\mathcal{T}}^{(i)}, q^{(i)} \right)
 \end{displaymath}
 where $q^{(i)}$ is the query corresponding to $\mathcal{T}^{(i)}$ and the joint feature vector of $\mathcal{T}^{(i)}$ is
 \begin{displaymath}
 \Psi \left( \mathcal{T}^{(i)}, q^{(i)} \right) = \left[
 \left( \sum_{j=1}^{|\mathcal{T}^{(i)}|}   \mathbf{\phi}_{j}      \left( \mathcal{T}_{j}^{(i)}, q^{(i)} \right) \right)^T,
-\left( \sum_{j=1}^{|\mathcal{T}^{(i)}|-1} \mathbf{\phi}_{j, j+1} \left( \mathcal{T}_{j}^{(i)}, \mathcal{T}_{j+1}^{(i)} \right) \right)^T 
+\left( \sum_{j=1}^{|\mathcal{T}^{(i)}|-1} \mathbf{\phi}_{j, j+1} \left( \mathcal{T}_{j}^{(i)}, \mathcal{T}_{j+1}^{(i)} \right) \right)^T
 \right]^T
 \end{displaymath}
-$\Delta \left( \mathcal{T}^{(i)}, \bar{\mathcal{T}}^{(i)} \right)$ is the loss associated with the $i$-th trajectory 
+$\Delta \left( \mathcal{T}^{(i)}, \bar{\mathcal{T}}^{(i)} \right)$ is the loss associated with the $i$-th trajectory
 and its corresponding recommendation, and Hamming loss is used in our experiment.
 }
