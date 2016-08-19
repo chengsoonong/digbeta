@@ -2,14 +2,14 @@
 
 \section{Tour Recommendation}
 \label{sec:recommendation}
-\secmoveup
+%\secmoveup
 
 In the following subsections, we first describe the recommendation of points and routes,
 then we discuss how to combine them, and finally we propose a method to avoid sub-tours.
 
 \subsection{POI Ranking and Route Planning}
 \label{sec:rankplan}
-\secmoveup
+%\secmoveup
 
 A naive approach would be to recommend trajectory based on the popularity of POIs only,
 that is we always suggest the top-$k$ most popular POIs for all visitors given the start and end location.
@@ -63,7 +63,7 @@ We call this approach that only uses the transition probabilities between POIs a
 
 \subsection{Combine Ranking and Transition}
 \label{sec:rank+markov}
-\secmoveup
+%\secmoveup
 
 
 \eat{
@@ -91,7 +91,6 @@ i.e., recommending a trajectory that maximises the points ranking of its POIs as
 To begin with, we transform the ranking scores of POIs with respect to query $q$
 to a probability distribution using the softmax function,
 %~\cite{bishop2006},
-\eqmoveup
 \eqmoveup
 \begin{equation}
 \eqmoveup
@@ -140,6 +139,8 @@ and the corresponding trajectory can be found by tracing back from $B[L, p_e]$.
 We call this approach that uses both the points ranking and transitions \textsc{Rank+Markov},
 with pseudo code shown in Algorithm~\ref{alg:rank+markov}.
 
+\setlength{\textfloatsep}{0.5em} % reduce \textfloatsep for float algorithm
+
 \begin{algorithm}[t]
 \caption{\textsc{Rank+Markov}: recommend trajectory with POI ranking and transition}
 \label{alg:rank+markov}
@@ -148,15 +149,15 @@ with pseudo code shown in Algorithm~\ref{alg:rank+markov}.
 \STATE \textbf{Output}: Trajectory $\mathcal{T} = (p_s, \cdots, p_e)$ with $L$ POIs
 %\STATE Compute a rank $<_{p_i, p_j} \subset \mathcal{P}^2$ w.r.t. query $q = (p_s, p_e, L)$
 %\STATE Compute POI-POI transition matrix
-%\STATE Initialise score matrix $A$ and backtracking pointers $B$
+\STATE Initialise score matrix $A$ and backtracking pointers $B$
 \FOR{$p \in \mathcal{P}$}
     \STATE $A[2, p] = S(p; p_s, q)$
     \STATE $B[2, p] = p_s$
 \ENDFOR
 \FOR{$l=2$ to $L-1$}
     \FOR{$p \in \mathcal{P}$}
-        \STATE $A[l+1, p]   &&= \max_{p' \in \mathcal{P}} \{ A[l, p'] + S(p; p', q) \}$ \label{eq:max}
-        \STATE $B[l+1, p]   &&= \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + S(p; p', q) \}$ \label{eq:argmax}
+        \STATE $A[l+1, p]   = \max_{p' \in \mathcal{P}} \{ A[l, p'] + S(p; p', q) \}$ \label{eq:max}
+        \STATE $B[l+1, p]   = \argmax_{p' \in \mathcal{P}} \{ A[l, p'] + S(p; p', q) \}$ \label{eq:argmax}
         %\STATE Compute $A[l+1, p]$ using Equation~(\ref{eq:max})
         %\STATE Compute $B[l+1, p]$ using Equation~(\ref{eq:argmax})
     \ENDFOR
@@ -173,11 +174,9 @@ with pseudo code shown in Algorithm~\ref{alg:rank+markov}.
 
 
 
-
-
 \subsection{Avoiding sub-tours} %%LX: walk vs path is never defined! but sub-tour seem to be??
 \label{sec:nosubtour}
-\secmoveup
+%\secmoveup
 
 Trajectories recommended by \textsc{Markov} (Section~\ref{sec:rankplan}) and \textsc{Rank+Markov} (Section~\ref{sec:rank+markov})
 are found using the maximum likelihood approach, and may contain multiple visits to the same POI.
@@ -229,6 +228,7 @@ we solve an ILP by optimising Objective~(\ref{eq:obj2}) with the same constraint
 This algorithm is called \textsc{Rank+MarkovPath} in the experiments.
 %simply replace Objective~(\ref{eq:obj}) with \ref{eq:obj2}.
 %\vspace{-1.5em}
+\eqmoveup
 \eqmoveup
 \eqmoveup
 \begin{equation}
