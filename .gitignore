@@ -1,33 +1,15 @@
-hmm_bandit/hmm.aux
-hmm_bandit/hmm.log
-hmm_bandit/hmm.synctex.gz
-hmm.pdf
+# LaTeX
+*.aux
+*.log
+*.synctex.gz
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.out
 
-tour/data/*
-binary_reward/factored_bandit.aux
-binary_reward/factored_bandit.bbl
-binary_reward/factored_bandit.blg
-binary_reward/factored_bandit.log
-binary_reward/factored_bandit.pdf
-binary_reward/factored_bandit.synctex.gz
-tour/recsys16/main.aux
-tour/recsys16/main.bbl
-tour/recsys16/main.blg
-tour/recsys16/main.log
-tour/recsys16/main.pdf
-tour/recsys16/main.synctex.gz
-tour/recsys16/method.aux
-tour/recsys16/method.bbl
-tour/recsys16/method.blg
-tour/recsys16/method.log
-tour/recsys16/method.pdf
-tour/recsys16/method.synctex.gz
-tour/recsys16/traj_eg-eps-converted-to.pdf
-tour/cikm16/main.aux
-tour/cikm16/main.bbl
-tour/cikm16/main.blg
-tour/cikm16/main.log
+# Python
+.ipynb_checkpoints
+
+# Project specific
 tour/cikm16/main.pdf
-tour/cikm16/main.synctex.gz
-tour/cikm16/fig/traj_eg-eps-converted-to.pdf
-tour/recsys16/fig/traj_eg-eps-converted-to.pdf
