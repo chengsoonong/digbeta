@@ -50,8 +50,8 @@ and \textsc{PoiPopularity} (Section~\ref{sec:rankplan}), which recommends trajec
 Among the related approaches from recent literature,
 \textsc{PersTour}~\cite{ijcai15} explores POI features as well as the sub-tour elimination constraints (Section~\ref{sec:nosubtour}),
 with an additional time budget, and its variant \textsc{PersTour-L},
-which replaces the time budget with a constraint of trajectory length (number of POIs to visit).
-Variants of point- and route-ranking approaches including \textsc{PoiRank} and \textsc{Markov} (Section~\ref{sec:rankplan}),
+which replaces the time budget with a constraint of trajectory length.
+Variants of point-ranking and route-planning approaches including \textsc{PoiRank} and \textsc{Markov} (Section~\ref{sec:rankplan}),
 which utilises either POI features or POI-POI transitions,
 and \textsc{Rank+Markov} (Section~\ref{sec:rank+markov}) that captures both types of information. %POI features and transition probabilities.
 Variants that employ additional sub-tour elimination constraints
@@ -77,25 +77,26 @@ Solid grey: ground truth; dashed blue: recommended trajectories. See Section~\re
 	\label{fig:pairf1}\captionmoveup
 \end{figure}
 
-A commonly used metric for POI recommendation and evaluating trajectories is
+A commonly used metric for evaluating POI and trajectory recommendation is
 the F$_1$ score on points, which is the harmonic mean between the point-wise precision and recall~\cite{ijcai15}.
 While being good at measuring whether POIs are correctly recommended,
 F$_1$ score on points ignores the visiting order between POIs.
-We propose a new metric $\text{pairs-F}_1$ that considers both POI identity and visit order,
+We propose a new metric $\text{pairs-F}_1$ that considers both POI identity and visiting order,
 by measuring the F$_1$ score of every pair of POIs,
-whether they appear in the same order in a trajectory.
+whether they are adjacent or not,
+%whether they appear in the same order in a trajectory.
 %\vspace{-1.0em}
 \eqmoveup
 \begin{displaymath}
 \text{pairs-F}_1 = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}
                         {P_{\textsc{pair}} + R_{\textsc{pair}}},
 \end{displaymath}
-where $P_{\textsc{pair}}$ and $R_{\textsc{pair}}$ are the precision and recall of ordered POI pairs respectively. Note that we only require that first POI in the pair occurs
-later than the second one,
-and do not require that the second POI occurs immediately after the first one.
-Pairs-F$_1$ takes values between 0 and 1 (higher is better).
+where $P_{\textsc{pair}}$ and $R_{\textsc{pair}}$ are the precision and recall of ordered POI pairs respectively. 
+%Note that we only require that first POI in the pair occurs later than the second one,
+%and do not require that the second POI occurs immediately after the first one.
+pairs-F$_1$ takes values between 0 and 1 (higher is better).
 A perfect pairs-F$_1$ is achieved if and only if
-both the POIs and their visit order in the
+both the POIs and their visiting order in the
 recommended trajectory are exactly the same as those in the ground truth.
 pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited in the real trajectory.
 An illustration is shown in Figure~\ref{fig:pairf1},
@@ -118,9 +119,9 @@ Both examples have a perfect F$_1$ score, but not a perfect pairs-F$_1$ score du
 The performance of trajectory recommendation approaches are summarised in
 Table~\ref{tab:f1} and Table~\ref{tab:pairf1},
 in terms of F$_1$ and pairs-F$_1$ scores respectively.
-It is apparent that the algorithms (Table~\ref{tab:algsummary})
-captured information about the problem, and
-outperforms the \textsc{Random} baseline in terms of both performance metrics on all five datasets.
+It is apparent that algorithms 
+captured information about the problem (Table~\ref{tab:algsummary})
+outperform the \textsc{Random} baseline in terms of both performance metrics on all five datasets.
 
 
 %% Baseline: Random, outperformed by all (F1 and pairs-F1)
@@ -146,7 +147,8 @@ always outperform their respective variants with transition information alone (\
 We can see from Table~\ref{tab:f1} that, in terms of F$_1$, \textsc{MarkovPath} and \textsc{Rank+MarkovPath}
 outperform their corresponding variants \textsc{Markov} and \textsc{Rank+Markov} without the path constraints,
 which demonstrates that eliminating sub-tours improves point recommendation.
-This is expected, as sub-tours worsen the proportion of correctly recommended POIs since a length constraint is used.
+This is not unexpected, 
+as sub-tours worsen the proportion of correctly recommended POIs since a length constraint is used.
 In contrast, most Markov chain entries have better performance in terms of pairs-F$_1$ (Table~\ref{tab:pairf1}), %as shown in Table~\ref{tab:pairf1},
 which indicates %that
 Markov chain approaches generally respect the transition patterns between POIs.
@@ -164,11 +166,11 @@ This indicates the time budget constraint is more helpful than length constraint
 %% Exception of PersTour on Melbourne
 Surprisingly, we observed that \textsc{PersTour} is outperformed by \textsc{Random} baseline on Melbourne dataset. % in terms of both metrics.
 It turns out that on this dataset, many of the ILP problems
-which \textsc{PersTour} need to solve to get the recommendations are difficult ILP instances.
+which \textsc{PersTour} needs to solve to get the recommendations are difficult ILP instances.
 In the leave-one-out evaluation, although we utilised a large scale computing cluster with modern hardware,
-$12\%$ of evaluations failed with the ILP solver unable to find a feasible solution after $2$ hours.
+$12\%$ of evaluations failed as the ILP solver was unable to find a feasible solution after $2$ hours.
 Furthermore, a lot of recommendations were suboptimal solutions of the corresponding ILPs due to
-the time limit. These factors lead to the inconsistent performance of \textsc{PerTour} on Melbourne dataset.
+the time limit. These factors lead to the inconsistent performance of \textsc{PersTour} on Melbourne dataset.
 
 
 
