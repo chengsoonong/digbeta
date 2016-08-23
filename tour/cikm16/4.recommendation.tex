@@ -1,12 +1,13 @@
 %!TEX root = main.tex
 
+\secmoveup
 \section{Tour Recommendation}
 \label{sec:recommendation}
-%\secmoveup
 
 In the following subsections, we first describe the recommendation of points and routes,
 then we discuss how to combine them, and finally we propose a method to avoid sub-tours.
 
+\secmoveup
 \subsection{POI Ranking and Route Planning}
 \label{sec:rankplan}
 %\secmoveup
@@ -26,14 +27,17 @@ to learn a ranking of POIs using rankSVM with linear kernel and L$2$ loss~\cite{
 %                    \mathbf{w_r}^T \mathbf{w_r} +
 %                    C_r \sum_{(p_i, q_n), (p_j, q_n) \in \mathcal{P} \times \mathcal{Q}}
 %                    C_r \sum_{p_i, p_j \in \mathcal{P}, q_n \in \mathcal{Q}}
-                    \underset{p_i, p_j \in \mathcal{P}, q_n \in \mathcal{Q}}{C_r ~\sum}
-                    \max \left( 0,~ 1 - \mathbf{w_r}^T (\phi_{i,n} - \phi_{j,n}) \right)^2,
+                    \underset{p_i, p_j \in \mathcal{P}, q \in \mathcal{Q}}{C_r ~\sum}
+                    \max \left( 0,~ 1 - \mathbf{w_r}^T (\phi_{i,q} - \phi_{j,q}) \right)^2,
 \end{equation*}
+%%LX: remove subscript n, and index \phi by q 
+%% to simplify, and be consistent w. Sec 3.2 
 where $\mathbf{w_r}$ is the parameter vector,
 $C_r > 0$ is a regularisation constant,
 $\mathcal{P}$ is the set of POIs to rank,
 $\mathcal{Q}$ denotes the queries corresponding to trajectories in training set,
-and $\phi_{i,n}$ is the feature vector for POI $p_i$ with respect to the query $q_n \in \mathcal{Q}$.
+and $\phi_{i,q}$ is the feature vector for POI $p_i$ with respect to the query $q \in \mathcal{Q}$. 
+The ranking score of a POI for a given query is computed as $R_{i,q} =\mathbf{w_r}^T \phi_{i,q}$. 
 
 For training the rankSVM, the labels are generated using the number of occurrences of
 POI $p$ in trajectories grouped by query $(p_s, p_e, L)$,
@@ -60,10 +64,9 @@ We call this approach that only uses the transition probabilities between POIs a
 %and entry $B[l, p]$ in the backtracking-point matrix $B$ stores the predecessor of $p$ in that (partial) trajectory.
 
 
-
+\secmoveup
 \subsection{Combine Ranking and Transition}
 \label{sec:rank+markov}
-%\secmoveup
 
 
 \eat{
@@ -88,28 +91,31 @@ A summary of the various trajectory recommendation approaches can be found in Ta
 %we want to combine the ranking of POIs with the transition probabilities,
 We would like to leverage both point ranking and transitions,
 i.e., recommending a trajectory that maximises the points ranking of its POIs as well as its transition likelihood at the same time.
-To begin with, we transform the ranking scores of POIs with respect to query $q$
+To begin with, we transform the ranking scores $R_{j,q}$ of POI $j$ with respect to query $q$
 to a probability distribution using the softmax function,
 %~\cite{bishop2006},
 \eqmoveup
 \begin{equation}
 \eqmoveup
 \label{eq:rankprob}
-P_R(p_j | q) = \frac{\exp(R_j)}{\sum_j \exp(R_j)},
+P_R(p_j | q) = \frac{\exp(R_{j,q})}{\sum_i \exp(R_{i,q})},
 \end{equation}
-where $R_j$ is the ranking score of POI $p_j$ from rankSVM.
+%%LX: summation subscript bug, and R_jq already defined in Sec 3.1 
+%where $R_j$ is the ranking score of POI $p_j$ from rankSVM.
 %  \item Heuristics: \textsc{Rank+Markov}, \textsc{Rank+MarkovPath}
 One heuristic to find a trajectory that simultaneously maximises the ranking probabilities of its POIs and its transition likelihood is to optimise the following objective:
+%%LX - removing j to avoid subscript of subscript, 
+%% seems we don't need it here, and nowhere else in this paper do we really need it
 \eqmoveup
 \begin{equation*}\eqmoveup
-    \argmax_{\mathcal{T} \in \mathcal{P}^L} ~\alpha \sum_{k=2}^{L} \log P_R(p_{j_k} | q) +
-                                     (1-\alpha) \sum_{k=1}^{L-1} \log P(p_{j_{k+1}} | p_{j_k}),
+    \argmax_{\mathcal{T} \in \mathcal{P}^L} ~\alpha \sum_{k=2}^{L} \log P_R(p_{k} | q) +
+                                     (1-\alpha) \sum_{k=1}^{L-1} \log P(p_{{k+1}} | p_{k}),
 \end{equation*}
 such that
-$p_{j_1} = p_s, ~ p_{j_L} = p_e$ and
-$p_{j_k} \in \mathcal{P}, ~1 \le k \le L$.
+$p_{1} = p_s, ~ p_{L} = p_e$ and
+$p_{k} \in \mathcal{P}, ~1 \le k \le L$.
 The first term captures the POI ranking, and the second one incorporates the transition probabilities.
-$\mathcal{T} = (p_{j_1}, \dots, p_{j_L})$ is any possible trajectory,
+$\mathcal{T} = (p_{1}, \dots, p_{L})$ is any possible trajectory,
 and $\alpha \in [0, 1]$ is a parameter to trade-off the importance between the point ranking and transition,
 %of POIs and the POI-POI transitions in the recommended trajectory,
 and can be tuned using cross validation in practice.
@@ -172,10 +178,9 @@ and the corresponding trajectory can be found by tracing back from $B[L, p_e]$.
 \end{algorithm}
 
 
-
+\secmoveup
 \subsection{Avoiding sub-tours} %%LX: walk vs path is never defined! but sub-tour seem to be??
 \label{sec:nosubtour}
-%\secmoveup
 
 Trajectories recommended by \textsc{Markov} (Section~\ref{sec:rankplan}) and \textsc{Rank+Markov} (Section~\ref{sec:rank+markov})
 are found using the maximum likelihood approach, and may contain multiple visits to the same POI.
@@ -202,7 +207,8 @@ we recommend a trajectory by solving the following ILP:
 &        && u_i - u_j + 1 \le (N-1) (1-x_{ij}),                     \forall i, j = 2, \cdots, N                    \label{eq:cons5}
 \end{alignat}
 where $N=|\mathcal{P}|$ is the number of available POIs and $x_{ij}$ is a binary decision variable
-that determines whether transition from $p_i$ to $p_j$ would be allowed in the desired trajectory.
+that determines whether the transition from $p_i$ to $p_j$ %would be allowed 
+is in the resulting trajectory.
 For brevity, we arrange the POIs such that $p_1 = p_s$ and $p_N = p_e$.
 %assume $x_{i1}$ and $x_{1j}$ represent the incoming and outgoing transitions of $p_s$,
 %similarly, $x_{iN}$ and $x_{Nj}$ correspond to the incoming and outgoing transitions of $p_e$.
@@ -214,7 +220,9 @@ In addition, any POI could be visited at most once (Constraint~\ref{eq:cons3}).
 Moreover, only $L-1$ transitions between POIs are permitted (Constraint~\ref{eq:cons4}),
 i.e., the number of visited POIs should be exactly $L$ (including $p_s$ and $p_e$).
 The last constraint, where $u_i$ is an auxiliary variable,
-enforces that only a single sequence of POIs without sub-tours is permitted in the desired trajectory.
+enforces that only a single sequence of POIs without sub-tours is permitted in the trajectory.
+%%LX: mention the implementation, and state the obvious (for new readers)
+We solve this ILP using the Gurobi optimization package, and the resulting trajectory is constructed by tracing the non-zeros indexes in $x$. 
 We call our method that uses the POI-POI transition matrix to recommend paths
 %that do not have circular sub-tours \textsc{MarkovPath}.
 without circular sub-tours \textsc{MarkovPath}.
@@ -235,7 +243,7 @@ with the same constraints described above,
 \label{eq:obj2}
 \max_{x,u} \sum_{i=1}^{N-1} \sum_{j=2}^N ~x_{ij} ~S(p_j; p_i, q),
 \end{equation}
-where $S(p;p',q)$ is defined in Equation~(\ref{eq:combined-score}).
+where $S(p;p',q)$ incorporates both node ranking and transitions, as defined in Equation~(\ref{eq:combined-score}).
 This algorithm is called \textsc{Rank+MarkovPath} in the experiments.
 %sub-tours may appear in trajectories recommended by \textsc{Rank+Markov} algorithm (Section~\ref{sec:rank+markov}).
 %we can optimise Objective~(\ref{eq:rank+markovpath}) using ILP with the same constraints described above.
