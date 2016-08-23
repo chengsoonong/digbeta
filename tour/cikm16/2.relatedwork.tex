@@ -20,7 +20,7 @@ quantifying tourist traffic flow between points-of-interest~\cite{zheng2012patte
 formulating a binary decision or ranking problem~\cite{baraglia2013learnext}, and predict the next location with sequence models such as recurrent neural networks~\cite{aaai16}.
 
 
-This paper considers the final setting: tour recommendation (Figure~\ref{fig:threesettings}(c)). Here the input are some factors about the desired route, e.g. starting point A and end point C, along with auxiliary information such as the desired length of trip. The algorithm needs to take into account location desirability (as indicated by node size) and transition compatibility (as indicated by edge width), and compare route hypotheses such as A-D-B-C and A-E-D-C. Existing work in this area either uses heuristic combination of locations and routes~\cite{lu2010photo2trip,ijcai15,lu2012personalized}, or formulates an optimisation problem that is not informed or evaluated by behaviour history~\cite{gioniswsdm14,chen2015tripplanner}.
+This paper considers the final setting: trajectory recommendation (Figure~\ref{fig:threesettings}(c)). Here the input are some factors about the desired route, e.g. starting point A and end point C, along with auxiliary information such as the desired length of trip. The algorithm needs to take into account location desirability (as indicated by node size) and transition compatibility (as indicated by edge width), and compare route hypotheses such as A-D-B-C and A-E-D-C. Existing work in this area either uses heuristic combination of locations and routes~\cite{lu2010photo2trip,ijcai15,lu2012personalized}, or formulates an optimisation problem that is not informed or evaluated by behaviour history~\cite{gioniswsdm14,chen2015tripplanner}.
 %Joint learning of location preferences and routes remains an open problem.
 %Our work is in this category. We formulate a learning problem to score the whole trajectory, taking into account individual POI properties and relationships among different POIs.
 %
@@ -29,7 +29,7 @@ missing from the current solutions to trajectory recommendation.
 The first is principled method to jointly learn POI ranking (a prediction problem)
 and optimise for route creation (a planning problem).
 The second is a unified way to incorporate various features
-such as location, time, distance, user profile, social interactions,
+such as location, time, distance, user profile and social interactions,
 as they tend to get specialised and separate treatments.
 This work aims to address both challenges. %bridge these gaps.
 We propose a novel way to learn point and route preferences jointly.
