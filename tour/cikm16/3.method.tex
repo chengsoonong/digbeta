@@ -52,26 +52,30 @@ and also include the required length $L$.
 
 
 In addition to information about each individual POI, a tour recommendation system would benefit
-from capturing the likelihood of transitioning between different POIs. One option would be to
-directly model the probability of going from one POI to another, but this has several weaknesses:
+from capturing the likelihood of going from one POI to another different POIs. One option would be to
+directly model the probability of going from any POI to any other POI, but this has several weaknesses:
 Such a model would be unable to handle a new POI (one that has not yet been visited),
-and existing pairs of POIs may not have had an observed transition.
+or pairs of existing POIs that do not have an observed transition.
 Furthermore, even if we restrict ourselves to known POIs and transitions,
 there may be locations which are rarely visited,
 leading to significant challenges in estimating the probabilities from empirical data.
 
 We model POI transitions using a Markov chain with discrete %factored
-states by factorising the transition probability of ($p_i$ to $p_j$) %from POI $p_i$ to POI $p_j$
+states by factorising the transition probability ($p_i$ to $p_j$) %from POI $p_i$ to POI $p_j$
 as a product of transition probabilities between pairs of individual POI features, %(listed in Section~\ref{sec:poifeature}),
-assuming independence between these features.
+assuming independence between these feature-wise transitions.
 %We directly model the transition between the category and neighbourhood of each POI as the conditional probability.
 The popularity, total visits and average duration are discretised by binning
 them uniformly into $5$ discrete intervals on the log scale.
 %Transition matrices of individual POI features are computed using maximum likelihood estimation.
-The POI-POI transition matrix can be efficiently computed by taking the Kronecker product of
-the transition matrices for the individual features, which are estimated using maximum likelihood principle,
-and then updating it based on two additional constraints (and appropriately normalised).
+These feature-to-feature transitions are estimated from data using maximum likelihood principle.
+The POI-POI transition probability can be efficiently computed by taking 
+the Kronecker product of
+the transition matrices for the individual features. 
+and then updating it based on three additional constraints, and re-normalised appropriately.
 First we disallow self-loops by setting the probability of ($p_i$ to $p_i$) to zero.
 Secondly, when multiple POIs have identical (discretised) features, we distribute the probability uniformly among POIs in the group.
-Figure~\ref{fig:transmat} visualises the transition matrices for two of the POI features in Melbourne.
+%%LX: this is obvious but seem worth stating for future readers
+Third, we remove feature combinations that has no POI in the dataset. 
+Figure~\ref{fig:transmat} visualises the transition matrices for two POI features, category and neighborhood, in Melbourne.
 %More details of this procedure are provided in the Appendix.
