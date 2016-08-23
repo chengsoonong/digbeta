@@ -12,15 +12,15 @@ Point preferences are learned by ranking according to POI and query features,
 and factorised transition probabilities between POIs
 are learned from previous trajectories extracted
 from social media.
-We investigate the weaknesses of a naive maximum likelihood sequence approach (which
-may recommend sub-tours) and propose an improved sequence prediction method.
-Our feature driven approach allows a natural combination of POI ranks and routes.
+We investigate the maximum likelihood sequence approach (which
+may recommend sub-tours) and propose an improved sequence recommendation method.
+Our feature driven approach naturally allows learning the combination of POI ranks and routes.
 %and future work includes using recent advances in structured prediction to jointly learn the combined model.
 %Furthermore, one could investigate the setting
 %where instead of recommending trajectories
 %with a certain number of POIs, we recommend trajectories that satisfy a certain time limit.
 
-We argue that one should measure performance also with respect to the visiting order of POIs,
+We argue that one should measure performance with respect to the visiting order of POIs,
 and suggest a new pairs-F$_1$ metric.
 We empirically evaluate our tour recommendation approaches on five datasets extracted from
 Flickr photos, and demonstrate that our method improves on prior work,
