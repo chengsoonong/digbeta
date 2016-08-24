@@ -15,7 +15,7 @@ on user-location affinity~\cite{shi2011personalized}, with additional ways to in
 
 Figure~\ref{fig:threesettings}(b) illustrates the second setting: next location recommendation.
 Here the input is a partial trajectory (e.g. started at point A and currently at point B), the task of the algorithm is to score the next candidate location (e.g, C, D and E) based on the perceived POI score and transition compatibility with input $A\rightarrow B$.
-It is a variant of POI recommendation except both the user and locations travelled to date is given. The solutions to this problem include incorporating Markov chains into collaborative filtering~\cite{fpmc10,ijcai13,zhang2015location},
+It is a variant of POI recommendation except both the user and locations travelled to date are given. The solutions to this problem include incorporating Markov chains into collaborative filtering~\cite{fpmc10,ijcai13,zhang2015location},
 quantifying tourist traffic flow between points-of-interest~\cite{zheng2012patterns},
 formulating a binary decision or ranking problem~\cite{baraglia2013learnext}, and predict the next location with sequence models such as recurrent neural networks~\cite{aaai16}.
 
@@ -64,12 +64,14 @@ The main contributions of this work are:
 %which takes into account both the point identity and the visiting orders in a trajectory.
 %Our benchmark data and results are publicly available.
 %\end{itemize}
+\textmoveup
 \begin{itemize}
 \setlength{\itemsep}{-2pt}
-\item We propose a novel algorithm to jointly optimise point and route preferences. We find that learning-based approaches generally outperform heuristic route recommendation~\cite{ijcai15}.
+\item We propose a novel algorithm to jointly optimise point preferences and routes. We find that learning-based approaches generally outperform heuristic route recommendation~\cite{ijcai15}.
 Incorporating transitions to POI ranking results in a better sequence of POIs, and avoiding sub-tours further improves performance of classical Markov chain methods.
 \item Our approach is feature-driven and learns from past behaviour without having to design specialised treatment for spatial, temporal or social information. It incorporates information about location, POI categories and behaviour history, and can use additional time, user, or social information if available.
 \item We show good performance compared to recent results~\cite{ijcai15}, and also quantify the contributions from different components, such as ranking points, scoring transitions, and routing.
 \item We propose a new metric to evaluate trajectories, pairs-F$_1$, to capture the order in which POIs are visited. Pairs-F$_1$ lies between 0 and 1, and achieves 1 if and only if the recommended trajectory is exactly the same as the ground truth.
 \end{itemize}
+\textmoveup
 Supplemental material, benchmark data and results are available online at \surl{https://bitbucket.org/d-chen/tour-cikm16}.

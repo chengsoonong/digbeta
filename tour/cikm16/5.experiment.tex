@@ -78,12 +78,13 @@ Solid grey: ground truth; dashed blue: recommended trajectories. See Section~\re
 \end{figure}
 
 A commonly used metric for evaluating POI and trajectory recommendation is
-the F$_1$ score on points, which is the harmonic mean of precision and recall for each trajectory~\cite{ijcai15}, then averaged over all trajectories.
+the F$_1$ score on points, which is the harmonic mean of precision and recall of POIs in trajectory~\cite{ijcai15}.
+%then averaged over all trajectories.
 While being good at measuring whether POIs are correctly recommended,
 F$_1$ score on points ignores the visiting order between POIs.
 We propose a new metric $\text{pairs-F}_1$ that considers both POI identity and visiting order,
 by measuring the F$_1$ score of every pair of POIs,
-whether they are adjacent or not,
+whether they are adjacent or not in trajectory,
 %whether they appear in the same order in a trajectory.
 %\vspace{-1.0em}
 \eqmoveup
@@ -94,11 +95,11 @@ whether they are adjacent or not,
 where $P_{\textsc{pair}}$ and $R_{\textsc{pair}}$ are the precision and recall of ordered POI pairs respectively. 
 %Note that we only require that first POI in the pair occurs later than the second one,
 %and do not require that the second POI occurs immediately after the first one.
-pairs-F$_1$ takes values between 0 and 1 (higher is better).
+Pairs-F$_1$ takes values between 0 and 1 (higher is better).
 A perfect pairs-F$_1$ is achieved {\em if and only if}
 both the POIs and their visiting order in the
 recommended trajectory are exactly the same as those in the ground truth.
-pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited 
+On the other hand, pairs-F$_1 = 0$ means none of the recommended POI pairs was actually visited 
 (in the designated order) in the real trajectory.
 An illustration is shown in Figure~\ref{fig:pairf1},
 the solid grey lines represent the ground truth transitions that actually visited by travellers,
@@ -115,12 +116,12 @@ Both examples have a perfect F$_1$ score, but not a perfect pairs-F$_1$ score du
 %
 %\input{table_perfsummary}
 
-The performance of trajectory recommendation approaches are summarised in
+The performance of various trajectory recommendation approaches are summarised in
 Table~\ref{tab:f1} and Table~\ref{tab:pairf1},
 in terms of F$_1$ and pairs-F$_1$ scores respectively.
 It is apparent that algorithms 
 captured information about the problem (Table~\ref{tab:algsummary})
-outperform the \textsc{Random} baseline in terms of both performance metrics on all five datasets.
+outperform the \textsc{Random} baseline in terms of both metrics on all five datasets.
 
 
 %% Baseline: Random, outperformed by all (F1 and pairs-F1)
