@@ -119,10 +119,10 @@ that minimises the objective, which can be found by solving
 \begin{equation}
 \label{eq:kcg}
 \begin{aligned}
-\min   ~& \theta  \\
-s.t.~~ ~& \theta \ge f_0(q^{(i)}) + \nabla f_0(q^{(i)})^\top (z - q^{(i)}),~ \forall i \le k \\
-        & a_i^\top z \le b_i,~ \forall i \le k \\
-        & f_j(z) \le 0,~ j = 1, \dots, m
+\min_{z} ~& \theta  \\
+s.t.~~   ~& \theta \ge f_0(q^{(i)}) + \nabla f_0(q^{(i)})^\top (z - q^{(i)}),~ \forall i \le k \\
+          & a_i^\top z \le b_i,~ \forall i \le k \\
+          & f_j(z) \le 0,~ j = 1, \dots, m
 \end{aligned}
 \end{equation}
 where $a_i, b_i$ are the set of existing cutting planes returned by querying the oracle at points $q^{(i)}, i \le k$.
@@ -135,10 +135,10 @@ in other words, we find the next query point $q^{(k+1)}$ by solving
 \begin{equation}
 \label{eq:chebyshev}
 \begin{aligned}
-\min   ~& \theta  \\
-s.t.~~ ~& \theta \ge f_0(q^{(i)}) + \frac{\nabla f_0(q^{(i)})}{\|\nabla f_0(q^{(i)})\|} ^\top (z - q^{(i)}),~ \forall i \le k \\
-        & a_i^\top z \le b_i,~ \forall i \le k \\
-        & f_j(z) \le 0.~ j = 1, \dots, m
+\min_{z} ~& \theta  \\
+s.t.~~   ~& \theta \ge f_0(q^{(i)}) + \frac{\nabla f_0(q^{(i)})}{\|\nabla f_0(q^{(i)})\|} ^\top (z - q^{(i)}),~ \forall i \le k \\
+          & a_i^\top z \le b_i,~ \forall i \le k \\
+          & f_j(z) \le 0.~ j = 1, \dots, m
 \end{aligned}
 \end{equation}
 This variant is called the Chebyshev center method, which is shown to have significantly better convergence properties than the method of Kelley-Cheney-Goldstein.
@@ -201,7 +201,7 @@ can be formulated as a quadratic program (QP)
 \label{eq:nslackform}
 \begin{aligned}
 \min_{\mathbf{w}, ~\bm{\xi} \ge 0} ~& \frac{1}{2} \mathbf{w}^\top \mathbf{w} + \frac{C}{n} \sum_{i=1}^n \xi_i \\
-s.t.~~ ~& \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top \Psi(\mathbf{w}_i, \bar{\mathbf{y}}) \ge 
+s.t.~~ ~& \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top \Psi(\mathbf{x}_i, \bar{\mathbf{y}}) \ge 
        \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) - \xi_i, ~(\forall i, \bar{\mathbf{y}} \neq \mathbf{y}_i)
 \end{aligned}
 \end{equation}
@@ -209,7 +209,8 @@ where $\mathbf{w}$ is the parameter vector, $C > 0$ is a regularisation constant
 is a slack variable that represents the \emph{hinge loss} associated with the prediction for the $i$-th example,
 \begin{equation*}
 \xi_i = \max \left( 0,~ 
-        \max_{\bar{\mathbf{y}} \in \mathcal{Y}} \left( \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) + \mathbf{w}^\top \Psi(\mathbf{w}_i, \bar{\mathbf{y}}) \right) -
+        \max_{\bar{\mathbf{y}} \in \mathcal{Y}} 
+        \left\{ \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) + \mathbf{w}^\top \Psi(\mathbf{x}_i, \bar{\mathbf{y}}) \right\} -
         \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) \right).
 \end{equation*}
 This formulation is called "$n$-slack" as we have one slack variable for each example in training set. \eat{citation}
@@ -224,14 +225,15 @@ The algorithm to train the $n$-slack formulation of structured SVMs is described
 \STATE $\mathcal{W} = \emptyset,~ \mathbf{w} = \mathbf{0},~ \bm{\xi} = \mathbf{0}$
 \REPEAT
     \FOR{$i = 1,\dots,n$}
-        \STATE Query the oracle at point $(\mathbf{w}, \bm{\xi})$: 
+        \STATE Query the oracle at point $(\mathbf{w}, \bm{\xi})$:~
                $\hat{\mathbf{y}} = \argmax_{\bar{\mathbf{y}} \in \mathcal{Y}} \{ \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) + 
                \mathbf{w}^\top \Psi(\mathbf{x}_i, \bar{\mathbf{y}}) \}$
         \IF{$~\mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top \Psi(\mathbf{x}_i, \hat{\mathbf{y}}) + \varepsilon < 
             \Delta(\mathbf{y}_i, \hat{\mathbf{y}}) - \xi_i~$}
-            \STATE Update constraints: $\mathcal{W} = \mathcal{W} \cup 
-                   \{\mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top \Psi(\mathbf{x}_i, \hat{\mathbf{y}}) \ge 
-                   \Delta(\mathbf{y}_i, \hat{\mathbf{y}}) - \xi_i \}$
+            \STATE Update constraints:~
+                   $\mathcal{W} = \mathcal{W} \cup 
+                    \{\mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top \Psi(\mathbf{x}_i, \hat{\mathbf{y}}) \ge 
+                    \Delta(\mathbf{y}_i, \hat{\mathbf{y}}) - \xi_i \}$
             \STATE Generate next query point $(\mathbf{w}, \bm{\xi})$ by solving QP~(\ref{eq:nslackform}) w.r.t. all constraints in $\mathcal{W}$
         \ENDIF
     \ENDFOR
@@ -249,10 +251,20 @@ the sum of the hinge-losses, as a result, only one slack variable is needed,
 \begin{aligned}
 \min_{\mathbf{w}, ~\xi \ge 0} ~& \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \xi \\
 s.t.~~ ~& \forall(\bar{\mathbf{y}}_1, \dots, \bar{\mathbf{y}}_n) \in \mathcal{Y}^n: 
-          \frac{1}{n} \sum_{i=1}^n \left( \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top \Psi(\mathbf{x}_i, \bar{\mathbf{y}}_i) \right) \ge
+          \frac{1}{n} \sum_{i=1}^n 
+          \left( \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top \Psi(\mathbf{x}_i, \bar{\mathbf{y}}_i) \right) \ge
           \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \bar{\mathbf{y}}_i) - \xi.
 \end{aligned}
 \end{equation}
+Here the slack variable $\xi$ represents the \emph{sum of the hinge-losses} over all training examples,
+\begin{equation*}
+\xi = \max \left( 0,~ 
+      \max_{(\bar{\mathbf{y}}_1, \dots, \bar{\mathbf{y}}_n) \in \mathcal{Y}^n} 
+      \left\{ 
+      \frac{1}{n} \sum_{i=1}^n \left( \Delta(\mathbf{y}_i, \bar{\mathbf{y}}_i) + \mathbf{w}^\top \Psi(\mathbf{x}_i, \bar{\mathbf{y}}_i) \right)
+      \right\} - \frac{1}{n} \sum_{i=1}^n \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i)
+      \right).
+\end{equation*}
 
 The algorithm to train the $1$-slack formulation of structured SVMs is described in Algorithm~\ref{alg:1slacktrain}.
 
@@ -264,10 +276,13 @@ The algorithm to train the $1$-slack formulation of structured SVMs is described
 \STATE $\mathcal{W} = \emptyset$
 \REPEAT
     \STATE Generate query point $(\mathbf{w}, \xi)$ by solving QP~(\ref{eq:1slackform}) w.r.t. all constraints in $\mathcal{W}$
-    \STATE Query the oracle at point $(\mathbf{w}, \xi)$: $\hat{\mathbf{y}}_i = \argmax_{\bar{\mathbf{y}} \in \mathcal{Y}} \{ \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) + 
+    \STATE Query the oracle at point $(\mathbf{w}, \xi)$:~
+           $\hat{\mathbf{y}}_i = \argmax_{\bar{\mathbf{y}} \in \mathcal{Y}} \{ \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) + 
            \mathbf{w}^\top \Psi(\mathbf{x}_i, \bar{\mathbf{y}}) \},~ \forall i$
-    \STATE Update constraints: $\mathcal{W} = \mathcal{W} \cup \{ (\hat{\mathbf{y}}_1, \dots, \hat{\mathbf{y}}_n) \}$
-\UNTIL{$\frac{1}{n} \sum_{i=1}^n \left( \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \right) + 
+    \STATE Update constraints:~
+           $\mathcal{W} = \mathcal{W} \cup \{ (\hat{\mathbf{y}}_1, \dots, \hat{\mathbf{y}}_n) \}$
+\UNTIL{$\frac{1}{n} \sum_{i=1}^n 
+        \left( \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \right) + 
         \varepsilon \ge \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i) - \xi$}
 \RETURN $(\mathbf{w}, \xi)$
 \end{algorithmic}
