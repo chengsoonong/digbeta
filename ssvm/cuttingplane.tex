@@ -236,24 +236,27 @@ until a specified precision $\varepsilon$ is achieved~\cite{joachims2009predicti
 \label{alg:nslacktrain}
 \begin{algorithmic}[1]
 \STATE \textbf{Input}: $S = \left( (\mathbf{x}_1, \mathbf{y}_1), \dots, (\mathbf{x}_n, \mathbf{y}_n) \right),~ C,~ \varepsilon$
-\STATE $\mathcal{W} = \emptyset,~ \mathbf{w} = \mathbf{0},~ \bm{\xi} = \mathbf{0}$
+\STATE $\mathcal{W} = \emptyset,~ k = 1,~ \mathbf{w}^{(k)} = \mathbf{0},~ \bm{\xi}^{(k)} = \mathbf{0}$
 \REPEAT
     \FOR{$i = 1,\dots,n$}
-        \STATE $\triangleright$ Query the oracle at point $q = (\mathbf{w}, \bm{\xi})$
-        \STATE $\hat{\mathbf{y}} = \argmax_{\bar{\mathbf{y}} \in \mathcal{Y}} \{ \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) + 
-               \mathbf{w}^\top \Psi(\mathbf{x}_i, \bar{\mathbf{y}}) \}$ 
-               $\triangleright$ Loss-augmented inference
-        \STATE $\triangleright$ Check the feasibility of query point $q$ as follows
-        \IF{$~\mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top \Psi(\mathbf{x}_i, \hat{\mathbf{y}}) + \varepsilon < 
-            \Delta(\mathbf{y}_i, \hat{\mathbf{y}}) - \xi_i~$}
-            \STATE $\mathcal{W} = \mathcal{W} \cup \left\{ \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top 
-                    \Psi(\mathbf{x}_i, \hat{\mathbf{y}}) \ge \Delta(\mathbf{y}_i, \hat{\mathbf{y}}) - \xi_i \right\}$ 
-                   $\triangleright$ Update constraints: form a \emph{feasibility cut} if $q$ is infeasible
-            \STATE Generate the next query point $q' =(\mathbf{w}, \bm{\xi})$ by solving QP~(\ref{eq:nslackform}) w.r.t. all constraints in $\mathcal{W}$
+        \STATE $\triangleright$ Query the oracle at point $q^{(k)} = (\mathbf{w}^{(k)}, \bm{\xi}^{(k)})$ as follows
+        \STATE Do loss-augmented inference:~
+               $\hat{\mathbf{y}} = \argmax_{\bar{\mathbf{y}} \in \mathcal{Y}} \{ \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) + 
+                \langle \mathbf{w}^{(k)},~ \Psi(\mathbf{x}_i, \bar{\mathbf{y}}) \rangle \}$ 
+        \IF{~$q^{(k)}$ is not feasible:~ $\langle \mathbf{w}^{(k)},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}) \rangle + 
+             \varepsilon < \Delta(\mathbf{y}_i, \hat{\mathbf{y}}) - \xi_i^{(k)}$~}
+            \STATE Form a \emph{feasibility cut} and update constraints:~
+                   $\mathcal{W} = \mathcal{W} \cup 
+                    \left\{ \langle \mathbf{w},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}) \rangle \ge 
+                    \Delta(\mathbf{y}_i, \hat{\mathbf{y}}) - \xi_i \right\}$ 
+            \STATE Generate the next query point $q^{(k+1)} = (\mathbf{w}^{(k+1)}, \bm{\xi}^{(k+1)})$ 
+                   by solving QP~(\ref{eq:nslackform}) w.r.t. all constraints in $\mathcal{W}$
+            \STATE $k = k+1$
         \ENDIF
     \ENDFOR
-\UNTIL{$\mathcal{W}$ has not changed during iteration}
-\RETURN $(\mathbf{w}, \bm{\xi})$
+%\UNTIL{$\mathcal{W}$ has not changed during iteration}
+\UNTIL{$q^{(k)}$ is feasible for all training examples}
+\RETURN $q^{(k)}$
 \end{algorithmic}
 \end{algorithm}
 
@@ -298,36 +301,96 @@ train the $1$-slack formulation of structured SVM.
 \begin{algorithmic}[1]
 \STATE \textbf{Input}: $S = \left( (\mathbf{x}_1, \mathbf{y}_1), \dots, (\mathbf{x}_n, \mathbf{y}_n) \right),~ C,~ \varepsilon$
 \STATE $\mathcal{W} = \emptyset$
-\REPEAT
-    \STATE Generate query point $q = (\mathbf{w}, \xi)$ by solving QP~(\ref{eq:1slackform}) w.r.t. all constraints in $\mathcal{W}$
-    \STATE $\triangleright$ Query the oracle at point $q = (\mathbf{w}, \xi)$ as follows
-    \STATE $\hat{\mathbf{y}}_i = \argmax_{\bar{\mathbf{y}} \in \mathcal{Y}} \{ \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) + 
-           \mathbf{w}^\top \Psi(\mathbf{x}_i, \bar{\mathbf{y}}) \},~ \forall i~$
-           $\triangleright$ Loss-augmented inference
-    \STATE $\mathcal{W} = \mathcal{W} \cup \left\{ 
-            \frac{1}{n} \sum_{i=1}^n \left( 
-            \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \right) \ge 
-            \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i) - \xi \right\}$
-           $\triangleright$ Update constraints: form a \emph{feasibility cut}
-\UNTIL{$\frac{1}{n} \sum_{i=1}^n 
-        \left( \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \right) + 
-        \varepsilon \ge \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i) - \xi$}
-\RETURN $(\mathbf{w}, \xi)$
+%\REPEAT
+\FOR{$k = 1,\dots,+\infty$}
+    \STATE Generate query point $q^{(k)} = (\mathbf{w}^{(k)}, \xi^{(k)})$ by solving QP~(\ref{eq:1slackform}) w.r.t. all constraints in $\mathcal{W}$
+    \STATE $\triangleright$ Query the oracle at point $q^{(k)}$ as follows
+    \STATE Do loss-augmented inference:~
+           $\hat{\mathbf{y}}_i = \argmax_{\bar{\mathbf{y}} \in \mathcal{Y}} \left\{ \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) + 
+            \langle \mathbf{w}^{(k)},~ \Psi(\mathbf{x}_i, \bar{\mathbf{y}}) \rangle \right\},~ \forall i$
+    \IF{~$q^{(k)}$ is feasible:~ $\frac{1}{n} \sum_{i=1}^n 
+         \langle \mathbf{w}^{(k)},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \rangle + \varepsilon \ge 
+         \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i) - \xi^{(k)}$~}
+        \RETURN $q^{(k)}$
+    \ELSE
+        \STATE Form a \emph{feasibility cut} and update constraints:~
+               $\mathcal{W} = \mathcal{W} \cup \left\{ 
+                \frac{1}{n} \sum_{i=1}^n \langle \mathbf{w},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \rangle \ge 
+                \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i) - \xi \right\}$
+    \ENDIF
+%\UNTIL{$\frac{1}{n} \sum_{i=1}^n 
+%        \left( \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \right) + 
+%        \varepsilon \ge \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i) - \xi$}
+%\RETURN $(\mathbf{w}, \xi)$
+\ENDFOR
 \end{algorithmic}
 \end{algorithm}
 
 
-\subsection{Observations}
+\subsection{Discussion}
 
 From Algorithm~\ref{alg:nslacktrain} and Algorithm~\ref{alg:1slacktrain}, we observe that:
 \begin{itemize}
-\item To generate a query point $q$, it solves a QP with respect to all constraints/cuts returned by previous queries. 
+\item To generate a query point $q$, it solves a QP with the same objective as the original optimisation problem and
+      all constraints/cuts returned by previous queries. 
 \item The Wolfe-dual programs of both QP (\ref{eq:nslackform}) and QP (\ref{eq:1slackform}) are QPs~\cite{tsochantaridis2005large,joachims2009cutting}.
 \item All cutting-planes returned by the oracle are \emph{feasibility cuts}.
 \item The training algorithm will \emph{stop} if the current query point $q$ is feasible, 
-      in other words, it does not form an \emph{objective cut} when $q$ is feasible. 
+      in other words, it does not exploit an \emph{objective cut} when $q$ is feasible. 
 \end{itemize}
 
+Recall that in Section~\ref{sec:problem}, we have an objective $f_0(z)$ to minimise, in the case of $1$-slack formulation of structured SVM,
+$f_0(z) = \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C\xi$ where $z = [\mathbf{w}, \xi]^\top$, 
+given query point $q = \left[ \mathbf{w}^{(k)}, \xi^{(k)} \right]^\top$, if $q$ is feasible, we can form an \emph{objective cut}
+\begin{equation}
+\label{eq:objcut_ssvm}
+\begin{aligned}
+ & \nabla f_0(q)^\top (z - q) \\
+=& \left[ \left[ \left.\frac{\partial f_0}{\mathbf{w}}\right|_{\mathbf{w} = \mathbf{w}^{(k)}}, 
+                 \left.\frac{\partial f_0}{\xi}\right|_{\xi = \xi^{(k)}} \right]^\top \right]^\top 
+   \left( \left[ \mathbf{w}, \xi \right]^\top - \left[ \mathbf{w}^{(k)}, \xi^{(k)} \right]^\top \right)  \\
+=& \left[ \mathbf{w}^{(k)}, C \right] \left[ \mathbf{w} - \mathbf{w}^{(k)},~ \xi - \xi^{(k)} \right]^\top  \\
+=& \langle \mathbf{w}^{(k)},~ \mathbf{w} - \mathbf{w}^{(k)} \rangle + C (\xi - \xi^{(k)}) \le 0.
+\end{aligned}
+\end{equation}
+
+On the other hand, if $q = (\mathbf{w}^{(k)}, \xi^{(k)})$ is not feasible, the following constraint must be violated,
+\begin{equation}
+\label{eq:cut_1slackssvm}
+\frac{1}{n} \sum_{i=1}^n \langle \mathbf{w},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \rangle \ge 
+\frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i) - \xi.
+\end{equation}
+
+Let 
+$f_j(z) = \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i) - 
+ \frac{1}{n} \sum_{i=1}^n \langle \mathbf{w},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \rangle - \xi$ 
+where $z = [\mathbf{w}, \xi]^\top$, we can rewrite the violated constraint as $f_j(z) \le 0$.
+Since $q$ violates constraint (\ref{eq:cut_1slackssvm}), we can construct a \emph{feasibility cut}
+\begin{equation}
+\label{eq:feacut_ssvm}
+\begin{aligned}
+ & f_j(q) + \nabla f_j(q)^\top (z - q) \\
+=& f_j(q) + 
+   \left[ \left[ \left.\frac{\partial f_j}{\mathbf{w}}\right|_{\mathbf{w} = \mathbf{w}^{(k)}}, 
+                 \left.\frac{\partial f_j}{\xi}\right|_{\xi = \xi^{(k)}} \right]^\top \right]^\top 
+   \left( \left[ \mathbf{w}, \xi \right]^\top - \left[ \mathbf{w}^{(k)}, \xi^{(k)} \right]^\top \right)  \\
+=& f_j(q) + \left[ -\frac{1}{n} \sum_{i=1}^n \left( \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \right),  -1 \right] 
+   \left[ \mathbf{w} - \mathbf{w}^{(k)},~ \xi - \xi^{(k)} \right]^\top  \\
+=& \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i) - 
+   \frac{1}{n} \sum_{i=1}^n \langle \mathbf{w}^{(k)},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \rangle - \xi^{(k)} +  
+   \langle -\frac{1}{n} \sum_{i=1}^n \left( \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \right),~
+   \mathbf{w} - \mathbf{w}^{(k)} \rangle - \left( \xi - \xi^{(k)} \right)  \\
+=& \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i) - 
+   \frac{1}{n} \sum_{i=1}^n \langle \mathbf{w},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \rangle - \xi \le 0.
+\end{aligned}
+\end{equation}
+
+We found that inequalities (\ref{eq:cut_1slackssvm}) and (\ref{eq:feacut_ssvm}) are identical, 
+which means that the cutting-planes Algorithm~\ref{alg:1slacktrain} exploited are exactly \emph{feasibility cuts}. 
+Note that this result does not dependent on the fact that 
+$\left( \hat{\mathbf{y}}_1, \dots, \hat{\mathbf{y}}_n \right)$ are the most violated labels (w.r.t. constraints in QP \ref{eq:1slackform}),
+which suggests that any labels $\left( \bar{\mathbf{y}}_1, \dots, \bar{\mathbf{y}}_n \right)$ that violate constraints in problem (\ref{eq:1slackform})
+can be used to form a feasibility cut.
 
 \bibliographystyle{ieeetr}
 \bibliography{ref}
