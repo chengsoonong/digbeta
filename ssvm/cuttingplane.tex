@@ -76,33 +76,59 @@ s.t.~~   ~& f_i(x) \le 0, & i = 1, \dots, m
 where $f_0, \dots, f_m$ are convex and differentiable, the target set $Z$ is the optimal (or $\varepsilon$-suboptimal) set.
 
 Given a query point $q$, the oracle first checks for feasibility.
-If $q$ is not feasible, we choose one of the violated constraints $f_j(q) > 0$ and construct a cut
-\begin{equation*}
-f_j(q) + \nabla f_j(q)^\top (x - q) \le 0,
-\end{equation*}
-which is called a \textit{feasibility cut} for problem (\ref{eq:cvxprob}) since it cuts away the half-space 
+If $q$ is not feasible, this means that at least one constraint in problem (\ref{eq:cvxprob}) is violated.
+Suppose constraint $f_j(x) \le 0$ is violated by $q$, then we have $f_j(q) > 0$.
+In addition, as $f_j(x)$ is convex and differentiable, we have the inequality
+\begin{equation}
+\label{eq:funprop}
+f_j(x) \ge f_j(q) + \nabla f_j(q) (x - q),~ j = 0, \dots, m
+\end{equation}
+We conclude that if $f_j(q) + \nabla f_j(q) (x - q) > 0$, then $f_j(x) > 0$, which violated the constraint $f_j(x) \le 0$ in problem (\ref{eq:cvxprob}).
+Thus, any feasible point satisfies the inequality
+\begin{equation}
+\label{eq:feacut}
+f_j(q) + \nabla f_j(q)^\top (x - q) \le 0.
+\end{equation}
+This is called a \textit{feasibility cut} for problem (\ref{eq:cvxprob}) since it cuts away the half-space 
 $\{z | f_j(q) + \nabla f_j(q)^\top (z - q) > 0 \}$ with infeasible points.
+If more than one constraint is violated by $q$, we can generate a \emph{feasibility cut} for each violated constraint.
 
-\eat{
-Proof of infeasibility.
-}
-
-\eat{
-Multiple cuts for more than one violated constraints.
-}
-If $q$ is feasible, we form a cutting-plane
+On the other hand, if $q$ is feasible, suppose $\nabla f_0(q) \ne 0$ (otherwise $q$ is optimal and we are done),
+as $f_0(x)$ is differentiable, we have
 \begin{equation*}
-\nabla f_0(q)^\top (x - q) \le 0,
+f_0(x) > f_0(q), \text{~if~} \nabla f_0(q) > 0 \text{~and~} x > q,
 \end{equation*}
-which is called an \textit{objective cut} for problem (\ref{eq:cvxprob}) and it cuts out the half-space
-$\{z | \nabla f_0(q)^\top (x - q) > 0 \}$
-since all such points have an objective value larger than $f_0(q)$ and hence cannot be optimal.
+similarly,
+\begin{equation*}
+f_0(x) > f_0(q), \text{~if~} \nabla f_0(q) < 0 \text{~and~} x < q.
+\end{equation*}
+It means that 
+\begin{equation*}
+f_0(x) > f_0(q), \text{~if~} \nabla f_0(q)^\top (x - q) > 0.
+\end{equation*}
+In other words, any point that satisfies inequality $\nabla f_0(q)^\top (x - q) > 0$ has an objective value larger than $f_0(q)$ 
+and hence cannot be optimal.
+It follows that we can form a cutting-plane
+\begin{equation}
+\label{eq:objcut}
+\nabla f_0(q)^\top (x - q) \le 0,
+\end{equation}
+which is called an \textit{objective cut} for problem (\ref{eq:cvxprob}) and 
+it cuts out the half-space $\{z | \nabla f_0(q)^\top (z - q) > 0 \}$ with non-optimal points.
 
-\eat{
-Proof of non-optimal.
-}
+If we keep track of the best (smallest) objective value $f_\text{best} = f_0(q_\text{best})$ for all feasible query points during the querying, 
+%since all other feasible points have objective values at least $f_\text{best}$, 
+since the optimal feasible point has an objective value at most $f_\text{best}$, 
+we can cut off the half-space of points $\{z | f_0(z) > f_\text{best} \}$ with objective values greater than $f_\text{best}$, 
+which means we add a constraint $f_0(z) \le f_\text{best}$, and considering Equation~(\ref{eq:funprop}), 
+we have a deep objective cut~\cite{boydlocalization},
+\begin{equation}
+\label{eq:deepobjcut}
+f_0(q) + \nabla f_0(q) (x - q) - f_\text{best} \le 0,
+\end{equation}
+where $q$ is the current query point. If $q = q_\text{best}$, this cut reduced to the objective cut~(\ref{eq:objcut}).
 
-If $q$ is feasible and $\nabla f_0(q) = 0$ then $q$ is optimal.
+%If $q$ is feasible and $\nabla f_0(q) = 0$ then $q$ is optimal.
 For non-differentiable problems, the gradients $\nabla f_j(z)$ can generally be replaced by sub-gradients.
 
 
@@ -308,7 +334,7 @@ train the $1$-slack formulation of structured SVM.
     \STATE Do loss-augmented inference:~
            $\hat{\mathbf{y}}_i = \argmax_{\bar{\mathbf{y}} \in \mathcal{Y}} \left\{ \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) + 
             \langle \mathbf{w}^{(k)},~ \Psi(\mathbf{x}_i, \bar{\mathbf{y}}) \rangle \right\},~ \forall i$
-    \IF{~$q^{(k)}$ is feasible:~ $\frac{1}{n} \sum_{i=1}^n 
+    \IF{~$q^{(k)}$ is $\varepsilon$-feasible:~ $\frac{1}{n} \sum_{i=1}^n 
          \langle \mathbf{w}^{(k)},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \rangle + \varepsilon \ge 
          \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i) - \xi^{(k)}$~}
         \RETURN $q^{(k)}$
@@ -328,6 +354,7 @@ train the $1$-slack formulation of structured SVM.
 
 
 \subsection{Discussion}
+\label{sec:ssvm_discussion}
 
 From Algorithm~\ref{alg:nslacktrain} and Algorithm~\ref{alg:1slacktrain}, we observe that:
 \begin{itemize}
@@ -339,9 +366,18 @@ From Algorithm~\ref{alg:nslacktrain} and Algorithm~\ref{alg:1slacktrain}, we obs
       in other words, it does not exploit an \emph{objective cut} when $q$ is feasible. 
 \end{itemize}
 
+
+\subsubsection{Objective cut}
+\label{sec:ssvm_objcut}
+
 Recall that in Section~\ref{sec:problem}, we have an objective $f_0(z)$ to minimise, in the case of $1$-slack formulation of structured SVM,
-$f_0(z) = \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C\xi$ where $z = [\mathbf{w}, \xi]^\top$, 
-given query point $q = \left[ \mathbf{w}^{(k)}, \xi^{(k)} \right]^\top$, if $q$ is feasible, we can form an \emph{objective cut}
+$f_0(z)$ is the quadratic objective in Equation~(\ref{eq:1slackform}), 
+\begin{equation}
+\label{eq:optobj}
+f_0(z) = \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C\xi,
+\end{equation}
+where $z = [\mathbf{w}, \xi]^\top$.
+Given query point $q = \left[ \mathbf{w}^{(k)}, \xi^{(k)} \right]^\top$, if $q$ is feasible, we can form an \emph{objective cut}
 \begin{equation}
 \label{eq:objcut_ssvm}
 \begin{aligned}
@@ -354,6 +390,10 @@ given query point $q = \left[ \mathbf{w}^{(k)}, \xi^{(k)} \right]^\top$, if $q$ 
 \end{aligned}
 \end{equation}
 
+
+\subsubsection{Feasibility cut}
+\label{sec:ssvm_feacut}
+
 On the other hand, if $q = (\mathbf{w}^{(k)}, \xi^{(k)})$ is not feasible, the following constraint must be violated,
 \begin{equation}
 \label{eq:cut_1slackssvm}
@@ -362,19 +402,23 @@ On the other hand, if $q = (\mathbf{w}^{(k)}, \xi^{(k)})$ is not feasible, the f
 \end{equation}
 
 Let 
-$f_j(z) = \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i) - 
- \frac{1}{n} \sum_{i=1}^n \langle \mathbf{w},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \rangle - \xi$ 
-where $z = [\mathbf{w}, \xi]^\top$, we can rewrite the violated constraint as $f_j(z) \le 0$.
+\begin{equation}
+\label{eq:constraint_k}
+f_k(z) = \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i) - 
+         \frac{1}{n} \sum_{i=1}^n \langle \mathbf{w},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \rangle - \xi,
+\end{equation}
+where $z = [\mathbf{w}, \xi]^\top$.
+We can rewrite the violated constraint as $f_k(z) \le 0$.
 Since $q$ violates constraint (\ref{eq:cut_1slackssvm}), we can construct a \emph{feasibility cut}
 \begin{equation}
 \label{eq:feacut_ssvm}
 \begin{aligned}
- & f_j(q) + \nabla f_j(q)^\top (z - q) \\
-=& f_j(q) + 
-   \left[ \left[ \left.\frac{\partial f_j}{\mathbf{w}}\right|_{\mathbf{w} = \mathbf{w}^{(k)}}, 
-                 \left.\frac{\partial f_j}{\xi}\right|_{\xi = \xi^{(k)}} \right]^\top \right]^\top 
+ & f_k(q) + \nabla f_k(q)^\top (z - q) \\
+=& f_k(q) + 
+   \left[ \left[ \left.\frac{\partial f_k}{\mathbf{w}}\right|_{\mathbf{w} = \mathbf{w}^{(k)}}, 
+                 \left.\frac{\partial f_k}{\xi}\right|_{\xi = \xi^{(k)}} \right]^\top \right]^\top 
    \left( \left[ \mathbf{w}, \xi \right]^\top - \left[ \mathbf{w}^{(k)}, \xi^{(k)} \right]^\top \right)  \\
-=& f_j(q) + \left[ -\frac{1}{n} \sum_{i=1}^n \left( \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \right),  -1 \right] 
+=& f_k(q) + \left[ -\frac{1}{n} \sum_{i=1}^n \left( \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \right),  -1 \right] 
    \left[ \mathbf{w} - \mathbf{w}^{(k)},~ \xi - \xi^{(k)} \right]^\top  \\
 =& \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i) - 
    \frac{1}{n} \sum_{i=1}^n \langle \mathbf{w}^{(k)},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \rangle - \xi^{(k)} +  
@@ -385,12 +429,72 @@ Since $q$ violates constraint (\ref{eq:cut_1slackssvm}), we can construct a \emp
 \end{aligned}
 \end{equation}
 
-We found that inequalities (\ref{eq:cut_1slackssvm}) and (\ref{eq:feacut_ssvm}) are identical, 
-which means that the cutting-planes Algorithm~\ref{alg:1slacktrain} exploited are exactly \emph{feasibility cuts}. 
-Note that this result does not dependent on the fact that 
-$\left( \hat{\mathbf{y}}_1, \dots, \hat{\mathbf{y}}_n \right)$ are the most violated labels (w.r.t. constraints in QP \ref{eq:1slackform}),
-which suggests that any labels $\left( \bar{\mathbf{y}}_1, \dots, \bar{\mathbf{y}}_n \right)$ that violate constraints in problem (\ref{eq:1slackform})
-can be used to form a feasibility cut.
+We found that inequalities (\ref{eq:cut_1slackssvm}) and (\ref{eq:feacut_ssvm}) are identical.
+This is \emph{not unexpected} as the plane tangent to $f_k(z)$ (also a plane) at point $q$ is \emph{identical} to plane $f_k(z)$
+(assuming the same domain for $z$).
+%which means that the cutting-planes Algorithm~\ref{alg:1slacktrain} exploited are exactly \emph{feasibility cuts}. 
+%Note that this result does not dependent on the fact that 
+%$\left( \hat{\mathbf{y}}_1, \dots, \hat{\mathbf{y}}_n \right)$ are the most violated labels (w.r.t. constraints in QP \ref{eq:1slackform}),
+%which suggests that any labels $\left( \bar{\mathbf{y}}_1, \dots, \bar{\mathbf{y}}_n \right)$ that violate constraints in problem (\ref{eq:1slackform})
+%can be used to form a feasibility cut.
+
+
+\subsection{Compare with the method of Kelley-Cheney-Goldstein and the Chebyshev center method}
+
+Given query points $q^{(1)}, \dots, q^{(k)}$ and the feasibility cuts returned by oracle (after querying these points), then
+\begin{equation}
+\label{eq:ssvm_kcg_cons}
+\begin{aligned}
+ & f_0(q^{(k)}) + \nabla f_0(q^{(k)})^\top (z - q^{(k)}) \\
+=& \frac{1}{2} \langle \mathbf{w}^{(k)},~ \mathbf{w}^{(k)} \rangle + C\xi^{(k)} + 
+   \left[ \mathbf{w}^{(k)}, C \right] \left[ \mathbf{w} - \mathbf{w}^{(k)},~ \xi - \xi^{(k)} \right]^\top  \\
+=& \langle \mathbf{w}^{(k)}, \mathbf{w} \rangle - \frac{1}{2} \langle \mathbf{w}^{(k)}, \mathbf{w}^{(k)} \rangle + C\xi,
+\end{aligned}
+\end{equation}
+where $q^{(k)} = (\mathbf{w}^{(k)}, \xi^{(k)})$ and $f_0(\cdot)$ is defined in Equation~(\ref{eq:optobj}).
+
+If we use the method of Kelley-Cheney-Goldstein described in Section~\ref{sec:kcg} to generate the next query point $q^{(k+1)}$,
+we need to solve the following optimisation problem,
+\begin{equation}
+\label{eq:ssvm_kcg}
+\begin{aligned}
+\min_{z} ~& \theta \\
+s.t.~~ ~& \theta \ge \langle \mathbf{w}^{(k)}, \mathbf{w} \rangle - \frac{1}{2} \langle \mathbf{w}^{(k)}, \mathbf{w}^{(k)} \rangle + C\xi,~ \forall k \\
+        & f_k(z) \le 0,~ \forall k, \\
+        & -\xi \le 0,
+\end{aligned}
+\end{equation}
+where $z = [\mathbf{w}, \xi]^\top$ and $f_k(z)$ is defined in Equation~(\ref{eq:constraint_k}).
+
+We solve a similar optimisation problem if we use the Chebyshev center method described in Section~\ref{sec:chebyshev} to generate the next query point,
+\begin{equation}
+\label{eq:ssvm_chebyshev}
+\begin{aligned}
+\min_{z} ~& \theta \\
+s.t.~~ ~& \theta \ge 
+          \frac{1}{D_k} \langle \mathbf{w}^{(k)}, \mathbf{w} \rangle - 
+          (\frac{1}{2} - \frac{1}{D_k}) \langle \mathbf{w}^{(k)}, \mathbf{w}^{(k)} \rangle + 
+          \frac{C}{D_k}\xi + C (1 - \frac{1}{D_k}) \xi^{(k)},~ \forall k \\
+        & f_k(z) \le 0,~ \forall k, \\
+        & -\xi \le 0,
+\end{aligned}
+\end{equation}
+where $D_k = \|\nabla f_0(q^{(k)})\| = \sqrt{\langle \mathbf{w}^{(k)}, \mathbf{w}^{(k)} \rangle + C^2}$ is a normalisation constant.
+
+
+The method to generate the next query point used in Algorithm~\ref{alg:1slacktrain} can be rewritten as
+\begin{equation}
+\label{eq:ssvm_genquery}
+\begin{aligned}
+\min_{z} ~& \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \xi \\
+s.t.~~ ~& f_k(z) \le 0,~ \forall k, \\
+        & -\xi \le 0.
+\end{aligned}
+\end{equation}
+
+
+Since $f_k(z)$ is a linear function, we know that both problem (\ref{eq:ssvm_kcg}) and (\ref{eq:ssvm_chebyshev}) are linear programs (LP),
+and problem (\ref{eq:ssvm_genquery}) is a quadratic program (QP). 
 
 \bibliographystyle{ieeetr}
 \bibliography{ref}
