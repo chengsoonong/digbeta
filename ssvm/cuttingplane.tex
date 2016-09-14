@@ -69,64 +69,64 @@ For a convex optimisation problem with $m$ constraints,
 \begin{equation}
 \label{eq:cvxprob}
 \begin{aligned}
-\min_{x} ~& f_0(x)        & \\
-s.t.~~   ~& f_i(x) \le 0, & i = 1, \dots, m
+\min_{z} ~& f_0(z)        & \\
+s.t.~~   ~& f_i(z) \le 0, & i = 1, \dots, m
 \end{aligned} 
 \end{equation}
 where $f_0, \dots, f_m$ are convex and differentiable, the target set $Z$ is the optimal (or $\varepsilon$-suboptimal) set.
 
 Given a query point $q$, the oracle first checks for feasibility.
 If $q$ is not feasible, this means that at least one constraint in problem (\ref{eq:cvxprob}) is violated.
-Suppose constraint $f_j(x) \le 0$ is violated by $q$, then we have $f_j(q) > 0$.
-In addition, as $f_j(x)$ is convex and differentiable, we have the inequality
+Suppose constraint $f_j(z) \le 0$ is violated by $q$, then we have $f_j(q) > 0$.
+In addition, as $f_j(z)$ is convex and differentiable, we have the inequality
 \begin{equation}
 \label{eq:funprop}
-f_j(x) \ge f_j(q) + \nabla f_j(q) (x - q),~ j = 0, \dots, m
+f_j(z) \ge f_j(q) + \nabla f_j(q)^\top (z - q),~ j = 0, \dots, m
 \end{equation}
-We conclude that if $f_j(q) + \nabla f_j(q) (x - q) > 0$, then $f_j(x) > 0$, which violated the constraint $f_j(x) \le 0$ in problem (\ref{eq:cvxprob}).
-Thus, any feasible point satisfies the inequality
+We conclude that if $f_j(q) + \nabla f_j(q)^\top (z - q) > 0$, then $f_j(z) > 0$, 
+which violated the constraint $f_j(z) \le 0$ in problem (\ref{eq:cvxprob}).
+Thus, any feasible point should satisfy the inequality
 \begin{equation}
 \label{eq:feacut}
-f_j(q) + \nabla f_j(q)^\top (x - q) \le 0.
+f_j(q) + \nabla f_j(q)^\top (z - q) \le 0.
 \end{equation}
 This is called a \textit{feasibility cut} for problem (\ref{eq:cvxprob}) since it cuts away the half-space 
 $\{z | f_j(q) + \nabla f_j(q)^\top (z - q) > 0 \}$ with infeasible points.
 If more than one constraint is violated by $q$, we can generate a \emph{feasibility cut} for each violated constraint.
 
-On the other hand, if $q$ is feasible, suppose $\nabla f_0(q) \ne 0$ (otherwise $q$ is optimal and we are done),
-as $f_0(x)$ is differentiable, we have
+On the other hand, if $q$ is feasible, and suppose $\nabla f_0(q) \ne 0$ (otherwise $q$ is optimal and we are done),
+as $f_0(z)$ is differentiable, we have
 \begin{equation*}
-f_0(x) > f_0(q), \text{~if~} \nabla f_0(q) > 0 \text{~and~} x > q,
+f_0(z) > f_0(q), \text{~if~} \nabla f_0(q) > 0 \text{~and~} z > q,
 \end{equation*}
 similarly,
 \begin{equation*}
-f_0(x) > f_0(q), \text{~if~} \nabla f_0(q) < 0 \text{~and~} x < q.
+f_0(z) > f_0(q), \text{~if~} \nabla f_0(q) < 0 \text{~and~} z < q.
 \end{equation*}
-It means that 
+We conclude that
 \begin{equation*}
-f_0(x) > f_0(q), \text{~if~} \nabla f_0(q)^\top (x - q) > 0.
+f_0(z) > f_0(q), \text{~if~} \nabla f_0(q)^\top (z - q) > 0.
 \end{equation*}
-In other words, any point that satisfies inequality $\nabla f_0(q)^\top (x - q) > 0$ has an objective value larger than $f_0(q)$ 
+In other words, any point that satisfies inequality $\nabla f_0(q)^\top (z - q) > 0$ has an objective value larger than $f_0(q)$ 
 and hence cannot be optimal.
 It follows that we can form a cutting-plane
 \begin{equation}
 \label{eq:objcut}
-\nabla f_0(q)^\top (x - q) \le 0,
+\nabla f_0(q)^\top (z - q) \le 0,
 \end{equation}
 which is called an \textit{objective cut} for problem (\ref{eq:cvxprob}) and 
 it cuts out the half-space $\{z | \nabla f_0(q)^\top (z - q) > 0 \}$ with non-optimal points.
 
 If we keep track of the best (smallest) objective value $f_\text{best} = f_0(q_\text{best})$ for all feasible query points during the querying, 
-%since all other feasible points have objective values at least $f_\text{best}$, 
-since the optimal feasible point has an objective value at most $f_\text{best}$, 
-we can cut off the half-space of points $\{z | f_0(z) > f_\text{best} \}$ with objective values greater than $f_\text{best}$, 
+since the optimal point has an objective value at most $f_\text{best}$, 
+we can cut away the half-space of points $\{z | f_0(z) > f_\text{best} \}$ with objective values greater than $f_\text{best}$, 
 which means we add a constraint $f_0(z) \le f_\text{best}$, and considering Equation~(\ref{eq:funprop}), 
 we have a deep objective cut~\cite{boydlocalization},
 \begin{equation}
 \label{eq:deepobjcut}
-f_0(q) + \nabla f_0(q) (x - q) - f_\text{best} \le 0,
+f_0(q) + \nabla f_0(q)^\top (z - q) - f_\text{best} \le 0,
 \end{equation}
-where $q$ is the current query point. If $q = q_\text{best}$, this cut reduced to the objective cut~(\ref{eq:objcut}).
+where $q$ is the current query point. If $q = q_\text{best}$, this cut reduces to the objective cut~(\ref{eq:objcut}).
 
 %If $q$ is feasible and $\nabla f_0(q) = 0$ then $q$ is optimal.
 For non-differentiable problems, the gradients $\nabla f_j(z)$ can generally be replaced by sub-gradients.
@@ -147,7 +147,7 @@ we seek a point $q^{(k+1)}$ such that, no matter which direction to cut (returne
 
 Given query points $q^{(1)}, \dots, q^{(k)}$, 
 one approach to choose the next query point $q^{(k+1)}$ is to greedily use the vertex of the current polyhedron $\mathcal{P}_k$ 
-that minimises the objective, which can be found by solving~\cite{wulff2013analytic}
+that minimises the objective~\cite{wulff2013analytic}, which can be found by solving
 \begin{equation}
 \label{eq:kcg}
 \begin{aligned}
@@ -214,7 +214,7 @@ in particular, we always have
 \begin{equation}
 \frac{V(\mathcal{P}_{k+1})}{V(\mathcal{P}_{k})} \le 1 - \frac{1}{e} \approx 0.63,
 \end{equation}
-in other words, the volume of the localisation polyhedron is reduced by at least $37\%$ at each iteration~,
+in other words, the volume of the localisation polyhedron is reduced by at least $37\%$ at each iteration,
 and this guarantee is completely independent of all problem parameters, including the dimension $n$.
 However, it is \textit{extremely difficult} to compute the center of gravity of a polyhedron in $\mathbb{R}^n$, described by a set of linear inequalities,
 which makes this method impractical.
@@ -237,7 +237,7 @@ can be formulated as a quadratic program (QP)
 \begin{aligned}
 \min_{\mathbf{w}, ~\bm{\xi} \ge 0} ~& \frac{1}{2} \mathbf{w}^\top \mathbf{w} + \frac{C}{n} \sum_{i=1}^n \xi_i \\
 s.t.~~ ~& \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top \Psi(\mathbf{x}_i, \bar{\mathbf{y}}) \ge 
-       \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) - \xi_i, ~(\forall i, \bar{\mathbf{y}} \neq \mathbf{y}_i)
+       \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) - \xi_i, ~(\forall i,~ \bar{\mathbf{y}} \neq \mathbf{y}_i)
 \end{aligned}
 \end{equation}
 where $\mathbf{w}$ is the parameter vector, $C > 0$ is a regularisation constant, and $\xi_i$
@@ -269,7 +269,8 @@ until a specified precision $\varepsilon$ is achieved~\cite{joachims2009predicti
         \STATE Do loss-augmented inference:~
                $\hat{\mathbf{y}} = \argmax_{\bar{\mathbf{y}} \in \mathcal{Y}} \{ \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) + 
                 \langle \mathbf{w}^{(k)},~ \Psi(\mathbf{x}_i, \bar{\mathbf{y}}) \rangle \}$ 
-        \IF{~$q^{(k)}$ is not feasible:~ $\langle \mathbf{w}^{(k)},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}) \rangle + 
+        \IF{~$q^{(k)}$ is not $\varepsilon$-feasible:~ 
+             $\langle \mathbf{w}^{(k)},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}) \rangle + 
              \varepsilon < \Delta(\mathbf{y}_i, \hat{\mathbf{y}}) - \xi_i^{(k)}$~}
             \STATE Form a \emph{feasibility cut} and update constraints:~
                    $\mathcal{W} = \mathcal{W} \cup 
@@ -281,7 +282,7 @@ until a specified precision $\varepsilon$ is achieved~\cite{joachims2009predicti
         \ENDIF
     \ENDFOR
 %\UNTIL{$\mathcal{W}$ has not changed during iteration}
-\UNTIL{$q^{(k)}$ is feasible for all training examples}
+\UNTIL{$q^{(k)}$ is $\varepsilon$-feasible for all training examples}
 \RETURN $q^{(k)}$
 \end{algorithmic}
 \end{algorithm}
@@ -394,13 +395,12 @@ Given query point $q = \left[ \mathbf{w}^{(k)}, \xi^{(k)} \right]^\top$, if $q$ 
 \subsubsection{Feasibility cut}
 \label{sec:ssvm_feacut}
 
-On the other hand, if $q = (\mathbf{w}^{(k)}, \xi^{(k)})$ is not feasible, the following constraint must be violated,
+On the other hand, if $q = (\mathbf{w}^{(k)}, \xi^{(k)})$ is not feasible, the following constraint must be violated by $q$,
 \begin{equation}
 \label{eq:cut_1slackssvm}
 \frac{1}{n} \sum_{i=1}^n \langle \mathbf{w},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \rangle \ge 
 \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i) - \xi.
 \end{equation}
-
 Let 
 \begin{equation}
 \label{eq:constraint_k}
@@ -408,8 +408,8 @@ f_k(z) = \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i) -
          \frac{1}{n} \sum_{i=1}^n \langle \mathbf{w},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i) \rangle - \xi,
 \end{equation}
 where $z = [\mathbf{w}, \xi]^\top$.
-We can rewrite the violated constraint as $f_k(z) \le 0$.
-Since $q$ violates constraint (\ref{eq:cut_1slackssvm}), we can construct a \emph{feasibility cut}
+We can rewrite constraint (\ref{eq:cut_1slackssvm}) as $f_k(z) \le 0$.
+Since $q$ violates this constraint, we can construct a \emph{feasibility cut}
 \begin{equation}
 \label{eq:feacut_ssvm}
 \begin{aligned}
@@ -430,7 +430,7 @@ Since $q$ violates constraint (\ref{eq:cut_1slackssvm}), we can construct a \emp
 \end{equation}
 
 We found that inequalities (\ref{eq:cut_1slackssvm}) and (\ref{eq:feacut_ssvm}) are identical.
-This is \emph{not unexpected} as the plane tangent to $f_k(z)$ (also a plane) at point $q$ is \emph{identical} to plane $f_k(z)$
+This is \emph{not unexpected} as the hyperplane tangent to $f_k(z)$ (also a hyperplane) at point $q$ is \emph{identical} to hyperplane $f_k(z)$
 (assuming the same domain for $z$).
 %which means that the cutting-planes Algorithm~\ref{alg:1slacktrain} exploited are exactly \emph{feasibility cuts}. 
 %Note that this result does not dependent on the fact that 
@@ -453,29 +453,29 @@ Given query points $q^{(1)}, \dots, q^{(k)}$ and the feasibility cuts returned b
 \end{equation}
 where $q^{(k)} = (\mathbf{w}^{(k)}, \xi^{(k)})$ and $f_0(\cdot)$ is defined in Equation~(\ref{eq:optobj}).
 
-If we use the method of Kelley-Cheney-Goldstein described in Section~\ref{sec:kcg} to generate the next query point $q^{(k+1)}$,
+If we use the method of Kelley-Cheney-Goldstein (Section~\ref{sec:kcg}) to generate the next query point $q^{(k+1)}$,
 we need to solve the following optimisation problem,
 \begin{equation}
 \label{eq:ssvm_kcg}
 \begin{aligned}
 \min_{z} ~& \theta \\
 s.t.~~ ~& \theta \ge \langle \mathbf{w}^{(k)}, \mathbf{w} \rangle - \frac{1}{2} \langle \mathbf{w}^{(k)}, \mathbf{w}^{(k)} \rangle + C\xi,~ \forall k \\
-        & f_k(z) \le 0,~ \forall k, \\
+        & f_k(z) \le 0,~ \forall k \\
         & -\xi \le 0,
 \end{aligned}
 \end{equation}
 where $z = [\mathbf{w}, \xi]^\top$ and $f_k(z)$ is defined in Equation~(\ref{eq:constraint_k}).
 
-We solve a similar optimisation problem if we use the Chebyshev center method described in Section~\ref{sec:chebyshev} to generate the next query point,
+We need to solve a similar problem if we use the Chebyshev center method (Section~\ref{sec:chebyshev}) to generate the next query point,
 \begin{equation}
 \label{eq:ssvm_chebyshev}
 \begin{aligned}
 \min_{z} ~& \theta \\
 s.t.~~ ~& \theta \ge 
-          \frac{1}{D_k} \langle \mathbf{w}^{(k)}, \mathbf{w} \rangle - 
+          \frac{1}{D_k} \langle \mathbf{w}^{(k)}, \mathbf{w} \rangle + 
           (\frac{1}{2} - \frac{1}{D_k}) \langle \mathbf{w}^{(k)}, \mathbf{w}^{(k)} \rangle + 
           \frac{C}{D_k}\xi + C (1 - \frac{1}{D_k}) \xi^{(k)},~ \forall k \\
-        & f_k(z) \le 0,~ \forall k, \\
+        & f_k(z) \le 0,~ \forall k \\
         & -\xi \le 0,
 \end{aligned}
 \end{equation}
@@ -487,7 +487,7 @@ The method to generate the next query point used in Algorithm~\ref{alg:1slacktra
 \label{eq:ssvm_genquery}
 \begin{aligned}
 \min_{z} ~& \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \xi \\
-s.t.~~ ~& f_k(z) \le 0,~ \forall k, \\
+s.t.~~ ~& f_k(z) \le 0,~ \forall k \\
         & -\xi \le 0.
 \end{aligned}
 \end{equation}
