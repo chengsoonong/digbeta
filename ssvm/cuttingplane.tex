@@ -2,8 +2,9 @@
 %\documentclass[twocolumn,10pt,a4paper]{article}
 %\documentclass[twocolumn,a4wide,9pt]{extarticle}
 \documentclass[9pt]{extarticle}
-%\usepackage[a4paper,top=0.85in,left=0.75in,bottom=1in,right=0.52in]{geometry}
-\usepackage[a4paper,top=0.5in,left=0.75in,bottom=0.6in,right=0.52in]{geometry}
+\usepackage[a4paper,top=0.85in,left=0.75in,bottom=1in,right=0.52in]{geometry} % A4 paper margins
+%\usepackage[a4paper,top=0.5in,left=0.75in,bottom=0.6in,right=0.52in]{geometry}
+%\usepackage[a4paper,top=0.5in,left=0.75in,bottom=0.7in,right=0.52in]{geometry}
 \usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{amsfonts}
@@ -256,12 +257,13 @@ s.t.~~ ~& \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top \Ps
 \end{equation}
 where $\mathbf{w}$ is the parameter vector, $C > 0$ is a regularisation constant, and $\xi_i$
 is a slack variable that represents the \emph{hinge loss} associated with the prediction for the $i$-th example~\cite{tsochantaridis2005large},
-\begin{equation*}
+\begin{equation}
+\label{eq:nslackloss}
 \xi_i = \max \left( 0,~ 
         \max_{\bar{\mathbf{y}} \in \mathcal{Y}} 
         \left\{ \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) + \mathbf{w}^\top \Psi(\mathbf{x}_i, \bar{\mathbf{y}}) \right\} -
         \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) \right).
-\end{equation*}
+\end{equation}
 This formulation is called "$n$-slack" as we have one slack variable for each example in training set. \eat{citation}
 
 To train the $n$-slack formulation of structured SVM, one option is simply enumerating all constraints and 
@@ -275,8 +277,8 @@ until a specified precision $\varepsilon$ is achieved~\cite{joachims2009predicti
 \caption{Cutting-plane algorithm for training $n$-slack formulation of structured SVM (with margin-rescaling)}
 \label{alg:nslacktrain}
 \begin{algorithmic}[1]
-\STATE \textbf{Input}: $S = \left( (\mathbf{x}_1, \mathbf{y}_1), \dots, (\mathbf{x}_n, \mathbf{y}_n) \right),~ C,~ \varepsilon$
-\STATE $\mathcal{W} = \emptyset,~ k = 1,~ \mathbf{w}^{(k)} = \mathbf{0},~ \bm{\xi}^{(k)} = \mathbf{0}$
+\STATE \textbf{Input}: $\left( (\mathbf{x}_1, \mathbf{y}_1), \dots, (\mathbf{x}_n, \mathbf{y}_n) \right),~ C,~ \varepsilon$
+\STATE $\mathcal{W} = \emptyset,~\mathcal{S}_i = \emptyset,~ k = 1,~ \mathbf{w}^{(k)} = \mathbf{0},~ \bm{\xi}^{(k)} = \mathbf{0}$
 \REPEAT
     \FOR{$i = 1,\dots,n$}
         \STATE $\triangleright$ Query the oracle at point $q^{(k)} = (\mathbf{w}^{(k)}, \bm{\xi}^{(k)})$ as follows
@@ -286,10 +288,10 @@ until a specified precision $\varepsilon$ is achieved~\cite{joachims2009predicti
         \IF{~$q^{(k)}$ is not $\varepsilon$-feasible:~ 
              $\langle \mathbf{w}^{(k)},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}^{(k)}) \rangle + 
              \varepsilon < \Delta(\mathbf{y}_i, \hat{\mathbf{y}}^{(k)}) - \xi_i^{(k)}$~}
-            \STATE Form a \emph{feasibility cut} and update constraints:~
-                   $\mathcal{W} = \mathcal{W} \cup 
+            \STATE $\triangleright$ Form a \emph{feasibility cut} and update constraints
+            \STATE $\mathcal{W} = \mathcal{W} \cup 
                     \left\{ \langle \mathbf{w},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}^{(k)}) \rangle \ge 
-                    \Delta(\mathbf{y}_i, \hat{\mathbf{y}}^{(k)}) - \xi_i \right\}$ 
+                    \Delta(\mathbf{y}_i, \hat{\mathbf{y}}^{(k)}) - \xi_i \right\},~ \mathcal{S}_i = \mathcal{S}_i \cup \{\hat{\mathbf{y}}^{(k)} \}$ 
             \STATE Generate the next query point $q^{(k+1)} = (\mathbf{w}^{(k+1)}, \bm{\xi}^{(k+1)})$ 
                    by solving QP~(\ref{eq:nslackform}) w.r.t. all constraints in $\mathcal{W}$
             \STATE $k = k+1$
@@ -300,6 +302,15 @@ until a specified precision $\varepsilon$ is achieved~\cite{joachims2009predicti
 \RETURN $q^{(k)}$
 \end{algorithmic}
 \end{algorithm}
+
+Alternatively, the query point in Algorithm~\ref{alg:nslacktrain} will contain only $\mathbf{w}^{(k)}$
+if we compute the loss $\xi_i^{(k)}$ on the fly~\cite{tsochantaridis2004support}
+\begin{equation*}
+\xi_i^{(k)} = \max \left( 0,~ 
+              \max_{\bar{\mathbf{y}} \in \mathcal{S}_i} 
+              \left\{ \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) + \langle \mathbf{w}^{(k)}, \Psi(\mathbf{x}_i, \bar{\mathbf{y}}) \rangle \right\} -
+              \langle \mathbf{w}^{(k)}, \Psi(\mathbf{x}_i, \mathbf{y}_i) \rangle \right).
+\end{equation*}
 
 
 \subsection{Train the $1$-slack formulation of structured SVM}
@@ -319,14 +330,15 @@ s.t.~~ ~& \forall(\bar{\mathbf{y}}_1, \dots, \bar{\mathbf{y}}_n) \in \mathcal{Y}
 \end{aligned}
 \end{equation}
 Here the slack variable $\xi$ represents the \emph{sum of the hinge-losses} over all training examples,
-\begin{equation*}
+\begin{equation}
+\label{eq:1slackloss}
 \xi = \max \left( 0,~ 
       \max_{(\bar{\mathbf{y}}_1, \dots, \bar{\mathbf{y}}_n) \in \mathcal{Y}^n} 
       \left\{ 
       \frac{1}{n} \sum_{i=1}^n \left( \Delta(\mathbf{y}_i, \bar{\mathbf{y}}_i) + \mathbf{w}^\top \Psi(\mathbf{x}_i, \bar{\mathbf{y}}_i) \right)
       \right\} - \frac{1}{n} \sum_{i=1}^n \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i)
       \right).
-\end{equation*}
+\end{equation}
 
 
 Compared with the $n$-slack formulation described in Section~\ref{sec:nslackssvm}, 
@@ -591,6 +603,98 @@ s.t.~~ ~& \theta \ge \frac{1}{2} \mathbf{w}^\top \mathbf{w} + \frac{C}{n} \langl
 \end{equation}
 
 We observe similar differences as described in Section~\ref{sec:compare_1slack}.
+
+
+\subsection{Efficient training via dualisation}
+\label{sec:innerdual}
+
+Recall that in Section~\ref{sec:nslackssvm}, 
+the seperation oracle solves a loss-augmented inference problem for each query (Algorithm~\ref{alg:nslacktrain}),
+which significantly reduces the scalability of the training algorithm.
+Techniques have been developped to overcome this repeated inference, 
+by exploring the dual problem of either the loss-augmented inference or the hinge-loss~\cite{taskar2004dissertation, meshi2010learning, bach2015paired},
+which we review briefly in this section.
+
+
+\subsubsection{Dualise loss-augmented inference}
+\label{sec:dualinf}
+
+The $n$-slack formulation of structured SVM~(\ref{eq:nslackform}) described in Section~\ref{sec:nslackssvm} is equivalent to
+\begin{align}
+\min_{\mathbf{w}, ~\bm{\xi} \ge 0} ~& \frac{1}{2} \mathbf{w}^\top \mathbf{w} + \frac{C}{n} \sum_{i=1}^n \xi_i \\
+s.t.~~ ~& \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) + \xi_i \ge
+          \max_{\bar{\mathbf{y}} \in \mathcal{Y}_i} 
+          \left\{\mathbf{w}^\top \Psi(\mathbf{x}_i, \bar{\mathbf{y}}) + \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) \right\},~\forall i. \label{eq:lossauginf}
+\end{align}
+
+If we can find a \emph{compact} formulation of the right-hand side of Equation~\ref{eq:lossauginf} (i.e., the loss-augmented inference),
+in other words, the number of variables and constraints in the formulation is \emph{polynomial} in $L_i$, the number of variables in $\mathbf{y}_i$,
+we can write its Lagrangian dual problem as 
+\begin{align*}
+\min_{\bm{\lambda}_i \ge \mathbf{0}} ~& h_i(\mathbf{w}, \bm{\lambda}_i) \\
+s.t.~~ ~& g_i(\mathbf{w}, \bm{\lambda}_i) \le 0,
+\end{align*}
+where $h_i(\cdot)$ and $g_i(\cdot)$ are convex in both $\mathbf{w}$ and $\bm{\lambda}_i$.
+Combining this minimisation over $\bm{\lambda}_i$ with the minimisation over $\mathbf{w}$ and $\bm{\xi}$,
+we have a joint and compact convex minimisation problem
+\begin{equation}
+\label{eq:dualinf}
+\begin{aligned}
+\min_{\mathbf{w}, \bm{\xi}, \bm{\lambda}} ~& \frac{1}{2} \mathbf{w}^\top \mathbf{w} + \frac{C}{n} \sum_{i=1}^n \xi_i \\
+s.t.~~ ~& \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) + \xi_i \ge h_i(\mathbf{w}, \bm{\lambda}_i), ~\forall i \\
+        & g_i(\mathbf{w}, \bm{\lambda}_i) \le 0, ~\forall i \\
+        & \bm{\xi} \ge \mathbf{0}, ~\bm{\lambda}_i \ge \mathbf{0}, ~\forall i.
+\end{aligned}
+\end{equation}
+
+Problem (~\ref{eq:dualinf}) is a quadratic program with polynomial number of variables and constraints, 
+and can be solved using existing off-the-shelf QP solvers.
+Details of this approach are available in \cite{taskar2004dissertation} (Chapter $4$).
+
+
+\subsubsection{Dualise losses}
+\label{sec:dualloss}
+
+A slightly different approach is to approximate the loss (Equation~\ref{eq:nslackloss}) using linear programming (LP) relaxation and 
+then dualise the LP. 
+
+For a graph $G$ with a set of nodes $N$ and a set of edges $E$, 
+we first assume that the structured label $\mathbf{y}$ is multivariate and has $d$ variables $(y_1, \dots, y_d)$,
+in addition, the joint feature map $\Psi(\mathbf{x}, \mathbf{y})$ is assumed to decompose into singleton and pairwise factors,
+\begin{equation*}
+\mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) = 
+\sum_{j \in N} \mathbf{w}_j^\top \phi_j(\mathbf{x}, y_j) + \sum_{jk \in E} \mathbf{w}_{jk}^\top \phi_{jk}(\mathbf{x}, y_j, y_k),
+\end{equation*}
+where $\mathbf{w}_j$ and $\mathbf{w}_{jk}$ are vectors of weights.
+
+Furthermore, the discrepancy term $\Delta(\mathbf{y}, \bar{\mathbf{y}})$ is assumed to decompose according to variables in $\mathbf{y}$.
+The loss of one training example can be approximated by the following LP relaxation
+\begin{equation*}
+\begin{aligned}
+\max_{\bm{\mu} \ge \mathbf{0}} ~& \bm{\mu}^\top \bm{\theta}(\mathbf{w}) \\
+s.t.~~ ~& \sum_{y_k} \mu_{jk}(y_j, y_k) = \mu_j(y_j), \\
+        & \sum_{y_j} \mu_{jk}(y_j, y_k) = \mu_k(y_k), \\
+        & \sum_{y_j} \mu_j(y_j) = 1.
+\end{aligned}
+\end{equation*}
+
+Let $g(\bm{\delta}, \bm{\theta}(\mathbf{w}))$ be the dual (as described in~\cite{werner2007linear}) of the above LP relaxation,
+problem (\ref{eq:nslackform}) can be rewritten as
+\begin{equation*}
+\min_{\mathbf{w}, ~\bm{\delta}_i} ~\frac{1}{2} \mathbf{w}^\top \mathbf{w} + \frac{C}{n} \sum_{i=1}^n g_i(\bm{\delta}_i, \bm{\theta}_i(\mathbf{w})),
+\end{equation*}
+which is an unconstrained minimisation problem that is jointly convex over $\mathbf{w}$ and $\bm{\delta}_i,\forall i$.
+(Note that $g_i(\cdot)$ is not strictly convex but this can be overcome using a trick described in~\cite{meshi2010learning}.)
+
+As $\bm{\delta}_i$ depends only on the $i$-th training example, block coordinate descent of $g_i(\bm{\delta}_i, \bm{\theta}_i(\mathbf{w}))$ 
+can be performed in closed form~\cite{werner2007linear, globerson2008fixing}, 
+which leads to the following learning loop:
+\begin{enumerate}
+\item perform coordinate descent, update $\bm{\delta}_i^{(t+1)}, \forall i$ using closed form equation,
+\item take sub-gradient of the optimisation objective with respect to $\mathbf{w}$,
+\item update parameters $\mathbf{w}^{(t+1)}$ using stochastic sub-gradient descent.
+\end{enumerate}
+Details of this approach are available in \cite{meshi2010learning}.
 
 
 \section{Trajectory recommendation via structured prediction}
