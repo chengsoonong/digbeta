@@ -647,7 +647,7 @@ s.t.~~ ~& \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) + \xi_i \ge h_i(\math
 \end{aligned}
 \end{equation}
 
-Problem (~\ref{eq:dualinf}) is a quadratic program with polynomial number of variables and constraints, 
+Problem (\ref{eq:dualinf}) is a quadratic program with polynomial number of variables and constraints, 
 and can be solved using existing off-the-shelf QP solvers.
 Details of this approach are available in \cite{taskar2004dissertation} (Chapter $4$).
 
@@ -722,11 +722,12 @@ Given a joint feature design $\Psi(\cdot)$ and a cost function $\Delta(\cdot)$,
 we can train a structured SVM (Section~\ref{sec:ssvm}) using available trajectory dataset and 
 make prediction/recommendation with respect to a trajectory query.
 The design of both $\Psi(\cdot)$ and $\Delta(\cdot)$ are problem specific,
-in the setting of trajectory recommendation, one option for the joint feature design is
-\begin{equation*}
-\Psi(\mathbf{x}, \mathbf{y}) = \sum_{j=1}^L \mathbf{w}_u^\top \phi_j(\mathbf{x}, y_j) +
-                               \sum_{j=1}^{L-1} \mathbf{w}_p^\top \phi_{j, j+1}(y_j, y_{j+1}),
-\end{equation*}
+in the setting of trajectory recommendation, we assume the joint feature map can be decomposed into singleton and pairwise features, i.e.,
+\begin{equation}
+\label{eq:jointfeature}
+\mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) = \sum_{j=1}^L \mathbf{w}_u^\top \phi_j(\mathbf{x}, y_j) +
+                                               \sum_{j=1}^{L-1} \mathbf{w}_p^\top \phi_{j, j+1}(\mathbf{x}, y_j, y_{j+1}),
+\end{equation}
 where $\mathbf{w}_u$ and $\mathbf{w}_p$ are parameter vectors,
 $y_j$ is the $j$-th POI in trajectory $\mathbf{y}$, 
 $\phi_j$ is a feature vector of POI $y_j$ with respect to query $\mathbf{x}$ (Table~\ref{tab:poifeature}),
@@ -734,11 +735,45 @@ $\phi_{j,j+1}$ is a pairwise feature vector that captures the affinity of transi
 here we use the transition probabilities between individual POI features as described in Table~\ref{tab:tranfeature}.
 This joint feature design shares parameters among POIs/transitions in a trajectory.
 
-Moreover, as trajectory is a sequence of POI visits, we can employ Hamming loss to measure the cost needs to pay
-if recommending trajectory $\hat{\mathbf{y}}$ to query $\mathbf{x}$ when $\mathbf{y}$ is the ground truth,
-\begin{equation*}
-\Delta(\mathbf{y}, \hat{\mathbf{y}}) = \frac{1}{L} \sum_{j=1}^L \mathbf{xor} (y_j, \hat{y}_j).
-\end{equation*}
+Given a set of POIs $\mathcal{P} = \{p_1, \dots, p_M\}$ and a trajectory query $\mathbf{x} = (p_s, p_e, L)$,
+we can formulate trajectory recommendation problem using the $n$-slack formulation of structured SVM described in Section~\ref{sec:nslackssvm},
+for an example $(\mathbf{x}, \mathbf{y})$, we have a constraint
+\begin{equation}
+\label{eq:trajcons}
+\mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) + \xi \ge
+          \max_{\bar{\mathbf{y}} \in \mathcal{Y}} 
+          \left\{\mathbf{w}^\top \Psi(\mathbf{x}, \bar{\mathbf{y}}) + \Delta(\mathbf{y}, \bar{\mathbf{y}}) \right\},
+\end{equation}
+considering the sub-tour elimination constraints in a trajectory, we can formulate the right-hand side of constraint (\ref{eq:trajcons}), 
+i.e., the loss-augmented inference,
+using an integer linear program (ILP), assuming the discrepancy function $\Delta(\cdot)$ can be represented as a linear function, 
+%Hamming loss seems not possible
+\begin{alignat}{5}
+& \max_{u,v} ~&& \frac{1}{2} \sum_{j=1}^M \sum_{k=1}^M u_{jk} \mathbf{w}_u^\top \phi_j(\mathbf{x}, p_j) + 
+                 \sum_{j=1}^M \sum_{k=1}^M u_{jk} \mathbf{w}_p^\top \phi_{j, k}(\mathbf{x}, p_j, p_k) + \Delta(\mathbf{y}, \bar{\mathbf{y}}) \\
+& s.t. ~~ ~&& u_{jk} \in \{0, 1\}, ~u_{jj} = 0, ~v_j \in \mathbf{Z},~ p_j \in \mathcal{P}, ~\forall j, k = 1, \cdots, M    \label{eq:cons1} \\
+&        && \sum_{k=2}^M u_{1k} = \sum_{j=1}^{M-1} u_{jM} = 1, ~\sum_{j=2}^M u_{j1} = \sum_{k=1}^{M-1} u_{Mk} = 0  \label{eq:cons2} \\
+&        && \sum_{j=1}^{M-1} u_{jl} = \sum_{k=2}^M x_{lk} \le 1,   ~\forall l=2, \cdots, M-1                       \label{eq:cons3} \\
+&        && \sum_{j=1}^{M-1} \sum_{k=2}^M u_{jk} = L-1,                                                            \label{eq:cons4} \\
+&        && v_j - v_k + 1 \le (M-1) (1-u_{jk}),                     \forall j, k = 2, \cdots, M                    \label{eq:cons5}
+\end{alignat}
+where $u_{jk}$ is a binary decision variable that determines whether the transition from $p_j$ to $p_k$ is in the resulting trajectory,
+$L$ is the number of POIs in trajectory $\mathbf{y}$, and $\bar{\mathbf{y}}$ is the trajectory corresponding to the optimal solution of this ILP.
+For brevity, we arrange the POIs such that $p_1 = p_s$ and $p_M = p_e$.
+Firstly, the desired trajectory should start from $p_s$ and end at $p_e$ (Constraint~\ref{eq:cons2}).
+In addition, any POI could be visited at most once (Constraint~\ref{eq:cons3}).
+Moreover, only $L-1$ transitions between POIs are permitted (Constraint~\ref{eq:cons4}),
+i.e., the number of POI visits should be exactly $L$ (including $p_s$ and $p_e$).
+The last constraint, where $v_i$ is an auxiliary variable,
+enforces that only a single sequence of POIs without sub-tours is permitted in the trajectory.
+
+
+
+%Moreover, as trajectory is a sequence of POI visits, we can employ Hamming loss to measure the cost needs to pay
+%if recommending trajectory $\hat{\mathbf{y}}$ to query $\mathbf{x}$ when $\mathbf{y}$ is the ground truth,
+%\begin{equation*}
+%\Delta(\mathbf{y}, \hat{\mathbf{y}}) = \frac{1}{L} \sum_{j=1}^L \mathbf{xor} (y_j, \hat{y}_j).
+%\end{equation*}
 
 
 % inference method
