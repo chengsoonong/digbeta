@@ -700,11 +700,10 @@ Details of this approach are available in \cite{meshi2010learning}.
 \section{Trajectory recommendation via structured prediction}
 \label{sec:recommend}
 
-Given a set of point of interest (POI) $\mathcal{P}$ and a trajectory query $\mathbf{x} = (p_s, p_e, L)$,
+Given a set of point of interest (POI) $\mathcal{P} = \{p_1, \dots, p_M\}$ and a trajectory query $\mathbf{x} = (p_s, p_e, L)$,
 where $p_s$ and $p_e$ are the desired start/end POI respectively, $L$ is the desired number of POIs.
 We can model the desired trajectory with respect to query $\mathbf{x}$ as a chain of discrete variables, 
-with the first and last variables been observed, and each variable has $|\mathcal{P}|$ states.
-
+with the first and last variables being observed, and each variable has $|\mathcal{P}|$ states.
 To make a recommendation, we find a trajectory that achieves the highest score
 \begin{equation*}
 \mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}} f(\mathbf{x}, \mathbf{y}),
@@ -718,11 +717,12 @@ where $\mathbf{w}$ is a vector of model parameters and
 the vector $\Psi(\mathbf{x}, \mathbf{y})$ is called a \emph{joint feature map} 
 which captures features extracted from both query $\mathbf{x}$ and trajectory $\mathbf{y}$.
 
-Given a joint feature design $\Psi(\cdot)$ and a cost function $\Delta(\cdot)$,
-we can train a structured SVM (Section~\ref{sec:ssvm}) using available trajectory dataset and 
-make prediction/recommendation with respect to a trajectory query.
-The design of both $\Psi(\cdot)$ and $\Delta(\cdot)$ are problem specific,
-in the setting of trajectory recommendation, we assume the joint feature map can be decomposed into singleton and pairwise features, i.e.,
+
+\subsection{Joint feature}
+\label{sec:jointfeature}
+
+The design of joint feature $\Psi(\cdot)$ is problem specific, 
+in the setting of trajectory recommendation, we assume $\Psi(\cdot)$ can be decomposed into singleton and pairwise features, i.e.,
 \begin{equation}
 \label{eq:jointfeature}
 \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) = \sum_{j=1}^L \mathbf{w}_u^\top \phi_j(\mathbf{x}, y_j) +
@@ -735,7 +735,11 @@ $\phi_{j,j+1}$ is a pairwise feature vector that captures the affinity of transi
 here we use the transition probabilities between individual POI features as described in Table~\ref{tab:tranfeature}.
 This joint feature design shares parameters among POIs/transitions in a trajectory.
 
-Given a set of POIs $\mathcal{P} = \{p_1, \dots, p_M\}$ and a trajectory query $\mathbf{x} = (p_s, p_e, L)$,
+
+\subsection{Problem formulation}
+\label{sec:trajform}
+
+Given a joint feature design $\Psi(\cdot)$ and a discrepancy function $\Delta(\cdot)$,
 we can formulate trajectory recommendation problem using the $n$-slack formulation of structured SVM described in Section~\ref{sec:nslackssvm},
 for an example $(\mathbf{x}, \mathbf{y})$, we have a constraint
 \begin{equation}
@@ -768,12 +772,32 @@ The last constraint, where $v_i$ is an auxiliary variable,
 enforces that only a single sequence of POIs without sub-tours is permitted in the trajectory.
 
 
+\subsection{Discrepancy function}
+\label{sec:lossfunc}
 
-%Moreover, as trajectory is a sequence of POI visits, we can employ Hamming loss to measure the cost needs to pay
-%if recommending trajectory $\hat{\mathbf{y}}$ to query $\mathbf{x}$ when $\mathbf{y}$ is the ground truth,
-%\begin{equation*}
-%\Delta(\mathbf{y}, \hat{\mathbf{y}}) = \frac{1}{L} \sum_{j=1}^L \mathbf{xor} (y_j, \hat{y}_j).
-%\end{equation*}
+Similar to the joint feature map $\Psi(\cdot)$, the design of $\Delta(\cdot)$ is also problem specific.
+To measure the discrepancy between the predicted trajectory $\bar{\mathbf{y}}$ and the ground truth $\mathbf{y}$, 
+one option could be the \emph{Hamming loss}, as trajectory is a sequence of POI visits, 
+\begin{equation}
+\label{eq:hammingloss}
+\Delta(\mathbf{y}, \bar{\mathbf{y}}) = \frac{1}{L} \sum_{j=1}^L \textbf{xor} (y_j, \bar{y}_j) = \frac{1}{L} \sum_{j=1}^L y_j \oplus \bar{y}_j,
+\end{equation}
+%In the formulation described in Section~\ref{sec:trajform}, 
+and the prediction $\bar{\mathbf{y}}$ can be computed as follows,
+\begin{align}
+\bar{y}_1 &= y_1, \\
+\bar{y}_j &= j \sum_{k=1}^M u_{\bar{y}_{j-1}, k},~ j=2,\dots,L.  \label{eq:poipred}
+\end{align}
+
+The $\textbf{xor}$ operator in Equation~(\ref{eq:hammingloss}) is linear, however,
+the indexing operator in Equation~(\ref{eq:poipred}) is \emph{non-linear} since $\bar{y}_{j-1}$ is a variable.
+On the other hand, if we measure the discrepancy using the number of mispredicted POIs (normalised),
+\begin{equation}
+\Delta(\mathbf{y}, \bar{\mathbf{y}}) = \frac{1}{L} \mid \textbf{set}(\mathbf{y}) \setminus \textbf{set}(\bar{\mathbf{y}}) \mid 
+                                     = \frac{1}{L} \sum_{j=1}^L \left( 1 - \sum_{k=1}^M u_{y_j, k} \right),
+\end{equation}
+which is linear as $y_j$ is a constant.
+
 
 
 % inference method
