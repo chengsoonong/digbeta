@@ -2,9 +2,10 @@
 %\documentclass[twocolumn,10pt,a4paper]{article}
 %\documentclass[twocolumn,a4wide,9pt]{extarticle}
 \documentclass[9pt]{extarticle}
-\usepackage[a4paper,top=0.85in,left=0.75in,bottom=1in,right=0.52in]{geometry} % A4 paper margins
+%\usepackage[a4paper,top=0.85in,left=0.75in,bottom=1in,right=0.52in]{geometry} % A4 paper margins
 %\usepackage[a4paper,top=0.5in,left=0.75in,bottom=0.6in,right=0.52in]{geometry}
 %\usepackage[a4paper,top=0.5in,left=0.75in,bottom=0.7in,right=0.52in]{geometry}
+\usepackage[a4paper,top=0.75in,left=0.75in,bottom=0.9in,right=0.52in]{geometry} % A4 paper margins
 \usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{amsfonts}
@@ -612,7 +613,8 @@ Recall that in Section~\ref{sec:nslackssvm},
 the seperation oracle solves a loss-augmented inference problem for each query (Algorithm~\ref{alg:nslacktrain}),
 which significantly reduces the scalability of the training algorithm.
 Techniques have been developped to overcome this repeated inference, 
-by exploring the dual problem of either the loss-augmented inference or the hinge-loss~\cite{taskar2004dissertation, meshi2010learning, bach2015paired},
+by exploring the dual problem of either the loss-augmented inference or 
+the hinge-loss~\cite{taskar2004dissertation,taskar2005learning,meshi2010learning, bach2015paired},
 which we review briefly in this section.
 
 
@@ -627,7 +629,7 @@ s.t.~~ ~& \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) + \xi_i \ge
           \left\{\mathbf{w}^\top \Psi(\mathbf{x}_i, \bar{\mathbf{y}}) + \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) \right\},~\forall i. \label{eq:lossauginf}
 \end{align}
 
-If we can find a \emph{compact} formulation of the right-hand side of Equation~\ref{eq:lossauginf} (i.e., the loss-augmented inference),
+If we can find a \emph{concise} formulation of the right-hand side of Equation~\ref{eq:lossauginf} (i.e., the loss-augmented inference),
 in other words, the number of variables and constraints in the formulation is \emph{polynomial} in $L_i$, the number of variables in $\mathbf{y}_i$,
 we can write its Lagrangian dual problem as 
 \begin{align*}
@@ -649,7 +651,7 @@ s.t.~~ ~& \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) + \xi_i \ge h_i(\math
 
 Problem (\ref{eq:dualinf}) is a quadratic program with polynomial number of variables and constraints, 
 and can be solved using existing off-the-shelf QP solvers.
-Details of this approach are available in \cite{taskar2004dissertation} (Chapter $4$).
+Details of this approach are available in \cite{taskar2005learning}.
 
 
 \subsubsection{Dualise losses}
@@ -722,7 +724,8 @@ which captures features extracted from both query $\mathbf{x}$ and trajectory $\
 \label{sec:jointfeature}
 
 The design of joint feature $\Psi(\cdot)$ is problem specific, 
-in the setting of trajectory recommendation, we assume $\Psi(\cdot)$ can be decomposed into singleton and pairwise features, i.e.,
+in the setting of trajectory recommendation, we assume $\Psi(\cdot)$ can be decomposed into singleton and pairwise features, 
+and share parameters among nodes and edges, i.e.,
 \begin{equation}
 \label{eq:jointfeature}
 \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) = \sum_{j=1}^L \mathbf{w}_u^\top \phi_j(\mathbf{x}, y_j) +
@@ -780,23 +783,33 @@ To measure the discrepancy between the predicted trajectory $\bar{\mathbf{y}}$ a
 one option could be the \emph{Hamming loss}, as trajectory is a sequence of POI visits, 
 \begin{equation}
 \label{eq:hammingloss}
-\Delta(\mathbf{y}, \bar{\mathbf{y}}) = \frac{1}{L} \sum_{j=1}^L \textbf{xor} (y_j, \bar{y}_j) = \frac{1}{L} \sum_{j=1}^L y_j \oplus \bar{y}_j,
+%\Delta(\mathbf{y}, \bar{\mathbf{y}}) = \frac{1}{L} \sum_{j=1}^L \textbf{xor} (y_j, \bar{y}_j) = \frac{1}{L} \sum_{j=1}^L y_j \oplus \bar{y}_j,
+\Delta(\mathbf{y}, \bar{\mathbf{y}}) = \frac{1}{L} \sum_{j=1}^L (y_j \neq \bar{y}_j) = \frac{1}{L} \sum_{j=1}^L \left(1 - \delta_{y_j, \bar{y}_j} \right),
 \end{equation}
 %In the formulation described in Section~\ref{sec:trajform}, 
+where $\delta_{y_j, \bar{y}_j}$ is the Kronecker delta,
 and the prediction $\bar{\mathbf{y}}$ can be computed as follows,
 \begin{align}
 \bar{y}_1 &= y_1, \\
 \bar{y}_j &= j \sum_{k=1}^M u_{\bar{y}_{j-1}, k},~ j=2,\dots,L.  \label{eq:poipred}
 \end{align}
 
-The $\textbf{xor}$ operator in Equation~(\ref{eq:hammingloss}) is linear, however,
-the indexing operator in Equation~(\ref{eq:poipred}) is \emph{non-linear} since $\bar{y}_{j-1}$ is a variable.
-On the other hand, if we measure the discrepancy using the number of mispredicted POIs (normalised),
+As both $y_j$ and $\bar{y}_j$ in Equation~(\ref{eq:hammingloss}) take integer values,
+and the index $\bar{y}_{j-1}$ in Equation~(\ref{eq:poipred}) is a variable,
+it seems that Hamming loss is not a linear function of $u$ in this case.
+%The $\textbf{xor}$ operator in Equation~(\ref{eq:hammingloss}) is linear, however,
+%the indexing operator in Equation~(\ref{eq:poipred}) is \emph{non-linear} since $\bar{y}_{j-1}$ is a variable.
+%On the other hand, 
+However, if we measure the discrepancy using the number of mispredicted POIs (normalised),
 \begin{equation}
 \Delta(\mathbf{y}, \bar{\mathbf{y}}) = \frac{1}{L} \mid \textbf{set}(\mathbf{y}) \setminus \textbf{set}(\bar{\mathbf{y}}) \mid 
                                      = \frac{1}{L} \sum_{j=1}^L \left( 1 - \sum_{k=1}^M u_{y_j, k} \right),
 \end{equation}
-which is linear as $y_j$ is a constant.
+or the number of mispredicted transitions (normalised),
+\begin{equation}
+\Delta(\mathbf{y}, \bar{\mathbf{y}}) = \frac{1}{L} \sum_{j=1}^{L-1} \left( 1 - u_{y_j, y_{j+1}} \right),
+\end{equation}
+which are linear as $y_j$ is a constant.
 
 
 
