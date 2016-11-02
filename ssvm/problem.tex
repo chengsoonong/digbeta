@@ -1,0 +1,359 @@
+%\documentclass[10pt,a4paper]{article}
+%\documentclass[twocolumn,10pt,a4paper]{article}
+%\documentclass[twocolumn,a4wide,9pt]{extarticle}
+\documentclass[twocolumn,9pt]{extarticle}
+%\usepackage[a4paper,top=0.85in,left=0.75in,bottom=1in,right=0.52in]{geometry} % A4 paper margins
+\usepackage[a4paper,top=0.75in,left=0.55in,bottom=0.9in,right=0.5in]{geometry} % A4 paper margins
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{bm}
+\usepackage{bbm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage[sc]{mathpazo}
+\linespread{1.05}         % Palladio needs more leading (space between lines)
+\usepackage[T1]{fontenc}
+
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+\newcommand{\eat}[1]{}
+\setlength{\columnsep}{1.5em} % spacing between columns
+
+\title{The Trajectory Recommendation Problem}
+
+\author{Dawei Chen}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+
+\section{Problem formulation}
+\label{sec:formulation}
+
+Given a set of point of interest (POI) $\mathcal{P}$ and a trajectory query $\mathbf{x} = (s, k)$,
+where $s \in \mathcal{P}$ is the desired start POI and $k$ is the number of POIs in the desired trajectory (including the start location $s$).
+We want to recommend a sequence of POIs $\mathbf{y}^*$ that maximises utility, i.e.,
+\begin{equation*}
+\mathbf{y}^* = \argmax_{\mathbf{y}}~f(\mathbf{x}, \mathbf{y}),
+\end{equation*}
+where $\mathbf{y} = (y_1 = s,~ y_2, \dots, y_k),~ y_i \in \mathcal{P},~ i=1,\dots,k$, and $y_i \ne y_j$ if $i \ne j$.
+
+
+
+\section{Related problems}
+\label{sec:related}
+
+This problem is related to automatic playlist generation, 
+where we recommend a sequence of songs given a specified song (a.k.a. seed) and the number of new songs.
+
+Another similar problem is choosing a small set of photos from a large photo library and compiling them into a slideshow or movie.
+
+
+
+\section{Proposed methods}
+\label{sec:methods}
+
+We can solve the problem using simple models such as linear regression, logistic regression and learning to rank,
+moreover, sophisticated approaches such as structured models (probabilistic or non-probabilistic) can also be employed.
+In this section, we describe these methods briefly.
+
+The training set contains $N$ trajectories 
+$\{ \mathbf{x}^{(i)}, \mathbf{y}^{(i)} \}_{i=1}^N$,
+where $\mathbf{y}^{(i)}$ is the $i$-th trajectory and $\mathbf{x}^{(i)} = (y_1,~ \mid \mathbf{y}^{(i)} \mid)$ is the query 
+with respect to trajectory $\mathbf{y}^{(i)}$.
+
+
+
+\subsection{Simple models}
+\label{sec:simple}
+
+We can model each POI in the desired trajectory independently, which leads to a number of straightforward methods.
+
+
+
+\subsubsection{Linear regression}
+\label{sec:linear}
+
+We can use linear regression to directly model the rank of a POI $p \in \mathcal{P}$ w.r.t. a query.
+First, we construct the feature vectors $\Psi$ and labels (i.e., ranks) $R$ for trajectories in training set, 
+\begin{align*}
+\Psi &= \left( \Psi(\mathbf{x}^{(i)}, p) \right)_{i=1,\dots,N,~p \in \mathcal{P}} \in \mathbb{R}^{(N \cdot \mid \mathcal{P} \mid) \times D}, \\
+   R &= \left( r(\mathbf{y}^{(i)}, p \right)_{i=1,\dots,N,~p \in \mathcal{P}}     \in \mathbb{R}^{(N \cdot \mid \mathcal{P} \mid) \times 1},
+\end{align*}
+where $D$ is the dimension of feature vector and $r(\mathbf{y}, p)$ is the (normalised) location or rank of POI $p$ in a trajectory $\mathbf{y}$,
+\begin{align*}
+r(\mathbf{y}, p) &= \sum_{j=1}^{\mid \mathbf{y} \mid} j \cdot \mathbbm{1}(y_j = p) ~~~\text{or} \\
+r(\mathbf{y}, p) &= \frac{1}{\mid \mathbf{y} \mid} \sum_{j=1}^{\mid \mathbf{y} \mid} j \cdot \mathbbm{1}(y_j = p),
+\end{align*}
+and $\mathbbm{1}(\cdot)$ is the indicator function.
+
+To learn the parameters $\mathbf{w}$, we need to solve linear equations $\Psi \cdot \mathbf{w} = R$,
+which is straightforward, i.e., $\mathbf{w} = \Psi^{-1} R$ or $\mathbf{w} = \Psi \backslash R$ by using matrix left division.
+
+To recommend a trajectory given a query, we simply choose the top (first) $k-1$ POIs from $\mathcal{P} \setminus s$.
+We note that when two different trajectories satisfy the same query, the feature vectors for all POIs will be the same (see Section~\ref{sec:feature})
+but the labels (i.e., ranks) can be different, which may confuse this model.
+
+
+
+\subsubsection{Logistic regression}
+\label{sec:logistic}
+
+In addition, if we consider whether a POI appeared in a trajectory but ignore its location, i.e., construct the labels as
+\begin{equation*}
+l_p^i = \begin{cases}
++1,~p \in \mathbf{y}^{(i)}, \\
+-1,~p \notin \mathbf{y}^{(i)}.
+\end{cases}
+\end{equation*}
+and train a logistic regression model 
+%\begin{equation*}
+%h_\mathbf{w}(p \mid \mathbf{x}) = \frac{1}{1 + \exp \left(- \mathbf{w}^\top \Psi(\mathbf{x}, p) \right)}.
+%\end{equation*}
+%To learn the parameters, we solve the following optimisation problem
+\begin{equation*}
+\min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^\top \mathbf{w} + 
+C \sum_{i=1}^N \sum_{p \in \mathcal{P}} \log \left(1 + \exp \left(- l_p^i \cdot \mathbf{w}^\top \Psi_p^i \right) \right),
+\end{equation*}
+where $C>0$ is a regularisation constant and we denote $\Psi(\mathbf{x}^{(i)}, p)$ as $\Psi_p^i$ for brevity.
+
+The probability of a POI given a query is
+$\mathbb{P}(p \mid \mathbf{x}; \mathbf{w}) = \sigma \left( \mathbf{w}^\top \Psi(\mathbf{x}, p) \right)$
+where $\sigma(\cdot)$ is the logistic function, we choose the $k-1$ mostly likely POIs from $\mathcal{P} \setminus s$ 
+to form the recommendation.
+
+
+
+\subsubsection{RankSVM}
+\label{sec:rank}
+
+On the other hand, we can learn a ranking model.
+Let $c_p^i$ denote the number of times POI $p$ was observed in trajectories satisfying query $\mathbf{x}^{(i)}$ (except the start POI),
+and define 
+\begin{equation*}
+l_p^{ij} = \begin{cases}
++1,~ c_p^i > c_p^j, \\
+-1,~ c_p^i < c_p^j.
+\end{cases}
+\end{equation*}
+
+We learn the parameters by training a rankSVM,
+\begin{equation*}
+\min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^\top \mathbf{w} +  
+C \sum_{i=1}^N \sum_{p_i, p_j \in \mathcal{P}} \max\left(0,~ 1 - l_p^{ij} \cdot \mathbf{w}^\top \left( \Psi_p^i - \Psi_p^j \right) \right).
+\end{equation*}
+
+The rank of a POI given a query is $R(p \mid \mathbf{x}; \mathbf{w}) = \mathbf{w}^\top \Psi(\mathbf{x}, p)$,
+and we simply choose the top $k-1$ POIs from $\mathcal{P} \setminus s$ to form a recommendation.
+RankSVM models the rank of a POI given a query, but ignores the transition preference between different POIs.
+
+
+
+\subsection{Structured models}
+\label{sec:structured}
+
+We can model the dependences between different POIs in a trajectory by employing structured prediction models,
+either probabilistic models such as maximum-entropy Markov models (MEMM) and conditional random fields (CRF),
+or non-probabilistic model such as structured SVM.
+We model the desired trajectory with respect to query $\mathbf{x}$ as a sequence of discrete variables, 
+with the first variable being observed, and each variable has $|\mathcal{P}|$ states.
+To make a recommendation, we find a trajectory that achieves the highest score
+\begin{equation*}
+\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~ f(\mathbf{x}, \mathbf{y}),
+\end{equation*}
+where $\mathcal{Y}$ is the set of all possible trajectory with POIs in $\mathcal{P}$ and satisfies query $\mathbf{x}$,
+$f(\mathbf{x}, \mathbf{y})$ is a function that scores the compatibility between query $\mathbf{x}$ and a specific trajectory $\mathbf{y}$.
+
+
+
+\subsubsection{Maximum-entropy Markov models}
+\label{sec:memm}
+
+For MEMM, the compatibility function $f(\mathbf{x}, \mathbf{y})$ is the probability of trajectory $\mathbf{y}$ given query $\mathbf{x}$,
+\begin{equation*}
+f(\mathbf{x}, \mathbf{y}) = \mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w}) 
+                          = \prod_{j=2}^{\mid \mathbf{y} \mid}~
+                            \frac{\exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) \right)}
+                                 {1 + \exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) \right)}.
+\end{equation*}
+
+The negative log-likelihood is 
+\begin{equation*}
+\ell(\mathbf{w}) = -\sum_{i=1}^N \log \mathbb{P}(\mathbf{y}^{(i)} \mid \mathbf{x}^{(i)}; \mathbf{w}).
+\end{equation*}
+
+To learn the parameters, we minimise the negative log-likelihood with L2 regularisation (maximum likelihood estimation (MLE))
+\begin{equation*}
+\min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \ell(\mathbf{w}).
+\end{equation*}
+
+
+\subsubsection{Conditional random fields}
+\label{sec:crf}
+
+For CRF, the compatibility function $f(\mathbf{x}, \mathbf{y})$ is also the probability of trajectory $\mathbf{y}$ given query $\mathbf{x}$,
+\begin{align*}
+f(\mathbf{x}, \mathbf{y}) = \mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w}) 
+&= \frac{\exp \left( \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) \right)}
+        {\sum_{\mathbf{y}'} \exp \left( \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}') \right)} \\
+&= \frac{\prod_{j=2}^{\mid \mathbf{y} \mid} \exp \left( \mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) \right)}
+       {\sum_{\mathbf{y}'} \prod_{j=2}^{\mid \mathbf{y}' \mid} \exp \left( \mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}', y_j') \right)},
+\end{align*}
+assuming decomposition and parameter tying
+\begin{equation*}
+\mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) = \sum_{j=2}^{\mid \mathbf{y} \mid} \mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j).
+\end{equation*}
+
+The negative log-likelihood is 
+\begin{equation*}
+\ell(\mathbf{w}) = -\sum_{i=1}^N \log \mathbb{P}(\mathbf{y}^{(i)} \mid \mathbf{x}^{(i)}; \mathbf{w}).
+\end{equation*}
+
+To learn the parameters, we minimise the negative log-likelihood with L2 regularisation (MLE)
+\begin{equation*}
+\min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \ell(\mathbf{w}).
+\end{equation*}
+
+
+
+\subsubsection{Structured SVM}
+\label{sec:ssvm}
+
+For structured SVM, the compatibility function $f(\mathbf{x}, \mathbf{y})$ is this linear form,
+\begin{equation*}
+f(\mathbf{x}, \mathbf{y}) = \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}),
+\end{equation*}
+where the $\Psi(\mathbf{x}, \mathbf{y})$ is a \emph{joint feature map} 
+which captures features extracted from both query $\mathbf{x}$ and trajectory $\mathbf{y}$.
+
+The design of joint feature $\Psi(\cdot)$ is problem specific, 
+in the setting of trajectory recommendation,
+assuming decomposition and parameter tying, we have
+\begin{equation*}
+\label{eq:jointfeature}
+\mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) = \sum_{j=2}^{\mid \mathbf{y} \mid} 
+                                               \left( \mathbf{w}_1^\top \Psi_j(\mathbf{x}, y_j) + 
+                                                      \mathbf{w}_2^\top \Psi_{j-1, j}(\mathbf{x}, y_{j-1}, y_j) \right),
+\end{equation*}
+where $\mathbf{w}_1$ and $\mathbf{w}_2$ are parameter vectors,
+$\Psi_j$ is a feature vector of POI $y_j$ with respect to query $\mathbf{x}$ (Table~\ref{tab:poifeature}),
+$\Psi_{j-1,j}$ is a pairwise feature vector that captures the affinity of transition from POI $y_{j-1}$ to POI $y_j$ and
+here we use the transition probabilities between individual POI properties as described in Table~\ref{tab:tranfeature}.
+This joint feature design shares parameters among POIs/transitions in a trajectory.
+
+To learn the parameters, we train the structured SVM by optimising a quadratic program (QP),
+\begin{equation}
+\label{eq:nslackform}
+\begin{aligned}
+\min_{\mathbf{w}, ~\bm{\xi} \ge 0} ~& \frac{1}{2} \mathbf{w}^\top \mathbf{w} + \frac{C}{n} \sum_{i=1}^n \xi_i \\
+s.t.~~ ~& \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) - \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) \ge 
+       \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}) - \xi_i, ~\forall i
+\end{aligned}
+\end{equation}
+where $\mathbf{w} = [\mathbf{w}_1, \mathbf{w}_2]^\top$ is the parameter vector, $C > 0$ is a regularisation constant, 
+and $\Delta(\mathbf{y}, \bar{\mathbf{y}})$ is a discrepancy function that measures the loss 
+for prediction $\bar{\mathbf{y}}$ given ground truth $\mathbf{y}$, and $\xi_i$
+is a slack variable that represents the \emph{hinge loss} associated with the prediction for the $i$-th example~\cite{tsochantaridis2005large},
+\begin{equation*}
+\label{eq:nslackloss}
+\xi_i = \max \left( 0,~ 
+        \max_{\bar{\mathbf{y}} \in \mathcal{Y}} 
+        \left\{ \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) + \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) \right\} -
+        \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) \right).
+\end{equation*}
+%This formulation is called "$n$-slack" as we have one slack variable for each example in training set.
+
+We can rewrite the constraint of problem (\ref{eq:nslackform}) as
+\begin{equation*}
+\mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) + \xi_i \ge
+          \max_{\bar{\mathbf{y}} \in \mathcal{Y}} 
+          \left\{\mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) + \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}) \right\},~ \forall i.
+\end{equation*}
+where the right hand side is the \emph{loss-augmented inference}.
+
+To solve problem (\ref{eq:nslackform}), one option is simply enumerating all constraints, feeding the problem into a standard QP solver.
+However, this approach is impractical as there is a constraint for every possible label $\bar{\mathbf{y}}$.
+Instead, a cutting-plane algorithm is employed which repeatedly solves QP (\ref{eq:nslackform}) with respect to different set of constraints, 
+and each iteration solves the loss-augmented inference and generates a new constraint that helps shrink the feasible region of the problem, 
+until a specified precision $\varepsilon$ is achieved~\cite{joachims2009predicting}.
+
+The loss-augmented inference for trajectory recommendation is equivalent to 
+find a maximum weighted loop-less path with exactly $k$ edges in a complete weighted (both nodes and edges) graph, which is NP-hard (need proof).
+To solve the loss-augmented inference, we can formulated it as an integer linear program (ILP) and solve it using a ILP solver,
+or use lazy constraint generation/cutting plane technique with an LP solver.
+Moreover, we can use list Viterbi algorithm~\cite{nill1995list} or 
+employ heuristics such as the Christofides algorithm~\cite{christofides1976} when the problem has the triangle inequality property 
+(which is indeed for trajectories).
+
+
+\eat{
+\subsection{Other models}
+\label{sec:other}
+Label ranking model,
+Plackett-Luce probabilistic ranking
+
+
+\section{Evaluation metrics}
+\label{sec:evaluation}
+F1 score on points
+F1 score on pairs
+Kendall's tau, all POIs not appeared in trajectory are ranked last (and share the same rank).
+}
+
+
+\begin{table*}[ht]
+\caption{Features of POI $p$ with respect to query $(s,k)$}
+\label{tab:poifeature}
+\centering
+\setlength{\tabcolsep}{10pt} % tweak the space between columns
+\begin{tabular}{l|l} \hline
+\textbf{Feature}  & \textbf{Description} \\ \hline
+\texttt{category}               & one-hot encoding of the category of $p$ \\
+\texttt{neighbourhood}          & one-hot encoding of the POI cluster that $p$ resides in \\
+\texttt{popularity}             & logarithm of POI popularity of $p$ \\
+\texttt{nVisit}                 & logarithm of the total number of visit by all users at $p$ \\
+\texttt{avgDuration}            & logarithm of the average duration at $p$ \\ \hline
+\texttt{trajLen}                & trajectory length $k$, i.e., the number of POIs required \\
+\texttt{sameCatStart}           & $1$ if the category of $p$ is the same as that of $s$, $-1$ otherwise \\
+\texttt{sameNeighbourhoodStart} & $1$ if $p$ resides in the same POI cluster as $s$, $-1$ otherwise \\
+\texttt{distStart}              & distance between $p$ and $s$, calculated using the Haversine formula \\
+\texttt{diffPopStart}           & real-valued difference in POI popularity of $p$ from that of $s$ \\
+\texttt{diffNVisitStart}        & real-valued difference in the total number of visit at $p$ from that at $s$ \\
+\texttt{diffDurationStart}      & real-valued difference in average duration at $p$ from that at $s$ \\
+\hline
+\end{tabular}
+\end{table*}
+
+
+\section{Features}
+\label{sec:feature}
+
+The POI and query specific features we extracted from trajectories are shown in Table~\ref{tab:poifeature},
+features that describe the transition preference between different POIs are shown in Table~\ref{tab:tranfeature}.
+
+
+\begin{table}[ht]
+\caption{POI features used to estimate the (feature-wise) transition probabilities}
+\label{tab:tranfeature}
+\centering
+%\setlength{\tabcolsep}{28pt} % tweak the space between columns
+\begin{tabular}{l|l} \hline
+\textbf{Feature}       & \textbf{Description} \\ \hline
+\texttt{category}      & category of POI \\
+\texttt{neighbourhood} & the cluster that a POI resides in \\
+\texttt{popularity}    & (discretised) popularity of POI \\
+\texttt{nVisit}        & (discretised) total number of visit at POI \\
+\texttt{avgDuration}   & (discretised) average duration at POI \\ \hline
+\end{tabular}
+\end{table}
+
+
+
+\bibliographystyle{ieeetr}
+\bibliography{ref}
+
+\end{document}
