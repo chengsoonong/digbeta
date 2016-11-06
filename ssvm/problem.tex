@@ -1,12 +1,13 @@
 %\documentclass[10pt,a4paper]{article}
 %\documentclass[twocolumn,10pt,a4paper]{article}
 %\documentclass[twocolumn,a4wide,9pt]{extarticle}
-\documentclass[twocolumn,9pt]{extarticle}
-%\usepackage[a4paper,top=0.85in,left=0.75in,bottom=1in,right=0.52in]{geometry} % A4 paper margins
-\usepackage[a4paper,top=0.75in,left=0.55in,bottom=0.9in,right=0.5in]{geometry} % A4 paper margins
+\documentclass[9pt]{extarticle}
+\usepackage[a4paper,top=0.85in,left=0.75in,bottom=1in,right=0.52in]{geometry} % A4 paper margins
+%\usepackage[a4paper,top=0.75in,left=0.1in,bottom=0.9in,right=0.1in]{geometry} % A4 paper margins
 \usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{amsfonts}
+\usepackage{mathrsfs}
 \usepackage{bm}
 \usepackage{bbm}
 \usepackage{algorithm}
@@ -34,21 +35,31 @@
 \section{Problem formulation}
 \label{sec:formulation}
 
-Given a set of point of interest (POI) $\mathcal{P}$ and a trajectory query $\mathbf{x} = (s, k)$,
-where $s \in \mathcal{P}$ is the desired start POI and $k$ is the number of POIs in the desired trajectory (including the start location $s$).
-We want to recommend a sequence of POIs $\mathbf{y}^*$ that maximises utility, i.e.,
+Given a set of points of interest (POI) $\mathcal{P}$ and a trajectory query $\mathbf{x} = (s, K)$,
+where $s \in \mathcal{P}$ is the desired start POI and $K$ is the number of POIs in the desired trajectory (including the start location $s$).
+We want to recommend a sequence of POIs $\mathbf{y}^*$ that maximises utility, i.e., for a suitable function $f(\cdot,\cdot)$,
 \begin{equation*}
 \mathbf{y}^* = \argmax_{\mathbf{y}}~f(\mathbf{x}, \mathbf{y}),
 \end{equation*}
-where $\mathbf{y} = (y_1 = s,~ y_2, \dots, y_k),~ y_i \in \mathcal{P},~ i=1,\dots,k$, and $y_i \ne y_j$ if $i \ne j$.
+where $\mathbf{y} = (y_1 = s,~ y_2, \dots, y_K)$ is a trajectory with $K$ POIs, $y_k \in \mathcal{P},~ k=1,\dots,K$, and $y_j \ne y_k$ if $j \ne k$.
+
+On the other hand, we can constrain the desired trajectory with a total time budget $T$ instead of the number of POIs.
+In this case, the number of POIs $K$ can be treated as a \emph{hidden} variable, with additional constraint $\sum_{k=1}^K t_k \le T$ 
+where $t_k$ is the time spent at POI $y_k$.
 
 
 
-\section{Related problems}
+\subsection{Related problems}
 \label{sec:related}
 
 This problem is related to automatic playlist generation, 
-where we recommend a sequence of songs given a specified song (a.k.a. seed) and the number of new songs.
+where we recommend a sequence of songs given a specified song (a.k.a. the seed) and the number of new songs.
+Formally, given a library of songs and a query $\mathbf{x} = (s, K)$, where $s$ is the seed and $K$ is the number of songs in playlist,
+we produce a list with $K$ songs (without duplication) by maximising the likelihood~\cite{chen2012playlist},
+\begin{equation*}
+%\max_{(y_1,\dots,y_K)} \prod_{k=2}^K \mathbb{P}(y_{k-1} \mid y_k),~ y_1 = s ~\text{and}~ y_j \ne y_k,~ j \ne k.
+\mathbf{y}^* = \argmax_{\mathbf{y}} \mathbb{P}(\mathbf{y} \mid \mathbf{x}),~ \mathbf{y} = (y_1=s,\dots,y_K) ~\text{and}~ y_j \ne y_k ~\text{if}~ j \ne k.
+\end{equation*}
 
 Another similar problem is choosing a small set of photos from a large photo library and compiling them into a slideshow or movie.
 
@@ -57,53 +68,49 @@ Another similar problem is choosing a small set of photos from a large photo lib
 \section{Proposed methods}
 \label{sec:methods}
 
-We can solve the problem using simple models such as linear regression, logistic regression and learning to rank,
-moreover, sophisticated approaches such as structured models (probabilistic or non-probabilistic) can also be employed.
-In this section, we describe these methods briefly.
+In general, there are two approaches to solve this problem,
+\begin{enumerate}
+\item \emph{Scoring POIs} (independently), and then pick the $K-1$ highest scored POIs from $\mathcal{P} \setminus s$,
+\item \emph{Scoring trajectories}, and then pick the highest scored trajectory with respect to query $\mathbf{x}$.
+\end{enumerate}
 
-The training set contains $N$ trajectories 
+In this section, we briefly describe a variety of methods that following these two approaches.
+Suppose the training set contains $N$ trajectories 
 $\{ \mathbf{x}^{(i)}, \mathbf{y}^{(i)} \}_{i=1}^N$,
 where $\mathbf{y}^{(i)}$ is the $i$-th trajectory and $\mathbf{x}^{(i)} = (y_1,~ \mid \mathbf{y}^{(i)} \mid)$ is the query 
 with respect to trajectory $\mathbf{y}^{(i)}$.
 
 
 
-\subsection{Simple models}
-\label{sec:simple}
+\subsection{POI scoring}
+\label{sec:scoring_point}
 
-We can model each POI in the desired trajectory independently, which leads to a number of straightforward methods.
+We have a POI scoring function $S: \mathcal{X} \to \mathbb{R}^{\mid \mathcal{P} \mid}$, 
+and the target trajectory is produced by sorting all POIs in descending order according to their scores 
+$S(p \mid \mathbf{x}),~ \forall p \in \mathcal{P}$,
+then picking the top $K-1$ from $\mathcal{P} \setminus s$.
 
-
-
-\subsubsection{Linear regression}
-\label{sec:linear}
-
-We can use linear regression to directly model the rank of a POI $p \in \mathcal{P}$ w.r.t. a query.
-First, we construct the feature vectors $\Psi$ and labels (i.e., ranks) $R$ for trajectories in training set, 
+First, we construct POI feature vectors $\Psi$ and labels $R$ for trajectories in training set, 
 \begin{align*}
-\Psi &= \left( \Psi(\mathbf{x}^{(i)}, p) \right)_{i=1,\dots,N,~p \in \mathcal{P}} \in \mathbb{R}^{(N \cdot \mid \mathcal{P} \mid) \times D}, \\
-   R &= \left( r(\mathbf{y}^{(i)}, p \right)_{i=1,\dots,N,~p \in \mathcal{P}}     \in \mathbb{R}^{(N \cdot \mid \mathcal{P} \mid) \times 1},
+\Psi &= \left( \Psi(\mathbf{x}^{(i)}, p) \right)_{i=1,\dots,N,~p \in \mathcal{P}} = \left( \Psi_p^i \right)_{i,p}
+        \in \mathbb{R}^{(N \cdot \mid \mathcal{P} \mid) \times D}, \\
+   R &= \left( r(\mathbf{y}^{(i)}, p \right)_{i=1,\dots,N,~p \in \mathcal{P}} = \left(r_p^i \right)_{i,p}
+        \in \mathbb{R}^{(N \cdot \mid \mathcal{P} \mid) \times 1},
 \end{align*}
-where $D$ is the dimension of feature vector and $r(\mathbf{y}, p)$ is the (normalised) location or rank of POI $p$ in a trajectory $\mathbf{y}$,
-\begin{align*}
-r(\mathbf{y}, p) &= \sum_{j=1}^{\mid \mathbf{y} \mid} j \cdot \mathbbm{1}(y_j = p) ~~~\text{or} \\
-r(\mathbf{y}, p) &= \frac{1}{\mid \mathbf{y} \mid} \sum_{j=1}^{\mid \mathbf{y} \mid} j \cdot \mathbbm{1}(y_j = p),
-\end{align*}
-and $\mathbbm{1}(\cdot)$ is the indicator function.
-
-To learn the parameters $\mathbf{w}$, we need to solve linear equations $\Psi \cdot \mathbf{w} = R$,
-which is straightforward, i.e., $\mathbf{w} = \Psi^{-1} R$ or $\mathbf{w} = \Psi \backslash R$ by using matrix left division.
-
-To recommend a trajectory given a query, we simply choose the top (first) $k-1$ POIs from $\mathcal{P} \setminus s$.
-We note that when two different trajectories satisfy the same query, the feature vectors for all POIs will be the same (see Section~\ref{sec:feature})
-but the labels (i.e., ranks) can be different, which may confuse this model.
+where $D$ is the dimension of feature vector and label $r(\mathbf{y}, p)$ is related to the location POI $p$ in trajectory $\mathbf{y}$,
+\begin{equation*}
+r(\mathbf{y}, p) = \sum_{j=1}^{\mid \mathbf{y} \mid} (\mid \mathcal{P} \mid - j + 1) \cdot \mathbbm{1}(y_j = p),
+\end{equation*}
+here $\mathbbm{1}(\cdot)$ is the indicator function, and the $j$-th POI in $\mathbf{y}$ will be scored $\mid \mathcal{P} \mid - j + 1$, 
+any POI that does not appear in $\mathbf{y}$ will be scored $0$.
+We can also normalise these scores, i.e., $\bar{r}(\mathbf{y}, p) = \frac{1}{\mid \mathcal{P} \mid} r(\mathbf{y}, p)$.
 
 
-
-\subsubsection{Logistic regression}
+\subsubsection{Occurrence prediction}
 \label{sec:logistic}
 
-In addition, if we consider whether a POI appeared in a trajectory but ignore its location, i.e., construct the labels as
+To begin with, we can simply ignore the order of POIs in a trajectory and just model the occurrence of a POI.
+Formally, we construct binary labels
 \begin{equation*}
 l_p^i = \begin{cases}
 +1,~p \in \mathbf{y}^{(i)}, \\
@@ -111,49 +118,103 @@ l_p^i = \begin{cases}
 \end{cases}
 \end{equation*}
 and train a logistic regression model 
-%\begin{equation*}
-%h_\mathbf{w}(p \mid \mathbf{x}) = \frac{1}{1 + \exp \left(- \mathbf{w}^\top \Psi(\mathbf{x}, p) \right)}.
-%\end{equation*}
-%To learn the parameters, we solve the following optimisation problem
+%\begin{flalign*} % full-length alignment (align left), note the double-& at the end of equation
+%\textsc{\underline{objective}} \hspace{2em} 
 \begin{equation*}
 \min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^\top \mathbf{w} + 
-C \sum_{i=1}^N \sum_{p \in \mathcal{P}} \log \left(1 + \exp \left(- l_p^i \cdot \mathbf{w}^\top \Psi_p^i \right) \right),
+C \sum_{i=1}^N \sum_{p \in \mathcal{P}} \log \left(1 + \exp \left(- l_p^i \cdot \mathbf{w}_p^\top \Psi_p^i \right) \right), %&&
 \end{equation*}
-where $C>0$ is a regularisation constant and we denote $\Psi(\mathbf{x}^{(i)}, p)$ as $\Psi_p^i$ for brevity.
+%\end{flalign*}
+where $\mathbf{w}$ is an ensemble of all POI specific parameters $\mathbf{w}_p, p \in \mathcal{P}$ and $C>0$ is a regularisation constant.
+We can also share parameters between POIs by assuming $\mathbf{w}_p = \mathbf{u} + \mathbf{v}_p$.
 
-The probability of a POI given a query is
-$\mathbb{P}(p \mid \mathbf{x}; \mathbf{w}) = \sigma \left( \mathbf{w}^\top \Psi(\mathbf{x}, p) \right)$
-where $\sigma(\cdot)$ is the logistic function, we choose the $k-1$ mostly likely POIs from $\mathcal{P} \setminus s$ 
-to form the recommendation.
+The score of POI $p$ is the probability of $p$ occurring in trajectory $\mathbf{y}$ (w.r.t. query $\mathbf{x}$)
+\begin{equation*}
+S(p \mid \mathbf{x})
+= \mathbb{P}(p \in \mathbf{y} \mid \mathbf{x}; \mathbf{w})
+= \mathbb{P}(r(\mathbf{y}, p) > 0 \mid \mathbf{x}; \mathbf{w})
+= \sigma \left( \mathbf{w}_p^\top \Psi(\mathbf{x}, p) \right),
+\end{equation*}
+where $\sigma(z) = \frac{1}{1+\exp({-z})}$ is the logistic function.
 
 
 
-\subsubsection{RankSVM}
+\subsubsection{Direct rank prediction}
+\label{sec:linear}
+
+On the other hand, we can directly model the location/rank of a POI in a trajectory.
+Formally, we train a linear regression model to minimise the squared loss $\|r_p^i - \hat{r}_p^i \|_2^2$, 
+where the predicted rank $\hat{r}_p^i = \mathbf{w}_p^\top \Psi_p^i$,
+\begin{equation*}
+\min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \sum_{i=1}^N \sum_{p \in \mathcal{P}} \|r_p^i - \mathbf{w}_p^\top \Psi_p^i \|_2^2,
+\end{equation*}
+where parameter settings are similar to those in Section~\ref{sec:logistic}.
+
+The score of POI $p$ is the expected rank of $p$ given query $\mathbf{x}$ 
+\begin{equation*}
+S(p \mid \mathbf{x})
+= \mathbb{E}(\hat{r}_p \mid \mathbf{x}; \mathbf{w}) 
+= \mathbf{w}_p^\top \Psi(\mathbf{x}, p).
+\end{equation*}
+
+%To learn the parameters $\mathbf{w}$, we need to solve linear equations $\Psi \cdot \mathbf{w} = R$,
+%which is straightforward, i.e., $\mathbf{w} = \Psi^{-1} R$ or $\mathbf{w} = \Psi \backslash R$ by using matrix left division.
+
+We note that when two different trajectories satisfy the same query, the feature vectors for all POIs will be the same (see Section~\ref{sec:feature})
+but the labels (i.e., ranks) can be different, which may confuse this model, in this case, the prediction will be the average rank.
+
+
+
+\subsubsection{Pairwise ranking}
 \label{sec:rank}
 
-On the other hand, we can learn a ranking model.
-Let $c_p^i$ denote the number of times POI $p$ was observed in trajectories satisfying query $\mathbf{x}^{(i)}$ (except the start POI),
-and define 
+Let $\phi(\cdot)$ be a loss function and $l_{p,p'}^i$ be a binary label
 \begin{equation*}
-l_p^{ij} = \begin{cases}
-+1,~ c_p^i > c_p^j, \\
--1,~ c_p^i < c_p^j.
+l_{p,p'}^i = \begin{cases}
++1,~ \mathbf{y}^{(i)} ~\text{prefers}~ p, \\
+-1,~ \mathbf{y}^{(i)} ~\text{prefers}~ p'.
 \end{cases}
 \end{equation*}
-
-We learn the parameters by training a rankSVM,
+We can learn a ranking model
 \begin{equation*}
 \min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^\top \mathbf{w} +  
-C \sum_{i=1}^N \sum_{p_i, p_j \in \mathcal{P}} \max\left(0,~ 1 - l_p^{ij} \cdot \mathbf{w}^\top \left( \Psi_p^i - \Psi_p^j \right) \right).
+C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} \phi \left( l_{p,p'}^i \cdot \mathbf{w}^\top \left( \Psi_p^i - \Psi_{p'}^i \right) \right).
 \end{equation*}
 
-The rank of a POI given a query is $R(p \mid \mathbf{x}; \mathbf{w}) = \mathbf{w}^\top \Psi(\mathbf{x}, p)$,
-and we simply choose the top $k-1$ POIs from $\mathcal{P} \setminus s$ to form a recommendation.
-RankSVM models the rank of a POI given a query, but ignores the transition preference between different POIs.
+There are a number of options for the design of loss function $\phi(\cdot)$,
+\begin{itemize}
+\item if $\phi(z) = \max(0,~ 1-z)^2$, we are training a rankSVM with linear kernel and L2 loss, and the ranking score 
+      \begin{equation*}
+      S(p \mid \mathbf{x})= \mathbf{w}^\top \Psi(\mathbf{x}, p);
+      \end{equation*}
+\item if $\phi(z) = \log(1 + \exp(-z))$, we are training a logistic regression model, and the ranking score
+      \begin{equation*}
+      S(p \mid \mathbf{x})= \mathbb{P}(p \mid \mathbf{x}; \mathbf{w}) = \sigma \left(\mathbf{w}^\top \Psi(\mathbf{x}, p) \right).
+      \end{equation*}
+\end{itemize}
+
+Similarly, we have a few options for the design of labels $l_{p,p'}^i$,
+\begin{itemize}
+\item let $c_p^i$ denotes the number of times POI $p$ was observed in trajectories satisfying query $\mathbf{x}^{(i)}$ (except the start POI), and define
+      \begin{equation*}
+      l_{p,p'}^i = \begin{cases}
+      +1,~ c_p^i > c_{p'}^i, \\
+      -1,~ c_p^i < c_{p'}^i.
+      \end{cases}
+      \end{equation*}
+      This definition reflects whether $p$ was occurred more frequently than $p'$ for query $\mathbf{x}^{(i)}$.
+\item Furthermore, we can implicitly incorporate the ranking of a POI into the binary labels,
+      \begin{equation*}
+      l_{p,p'}^i = \begin{cases}
+      +1,~ r(\mathbf{y}^{(i)}, p) > r(\mathbf{y}^{(i)}, p'), \\
+      -1,~ r(\mathbf{y}^{(i)}, p) < r(\mathbf{y}^{(i)}, p').
+      \end{cases}
+      \end{equation*}
+\end{itemize}
 
 
 
-\subsection{Structured models}
+\subsection{Trajectory scoring}
 \label{sec:structured}
 
 We can model the dependences between different POIs in a trajectory by employing structured prediction models,
@@ -178,12 +239,16 @@ For MEMM, the compatibility function $f(\mathbf{x}, \mathbf{y})$ is the probabil
 f(\mathbf{x}, \mathbf{y}) = \mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w}) 
                           = \prod_{j=2}^{\mid \mathbf{y} \mid}~
                             \frac{\exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) \right)}
-                                 {1 + \exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) \right)}.
+                                 {\sum_{y' \in \mathcal{P}} \exp \left(\mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_{j-1}, y') \right)}.
 \end{equation*}
 
 The negative log-likelihood is 
 \begin{equation*}
-\ell(\mathbf{w}) = -\sum_{i=1}^N \log \mathbb{P}(\mathbf{y}^{(i)} \mid \mathbf{x}^{(i)}; \mathbf{w}).
+\ell(\mathbf{w}) = -\sum_{i=1}^N \log \mathbb{P}(\mathbf{y}^{(i)} \mid \mathbf{x}^{(i)}; \mathbf{w}) \\
+                 = -\sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} 
+                    \mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y_j^{(i)}) +
+                    \sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} 
+                    \log \sum_{y' \in \mathcal{P}} \exp \left(\mathbf{w}_j^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y') \right).
 \end{equation*}
 
 To learn the parameters, we minimise the negative log-likelihood with L2 regularisation (maximum likelihood estimation (MLE))
@@ -195,14 +260,14 @@ To learn the parameters, we minimise the negative log-likelihood with L2 regular
 \subsubsection{Conditional random fields}
 \label{sec:crf}
 
-For CRF, the compatibility function $f(\mathbf{x}, \mathbf{y})$ is also the probability of trajectory $\mathbf{y}$ given query $\mathbf{x}$,
-\begin{align*}
+For linear chain CRF, the compatibility function $f(\mathbf{x}, \mathbf{y})$ is also the probability of trajectory $\mathbf{y}$ given query $\mathbf{x}$,
+\begin{equation*}
 f(\mathbf{x}, \mathbf{y}) = \mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w}) 
-&= \frac{\exp \left( \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) \right)}
-        {\sum_{\mathbf{y}'} \exp \left( \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}') \right)} \\
-&= \frac{\prod_{j=2}^{\mid \mathbf{y} \mid} \exp \left( \mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) \right)}
+= \frac{\exp \left( \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) \right)}
+       {\sum_{\mathbf{y}'} \exp \left( \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}') \right)}
+= \frac{\prod_{j=2}^{\mid \mathbf{y} \mid} \exp \left( \mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) \right)}
        {\sum_{\mathbf{y}'} \prod_{j=2}^{\mid \mathbf{y}' \mid} \exp \left( \mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}', y_j') \right)},
-\end{align*}
+\end{equation*}
 assuming decomposition and parameter tying
 \begin{equation*}
 \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) = \sum_{j=2}^{\mid \mathbf{y} \mid} \mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j).
@@ -210,7 +275,10 @@ assuming decomposition and parameter tying
 
 The negative log-likelihood is 
 \begin{equation*}
-\ell(\mathbf{w}) = -\sum_{i=1}^N \log \mathbb{P}(\mathbf{y}^{(i)} \mid \mathbf{x}^{(i)}; \mathbf{w}).
+\ell(\mathbf{w}) 
+= -\sum_{i=1}^N \log \mathbb{P}(\mathbf{y}^{(i)} \mid \mathbf{x}^{(i)}; \mathbf{w})
+= -\sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} \mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y_j^{(i)}) +
+   \sum_{i=1}^N \log \sum_{\mathbf{y}'} \prod_{j=2}^{\mid \mathbf{y}' \mid} \exp \left( \mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}', y_j') \right).
 \end{equation*}
 
 To learn the parameters, we minimise the negative log-likelihood with L2 regularisation (MLE)
