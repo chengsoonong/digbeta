@@ -41,7 +41,8 @@ We want to recommend a sequence of POIs $\mathbf{y}^*$ that maximises utility, i
 \begin{equation*}
 \mathbf{y}^* = \argmax_{\mathbf{y}}~f(\mathbf{x}, \mathbf{y}),
 \end{equation*}
-where $\mathbf{y} = (y_1 = s,~ y_2, \dots, y_K)$ is a trajectory with $K$ POIs, $y_k \in \mathcal{P},~ k=1,\dots,K$, and $y_j \ne y_k$ if $j \ne k$.
+where $\mathbf{y} = (y_1 = s,~ y_2, \dots, y_K)$ is a trajectory with $K$ POIs, $y_k \in \mathcal{P},~ k=1,\dots,K$, and $y_j \ne y_k$ if $j \ne k$ 
+(no-duplication constraint).
 
 On the other hand, we can constrain the desired trajectory with a total time budget $T$ instead of the number of POIs.
 In this case, the number of POIs $K$ can be treated as a \emph{hidden} variable, with additional constraint $\sum_{k=1}^K t_k \le T$ 
@@ -214,20 +215,32 @@ Similarly, we have a few options for the design of labels $l_{p,p'}^i$,
 
 
 
+\subsubsection{Drawbacks}
+\label{sec:drawback}
+
+We note that the point-wise POI scoring approaches (Section~\ref{sec:logistic} and \ref{sec:linear}) do not consider the inter-dependency between POIs,
+and the pairwise ranking approach (Section~\ref{sec:rank}) only considers the relative order between two individual points 
+i.e., modelling each pair independently.
+
+
+
 \subsection{Trajectory scoring}
 \label{sec:structured}
 
-We can model the dependences between different POIs in a trajectory by employing structured prediction models,
-either probabilistic models such as maximum-entropy Markov models (MEMM) and conditional random fields (CRF),
+One approach that captures long-term dependencies is scoring a trajectory as a whole,
+that is, we model the dependences between different POIs in a trajectory by employing structured prediction models,
+e.g., probabilistic models such as maximum-entropy Markov models (MEMM) and conditional random fields (CRF),
 or non-probabilistic model such as structured SVM.
-We model the desired trajectory with respect to query $\mathbf{x}$ as a sequence of discrete variables, 
-with the first variable being observed, and each variable has $|\mathcal{P}|$ states.
+
+We model the desired trajectory with respect to query $\mathbf{x}$ as a sequence of discrete variables with inter-dependencies,
+the first variable being observed, and each variable has $|\mathcal{P}|$ states.
 To make a recommendation, we find a trajectory that achieves the highest score
 \begin{equation*}
 \mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~ f(\mathbf{x}, \mathbf{y}),
 \end{equation*}
 where $\mathcal{Y}$ is the set of all possible trajectory with POIs in $\mathcal{P}$ and satisfies query $\mathbf{x}$,
-$f(\mathbf{x}, \mathbf{y})$ is a function that scores the compatibility between query $\mathbf{x}$ and a specific trajectory $\mathbf{y}$.
+$f(\mathbf{x}, \mathbf{y})$ is a function that scores the compatibility between query $\mathbf{x}$ and a specific trajectory $\mathbf{y}$,
+and different models described in this section basically employ different formulations of $f(\cdot,\cdot)$. % with respect to different assumptions.
 
 
 
@@ -236,25 +249,44 @@ $f(\mathbf{x}, \mathbf{y})$ is a function that scores the compatibility between 
 
 For MEMM, the compatibility function $f(\mathbf{x}, \mathbf{y})$ is the probability of trajectory $\mathbf{y}$ given query $\mathbf{x}$,
 \begin{equation*}
-f(\mathbf{x}, \mathbf{y}) = \mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w}) 
-                          = \prod_{j=2}^{\mid \mathbf{y} \mid}~
-                            \frac{\exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) \right)}
-                                 {\sum_{y' \in \mathcal{P}} \exp \left(\mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_{j-1}, y') \right)}.
+f(\mathbf{x}, \mathbf{y}) 
+= \mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w}) 
+= \prod_{j=2}^{\mid \mathbf{y} \mid}~
+  \frac{\exp \left(\mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) \right)}
+       {\sum_{y' \in \mathcal{P}} \exp \left(\mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_{j-1}, y') \right)}.
 \end{equation*}
 
-The negative log-likelihood is 
+The negative log-likelihood of training set is
 \begin{equation*}
-\ell(\mathbf{w}) = -\sum_{i=1}^N \log \mathbb{P}(\mathbf{y}^{(i)} \mid \mathbf{x}^{(i)}; \mathbf{w}) \\
-                 = -\sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} 
-                    \mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y_j^{(i)}) +
-                    \sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} 
-                    \log \sum_{y' \in \mathcal{P}} \exp \left(\mathbf{w}_j^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y') \right).
+\ell(\mathbf{w}) 
+= -\sum_{i=1}^N \log \mathbb{P}(\mathbf{y}^{(i)} \mid \mathbf{x}^{(i)}; \mathbf{w}) \\
+= -\sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} 
+                \mathbf{w}_j^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y_j^{(i)}) +
+   \sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} 
+                \log \sum_{y' \in \mathcal{P}} \exp \left(\mathbf{w}_j^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y') \right).
 \end{equation*}
 
-To learn the parameters, we minimise the negative log-likelihood with L2 regularisation (maximum likelihood estimation (MLE))
-\begin{equation*}
+To learn the parameters, we maximise the likelihood of training set by minimising its negative log-likelihood (with L2 regularisation)
+\begin{equation}
+\label{eq:trainmemm}
 \min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \ell(\mathbf{w}).
-\end{equation*}
+\end{equation}
+
+MEMM captures transitions from one POI to any other POIs simultaneously, as shown by the directed graphical model in Figure,
+in contrast, pairwise ranking (Section~\ref{sec:rank}) which captures pairwise relations independently.
+To make a prediction, we need to do the MAP inference (which is an unconstrained convex optimisation problem if duplicated POIs are permitted)
+\begin{equation}
+\label{eq:testmemm}
+\begin{aligned}
+\mathbf{y}^* 
+&= \argmax_{\mathbf{y} \in \mathcal{Y}}~f(\mathbf{x}, \mathbf{y})
+ = \argmax_{\mathbf{y} \in \mathcal{Y}}~\mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w})
+ = \argmax_{\mathbf{y} \in \mathcal{Y}}~\log \mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w}) \\
+&= \argmax_{\mathbf{y} \in \mathcal{Y}}~\sum_{j=2}^{\mid \mathbf{y} \mid} \mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) - 
+   \sum_{j=2}^{\mid \mathbf{y} \mid} \log \sum_{y' \in \mathcal{P}} \exp \left(\mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_{j-1}, y') \right).
+\end{aligned}
+\end{equation}
+
 
 
 \subsubsection{Conditional random fields}
@@ -265,26 +297,40 @@ For linear chain CRF, the compatibility function $f(\mathbf{x}, \mathbf{y})$ is 
 f(\mathbf{x}, \mathbf{y}) = \mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w}) 
 = \frac{\exp \left( \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) \right)}
        {\sum_{\mathbf{y}'} \exp \left( \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}') \right)}
-= \frac{\prod_{j=2}^{\mid \mathbf{y} \mid} \exp \left( \mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) \right)}
-       {\sum_{\mathbf{y}'} \prod_{j=2}^{\mid \mathbf{y}' \mid} \exp \left( \mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}', y_j') \right)},
+= \frac{\prod_{j=2}^{\mid \mathbf{y} \mid} \exp \left( \mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) \right)}
+       {\sum_{\mathbf{y}'} \prod_{j=2}^{\mid \mathbf{y}' \mid} \exp \left( \mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_{j-1}', y_j') \right)},
 \end{equation*}
-assuming decomposition and parameter tying
-\begin{equation*}
-\mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) = \sum_{j=2}^{\mid \mathbf{y} \mid} \mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j).
-\end{equation*}
+where the denominator is called the \emph{partition function} and we assume decomposition 
+$\mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) = \sum_{j=2}^{\mid \mathbf{y} \mid} \mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j)$.
 
-The negative log-likelihood is 
+The negative log-likelihood of training set is
 \begin{equation*}
 \ell(\mathbf{w}) 
 = -\sum_{i=1}^N \log \mathbb{P}(\mathbf{y}^{(i)} \mid \mathbf{x}^{(i)}; \mathbf{w})
-= -\sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} \mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y_j^{(i)}) +
-   \sum_{i=1}^N \log \sum_{\mathbf{y}'} \prod_{j=2}^{\mid \mathbf{y}' \mid} \exp \left( \mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}', y_j') \right).
+= -\sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} \mathbf{w}_j^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y_j^{(i)}) +
+   \sum_{i=1}^N \log \sum_{\mathbf{y}'} \prod_{j=2}^{\mid \mathbf{y}' \mid} \exp \left(\mathbf{w}_j^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}', y_j')\right).
 \end{equation*}
 
-To learn the parameters, we minimise the negative log-likelihood with L2 regularisation (MLE)
-\begin{equation*}
+To learn the parameters, we maximise the likelihood of training set by minimising its negative log-likelihood (with L2 regularisation)
+\begin{equation}
+\label{eq:traincrf}
 \min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \ell(\mathbf{w}).
-\end{equation*}
+\end{equation}
+
+Similar to MEMM, CRF can capture transitions from one POI to any other POIs simultaneously, as shown by the undirected graphical model in Figure.
+To make a prediction, we need to do the MAP inference
+\begin{equation}
+\label{eq:testcrf}
+\begin{aligned}
+\mathbf{y}^* 
+&= \argmax_{\mathbf{y} \in \mathcal{Y}}~f(\mathbf{x}, \mathbf{y})
+ = \argmax_{\mathbf{y} \in \mathcal{Y}}~\mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w})
+ = \argmax_{\mathbf{y} \in \mathcal{Y}}~\log \mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w}) \\
+&= \argmax_{\mathbf{y} \in \mathcal{Y}}~\sum_{j=2}^{\mid \mathbf{y} \mid} \mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) -
+   \log \sum_{\mathbf{y}'} \prod_{j=2}^{\mid \mathbf{y}' \mid} \exp \left( \mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_{j-1}', y_j') \right).
+\end{aligned}
+\end{equation}
+
 
 
 
@@ -295,23 +341,20 @@ For structured SVM, the compatibility function $f(\mathbf{x}, \mathbf{y})$ is th
 \begin{equation*}
 f(\mathbf{x}, \mathbf{y}) = \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}),
 \end{equation*}
-where the $\Psi(\mathbf{x}, \mathbf{y})$ is a \emph{joint feature map} 
-which captures features extracted from both query $\mathbf{x}$ and trajectory $\mathbf{y}$.
+where $\Psi(\mathbf{x}, \mathbf{y})$ is a \emph{joint feature map} 
+that captures features extracted from both query $\mathbf{x}$ and trajectory $\mathbf{y}$.
 
-The design of joint feature $\Psi(\cdot)$ is problem specific, 
-in the setting of trajectory recommendation,
-assuming decomposition and parameter tying, we have
+The design of joint feature $\Psi(\cdot,\cdot)$ is problem specific, 
+for trajectory recommendation, we use
 \begin{equation*}
 \label{eq:jointfeature}
-\mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) = \sum_{j=2}^{\mid \mathbf{y} \mid} 
-                                               \left( \mathbf{w}_1^\top \Psi_j(\mathbf{x}, y_j) + 
-                                                      \mathbf{w}_2^\top \Psi_{j-1, j}(\mathbf{x}, y_{j-1}, y_j) \right),
+\mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) 
+= \sum_{j=2}^{\mid \mathbf{y} \mid} 
+  \left( \mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_j) + 
+  \mathbf{w}_{j-1,j}^\top \Psi_{j-1, j}(\mathbf{x}, y_{j-1}, y_j) \right),
 \end{equation*}
-where $\mathbf{w}_1$ and $\mathbf{w}_2$ are parameter vectors,
-$\Psi_j$ is a feature vector of POI $y_j$ with respect to query $\mathbf{x}$ (Table~\ref{tab:poifeature}),
-$\Psi_{j-1,j}$ is a pairwise feature vector that captures the affinity of transition from POI $y_{j-1}$ to POI $y_j$ and
-here we use the transition probabilities between individual POI properties as described in Table~\ref{tab:tranfeature}.
-This joint feature design shares parameters among POIs/transitions in a trajectory.
+here we assume decomposition and $\Psi_j$ is a feature vector of POI $y_j$ with respect to query $\mathbf{x}$,
+$\Psi_{j-1,j}$ is a pairwise feature vector that captures the affinity of transition from POI $y_{j-1}$ to POI $y_j$.
 
 To learn the parameters, we train the structured SVM by optimising a quadratic program (QP),
 \begin{equation}
@@ -322,12 +365,10 @@ s.t.~~ ~& \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) - \mathbf{w}^
        \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}) - \xi_i, ~\forall i
 \end{aligned}
 \end{equation}
-where $\mathbf{w} = [\mathbf{w}_1, \mathbf{w}_2]^\top$ is the parameter vector, $C > 0$ is a regularisation constant, 
-and $\Delta(\mathbf{y}, \bar{\mathbf{y}})$ is a discrepancy function that measures the loss 
-for prediction $\bar{\mathbf{y}}$ given ground truth $\mathbf{y}$, and $\xi_i$
-is a slack variable that represents the \emph{hinge loss} associated with the prediction for the $i$-th example~\cite{tsochantaridis2005large},
+where $\Delta(\mathbf{y}, \bar{\mathbf{y}})$ is a discrepancy function that measures the loss 
+for predicting $\bar{\mathbf{y}}$ given ground truth $\mathbf{y}$, 
+and slack variable $\xi_i$ is the \emph{hinge loss} associated with the prediction for the $i$-th example~\cite{tsochantaridis2005large},
 \begin{equation*}
-\label{eq:nslackloss}
 \xi_i = \max \left( 0,~ 
         \max_{\bar{\mathbf{y}} \in \mathcal{Y}} 
         \left\{ \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) + \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) \right\} -
@@ -335,27 +376,45 @@ is a slack variable that represents the \emph{hinge loss} associated with the pr
 \end{equation*}
 %This formulation is called "$n$-slack" as we have one slack variable for each example in training set.
 
-We can rewrite the constraint of problem (\ref{eq:nslackform}) as
-\begin{equation*}
+We can rewrite the constraint in problem (\ref{eq:nslackform}) as
+\begin{equation}
+\label{eq:ssvminf}
 \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) + \xi_i \ge
           \max_{\bar{\mathbf{y}} \in \mathcal{Y}} 
           \left\{\mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) + \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}) \right\},~ \forall i.
-\end{equation*}
-where the right hand side is the \emph{loss-augmented inference}.
+\end{equation}
+where the right hand side is called the \emph{loss-augmented inference}.
 
-To solve problem (\ref{eq:nslackform}), one option is simply enumerating all constraints, feeding the problem into a standard QP solver.
+To solve problem (\ref{eq:nslackform}), one option is simply enumerating all constraints, and feeding the problem into a standard QP solver.
 However, this approach is impractical as there is a constraint for every possible label $\bar{\mathbf{y}}$.
-Instead, a cutting-plane algorithm is employed which repeatedly solves QP (\ref{eq:nslackform}) with respect to different set of constraints, 
-and each iteration solves the loss-augmented inference and generates a new constraint that helps shrink the feasible region of the problem, 
-until a specified precision $\varepsilon$ is achieved~\cite{joachims2009predicting}.
+Instead, we use a cutting-plane algorithm which repeatedly solves QP (\ref{eq:nslackform}) w.r.t. different set of constraints, 
+in each iteration, a new constraint is formed by solving the loss-augmented inference, 
+which helps shrink the feasible region of the problem~\cite{joachims2009predicting}.
 
-The loss-augmented inference for trajectory recommendation is equivalent to 
-find a maximum weighted loop-less path with exactly $k$ edges in a complete weighted (both nodes and edges) graph, which is NP-hard (need proof).
-To solve the loss-augmented inference, we can formulated it as an integer linear program (ILP) and solve it using a ILP solver,
-or use lazy constraint generation/cutting plane technique with an LP solver.
-Moreover, we can use list Viterbi algorithm~\cite{nill1995list} or 
-employ heuristics such as the Christofides algorithm~\cite{christofides1976} when the problem has the triangle inequality property 
-(which is indeed for trajectories).
+
+
+\subsubsection{Drawbacks}
+
+All structured models described above suffered from a number of drawbacks.
+\begin{itemize}
+\item The MEMM model (Section~\ref{sec:memm}) is relatively easy to train, 
+      and the inference (Equation~\ref{eq:testmemm}) will not retain its efficiency if the no-duplication constraints are required.
+\item The CRF model (Section~\ref{sec:crf}) suffers from inefficient training (Equation~\ref{eq:traincrf}) and 
+      inference (Equation~\ref{eq:testcrf}) due to the partition function cannot be computed efficiently.
+\item Both the loss-augmented inference and prediction inference for structured SVM cannot be done efficiently 
+      if the no-duplication constraints are required.
+\end{itemize}
+
+Approximate inference methods are critical for MEMM and CRF.
+On the other hand, inference in structured SVM is equivalent to 
+find a maximum weighted loop-less path with exactly $k$ edges in a complete weighted (both nodes and edges) graph, which is NP-hard (need proof),
+possible solutions including 
+\begin{itemize}
+\item formulating it as an integer linear program (ILP) and solve it using a ILP solver,
+\item or use lazy constraint generation/cutting plane technique with an LP solver,
+\item moreover, we can use list Viterbi algorithm~\cite{nill1995list} or employ heuristics such as the Christofides algorithm~\cite{christofides1976} 
+      when the problem has the triangle inequality property (for trajectories, indeed).
+\end{itemize}
 
 
 \eat{
@@ -371,6 +430,17 @@ F1 score on points
 F1 score on pairs
 Kendall's tau, all POIs not appeared in trajectory are ranked last (and share the same rank).
 }
+
+
+
+\section{Features}
+\label{sec:feature}
+
+\underline{REVISE FEATURE DESIGN}
+
+The POI and query specific features we extracted from trajectories are shown in Table~\ref{tab:poifeature},
+features that describe the transition preference between different POIs are shown in Table~\ref{tab:tranfeature}.
+
 
 
 \begin{table*}[ht]
@@ -396,12 +466,6 @@ Kendall's tau, all POIs not appeared in trajectory are ranked last (and share th
 \end{tabular}
 \end{table*}
 
-
-\section{Features}
-\label{sec:feature}
-
-The POI and query specific features we extracted from trajectories are shown in Table~\ref{tab:poifeature},
-features that describe the transition preference between different POIs are shown in Table~\ref{tab:tranfeature}.
 
 
 \begin{table}[ht]
