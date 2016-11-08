@@ -39,13 +39,13 @@
 \label{sec:formulation}
 
 Given a set of points of interest (POI) $\mathcal{P}$ and a trajectory query $\mathbf{x} = (s, K)$,
-where $s \in \mathcal{P}$ is the desired start POI and $K$ is the number of POIs in the desired trajectory (including the start location $s$).
+where $s \in \mathcal{P}$ is the desired start POI and $K > 1$ is the number of POIs in the desired trajectory (including the start location $s$).
 We want to recommend a sequence of POIs $\mathbf{y}^*$ that maximises utility, i.e., for a suitable function $f(\cdot,\cdot)$,
 \begin{equation*}
 \mathbf{y}^* = \argmax_{\mathbf{y}}~f(\mathbf{x}, \mathbf{y}),
 \end{equation*}
 where $\mathbf{y} = (y_1 = s,~ y_2, \dots, y_K)$ is a trajectory with $K$ POIs, $y_k \in \mathcal{P},~ k=1,\dots,K$, and $y_j \ne y_k$ if $j \ne k$ 
-(no-duplication constraint).
+which is known as \emph{no duplicates constraint}.
 
 On the other hand, we can constrain the desired trajectory with a total time budget $T$ instead of the number of POIs.
 In this case, the number of POIs $K$ can be treated as a \emph{hidden} variable, with additional constraint $\sum_{k=1}^K t_k \le T$ 
@@ -74,7 +74,7 @@ Another similar problem is choosing a small set of photos from a large photo lib
 
 In general, there are two approaches to solve this problem,
 \begin{enumerate}
-\item \emph{Scoring POIs} (independently), and then pick the $K-1$ highest scored POIs from $\mathcal{P} \setminus s$,
+\item \emph{Scoring POIs}, and then pick the $K-1$ highest scored POIs from $\mathcal{P} \setminus s$,
 \item \emph{Scoring trajectories}, and then pick the highest scored trajectory with respect to query $\mathbf{x}$.
 \end{enumerate}
 
@@ -86,7 +86,7 @@ with respect to trajectory $\mathbf{y}^{(i)}$.
 
 
 
-\subsection{POI scoring}
+\subsection{Scoring POIs}
 \label{sec:scoring_point}
 
 We have a POI scoring function $S: \mathcal{X} \to \mathbb{R}^{\mid \mathcal{P} \mid}$, 
@@ -101,7 +101,7 @@ First, we construct POI feature vectors $\Psi$ and labels $R$ for trajectories i
    R &= \left( r(\mathbf{y}^{(i)}, p) \right)_{i=1,\dots,N,~p \in \mathcal{P}} = \left(r_p^i \right)_{i,p}
         \in \mathbb{R}^{(N \cdot \mid \mathcal{P} \mid) \times 1},
 \end{align*}
-where $D$ is the dimension of feature vector and label $r(\mathbf{y}, p)$ is related to the location POI $p$ in trajectory $\mathbf{y}$,
+where $D$ is the dimension of feature vector and label $r(\mathbf{y}, p)$ is computed from the location of POI $p$ in trajectory $\mathbf{y}$,
 \begin{equation*}
 r(\mathbf{y}, p) = \sum_{j=1}^{\mid \mathbf{y} \mid} (\mid \mathcal{P} \mid - j + 1) \cdot \mathbbm{1}(y_j = p),
 \end{equation*}
@@ -148,13 +148,13 @@ where $\sigma(z) = \frac{1}{1+\exp({-z})}$ is the logistic function.
 
 Furthermore, we can model the probability of POI $p$ at location $k$ given query $\mathbf{x}$, 
 assuming independence $y_j \perp y_k,~ j\ne k$ (given $\mathbf{x}$).
-In other words, we model the probability $\mathbb{P}(y_k = p \mid \mathbf{x}),~ k=1,\dots,K$ independently.
+In other words, we model the probability $\mathbb{P}(y_k = p \mid \mathbf{x}),~ \forall k$ independently.
 That is, for each query $\mathbf{x}^{(i)},~ i=1,\dots,N$ and each location $k,~ k=1,\dots,\mid \mathbf{y}^{(i)} \mid$, 
-we train a multiclass classifier
+we train a $\mid \mathcal{P} \mid$-class classifier
 \begin{equation*}
 y_k^* = \argmax_{p \in \mathcal{P}} ~\mathbb{P}(y_k = p \mid \mathbf{x}^{(i)}),
 \end{equation*}
-which means we will train $\sum_{i=1}^N \mid \mathbf{y}^{(i)} \mid$ classifiers.
+which means we need to train $\sum_{i=1}^N \mid \mathbf{y}^{(i)} \mid$ multi-class classifiers.
 If we do not have enough data for each query, this approach would encounter the data sparsity problem.
 
 
@@ -164,7 +164,7 @@ If we do not have enough data for each query, this approach would encounter the 
 
 On the other hand, we can directly model the location/rank of a POI in a trajectory.
 Formally, we train a linear regression model to minimise the squared loss $\|r_p^i - \hat{r}_p^i \|_2^2$, 
-where the predicted rank $\hat{r}_p^i = \mathbf{w}_p^\top \Psi_p^i$,
+and the predicted rank $\hat{r}_p^i = \mathbf{w}_p^\top \Psi_p^i$,
 \begin{equation*}
 \min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \sum_{i=1}^N \sum_{p \in \mathcal{P}} \|r_p^i - \mathbf{w}_p^\top \Psi_p^i \|_2^2,
 \end{equation*}
@@ -239,12 +239,12 @@ Similarly, we have a few options for the design of labels $l_{p,p'}^i$,
 \label{sec:drawback}
 
 We note that the point-wise POI scoring approaches (Section~\ref{sec:logistic} and \ref{sec:linear}) do not consider the inter-dependency between POIs,
-and the pairwise ranking approach (Section~\ref{sec:rank}) only considers the relative order between two individual points 
+and the pairwise ranking approach (Section~\ref{sec:rank}) only considers the relative order between two individual points,
 i.e., modelling each pair independently.
 
 
 
-\subsection{Trajectory scoring}
+\subsection{Scoring trajectories}
 \label{sec:structured}
 
 One approach that captures long-term dependencies is scoring a trajectory as a whole,
@@ -263,7 +263,7 @@ $f(\mathbf{x}, \mathbf{y})$ is a function that scores the compatibility between 
 and different models described in this section basically employ different formulations of $f(\cdot,\cdot)$. % with respect to different assumptions.
 
 
-\begin{figure}
+\begin{figure}[b]
     \centering
     \begin{subfigure}[t]{.49\textwidth} % textwidth in figure environment
         \centering
