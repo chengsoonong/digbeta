@@ -98,7 +98,7 @@ First, we construct POI feature vectors $\Psi$ and labels $R$ for trajectories i
 \begin{align*}
 \Psi &= \left( \Psi(\mathbf{x}^{(i)}, p) \right)_{i=1,\dots,N,~p \in \mathcal{P}} = \left( \Psi_p^i \right)_{i,p}
         \in \mathbb{R}^{(N \cdot \mid \mathcal{P} \mid) \times D}, \\
-   R &= \left( r(\mathbf{y}^{(i)}, p \right)_{i=1,\dots,N,~p \in \mathcal{P}} = \left(r_p^i \right)_{i,p}
+   R &= \left( r(\mathbf{y}^{(i)}, p) \right)_{i=1,\dots,N,~p \in \mathcal{P}} = \left(r_p^i \right)_{i,p}
         \in \mathbb{R}^{(N \cdot \mid \mathcal{P} \mid) \times 1},
 \end{align*}
 where $D$ is the dimension of feature vector and label $r(\mathbf{y}, p)$ is related to the location POI $p$ in trajectory $\mathbf{y}$,
@@ -143,6 +143,22 @@ where $\sigma(z) = \frac{1}{1+\exp({-z})}$ is the logistic function.
 
 
 
+\subsubsection{POI scoring for each location}
+\label{sec:multi}
+
+Furthermore, we can model the probability of POI $p$ at location $k$ given query $\mathbf{x}$, 
+assuming independence $y_j \perp y_k,~ j\ne k$ (given $\mathbf{x}$).
+In other words, we model the probability $\mathbb{P}(y_k = p \mid \mathbf{x}),~ k=1,\dots,K$ independently.
+That is, for each query $\mathbf{x}^{(i)},~ i=1,\dots,N$ and each location $k,~ k=1,\dots,\mid \mathbf{y}^{(i)} \mid$, 
+we train a multiclass classifier
+\begin{equation*}
+y_k^* = \argmax_{p \in \mathcal{P}} ~\mathbb{P}(y_k = p \mid \mathbf{x}^{(i)}),
+\end{equation*}
+which means we will train $\sum_{i=1}^N \mid \mathbf{y}^{(i)} \mid$ classifiers.
+If we do not have enough data for each query, this approach would encounter the data sparsity problem.
+
+
+
 \subsubsection{Direct rank prediction}
 \label{sec:linear}
 
@@ -166,6 +182,7 @@ S(p \mid \mathbf{x})
 
 We note that when two different trajectories satisfy the same query, the feature vectors for all POIs will be the same (see Section~\ref{sec:feature})
 but the labels (i.e., ranks) can be different, which may confuse this model, in this case, the prediction will be the average rank.
+
 
 
 
@@ -477,9 +494,8 @@ features that describe the transition preference between different POIs are show
 \texttt{nVisit}                 & logarithm of the total number of visit by all users at $p$ \\
 \texttt{avgDuration}            & logarithm of the average duration at $p$ \\ \hline
 
-\texttt{nOccurrence}            & the number of times $p$ occurred in a trajectory that satisfies the query \\
+%\texttt{nOccurrence}            & the number of times $p$ occurred in a trajectory that satisfies the query \\ DON'T know given new query
 
-\eat{
 \texttt{trajLen}                & trajectory length $k$, i.e., the number of POIs required \\
 \texttt{sameCatStart}           & $1$ if the category of $p$ is the same as that of $s$, $-1$ otherwise \\
 \texttt{sameNeighbourhoodStart} & $1$ if $p$ resides in the same POI cluster as $s$, $-1$ otherwise \\
@@ -487,7 +503,6 @@ features that describe the transition preference between different POIs are show
 \texttt{diffPopStart}           & real-valued difference in POI popularity of $p$ from that of $s$ \\
 \texttt{diffNVisitStart}        & real-valued difference in the total number of visit at $p$ from that at $s$ \\
 \texttt{diffDurationStart}      & real-valued difference in average duration at $p$ from that at $s$ \\
-}
 \hline
 \end{tabular}
 \end{table*}
