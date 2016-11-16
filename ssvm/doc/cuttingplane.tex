@@ -98,15 +98,7 @@ $\{z | f_j(q) + \nabla f_j(q)^\top (z - q) > 0 \}$ with infeasible points.
 If more than one constraint is violated by $q$, we can generate a \emph{feasibility cut} for each violated constraint.
 
 On the other hand, if $q$ is feasible, and suppose $\nabla f_0(q) \ne 0$ (otherwise $q$ is optimal and we are done),
-as $f_0(z)$ is differentiable, we have
-\begin{equation*}
-f_0(z) > f_0(q), \text{~if~} \nabla f_0(q) > 0 \text{~and~} z > q,
-\end{equation*}
-similarly,
-\begin{equation*}
-f_0(z) > f_0(q), \text{~if~} \nabla f_0(q) < 0 \text{~and~} z < q.
-\end{equation*}
-We conclude that
+from Equation (\ref{eq:funprop}) we have
 \begin{equation*}
 f_0(z) > f_0(q), \text{~if~} \nabla f_0(q)^\top (z - q) > 0.
 \end{equation*}
@@ -148,33 +140,40 @@ we seek a point $q^{(k+1)}$ such that, no matter which direction to cut (returne
 \subsection{Method of Kelley-Cheney-Goldstein}
 \label{sec:kcg}
 
-Given query points $q^{(1)}, \dots, q^{(k)}$, one approach to generate the next query point $q^{(k+1)}$ is solving an optimisation problem
+Given query points $q^{(1)}, \dots, q^{(k)}$, one approach to generate the next query point $q^{(k+1)}$ is solving a linear programming (LP)
 ~\cite{wulff2013analytic},
 \begin{equation}
 \label{eq:kcg}
 \begin{aligned}
-\min_{z} ~& \theta  \\
+\min_{z,\theta} ~& \theta  \\
 s.t.~~   ~& \theta \ge f_0(q^{(i)}) + \nabla f_0(q^{(i)})^\top (z - q^{(i)}),~ \forall i \le k \\
-          & a_i^\top z \le b_i,~ \forall i \le k \\
-          & f_j(z) \le 0,~ j = 1, \dots, m
+          & A_k^\top z \le \mathbf{b}_k,
 \end{aligned}
 \end{equation}
-where $a_i^\top z \le b_i$ are the set of existing cutting planes returned by querying the oracle at points $q^{(i)}, i \le k$.
+where $A_k^\top z \le \mathbf{b}_k$ are the set of constraints that define polyhedron $\mathcal{P}_k$.
 
 Let $t_i(z) = f_0(q^{(i)}) + \nabla f_0(q^{(i)})^\top (z - q^{(i)})$,
-then the optimal objective of problem (\ref{eq:kcg}) is 
+then $t_i(z)$ is a hyperplane tangent to $f_0(z)$ at point $q^{(i)}$.
+We can rewrite LP (\ref{eq:kcg}) as
 \begin{equation*}
-\theta^* = \text{sup} \left\{ \bigcup_{i=1}^k t_i(z) \right\} = \max \left\{ \bigcup_{i=1}^k t_i(z) \right\},~ z \in \mathcal{P}_k.
+\begin{aligned}
+\min_{z,\theta} ~& \theta \\
+s.t.~~ ~& \theta \ge \max_{z \in \mathcal{P}_k}~ t_i(z),~ i=1,\dots,k.
+\end{aligned}
 \end{equation*}
 
-Since $t_i(z)$ is a hyperplane tangent to $f_0(z)$ at point $q^{(i)}$, 
-it follows that $z_i^* = \argmax_{z \in \mathcal{P}_k} t_i(z)$ is either a vertex or a point lies on an edge of polyhedron $\mathcal{P}_k$
-(it can be shown intuitively when $\mathcal{P}_k$ is a $2$-dimensional region),
-which means the optimal point $q^{(k+1)} = \argmax_{i} \{ t_i(z_i^*) \}$ is either a vertex or a point lies on an edge of $\mathcal{P}_k$.
+Let $z_i^* = \argmax_{z \in \mathcal{P}_k} t_i(z)$,
+it follows that $z_i^*$ is either a vertex or a point lies on an edge of polyhedron $\mathcal{P}_k$
+(this can be shown intuitively when $\mathcal{P}_k$ is a $2$-dimensional region),
+and the optimal solution of LP (\ref{eq:kcg}) is $z^* = \argmax_{z_i} t_i(z_i^*)$,
+it follows that the next query point $q^{(k+1)} = z^*$ is either a vertex or a point lies on an edge of $\mathcal{P}_k$.
+In fact, if we solve LP (\ref{eq:kcg}) using the simplex algorithm, the optimal solution is guaranteed to be a vertex of $\mathcal{P}_k$.
 
-%In other words,
-%is to greedily use the vertex of the current polyhedron $\mathcal{P}_k$ that minimises the objective~\cite{wulff2013analytic}, 
-%which can be found by solving
+In other words,
+the method of \emph{Kelley-Cheney-Goldstein} is to greedily use the vertex of the current polyhedron $\mathcal{P}_k$ 
+that maximise the convex objective $f_0(z)$ as the next query point.
+
+
 
 \subsection{Chebyshev center method}
 \label{sec:chebyshev}
@@ -187,11 +186,11 @@ in other words, we find the next query point $q^{(k+1)}$ by solving
 \begin{aligned}
 \min_{z} ~& \theta  \\
 s.t.~~   ~& \theta \ge f_0(q^{(i)}) + \frac{\nabla f_0(q^{(i)})}{\|\nabla f_0(q^{(i)})\|} ^\top (z - q^{(i)}),~ \forall i \le k \\
-          & a_i^\top z \le b_i,~ \forall i \le k \\
-          & f_j(z) \le 0.~ j = 1, \dots, m
+          & A_k^\top z \le \mathbf{b}_k.
 \end{aligned}
 \end{equation}
-This variant is called the Chebyshev center method, which is shown to have significantly better convergence properties than the method of Kelley-Cheney-Goldstein~\cite{goffin2002convex}.
+
+This variant is called the \emph{Chebyshev center} method, which is shown to have significantly better convergence properties than the method of Kelley-Cheney-Goldstein~\cite{goffin2002convex}.
 
 
 \subsection{Analytic center cutting plane method}
@@ -237,16 +236,16 @@ which makes this method impractical.
 Variants that compute an approximate center of gravity have been developed, and some of these approximations can be used to create a practical CG method~\cite{boydlocalization}.
 
 
-\section{Train structured SVM using cutting-plane methods}
+\section{Training structured SVM using cutting-plane methods}
 \label{sec:ssvm}
 
 
-\subsection{Train the $n$-slack formulation of structured SVM}
+\subsection{Training the $n$-slack formulation of structured SVM}
 \label{sec:nslackssvm}
 
 
 Given $n$ training examples $(\mathbf{x}_1, \mathbf{y}_1), \dots, (\mathbf{x}_n, \mathbf{y}_n)$, 
-the structured SVM with margin-rescaling\footnote{For brevity, structured SVM with slack-rescaling are not described in this document.}
+the structured SVM with margin-rescaling\footnote{For brevity, structured SVM (SSVM) with slack-rescaling are not described in this document.}
 can be formulated as a quadratic program (QP)
 \begin{equation}
 \label{eq:nslackform}
@@ -256,8 +255,11 @@ s.t.~~ ~& \mathbf{w}^\top \Psi(\mathbf{x}_i, \mathbf{y}_i) - \mathbf{w}^\top \Ps
        \Delta(\mathbf{y}_i, \bar{\mathbf{y}}) - \xi_i, ~(\forall i,~ \bar{\mathbf{y}} \neq \mathbf{y}_i)
 \end{aligned}
 \end{equation}
-where $\mathbf{w}$ is the parameter vector, $C > 0$ is a regularisation constant, and $\xi_i$
-is a slack variable that represents the \emph{hinge loss} associated with the prediction for the $i$-th example~\cite{tsochantaridis2005large},
+where $\mathbf{w}$ is the parameter vector, $C > 0$ is a regularisation constant,
+$\Delta(\mathbf{y}, \bar{\mathbf{y}})$ is a discrepancy function that measures the loss 
+for predicting $\bar{\mathbf{y}}$ given ground truth $\mathbf{y}$.
+and $\xi_i$ is a slack variable that represents the \emph{hinge loss} associated with 
+the prediction for the $i$-th example~\cite{tsochantaridis2005large},
 \begin{equation}
 \label{eq:nslackloss}
 \xi_i = \max \left( 0,~ 
@@ -314,7 +316,7 @@ if we compute the loss $\xi_i^{(k)}$ on the fly~\cite{tsochantaridis2004support}
 \end{equation*}
 
 
-\subsection{Train the $1$-slack formulation of structured SVM}
+\subsection{Training the $1$-slack formulation of structured SVM}
 \label{sec:1slackssvm}
 
 Another formulation of structured SVM which results in more efficient training is called "$1$-slack" formulation (with margin-rescaling),
@@ -391,12 +393,14 @@ From Algorithm~\ref{alg:nslacktrain} and Algorithm~\ref{alg:1slacktrain}, we obs
 \item The Wolfe-dual programs of both QP (\ref{eq:nslackform}) and QP (\ref{eq:1slackform}) are QPs~\cite{tsochantaridis2005large,joachims2009cutting}.
 \item All cutting-planes returned by the oracle are \emph{feasibility cuts}.
 \item The training algorithm will \emph{stop} if the current query point $q$ is feasible, 
-      in other words, it does not exploit an \emph{objective cut} when $q$ is feasible. 
+      in other words, it does not explicitly form an \emph{objective cut} when $q$ is feasible,
+      which is reasonable as the algorithms optimise the objective when generating each query point.
 \end{itemize}
 
 
-\subsubsection{Objective cut}
-\label{sec:ssvm_objcut}
+
+\subsubsection{Query generation method}
+\label{sec:ssvm_query}
 
 Recall that in Section~\ref{sec:problem}, we have an objective $f_0(z)$ to minimise, in the case of $1$-slack formulation of structured SVM,
 $f_0(z)$ is the quadratic objective in Equation~(\ref{eq:1slackform}), 
@@ -405,13 +409,34 @@ $f_0(z)$ is the quadratic objective in Equation~(\ref{eq:1slackform}),
 f_0(z) = \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C\xi,
 \end{equation}
 where $z = [\mathbf{w}, \xi]^\top$.
+For the $n$-slack formulation, 
+\begin{equation}
+\begin{aligned}
+f_0(z) = \frac{1}{2} \mathbf{w}^\top \mathbf{w} + \frac{C}{n} \sum_{i=1}^n \xi_i.
+\end{aligned}
+\end{equation}
+
+The query point generation of both formulation of SSVM can be written as
+\begin{equation*}
+\begin{aligned}
+\min_{z} ~& f_0(z) \\
+s.t.~~ ~& A_k^\top z \le \mathbf{b}_k,
+\end{aligned}
+\end{equation*}
+where $A_k^\top z \le \mathbf{b}_k$ is equivalent to the set of constraints in $\mathcal{W}$.
+
+
+
+\subsubsection{Explicit objective cut generation}
+\label{sec:ssvm_objcut}
+
 Given query point $q = \left[ \mathbf{w}^{(k)}, \xi^{(k)} \right]^\top$, if $q$ is feasible, we can form an \emph{objective cut}
 \begin{equation}
 \label{eq:objcut_1slack}
 \begin{aligned}
  & \nabla f_0(q)^\top (z - q) \\
-=& \left[ \left[ \left.\frac{\partial f_0}{\mathbf{w}}\right|_{\mathbf{w} = \mathbf{w}^{(k)}}, 
-                 \left.\frac{\partial f_0}{\xi}\right|_{\xi = \xi^{(k)}} \right]^\top \right]^\top 
+=& \left[ \left[ \left.\frac{\partial f_0}{\partial \mathbf{w}}\right|_{\mathbf{w} = \mathbf{w}^{(k)}}, 
+                 \left.\frac{\partial f_0}{\partial \xi}\right|_{\xi = \xi^{(k)}} \right]^\top \right]^\top 
    \left( \left[ \mathbf{w}, \xi \right]^\top - \left[ \mathbf{w}^{(k)}, \xi^{(k)} \right]^\top \right)  \\
 =& \left[ \mathbf{w}^{(k)}, C \right] \left[ \mathbf{w} - \mathbf{w}^{(k)},~ \xi - \xi^{(k)} \right]^\top  \\
 =& \langle \mathbf{w}^{(k)},~ \mathbf{w} - \mathbf{w}^{(k)} \rangle + C (\xi - \xi^{(k)}) \le 0.
@@ -425,6 +450,7 @@ We have a similar \emph{objective cut} for the $n$-slack formulation of structur
 \end{equation}
 
 
+\eat{
 \subsubsection{Feasibility cut}
 \label{sec:ssvm_feacut}
 
@@ -448,8 +474,8 @@ Since $q$ violates this constraint, we can construct a \emph{feasibility cut}
 \begin{aligned}
  & f_k(q) + \nabla f_k(q)^\top (z - q) \\
 =& f_k(q) + 
-   \left[ \left[ \left.\frac{\partial f_k}{\mathbf{w}}\right|_{\mathbf{w} = \mathbf{w}^{(k)}}, 
-                 \left.\frac{\partial f_k}{\xi}\right|_{\xi = \xi^{(k)}} \right]^\top \right]^\top 
+   \left[ \left[ \left.\frac{\partial f_k}{\partial \mathbf{w}}\right|_{\mathbf{w} = \mathbf{w}^{(k)}}, 
+                 \left.\frac{\partial f_k}{\partial \xi}\right|_{\xi = \xi^{(k)}} \right]^\top \right]^\top 
    \left( \left[ \mathbf{w}, \xi \right]^\top - \left[ \mathbf{w}^{(k)}, \xi^{(k)} \right]^\top \right)  \\
 =& f_k(q) + \left[ -\frac{1}{n} \sum_{i=1}^n \left( \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i^{(k)}) \right),  -1 \right] 
    \left[ \mathbf{w} - \mathbf{w}^{(k)},~ \xi - \xi^{(k)} \right]^\top  \\
@@ -474,18 +500,29 @@ as described in Algorithm~\ref{alg:nslacktrain}, the feasibility cut becomes
 g_k(z) = \Delta(\mathbf{y}_j, \hat{\mathbf{y}}^{(k)}) - 
 \langle \mathbf{w},~ \Psi(\mathbf{x}_j, \mathbf{y}_j) - \Psi(\mathbf{x}_j, \hat{\mathbf{y}}^{(k)}) \rangle - \xi_j \le 0.
 \end{equation}
+}
 
 
-
-\subsection{Compare with the method of Kelley-Cheney-Goldstein and the Chebyshev center method}
+\subsubsection{Generate query point using the method of Kelley-Cheney-Goldstein and the Chebyshev center method}
 \label{sec:compare}
 
 Suppose we use the method of Kelley-Cheney-Goldstein or the Chebyshev center method to generate query point 
 when training the $1$-slack/$n$-slack formulation of structured SVM,
 we can compare them with query point generation methods used in Algorithm~\ref{alg:nslacktrain} and Algorithm~\ref{alg:1slacktrain}.
 
+Let 
+\begin{align}
+f_k(z) &= \frac{1}{n} \sum_{i=1}^n \Delta(\mathbf{y}_i, \hat{\mathbf{y}}_i^{(k)}) - 
+          \frac{1}{n} \sum_{i=1}^n \langle \mathbf{w},~ \Psi(\mathbf{x}_i, \mathbf{y}_i) - \Psi(\mathbf{x}_i, \hat{\mathbf{y}}_i^{(k)}) \rangle - \xi
+          \label{eq:constraint_k} \\
+g_k(z) &= \Delta(\mathbf{y}_j, \hat{\mathbf{y}}^{(k)}) - 
+          \langle \mathbf{w},~ \Psi(\mathbf{x}_j, \mathbf{y}_j) - \Psi(\mathbf{x}_j, \hat{\mathbf{y}}^{(k)}) \rangle - \xi_j \le 0 
+          \label{eq:feacut_nslack}
+\end{align}
 
-\subsubsection{The $1$-slack formulation}
+
+
+\subsubsubsection{The $1$-slack formulation}
 \label{sec:compare_1slack}
 
 Given query points $q^{(1)}, \dots, q^{(k)}$ and the feasibility cuts returned by oracle (after querying these points), then
@@ -551,7 +588,7 @@ s.t.~~ ~& \theta \ge \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \xi \\
 \end{align*}
 
 
-\subsubsection{The $n$-slack formulation}
+\subsubsubsection{The $n$-slack formulation}
 \label{sec:compare_nslack}
 
 Similarly, for the $n$-slack formulation of structured SVM,
@@ -617,9 +654,10 @@ by exploring the dual problem of either the loss-augmented inference or
 the hinge-loss~\cite{taskar2004dissertation,taskar2005learning,meshi2010learning, bach2015paired},
 which we review briefly in this section.
 
-
+\eat{
 \subsubsection{Dualise loss-augmented inference}
 \label{sec:dualinf}
+}
 
 The $n$-slack formulation of structured SVM~(\ref{eq:nslackform}) described in Section~\ref{sec:nslackssvm} is equivalent to
 \begin{align}
@@ -653,7 +691,7 @@ Problem (\ref{eq:dualinf}) is a quadratic program with polynomial number of vari
 and can be solved using existing off-the-shelf QP solvers.
 Details of this approach are available in \cite{taskar2005learning}.
 
-
+\eat{
 \subsubsection{Dualise losses}
 \label{sec:dualloss}
 
@@ -697,8 +735,9 @@ which leads to the following learning loop:
 \item update parameters $\mathbf{w}^{(t+1)}$ using stochastic sub-gradient descent.
 \end{enumerate}
 Details of this approach are available in \cite{meshi2010learning}.
+}
 
-
+\eat{
 \section{Trajectory recommendation via structured prediction}
 \label{sec:recommend}
 
@@ -862,7 +901,7 @@ which are linear as $y_j$ is a constant.
 \texttt{avgDuration}   & (discretised) average duration at POI \\ \hline
 \end{tabular}
 \end{table}
-
+}
 
 
 
