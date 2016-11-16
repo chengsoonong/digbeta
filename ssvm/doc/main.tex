@@ -1,0 +1,46 @@
+%\documentclass[10pt,a4paper]{article}
+%\documentclass[twocolumn,10pt,a4paper]{article}
+%\documentclass[twocolumn,a4wide,9pt]{extarticle}
+\documentclass[9pt]{extarticle}
+\usepackage[a4paper,top=0.85in,left=0.75in,bottom=1in,right=0.52in]{geometry} % A4 paper margins
+%\usepackage[a4paper,top=0.75in,left=0.1in,bottom=0.9in,right=0.1in]{geometry} % A4 paper margins
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{mathrsfs}
+\usepackage{bm}
+\usepackage{bbm}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage[sc]{mathpazo}
+\linespread{1.05}         % Palladio needs more leading (space between lines)
+\usepackage[T1]{fontenc}
+\usepackage{subcaption}  % sub-figures
+\usepackage{graphicx}
+\graphicspath{{fig/}} % Location of the graphics files
+
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+\newcommand{\eat}[1]{}
+\setlength{\columnsep}{1.5em} % spacing between columns
+
+\title{The Trajectory Recommendation Problem}
+
+\author{Dawei Chen}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+
+\include{1.problem}
+\include{2.background}
+\include{3.methods}
+
+
+\bibliographystyle{ieeetr}
+\bibliography{ref}
+
+\end{document}

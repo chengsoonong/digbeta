@@ -1,37 +1,4 @@
-%\documentclass[10pt,a4paper]{article}
-%\documentclass[twocolumn,10pt,a4paper]{article}
-%\documentclass[twocolumn,a4wide,9pt]{extarticle}
-\documentclass[9pt]{extarticle}
-%\usepackage[a4paper,top=0.85in,left=0.75in,bottom=1in,right=0.52in]{geometry} % A4 paper margins
-%\usepackage[a4paper,top=0.5in,left=0.75in,bottom=0.6in,right=0.52in]{geometry}
-%\usepackage[a4paper,top=0.5in,left=0.75in,bottom=0.7in,right=0.52in]{geometry}
-\usepackage[a4paper,top=0.75in,left=0.75in,bottom=0.9in,right=0.52in]{geometry} % A4 paper margins
-\usepackage{hyperref}
-\usepackage{amsmath}
-\usepackage{amsfonts}
-\usepackage{bm}
-\usepackage{algorithm}
-\usepackage{algorithmic}
-\usepackage[sc]{mathpazo}
-\linespread{1.05}         % Palladio needs more leading (space between lines)
-\usepackage[T1]{fontenc}
-
-\DeclareMathOperator*{\argmin}{argmin}
-\DeclareMathOperator*{\argmax}{argmax}
-\newcommand{\eat}[1]{}
-\setlength{\columnsep}{1.5em} % spacing between columns
-
-\title{Notes on Cutting-plane Methods}
-
-\author{Dawei Chen}
-
-\date{\today}
-
-\begin{document}
-
-\maketitle
-
-\section{Problem Setting}
+\section{The cutting-plane methods}
 \label{sec:problem}
 
 The goal of cutting-plane methods is to find/localise a point in a convex \textit{target set} $Z \in \mathbb{R}^n$,
@@ -127,7 +94,7 @@ where $q$ is the current query point. If $q = q_\text{best}$, this cut reduces t
 For non-differentiable problems, the gradients $\nabla f_j(z)$ can generally be replaced by sub-gradients.
 
 
-\section{Generate query points}
+\subsection{Generate query points}
 \label{sec:query}
 
 We would like to generate a query point $q^{(k+1)}$ in the current polyhedron $\mathcal{P}_{k}$ such that 
@@ -137,7 +104,7 @@ If we measure the informativeness of the $k$-th cut using the volume reduction r
 we seek a point $q^{(k+1)}$ such that, no matter which direction to cut (returned by the oracle), we can obtain a certain guaranteed volume reduction.
 
 
-\subsection{Method of Kelley-Cheney-Goldstein}
+\subsubsection{Method of Kelley-Cheney-Goldstein}
 \label{sec:kcg}
 
 Given query points $q^{(1)}, \dots, q^{(k)}$, one approach to generate the next query point $q^{(k+1)}$ is solving a linear programming (LP)
@@ -175,7 +142,7 @@ that maximise the convex objective $f_0(z)$ as the next query point.
 
 
 
-\subsection{Chebyshev center method}
+\subsubsection{Chebyshev center method}
 \label{sec:chebyshev}
 
 If we rescale the gradients $\nabla f_0(q^{(i)})$ to unit length in problem (\ref{eq:kcg}), 
@@ -193,7 +160,7 @@ s.t.~~   ~& \theta \ge f_0(q^{(i)}) + \frac{\nabla f_0(q^{(i)})}{\|\nabla f_0(q^
 This variant is called the \emph{Chebyshev center} method, which is shown to have significantly better convergence properties than the method of Kelley-Cheney-Goldstein~\cite{goffin2002convex}.
 
 
-\subsection{Analytic center cutting plane method}
+\subsubsection{Analytic center cutting plane method}
 \label{sec:accpm}
 
 Given a linear constraint $a_i^\top z \le b_i$, we define a slack variable $s_i \in \mathbb{R}$ as $s_i = b_i - a_i^\top z$,
@@ -214,7 +181,7 @@ to query the oracle.
 ACCPM seems to give a good trade-off in terms of simplicity and practical performance~\cite{boydlocalization}.
 
 
-\subsection{Center of gravity/Bayes point method}
+\subsubsection{Center of gravity/Bayes point method}
 \label{sec:cg}
 
 Assume set $\mathcal{C} \subseteq \mathbb{R}^n$ is bounded and has nonempty interior. 
@@ -242,7 +209,6 @@ Variants that compute an approximate center of gravity have been developed, and 
 
 \subsection{Training the $n$-slack formulation of structured SVM}
 \label{sec:nslackssvm}
-
 
 Given $n$ training examples $(\mathbf{x}_1, \mathbf{y}_1), \dots, (\mathbf{x}_n, \mathbf{y}_n)$, 
 the structured SVM with margin-rescaling\footnote{For brevity, structured SVM (SSVM) with slack-rescaling are not described in this document.}
@@ -383,7 +349,7 @@ train the $1$-slack formulation of structured SVM.
 \end{algorithm}
 
 
-\subsection{Discussion}
+\section{Discussion}
 \label{sec:ssvm_discussion}
 
 From Algorithm~\ref{alg:nslacktrain} and Algorithm~\ref{alg:1slacktrain}, we observe that:
@@ -399,7 +365,7 @@ From Algorithm~\ref{alg:nslacktrain} and Algorithm~\ref{alg:1slacktrain}, we obs
 
 
 
-\subsubsection{Query generation method}
+\subsection{Query generation method}
 \label{sec:ssvm_query}
 
 Recall that in Section~\ref{sec:problem}, we have an objective $f_0(z)$ to minimise, in the case of $1$-slack formulation of structured SVM,
@@ -427,7 +393,7 @@ where $A_k^\top z \le \mathbf{b}_k$ is equivalent to the set of constraints in $
 
 
 
-\subsubsection{Explicit objective cut generation}
+\subsection{Explicit objective cut generation}
 \label{sec:ssvm_objcut}
 
 Given query point $q = \left[ \mathbf{w}^{(k)}, \xi^{(k)} \right]^\top$, if $q$ is feasible, we can form an \emph{objective cut}
@@ -503,7 +469,7 @@ g_k(z) = \Delta(\mathbf{y}_j, \hat{\mathbf{y}}^{(k)}) -
 }
 
 
-\subsubsection{Generate query point using the method of Kelley-Cheney-Goldstein and the Chebyshev center method}
+\subsection{Generate query point using the method of Kelley-Cheney-Goldstein and the Chebyshev center method}
 \label{sec:compare}
 
 Suppose we use the method of Kelley-Cheney-Goldstein or the Chebyshev center method to generate query point 
@@ -522,7 +488,7 @@ g_k(z) &= \Delta(\mathbf{y}_j, \hat{\mathbf{y}}^{(k)}) -
 
 
 
-\subsubsubsection{The $1$-slack formulation}
+\subsubsection{The $1$-slack formulation}
 \label{sec:compare_1slack}
 
 Given query points $q^{(1)}, \dots, q^{(k)}$ and the feasibility cuts returned by oracle (after querying these points), then
@@ -588,7 +554,7 @@ s.t.~~ ~& \theta \ge \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \xi \\
 \end{align*}
 
 
-\subsubsubsection{The $n$-slack formulation}
+\subsubsection{The $n$-slack formulation}
 \label{sec:compare_nslack}
 
 Similarly, for the $n$-slack formulation of structured SVM,
@@ -856,56 +822,4 @@ which are linear as $y_j$ is a constant.
 %Given the trained $\mathbf{w}$ and $\xi$, the prediction of $\mathbf{x}$ is 
 %$\hat{\mathbf{y}} = \argmax_{\bar{\mathbf{y}} \in \mathcal{Y}} \langle \mathbf{w},~ \Psi(\mathbf{x}, \bar{\mathbf{y}}) \rangle$
 %Which means whether sub-tours are permitted depends on the inference method, it follows that cutting-plane cannot help to eliminate sub-tours.
-
-
-\begin{table*}[ht]
-\caption{Features of POI $p$ with respect to query $(p_s, p_e, L)$}
-\label{tab:poifeature}
-\centering
-\setlength{\tabcolsep}{10pt} % tweak the space between columns
-\begin{tabular}{l|l} \hline
-\textbf{Feature}  & \textbf{Description} \\ \hline
-\texttt{category}               & one-hot encoding of the category of $p$ \\
-\texttt{neighbourhood}          & one-hot encoding of the POI cluster that $p$ resides in \\
-\texttt{popularity}             & logarithm of POI popularity of $p$ \\
-\texttt{nVisit}                 & logarithm of the total number of visit by all users at $p$ \\
-\texttt{avgDuration}            & logarithm of the average duration at $p$ \\ \hline
-\texttt{trajLen}                & trajectory length $L$, i.e., the number of POIs required \\
-\texttt{sameCatStart}           & $1$ if the category of $p$ is the same as that of $p_s$, $-1$ otherwise \\
-\texttt{sameCatEnd}             & $1$ if the category of $p$ is the same as that of $p_e$, $-1$ otherwise \\
-\texttt{sameNeighbourhoodStart} & $1$ if $p$ resides in the same POI cluster as $p_s$, $-1$ otherwise \\
-\texttt{sameNeighbourhoodEnd}   & $1$ if $p$ resides in the same POI cluster as $p_e$, $-1$ otherwise \\
-\texttt{distStart}              & distance between $p$ and $p_s$, calculated using the Haversine formula \\
-\texttt{distEnd}                & distance between $p$ and $p_e$, calculated using the Haversine formula \\
-\texttt{diffPopStart}           & real-valued difference in POI popularity of $p$ from that of $p_s$ \\
-\texttt{diffPopEnd}             & real-valued difference in POI popularity of $p$ from that of $p_e$ \\
-\texttt{diffNVisitStart}        & real-valued difference in the total number of visit at $p$ from that at $p_s$ \\
-\texttt{diffNVisitEnd}          & real-valued difference in the total number of visit at $p$ from that at $p_e$ \\
-\texttt{diffDurationStart}      & real-valued difference in average duration at $p$ from that at $p_s$ \\
-\texttt{diffDurationEnd}        & real-valued difference in average duration at $p$ from that at $p_e$ \\ \hline
-\end{tabular}
-\end{table*}
-
-
-\begin{table}[ht]
-\caption{POI features used to estimate the (feature-wise) transition probabilities}
-\label{tab:tranfeature}
-\centering
-\setlength{\tabcolsep}{28pt} % tweak the space between columns
-\begin{tabular}{l|l} \hline
-\textbf{Feature}       & \textbf{Description} \\ \hline
-\texttt{category}      & category of POI \\
-\texttt{neighbourhood} & the cluster that a POI resides in \\
-\texttt{popularity}    & (discretised) popularity of POI \\
-\texttt{nVisit}        & (discretised) total number of visit at POI \\
-\texttt{avgDuration}   & (discretised) average duration at POI \\ \hline
-\end{tabular}
-\end{table}
 }
-
-
-
-\bibliographystyle{ieeetr}
-\bibliography{ref}
-
-\end{document}
