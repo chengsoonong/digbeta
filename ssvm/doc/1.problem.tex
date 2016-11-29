@@ -17,6 +17,24 @@ where $t_k$ is the time spent at POI $y_k$.
 
 
 
+\subsection{A concrete example}
+\label{sec:example}
+
+Given a set of $10$ points-of-interest (POI) in Melbourne 
+\begin{align*}
+\mathcal{P} = \{ 
+& \textit{\small Eureka Tower, Federation Square, Flinders Street Railway Station, Luna Park, Melbourne Aquarium, Melbourne Cricket Ground,} \\
+& \textit{\small Melbourne Zoo, National Gallery of Victoria, Royal Exhibition Building, University of Melbourne} \}
+\end{align*}
+and a query $\mathbf{x} = \{\textit{\small University of Melbourne},~ 5\}$,
+we would like to recommend a trajectory 
+\begin{equation*}
+\mathbf{y} = \{\textit{\small University of Melbourne},~ y_2, \dots, y_5\},~ y_k \in \mathcal{P},~ k=2,\dots,5.
+\end{equation*}
+by modelling trajectory data we have with POI and query related features as described in Section~\ref{sec:feature}.
+
+
+
 \subsection{Related problems}
 \label{sec:related}
 
@@ -71,3 +89,60 @@ where $y_k$ has a rank $\mid\!\! \mathcal{P} \!\!\mid\! - k + 1$ and any other P
 We can make use of ranking evaluation metrics such as Kendall's $\tau$ or Spearman's $\rho$, by taking care of ties in ranks.
 
 \eat{TODO: Write these down and contrast, esp. to pairs-F1}.
+
+
+
+\subsection{Kendall's $\tau$}
+\label{sec:kendalltau}
+
+Given two ranks $X$ and $Y$, each with $n$ observations, we define
+\begin{itemize}
+\item Number of concordant pairs 
+      \begin{equation*}
+      C = \sum_{i < j} \left( \mathbbm{1}(X_i < X_j) \cdot \mathbbm{1}(Y_i < Yj) + \mathbbm{1}(X_i > X_j) \cdot \mathbbm{1}(Y_i > Y_j) \right),
+      \end{equation*}
+      where $\sum_{i < j}$ means we are counting over all unordered pairs $(i, j),~ i,j=1,\dots,n,~ i \ne j$.
+
+\item Number of discordant pairs 
+      \begin{equation*}
+      D = \sum_{i < j} \left( \mathbbm{1}(X_i < X_j) \cdot \mathbbm{1}(Y_i > Yj) + \mathbbm{1}(X_i > X_j) \cdot \mathbbm{1}(Y_i < Y_j) \right).
+      \end{equation*}
+
+\item Number of ties in $X$
+      \begin{equation*}
+      T_X = \sum_{i < j} \mathbbm{1}(X_i = X_j) = \sum_k \frac{t_k (t_k - 1)}{2},
+      \end{equation*}
+      where $t_k$ is the number of tied values in the $k$-th group of ties for $X$, for example, if
+      $X = [12, 2, 1, 12, 2, 2, 1]$, there are $3$ groups of tied values, the first group is the two $12$'s, i.e., $t_1 = 2$;
+      the second group is the three $2$'s, i.e., $t_2 = 3$; the third group is the two $1$'s, i.e., $t_3 = 2$. \\
+      Similarly, the number of ties in $Y$ is 
+      \begin{equation*}
+      T_Y = \sum_{i < j} \mathbbm{1}(Y_i = Y_j) = \sum_k \frac{u_k (u_k - 1)}{2},
+      \end{equation*}
+      where $u_k$ is the number of tied values in the $k$-th group of ties for $Y$.
+
+\item Number of ties in both $X$ and $Y$
+      \begin{equation*}
+      T_{XY} = \sum_{i < j} \mathbbm{1}(X_i = X_j) \cdot \mathbbm{1}(Y_i = Y_j).
+      \end{equation*}
+
+\item Number of ties only in $X$
+      \begin{equation*}
+      T = \sum_{i < j} \mathbbm{1}(X_i = X_j) \cdot \mathbbm{1}(Y_i \ne Y_j),
+      \end{equation*}
+      and the number of ties only in $Y$
+      \begin{equation*}
+      U = \sum_{i < j} \mathbbm{1}(X_i \ne X_j) \cdot \mathbbm{1}(Y_i = Y_j).
+      \end{equation*}
+\end{itemize}
+
+Kendall's $\tau$ (version $b$) is defined as~\cite{kendall1945,agresti2010analysis} (and implemented in SciPy~\cite{scipy})
+\begin{equation*}
+\tau_b = \frac{C - D}{\sqrt{[n(n-1)/2 - T_X] [n(n-1)/2 - T_Y]}} = \frac{C - D}{\sqrt{(C + D + T) (C + D + U)}},
+\end{equation*}
+where we use equalities 
+\begin{align*}
+\frac{n(n-1)}{2} &= C + D + T_X + T_Y - T_{XY} \\
+T &= T_X - T_{XY} \\
+U &= T_Y - T_{XY}
+\end{align*}
