@@ -94,7 +94,7 @@ using the one-versus-rest approach,
 
 The recommendation is simply done by picking the most likely POI for each location $k$ independently,
 \begin{equation*}
-y_k^* = \argmax_{p in \mathcal{P}}~ \mathbb{P}(y_k = p \mid \mathbf{x}),~ k = 2, \dots, K.
+y_k^* = \argmax_{p \in \mathcal{P}}~ \mathbb{P}(y_k = p \mid \mathbf{x}),~ k = 2, \dots, K.
 \end{equation*}
 
 This approach can be described by a directed graphical model as shown in Figure~\ref{fig:pgm}(a).
@@ -182,8 +182,7 @@ Compared with the first definition, the second option can implicitly incorporate
 
 
 
-\subsubsection{Drawbacks}
-\label{sec:drawback}
+\subsubsection{Discussion}
 
 We note that the point-wise POI scoring approaches (Section~\ref{sec:logistic} to \ref{sec:linear}) do not consider the inter-dependencies between POIs,
 and the pairwise ranking approach (Section~\ref{sec:rank}) only considers the relative order between two individual points,
@@ -239,7 +238,8 @@ For MEMM, the compatibility function $f(\mathbf{x}, \mathbf{y})$ is the probabil
 \begin{equation*}
 f(\mathbf{x}, \mathbf{y}) 
 = \mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w}) 
-= \prod_{j=2}^{K}~
+= \mathbb{P}(y_1 \mid \mathbf{x}; \mathbf{w}) \cdot \prod_{j=2}^K \mathbb{P}(y_j \mid y_{j-1}, \mathbf{x}; \mathbf{w})
+= 1 \cdot \prod_{j=2}^{K}~
   \frac{\exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) \right)}
        {\sum_{y' \in \mathcal{P}} \exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y') \right)},
 \end{equation*}
@@ -277,14 +277,15 @@ To make a prediction, we need to do a MAP inference (which can be done using the
 \end{aligned}
 \end{equation}
 
-Furthermore, we can model the no duplicates constraint by explicitly adding dependences between variable $y_j$ and $y_k,~ j < k$,
+Furthermore, we can explicitly model dependencies between POIs in trajectory by adding dependences between variable $y_j$ and $y_k,~ j < k$,
 which results in another compatibility function
 \begin{equation*}
 f(\mathbf{x}, \mathbf{y}) 
 = \mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w}) 
-= \prod_{j=2}^{K}~
-  \frac{\exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}, y_1, \dots, y_{j-1}, y_j) \right)}
-       {\sum_{y' \in \mathcal{P}} \exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}, y_1, \dots, y_{j-1}, y') \right)}.
+= \mathbb{P}(y_1 \mid \mathbf{x}; \mathbf{w}) \cdot \prod_{j=2}^K \mathbb{P}(y_j \mid y_1,\dots, y_{j-1}, \mathbf{x}; \mathbf{w})
+= 1 \cdot \prod_{j=2}^{K}~
+  \frac{\exp \left(\mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_1, \dots, y_{j-1}, y_j) \right)}
+       {\sum_{y' \in \mathcal{P}} \exp \left(\mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_1, \dots, y_{j-1}, y') \right)}.
 \end{equation*}
 
 It can be trained similarly using the maximum likelihood principle.
@@ -364,7 +365,7 @@ and $\Psi_{j-1,j}$ is a pairwise feature vector that captures the affinity of tr
 
 To learn the parameters, we train the structured SVM by optimising a quadratic program (QP),
 \begin{equation}
-\label{eq:nslackform}
+\label{eq:nslack}
 \begin{aligned}
 \min_{\mathbf{w}, ~\bm{\xi} \ge 0} ~& \frac{1}{2} \mathbf{w}^\top \mathbf{w} + \frac{C}{n} \sum_{i=1}^n \xi_i \\
 s.t.~~ ~& \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) - \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) \ge 
@@ -382,7 +383,7 @@ and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i
 \end{equation*}
 %This formulation is called "$n$-slack" as we have one slack variable for each example in training set.
 
-We can rewrite the constraint in problem (\ref{eq:nslackform}) as
+We can rewrite the constraint in problem (\ref{eq:nslack}) as
 \begin{equation}
 \label{eq:ssvminf}
 \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) + \xi_i \ge
@@ -391,16 +392,16 @@ We can rewrite the constraint in problem (\ref{eq:nslackform}) as
 \end{equation}
 where the right hand side is known as the \emph{loss-augmented inference}.
 
-To solve problem (\ref{eq:nslackform}), one option is simply enumerating all constraints, and feeding the problem into a standard QP solver.
+To solve problem (\ref{eq:nslack}), one option is simply enumerating all constraints, and feeding the problem into a standard QP solver.
 However, this approach is impractical as there is a constraint for every possible label $\bar{\mathbf{y}}$.
-Instead, we use a cutting-plane algorithm which repeatedly solves QP (\ref{eq:nslackform}) 
+Instead, we use a cutting-plane algorithm which repeatedly solves QP (\ref{eq:nslack}) 
 w.r.t. different set of constraints~\cite{joachims2009predicting}.
 In each iteration, a new constraint is formed by solving the loss-augmented inference, 
 which helps shrink the feasible region of the problem.
 
 
 
-\subsubsection{Drawbacks}
+\subsubsection{Discussion}
 
 All structured models described above suffer from a number of drawbacks.
 \begin{enumerate}
@@ -420,10 +421,104 @@ Possible solutions including
 \item formulating it as an integer linear program (ILP) and solve it using an ILP solver, 
       or using lazy constraint generation/cutting-plane techniques with a LP solver;
 \item in addition, we can use list Viterbi algorithm~\cite{nill1995list} repeatedly until a maximum-weight loop-less path with exactly $K$ edges is found;
-\item moreover, we can employ heuristics such as the Christofides algorithm~\cite{christofides1976} 
+\item moreover, we can employ heuristics such as greedy search or the Christofides algorithm~\cite{christofides1976} 
       when the problem has the triangle inequality property (for trajectories, indeed).
 \end{itemize}
 These options are applicable to MEMM (Section~\ref{sec:memm}) as well.
+
+
+
+\subsubsection{Inference algorithms}
+\label{sec:inference}
+
+\noindent
+\textit{Integer linear program} \vspace{.5em} \\
+If we formulate an ILP to do inference and employ the sub-tour elimination constraints from TSP, we have
+\begin{alignat}{5}
+& \max_{u,v} ~&& \frac{1}{2} \sum_{k=1}^M \mathbf{w}_k^\top \phi_k(\mathbf{x}, p_k) \sum_{j=1}^M u_{jk} + 
+                 \sum_{j=1}^M \sum_{k=1}^M u_{jk} \mathbf{w}_{jk}^\top \phi_{j, k}(\mathbf{x}, p_j, p_k) \\
+& s.t. ~~ ~&& u_{jk}, ~z_j \in \{0, 1\}, ~u_{jj}=0, ~z_1=0, ~v_j \in \mathbf{Z},~ p_j \in \mathcal{P}, ~\forall j, k = 1,\cdots,M   \label{eq:cons1} \\
+&          && \sum_{k=2}^M u_{1k} = 1, ~\sum_{j=2}^M u_{j1} = 0  \label{eq:cons2} \\
+&          && \sum_{j=1}^M u_{jl} = z_l + \sum_{k=2}^M u_{lk} \le 1,   ~\forall l=2,\cdots,M                    \label{eq:cons3} \\
+&          && \sum_{j=1}^M \sum_{k=1}^M u_{jk} = L-1,                                                           \label{eq:cons4} \\
+&          && v_j - v_k + 1 \le (M-1) (1-u_{jk}),                     \forall j,k=2,\cdots,M                    \label{eq:cons5}
+\end{alignat}
+where $u_{jk}$ is a binary decision variable that determines whether the transition from $p_j$ to $p_k$ is in the resulting trajectory,
+$z_j$ is a binary decision variable that determines whether $p_j$ is the last POI in trajectory.
+$L$ is the number of POIs in trajectory.
+For brevity, we arrange the POIs such that $p_1 = p_s$.
+Firstly, the desired trajectory should start from $p_s$ (Constraint~\ref{eq:cons2}).
+In addition, any POI could be visited at most once (Constraint~\ref{eq:cons3}).
+Moreover, only $L-1$ transitions between POIs are permitted (Constraint~\ref{eq:cons4}),
+i.e., the number of POI visits should be exactly $L$ (including $p_s$).
+The last constraint, where $v_i$ is an auxiliary variable,
+enforces that only a single sequence of POIs without sub-tours is permitted in the trajectory.
+
+If we employ the above ILP to do loss-augmented inference, we can simply add a linear loss function to the objective, 
+e.g., $\Delta(\mathbf{y}, \bar{\mathbf{y}}) = 1 - \sum_{j=1}^M \sum_{k=1}^M u_{j, y_k}$ if we define the loss as the number of mispredicted POIs,
+where $\mathbf{y}$ is the ground truth and $\bar{\mathbf{y}}$ is the trajectory corresponding to the optimal solution of this ILP.
+\\
+
+\noindent
+\textit{The list Viterbi algorithm} \vspace{.5em} \\
+Instead of employ an algorithm with exponential time complexity (e.g., ILP) to do inference,
+we can resort to an iterative algorithm such as the list Viterbi algorithm~\cite{nilsson2001sequentially,seshadri1994list}
+which sequentially find the $k$-th best (scored) trajectory given the best, $2$nd best, \dots, $(k-1)$-th best (scored) trajectories,
+as described in Algorithm~\ref{alg:listviterbi}.
+
+
+\begin{algorithm}[htbp]
+\caption{The list Viterbi algorithm for inference}
+\label{alg:listviterbi}
+\begin{algorithmic}[1]
+\STATE \textbf{Input}: $p_s$, $L$, $N$, $\mathbf{w}$, $\Psi$
+\STATE Initialise score matrices $\alpha, \beta, f_t, f_{t, t+1}$, max-heap $H$, $k=0$.
+\STATE $\triangleright$ Do the forward-backward procedure~\cite{rabiner1989tutorial}
+\STATE $\alpha_1(p_j) = 0,~ \beta_L(p_i) = 0,~ p_i, p_j \in \mathcal{P}$
+\STATE $\alpha_t(p_j) = \max_{p_i \in \mathcal{P}} \{ \alpha_{t-1}(p_i) + 
+        \mathbf{w}_{ij}^\top \Psi_{ij}(\mathbf{x}, p_i, p_j) + \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) \},~ p_j \in \mathcal{P},~ t=2,\dots,L$
+\STATE $\beta_t(p_i) = \max_{p_j \in \mathcal{P}} \{ \mathbf{w}_{ij}^\top \Psi_{ij}(\mathbf{x}, p_i, p_j) + 
+        \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j) \},~ p_i \in \mathcal{P},~ t = L-1,\dots,1$
+\STATE $f_t(p_i) = \alpha_t(p_i) + \beta_t(p_i),~ p_i \in \mathcal{P},~ t = 1,\dots,L$
+\STATE $f_{t,t+1}(p_i, p_j) = \alpha_t(p_i) + \mathbf{w}_{ij}^\top \Psi_{ij}(\mathbf{x}, p_i, p_j) + 
+                              \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j),~ p_i, p_j \in \mathcal{P},~ t = 1,\dots,L-1$
+\STATE $\triangleright$ Identify the best (scored) trajectory $\mathbf{y}^1$ (possibly with sub-tours)
+\STATE $y_1^1 = p_s,~ y_2^1 = \argmax_{p \in \mathcal{P}} f_{1,2}(p_s, p)$
+\STATE $y_t^1 = \argmax_{p \in \mathcal{P}} f_{t-1,t}(y_{t-1}^1, p),~ t = 3,\dots,L$
+\STATE \textit{priority} = $\max_{p \in \mathcal{P}} f_L(p)$, \textit{partition\_index} = \textsc{nil}, \textit{exclude\_set} = $\emptyset$
+\STATE $H$.\textit{push}(\textit{priority}, \textit{partition\_index}, \textit{exclude\_set}, $\mathbf{y}^1$)
+\WHILE{$H$ is not empty \textbf{and} $k < N^{L-1} - \prod_{t=2}^L (N-t+1)$}
+    \STATE \textit{priority}, \textit{partition\_index}, \textit{exclude\_set}, $\mathbf{y}^k$ = $H$.pop(); $k = k + 1$
+    \IF{No sub-tours in $\mathbf{y}^k$}
+        \RETURN $\mathbf{y}^k$
+    \ENDIF
+    \STATE $\triangleright$ Identify the $(k+1)$-th best (scored) trajectory $\mathbf{y}^{k+1}$ (possibly with sub-tours)
+    \IF{\textit{partition\_index} $\ne$ \textsc{nil}}
+        \STATE \textit{partition\_index\_start} = \textit{partition\_index}
+    \ELSE
+        \STATE \textit{partition\_index\_start} = $2$
+    \ENDIF
+    \FOR{$t = \textit{partition\_index\_start},\dots,L$}
+        \STATE \textit{new\_exclude\_set} = $\{ y_t^k \}$
+        \IF{$t = \textit{partition\_index\_start}$}
+            \STATE \textit{new\_exclude\_set} = \textit{new\_exclude\_set} $\cap$ \textit{exclude\_set}
+        \ENDIF
+        \STATE $\bar{y}_j = \begin{cases}
+                            y_j^k,~~ j=1,\dots,t-1 \\
+                            \argmax_{p \in \mathcal{P} \setminus \textit{new\_exclude\_set}} f_{t-1,t}(y_{t-1}^k, p),~ j=t \\
+                            \argmax_{p \in \mathcal{P}} f_{j-1, j}(\bar{y}_{j-1}, p),~ j=t+1,\dots,L
+                \end{cases}$
+        \STATE \textit{new\_priority} = $f_{t-1,t}(y_{t-1}^k, \bar{y}_t)$
+        \IF{\textit{partition\_index} $\ne$ \textsc{nil}}
+            \STATE \textit{new\_priority} += \textit{priority} - $f_{t-1,t}(y_{t-1}^k, y_t^k)$
+        \ENDIF
+
+        $H$.\textit{push}(\textit{new\_priority}, $t$, \textit{new\_exclude\_set}, $\bar{\mathbf{y}}$)
+    \ENDFOR
+\ENDWHILE
+\end{algorithmic}
+\end{algorithm}
+
 
 
 \eat{
