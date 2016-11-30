@@ -79,16 +79,17 @@ It follows that we can form a cutting-plane
 which is called an \textit{objective cut} for problem (\ref{eq:cvxprob}) and 
 it cuts out the half-space $\{z | \nabla f_0(q)^\top (z - q) > 0 \}$ with non-optimal points.
 
-If we keep track of the best (smallest) objective value $f_\text{best} = f_0(q_\text{best})$ for all feasible query points during the querying, 
+If we keep track of the best (smallest) objective value for all feasible query points during the querying, i.e.,
+$f_\text{best} = f_0(q_\text{best}) = \min\{f_0(q^{(t)}) \mid q^{(t)} ~\text{is feasible}\}$,
 since the optimal point has an objective value at most $f_\text{best}$, 
 we can cut away the half-space of points $\{z | f_0(z) > f_\text{best} \}$ with objective values greater than $f_\text{best}$, 
-which means we add a constraint $f_0(z) \le f_\text{best}$, and considering Equation~(\ref{eq:funprop}), 
+which means we add a constraint $f_0(z) \le f_\text{best}$, and from Equation~(\ref{eq:funprop}), 
 we have a deep objective cut~\cite{boydlocalization},
 \begin{equation}
 \label{eq:deepobjcut}
 f_0(q) + \nabla f_0(q)^\top (z - q) - f_\text{best} \le 0,
 \end{equation}
-where $q$ is the current query point. If $q = q_\text{best}$, this cut reduces to the objective cut~(\ref{eq:objcut}).
+where $q$ is the current query point and is feasible. If $q = q_\text{best}$, this cut reduces to the objective cut~(\ref{eq:objcut}).
 
 %If $q$ is feasible and $\nabla f_0(q) = 0$ then $q$ is optimal.
 For non-differentiable problems, the gradients $\nabla f_j(z)$ can generally be replaced by sub-gradients.
@@ -204,7 +205,7 @@ Variants that compute an approximate center of gravity have been developed, and 
 
 
 \section{Training structured SVM using cutting-plane methods}
-\label{sec:ssvm}
+\label{sec:ssvm_train}
 
 
 \subsection{Training the $n$-slack formulation of structured SVM}
