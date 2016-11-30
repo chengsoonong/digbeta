@@ -61,14 +61,14 @@ Metrics researchers have used include
 \begin{itemize}
 \item Hamming loss $\frac{1}{K} \sum_{j=1}^K \mathbbm{1}(\hat{y}_j \neq y_j)$, this checks if every position is the same.
 
-\item F$_1$ score on points~\cite{ijcai15}, where we care about the set of correctly recommend POIs. 
+\item F$_1$ score on points~\cite{ijcai15}, where we care about the set of correctly recommended POIs. 
       Let $\texttt{set}(\mathbf{y})$ denote the set of POIs in trajectory $\mathbf{y}$, F$_1$ score on points is defined as
 \begin{equation*}
 F_1 = \frac{2  P_{\textsc{point}}  R_{\textsc{point}}}{P_{\textsc{point}} + R_{\textsc{point}}} ~~\text{where}~
 P_{\textsc{point}} = \frac{\mid \texttt{set}(\hat{\mathbf{y}}) \cap \texttt{set}(\mathbf{y}) \mid}{\mid \texttt{set}(\hat{\mathbf{y}}) \mid}~\text{and}~
 R_{\textsc{point}} = \frac{\mid \texttt{set}(\hat{\mathbf{y}}) \cap \texttt{set}(\mathbf{y}) \mid}{\mid \texttt{set}(\mathbf{y}) \mid}.
 \end{equation*}
-If the $\mid\!\! \hat{\mathbf{y}} \!\!\mid = \mid\!\! \mathbf{y} \!\!\mid$, this metric is just the unordered Hamming loss, 
+If $\mid\!\! \hat{\mathbf{y}} \!\!\mid = \mid\!\! \mathbf{y} \!\!\mid$, this metric is just the unordered Hamming loss, 
 i.e., Hamming loss between two binary indicator vectors of size $\mid\!\! \mathcal{P} \!\!\mid$.
 
 
@@ -78,8 +78,8 @@ i.e., Hamming loss between two binary indicator vectors of size $\mid\!\! \mathc
 P_{\textsc{pair}} = \frac{N_c} {\mid \texttt{set}(\hat{\mathbf{y}}) \mid (\mid \texttt{set}(\hat{\mathbf{y}}) \mid - 1) / 2}~\text{and}~
 R_{\textsc{pair}} = \frac{N_c} {\mid \texttt{set}(\mathbf{y}) \mid (\mid \texttt{set}(\mathbf{y}) \mid - 1) / 2},
 \end{equation*}
-and $N_c = \sum_{j=1}^{\mid \mathbf{y} \mid - 1} \sum_{k=j+1}^{\mid \mathbf{y} \mid} \mathbbm{1}(p_j \prec_{\bar{\mathbf{y}}} p_k)$,
-here $p_j \prec_{\bar{\mathbf{y}}} p_k$ denotes $p_j$ appears before $p_k$ in trajectory $\bar{\mathbf{y}}$.
+and $N_c = \sum_{j=1}^{\mid \mathbf{y} \mid - 1} \sum_{k=j+1}^{\mid \mathbf{y} \mid} \mathbbm{1}(y_j \prec_{\bar{\mathbf{y}}} y_k)$,
+here $y_j \prec_{\bar{\mathbf{y}}} y_k$ denotes that POI $y_j$ appears before POI $y_k$ in trajectory $\bar{\mathbf{y}}$.
 We define pairs-F$_1 = 0$ when $N_c = 0$.
 
 \end{itemize}
@@ -99,13 +99,14 @@ Given two ranks $X$ and $Y$, each with $n$ observations, we define
 \begin{itemize}
 \item Number of concordant pairs 
       \begin{equation*}
-      C = \sum_{i < j} \left( \mathbbm{1}(X_i < X_j) \cdot \mathbbm{1}(Y_i < Yj) + \mathbbm{1}(X_i > X_j) \cdot \mathbbm{1}(Y_i > Y_j) \right),
+      C = \sum_{i < j} \left( \mathbbm{1}(X_i < X_j) \cdot \mathbbm{1}(Y_i < Y_j) + \mathbbm{1}(X_i > X_j) \cdot \mathbbm{1}(Y_i > Y_j) \right),
       \end{equation*}
-      where $\sum_{i < j}$ means we are counting over all unordered pairs $(i, j),~ i,j=1,\dots,n,~ i \ne j$.
+      where $\mathbbm{1}(\cdot)$ is the indicator function and 
+      $\sum_{i < j}$ means we are counting over all unordered pairs $(i, j),~ i,j=1,\dots,n,~ i \ne j$.
 
 \item Number of discordant pairs 
       \begin{equation*}
-      D = \sum_{i < j} \left( \mathbbm{1}(X_i < X_j) \cdot \mathbbm{1}(Y_i > Yj) + \mathbbm{1}(X_i > X_j) \cdot \mathbbm{1}(Y_i < Y_j) \right).
+      D = \sum_{i < j} \left( \mathbbm{1}(X_i < X_j) \cdot \mathbbm{1}(Y_i > Y_j) + \mathbbm{1}(X_i > X_j) \cdot \mathbbm{1}(Y_i < Y_j) \right).
       \end{equation*}
 
 \item Number of ties in $X$
@@ -146,3 +147,46 @@ where we use equalities
 T &= T_X - T_{XY} \\
 U &= T_Y - T_{XY}
 \end{align*}
+
+
+
+\subsection{Compare Kendall's $\tau$ with F$_1$ score on points and pairs}
+\label{sec:metriccomparison}
+
+Given a prediction $\hat{\mathbf{y}} = (\hat{y}_1, \hat{y}_2, \dots, \hat{y}_K)$ and ground truth $\mathbf{y} = (y_1, y_2, \dots, y_K)$,
+for a specific ordering of POIs $(p_1, p_2, \dots, p_{\mid\mathcal{P}\mid})$,
+we produce two ranks according to $\mathbf{y}$ and $\hat{\mathbf{y}}$,
+\begin{align*}
+r_{\mathbf{y}}(p_i)       &= (\mid\!\! \mathcal{P} \!\!\mid - j + 1) \cdot \mathbbm{1}(p_i = y_j), \\
+r_{\hat{\mathbf{y}}}(p_i) &= (\mid\!\! \mathcal{P} \!\!\mid - j + 1) \cdot \mathbbm{1}(p_i = \hat{y}_j),~ 
+i = 1, \dots, \mid\!\! \mathcal{P} \!\!\mid,~ j = 1, \dots, K
+\end{align*}
+where POIs not in $\mathbf{y}$ will have a rank of $0$ in $r_{\mathbf{y}}$ and similarly in $r_{\hat{\mathbf{y}}}$.
+Then we have
+\begin{align*}
+C &= \sum_{i < j} \left(\mathbbm{1}(r_{\mathbf{y}}(p_i) < r_{\mathbf{y}}(p_j)) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) < r_{\hat{\mathbf{y}}}(p_j)) +
+     \mathbbm{1}(r_{\mathbf{y}}(p_i) > r_{\mathbf{y}}(p_j)) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) > r_{\hat{\mathbf{y}}}(p_j)) \right), \\
+D &= \sum_{i < j} \left(\mathbbm{1}(r_{\mathbf{y}}(p_i) < r_{\mathbf{y}}(p_j)) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) > r_{\hat{\mathbf{y}}}(p_j)) +
+     \mathbbm{1}(r_{\mathbf{y}}(p_i) > r_{\mathbf{y}}(p_j)) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) < r_{\hat{\mathbf{y}}}(p_j)) \right), \\
+T_{\mathbf{y}}       &= \sum_{i < j} \mathbbm{1}(r_{\mathbf{y}}(p_i) = r_{\mathbf{y}}(p_j)), \\
+T_{\hat{\mathbf{y}}} &= \sum_{i < j} \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) = r_{\hat{\mathbf{y}}}(p_j)), \\
+T_{\mathbf{y},\hat{\mathbf{y}}} &= \sum_{i < j} \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) = r_{\hat{\mathbf{y}}}(p_j)) \cdot
+                                   \mathbbm{1}(r_{\mathbf{y}}(p_i) = r_{\mathbf{y}}(p_j)), \\
+T &= T_{\mathbf{y}} - T_{\mathbf{y},\hat{\mathbf{y}}},~ U = T_{\hat{\mathbf{y}}} - T_{\mathbf{y},\hat{\mathbf{y}}}.
+\end{align*}
+\noindent
+Kendall's $\tau$
+\begin{equation*}
+\tau_b = \frac{C - D}{\sqrt{(C + D + T) (C + D + U)}},
+\end{equation*}
+F$_1$ score on points 
+\begin{equation*}
+F_1 = \frac{1}{K} \sum_i \mathbbm{1}(r_{\mathbf{y}}(p_i) > 0) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) > 0),
+\end{equation*}
+and F$_1$ score on pairs
+\begin{equation*}
+\text{pairs-F}_1 = \frac{\sum_{i < j} \left(\mathbbm{1}(0 < r_{\mathbf{y}}(p_i) < r_{\mathbf{y}}(p_j)) \cdot 
+                                            \mathbbm{1}(0 < r_{\hat{\mathbf{y}}}(p_i) < r_{\hat{\mathbf{y}}}(p_j)) +
+                                            \mathbbm{1}(r_{\mathbf{y}}(p_i) > r_{\mathbf{y}}(p_j) > 0) \cdot 
+                                            \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) > r_{\hat{\mathbf{y}}}(p_j) > 0) \right)}{K(K-1)/2}.
+\end{equation*}
