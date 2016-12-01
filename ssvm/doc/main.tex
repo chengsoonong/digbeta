@@ -2,14 +2,14 @@
 %\documentclass[twocolumn,10pt,a4paper]{article}
 %\documentclass[twocolumn,a4wide,9pt]{extarticle}
 \documentclass[9pt]{extarticle}
-\usepackage[a4paper,top=0.85in,left=0.75in,bottom=1in,right=0.52in]{geometry} % A4 paper margins
-%\usepackage[a4paper,top=0.75in,left=0.1in,bottom=0.9in,right=0.1in]{geometry} % A4 paper margins
+\usepackage[a4paper,top=0.79in,left=0.79in,bottom=0.79in,right=0.79in]{geometry} % A4 paper margins in LibreOffice
 \usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{mathrsfs}
 \usepackage{bm}
 \usepackage{bbm}
+\usepackage{ulem}
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage[sc]{mathpazo}
@@ -35,9 +35,13 @@
 \maketitle
 
 
-\include{1.problem}
-\include{2.background}
-\include{3.methods}
+\input{1.problem}
+\input{2.background}
+\input{3.methods}
+
+%\include{1.problem}
+%\include{2.background}
+%\include{3.methods}
 
 
 \bibliographystyle{ieeetr}
