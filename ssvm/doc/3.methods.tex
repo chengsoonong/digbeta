@@ -145,19 +145,7 @@ We can learn a ranking model
 C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} \phi \left( l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right).
 \end{equation*}
 
-There are a number of options for the design of loss function $\phi(\cdot)$,
-\begin{itemize}
-\item if $\phi(z) = \log(1 + \exp(-z))$, we are training a logistic regression model, and the ranking score
-      \begin{equation*}
-      S(p \mid \mathbf{x})= \mathbb{P}(p \mid \mathbf{x}; \mathbf{w}) = \sigma \left(\mathbf{w}^\top \Psi(\mathbf{x}, p) \right).
-      \end{equation*}
-\item if $\phi(z) = \max(0,~ 1-z)^2$, we are training a rankSVM with linear kernel and L2 loss, and the ranking score 
-      \begin{equation*}
-      S(p \mid \mathbf{x})= \mathbf{w}^\top \Psi(\mathbf{x}, p);
-      \end{equation*}
-\end{itemize}
-
-Similarly, we have a few options for the design of labels $l_{p,p'}^i$,
+There are a number of options for the design of labels $l_{p,p'}^i$,
 \begin{itemize}
 \item let $c_p^i$ denotes the number of times POI $p$ was observed in trajectories satisfying query $\mathbf{x}^{(i)}$ (except the start POI), and define
       \begin{equation*}
@@ -175,9 +163,40 @@ Similarly, we have a few options for the design of labels $l_{p,p'}^i$,
       -1,~ r(\mathbf{y}^{(i)}, p) < r(\mathbf{y}^{(i)}, p').
       \end{cases}
       \end{equation*}
-      There will be no ties when $p \ne p'$ and $p, p' \in \mathbf{y}^{(i)}$, if we remove examples that $r_p^i = 0$.     
+      There will be no ties when $p \ne p'$ and $p, p' \in \mathbf{y}^{(i)}$, if we remove examples that $r_p^i = 0$.
 \end{itemize}
 
+
+Similarly, we have a few options for the design of loss function $\phi(\cdot)$,
+\begin{itemize}
+\item if $\phi(z) = \max(0,~ 1-z)^2$, we are training a rankSVM with linear kernel and L2 loss, and the ranking score 
+      \begin{equation*}
+      S(p \mid \mathbf{x})= \mathbf{w}^\top \Psi(\mathbf{x}, p);
+      \end{equation*}
+\item if $\phi(z) = \log(1 + \exp(-z))$, we are training a logistic regression model, and the ranking score
+      \begin{equation*}
+      S(p \mid \mathbf{x})= \mathbb{P}(p \mid \mathbf{x}; \mathbf{w}) = \sigma \left(\mathbf{w}^\top \Psi(\mathbf{x}, p) \right).
+      \end{equation*}
+      We can train this ranking model by gradient descent. Let $J(\mathbf{w})$ be the cost function we want to minimise, i.e.,
+      \begin{align*}
+      J(\mathbf{w})
+      &= \frac{1}{2} \mathbf{w}^\top \mathbf{w} +  
+         C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} \phi \left( l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right) \\
+      &= \frac{1}{2} \mathbf{w}^\top \mathbf{w} + 
+         C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} \log\left(1 + \exp\left(-l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right)\right).
+      \end{align*}
+      The gradient of the cost function w.r.t. parameters $\mathbf{w}$ is
+      \begin{align*}
+      \frac{\partial J(\mathbf{w})}{\partial \mathbf{w}} 
+      &= \mathbf{w} + C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} 
+         \frac{-l_{p,p'}^i \cdot (\Psi_p^i - \Psi_{p'}^i) \cdot \exp\left( -l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right)}
+              {1 + \exp\left( -l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right)} \\
+      &= \mathbf{w} + C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} 
+         \frac{-l_{p,p'}^i \cdot (\Psi_p^i - \Psi_{p'}^i)}{1 + \exp\left( l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right)}.
+      \end{align*} 
+\end{itemize}
+
+      
 Compared with the first definition, the second option can implicitly incorporate the rank of a POI into the binary labels.
 
 
@@ -260,6 +279,28 @@ To learn the parameters, we maximise the likelihood of training set by minimisin
 \label{eq:trainmemm}
 \min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \ell(\mathbf{w}).
 \end{equation}
+
+A straightforward approach to optimise the above objective is employing gradient descent. 
+Let $J(\mathbf{w})$ be the objective (cost function), i.e.,
+\begin{align*}
+J(\mathbf{w}) 
+&= \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \ell(\mathbf{w}) \\
+&= \frac{1}{2} \mathbf{w}^\top \mathbf{w} -
+   C \sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} \mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y_j^{(i)}) +
+   C \sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} \log \sum_{y' \in \mathcal{P}} 
+     \exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y') \right).
+\end{align*}
+The gradient of the cost function w.r.t. parameters $\mathbf{w}$ is
+\begin{align*}
+\frac{\partial J{\mathbf{w}}}{\partial \mathbf{w}}
+&= \mathbf{w} + C \frac{\partial \ell(\mathbf{w})}{\partial \mathbf{w}} \\
+&= \mathbf{w} - C \sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y_j^{(i)}) +
+   C \sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} 
+     \frac{\sum_{y' \in \mathcal{P}} \left( \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y') \cdot 
+           \exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y') \right) \right)}
+          {\sum_{y' \in \mathcal{P}} \exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y') \right)}.
+\end{align*}
+
 
 MEMM is a directed graphical model (as shown in Figure~\ref{fig:pgm}(b)) which captures transitions from one POI to any other POIs simultaneously, 
 in contrast, pairwise ranking (Section~\ref{sec:rank}) captures only pairwise relations independently.
@@ -420,7 +461,8 @@ Possible solutions including
 \begin{itemize}
 \item formulating it as an integer linear program (ILP) and solve it using an ILP solver, 
       or using lazy constraint generation/cutting-plane techniques with a LP solver;
-\item in addition, we can use list Viterbi algorithm~\cite{nill1995list} repeatedly until a maximum-weight loop-less path with exactly $K$ edges is found;
+\item in addition, we can employ the list Viterbi algorithm~\cite{nilsson2001sequentially,seshadri1994list} 
+      which sequentially find the next best (scored) trajectory until a maximum-weight loop-less path with exactly $K$ edges is found;
 \item moreover, we can employ heuristics such as greedy search or the Christofides algorithm~\cite{christofides1976} 
       when the problem has the triangle inequality property (for trajectories, indeed).
 \end{itemize}
@@ -491,9 +533,9 @@ as described in Algorithm~\ref{alg:listviterbi}.
 
 \STATE $\triangleright$ Identify the best (scored) trajectory $\mathbf{y}^1=(y_1^1,\dots,y_K^1)$ (possibly with sub-tours)
 \STATE $y_t^1 = \begin{cases}
-                s,~ t = 1, \\
-                \argmax_{p \in \mathcal{P}} \left\{ f_{1,2}(s, p) \right\},~ t = 2, \\
-                \argmax_{p \in \mathcal{P}} \left\{ f_{t-1,t}(y_{t-1}^1, p) \right\},~ t = 3,\dots,K
+                s,~ t = 1 \\
+%                \argmax_{p \in \mathcal{P}} \left\{ f_{1,2}(s, p) \right\},~ t = 2, \\
+                \argmax_{p \in \mathcal{P}} \left\{ f_{t-1,t}(y_{t-1}^1, p) \right\},~ t = 2,\dots,K
                 \end{cases}$
 
 \STATE $r^1 = \max_{p \in \mathcal{P}} \left\{ f_K(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
