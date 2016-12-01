@@ -157,21 +157,21 @@ Given a prediction $\hat{\mathbf{y}} = (\hat{y}_1, \hat{y}_2, \dots, \hat{y}_K)$
 for a specific ordering of POIs $(p_1, p_2, \dots, p_{\mid\mathcal{P}\mid})$,
 we produce two ranks according to $\mathbf{y}$ and $\hat{\mathbf{y}}$,
 \begin{align*}
-r_{\mathbf{y}}(p_i)       &= (\mid\!\! \mathcal{P} \!\!\mid - j + 1) \cdot \mathbbm{1}(p_i = y_j), \\
-r_{\hat{\mathbf{y}}}(p_i) &= (\mid\!\! \mathcal{P} \!\!\mid - j + 1) \cdot \mathbbm{1}(p_i = \hat{y}_j),~ 
+r_{\mathbf{y}}^i       &= (\mid\!\! \mathcal{P} \!\!\mid - j + 1) \cdot \mathbbm{1}(p_i = y_j), \\
+r_{\hat{\mathbf{y}}}^i &= (\mid\!\! \mathcal{P} \!\!\mid - j + 1) \cdot \mathbbm{1}(p_i = \hat{y}_j),~ 
 i = 1, \dots, \mid\!\! \mathcal{P} \!\!\mid,~ j = 1, \dots, K
 \end{align*}
 where POIs not in $\mathbf{y}$ will have a rank of $0$ in $r_{\mathbf{y}}$ and similarly in $r_{\hat{\mathbf{y}}}$.
 Then we have
 \begin{align*}
-C &= \sum_{i < j} \left(\mathbbm{1}(r_{\mathbf{y}}(p_i) < r_{\mathbf{y}}(p_j)) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) < r_{\hat{\mathbf{y}}}(p_j)) +
-     \mathbbm{1}(r_{\mathbf{y}}(p_i) > r_{\mathbf{y}}(p_j)) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) > r_{\hat{\mathbf{y}}}(p_j)) \right), \\
-D &= \sum_{i < j} \left(\mathbbm{1}(r_{\mathbf{y}}(p_i) < r_{\mathbf{y}}(p_j)) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) > r_{\hat{\mathbf{y}}}(p_j)) +
-     \mathbbm{1}(r_{\mathbf{y}}(p_i) > r_{\mathbf{y}}(p_j)) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) < r_{\hat{\mathbf{y}}}(p_j)) \right), \\
-T_{\mathbf{y}}       &= \sum_{i < j} \mathbbm{1}(r_{\mathbf{y}}(p_i) = r_{\mathbf{y}}(p_j)), \\
-T_{\hat{\mathbf{y}}} &= \sum_{i < j} \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) = r_{\hat{\mathbf{y}}}(p_j)), \\
-T_{\mathbf{y},\hat{\mathbf{y}}} &= \sum_{i < j} \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) = r_{\hat{\mathbf{y}}}(p_j)) \cdot
-                                   \mathbbm{1}(r_{\mathbf{y}}(p_i) = r_{\mathbf{y}}(p_j)), \\
+C &= \sum_{i < j} \left(\mathbbm{1}(r_{\mathbf{y}}^i < r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j) +
+     \mathbbm{1}(r_{\mathbf{y}}^i > r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j) \right), \\
+D &= \sum_{i < j} \left(\mathbbm{1}(r_{\mathbf{y}}^i < r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j) +
+     \mathbbm{1}(r_{\mathbf{y}}^i > r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j) \right), \\
+T_{\mathbf{y}}       &= \sum_{i < j} \mathbbm{1}(r_{\mathbf{y}}^i = r_{\mathbf{y}}^j), \\
+T_{\hat{\mathbf{y}}} &= \sum_{i < j} \mathbbm{1}(r_{\hat{\mathbf{y}}}^i = r_{\hat{\mathbf{y}}}^j), \\
+T_{\mathbf{y},\hat{\mathbf{y}}} &= \sum_{i < j} \mathbbm{1}(r_{\hat{\mathbf{y}}}^i = r_{\hat{\mathbf{y}}}^j) \cdot
+                                   \mathbbm{1}(r_{\mathbf{y}}^i = r_{\mathbf{y}}^j), \\
 T &= T_{\mathbf{y}} - T_{\mathbf{y},\hat{\mathbf{y}}},~ U = T_{\hat{\mathbf{y}}} - T_{\mathbf{y},\hat{\mathbf{y}}}.
 \end{align*}
 \noindent
@@ -181,12 +181,65 @@ Kendall's $\tau$
 \end{equation*}
 F$_1$ score on points 
 \begin{equation*}
-F_1 = \frac{1}{K} \sum_i \mathbbm{1}(r_{\mathbf{y}}(p_i) > 0) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) > 0),
+F_1 = \frac{1}{K} \sum_i \mathbbm{1}(r_{\mathbf{y}}^i > 0) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^i > 0),
 \end{equation*}
 and F$_1$ score on pairs
+%\begin{equation*}
+%\text{pairs-F}_1 = \frac{\sum_{i < j} \left(\mathbbm{1}(0 < r_{\mathbf{y}}(p_i) < r_{\mathbf{y}}(p_j)) \cdot 
+%                                            \mathbbm{1}(0 < r_{\hat{\mathbf{y}}}(p_i) < r_{\hat{\mathbf{y}}}(p_j)) +
+%                                            \mathbbm{1}(r_{\mathbf{y}}(p_i) > r_{\mathbf{y}}(p_j) > 0) \cdot 
+%                                            \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) > r_{\hat{\mathbf{y}}}(p_j) > 0) \right)}{K(K-1)/2}.
+%\end{equation*}
+%\footnotesize
 \begin{equation*}
-\text{pairs-F}_1 = \frac{\sum_{i < j} \left(\mathbbm{1}(0 < r_{\mathbf{y}}(p_i) < r_{\mathbf{y}}(p_j)) \cdot 
-                                            \mathbbm{1}(0 < r_{\hat{\mathbf{y}}}(p_i) < r_{\hat{\mathbf{y}}}(p_j)) +
-                                            \mathbbm{1}(r_{\mathbf{y}}(p_i) > r_{\mathbf{y}}(p_j) > 0) \cdot 
-                                            \mathbbm{1}(r_{\hat{\mathbf{y}}}(p_i) > r_{\hat{\mathbf{y}}}(p_j) > 0) \right)}{K(K-1)/2}.
+\text{pairs-F}_1 = \frac{\sum_{i < j} 
+                   \mathbbm{1}(r_{\mathbf{y}}^i < r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\mathbf{y}}^i > 0) \cdot
+                   \mathbbm{1}(r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^i > 0) +
+                   \sum_{i < j} 
+                   \mathbbm{1}(r_{\mathbf{y}}^i > r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\mathbf{y}}^j > 0) \cdot
+                   \mathbbm{1}(r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^j > 0)}{K(K-1)/2}.
 \end{equation*}
+%\normalsize
+
+We can rewrite the number of concordant pairs as
+\begin{align*}
+C =& \sum_{i < j} \left(\mathbbm{1}(r_{\mathbf{y}}^i < r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j) +
+     \mathbbm{1}(r_{\mathbf{y}}^i > r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j) \right), \\
+  =& \sum_{i < j} \mathbbm{1}(r_{\mathbf{y}}^i < r_{\mathbf{y}}^j) \cdot 
+     \left( \mathbbm{1}(r_{\mathbf{y}}^i > 0) + \mathbbm{1}(r_{\mathbf{y}}^i = 0) \right) \cdot 
+     \mathbbm{1}(r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j) \cdot
+     \left( \mathbbm{1}(r_{\hat{\mathbf{y}}}^i > 0) + \mathbbm{1}(r_{\hat{\mathbf{y}}}^i = 0) \right) + \\
+   & \sum_{i < j} \mathbbm{1}(r_{\mathbf{y}}^i > r_{\mathbf{y}}^j) \cdot 
+     \left( \mathbbm{1}(r_{\mathbf{y}}^j > 0) + \mathbbm{1}(r_{\mathbf{y}}^j = 0) \right) \cdot
+     \mathbbm{1}(r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j) \cdot
+     \left( \mathbbm{1}(r_{\hat{\mathbf{y}}}^j > 0) + \mathbbm{1}(r_{\hat{\mathbf{y}}}^j = 0) \right) \\
+  =& \sum_{i < j} \left( \uwave{\mathbbm{1}(r_{\mathbf{y}}^i < r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\mathbf{y}}^i > 0)} +
+            \mathbbm{1}(r_{\mathbf{y}}^i < r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\mathbf{y}}^i = 0) \right) \cdot 
+     \left( \uwave{\mathbbm{1}(r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^i > 0)} + 
+            \mathbbm{1}(r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^i = 0) \right) + \\
+   & \sum_{i < j} \left( \uwave{\mathbbm{1}(r_{\mathbf{y}}^i > r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\mathbf{y}}^j > 0)} + 
+            \mathbbm{1}(r_{\mathbf{y}}^i > r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\mathbf{y}}^j = 0) \right) \cdot
+     \left( \uwave{\mathbbm{1}(r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^j > 0)} + 
+            \mathbbm{1}(r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^j = 0) \right) \\
+  =& \sum_{i < j} \uwave{\mathbbm{1}(r_{\mathbf{y}}^i < r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\mathbf{y}}^i > 0) \cdot
+                         \mathbbm{1}(r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^i > 0)} +
+     \sum_{i < j} \uwave{\mathbbm{1}(r_{\mathbf{y}}^i > r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\mathbf{y}}^j > 0) \cdot
+                         \mathbbm{1}(r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^j > 0)} + \\
+   & \sum_{i < j} \left( \uwave{\mathbbm{1}(r_{\mathbf{y}}^i < r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\mathbf{y}}^i > 0)} \cdot
+                         \mathbbm{1}(r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^i = 0) + 
+                         \mathbbm{1}(r_{\mathbf{y}}^i < r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\mathbf{y}}^i = 0) \cdot 
+                         \mathbbm{1}(r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j) \right) + \\ 
+   & \sum_{i < j} \left( \uwave{\mathbbm{1}(r_{\mathbf{y}}^i > r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\mathbf{y}}^j > 0)} \cdot
+                         \mathbbm{1}(r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^j = 0) +
+                         \mathbbm{1}(r_{\mathbf{y}}^i > r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\mathbf{y}}^j = 0) \cdot
+                         \mathbbm{1}(r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j) \right) \\
+  =& ~\text{pairs-F}_1 \cdot \frac{K(K-1)}{2}~ + \\
+   & \sum_{i < j} \left( \uwave{\mathbbm{1}(r_{\mathbf{y}}^i < r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\mathbf{y}}^i > 0)} \cdot
+                         \mathbbm{1}(r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^i = 0) + 
+                         \mathbbm{1}(r_{\mathbf{y}}^i < r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\mathbf{y}}^i = 0) \cdot 
+                         \mathbbm{1}(r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j) \right) + \\ 
+   & \sum_{i < j} \left( \uwave{\mathbbm{1}(r_{\mathbf{y}}^i > r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\mathbf{y}}^j > 0)} \cdot
+                         \mathbbm{1}(r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j) \cdot \mathbbm{1}(r_{\hat{\mathbf{y}}}^j = 0) +
+                         \mathbbm{1}(r_{\mathbf{y}}^i > r_{\mathbf{y}}^j) \cdot \mathbbm{1}(r_{\mathbf{y}}^j = 0) \cdot
+                         \mathbbm{1}(r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j) \right).
+\end{align*}
