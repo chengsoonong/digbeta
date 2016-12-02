@@ -33,9 +33,9 @@ First, we construct POI feature vectors $\Psi$ and labels $R$ for trajectories i
 where $D$ is the dimension of feature vector and label $r(\mathbf{y}, p)$ is computed from the location of POI $p$ in trajectory $\mathbf{y}$,
 \begin{equation*}
 r(\mathbf{y}, p) = \frac{1}{\mid\!\! \mathcal{P} \!\!\mid} 
-                   \sum_{j=1}^{\mid \mathbf{y} \mid} (\mid\!\! \mathcal{P} \!\!\mid\! - j + 1) \cdot \mathbbm{1}(y_j = p),
+                   \sum_{j=1}^{\mid \mathbf{y} \mid} (\mid\!\! \mathcal{P} \!\!\mid\! - j + 1) \cdot \llb y_j = p \rrb,
 \end{equation*}
-here $\mathbbm{1}(\cdot)$ is the indicator function, and the $j$-th POI in $\mathbf{y}$ will be scored $\mid\!\! \mathcal{P} \!\!\mid\! - j + 1$, 
+here $\llb \cdot \rrb$ is the indicator function, and the $j$-th POI in $\mathbf{y}$ will be scored $\mid\!\! \mathcal{P} \!\!\mid\! - j + 1$, 
 any POI that does not appear in $\mathbf{y}$ will be scored $0$ ($0$ is an arbitrary choice).
 
 
