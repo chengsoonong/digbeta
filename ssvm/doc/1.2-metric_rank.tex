@@ -1,0 +1,145 @@
+\section{Kendall's $\tau$}
+\label{sec:kendalltau}
+
+Given two ranks $X$ and $Y$, each with $n$ observations, we define
+\begin{itemize}
+\item Number of concordant pairs 
+      \begin{equation*}
+      %C = \sum_{i < j} \left( \mathbbm{1}(X_i < X_j) \cdot \mathbbm{1}(Y_i < Y_j) + \mathbbm{1}(X_i > X_j) \cdot \mathbbm{1}(Y_i > Y_j) \right),
+      C = \frac{1}{2} \sum_{i,j} \left( \llb X_i < X_j \rrb \cdot \llb Y_i < Y_j \rrb + \llb X_i > X_j \rrb \cdot \llb Y_i > Y_j \rrb \right),
+      \end{equation*}
+      where $\llb \cdot \rrb$ is the indicator function and 
+      $\sum_{i,j}$ means all ordered pairs $(i, j),~ i,j=1,\dots,n$ are counted twice.
+
+\item Number of discordant pairs 
+      \begin{equation*}
+      D = \frac{1}{2} \sum_{i,j} \left( \llb X_i < X_j \rrb \cdot \llb Y_i > Y_j \rrb + \llb X_i > X_j \rrb \cdot \llb Y_i < Y_j \rrb \right).
+      \end{equation*}
+
+\item Number of ties in $X$
+      \begin{equation*}
+      T_X = \frac{1}{2} \sum_{i \ne j} \llb X_i = X_j \rrb = \sum_k \frac{t_k (t_k - 1)}{2},
+      \end{equation*}
+      where $t_k$ is the number of tied values in the $k$-th group of ties for $X$, for example, if
+      $X = [12, 2, 1, 12, 2, 2, 1]$, there are $3$ groups of tied values, the first group is the two $12$'s, i.e., $t_1 = 2$;
+      the second group is the three $2$'s, i.e., $t_2 = 3$; the third group is the two $1$'s, i.e., $t_3 = 2$. \\
+      Similarly, the number of ties in $Y$ is 
+      \begin{equation*}
+      T_Y = \frac{1}{2} \sum_{i \ne j} \llb Y_i = Y_j \rrb = \sum_k \frac{u_k (u_k - 1)}{2},
+      \end{equation*}
+      where $u_k$ is the number of tied values in the $k$-th group of ties for $Y$.
+
+\item Number of ties in both $X$ and $Y$
+      \begin{equation*}
+      T_{XY} = \frac{1}{2} \sum_{i \ne j} \llb X_i = X_j \rrb \cdot \llb Y_i = Y_j \rrb.
+      \end{equation*}
+
+\item Number of ties only in $X$
+      \begin{equation*}
+      T = \frac{1}{2} \sum_{i \ne j} \llb X_i = X_j \rrb \cdot \llb Y_i \ne Y_j \rrb,
+      \end{equation*}
+      and the number of ties only in $Y$
+      \begin{equation*}
+      U = \frac{1}{2} \sum_{i \ne j} \llb X_i \ne X_j \rrb \cdot \llb Y_i = Y_j \rrb.
+      \end{equation*}
+\end{itemize}
+
+Kendall's $\tau$ (version $b$) is defined as~\cite{kendall1945,agresti2010analysis} (and implemented in SciPy~\cite{scipy})
+\begin{equation*}
+\tau_b = \frac{C - D}{\sqrt{[n(n-1)/2 - T_X] [n(n-1)/2 - T_Y]}} = \frac{C - D}{\sqrt{(C + D + T) (C + D + U)}},
+\end{equation*}
+where we use equalities 
+\begin{align*}
+\frac{n(n-1)}{2} &= C + D + T_X + T_Y - T_{XY} \\
+T &= T_X - T_{XY} \\
+U &= T_Y - T_{XY}
+\end{align*}
+
+
+
+\subsection{Compare Kendall's $\tau$ with F$_1$ score on points and pairs}
+\label{sec:metriccomparison}
+
+Given a prediction $\hat{\mathbf{y}} = (\hat{y}_1, \hat{y}_2, \dots, \hat{y}_K)$ and ground truth $\mathbf{y} = (y_1, y_2, \dots, y_K)$,
+for a specific ordering of POIs $(p_1, p_2, \dots, p_{\mid\mathcal{P}\mid})$,
+we produce two ranks according to $\mathbf{y}$ and $\hat{\mathbf{y}}$,
+\begin{align*}
+r_{\mathbf{y}}^i       &= \sum_{j=1}^K (\mid\!\! \mathcal{P} \!\!\mid - j + 1) \cdot \llb p_i = y_j \rrb,~
+i = 1, \dots, \mid\!\! \mathcal{P} \!\!\mid \\
+r_{\hat{\mathbf{y}}}^i &= \sum_{j=1}^K (\mid\!\! \mathcal{P} \!\!\mid - j + 1) \cdot \llb p_i = \hat{y}_j \rrb,~ 
+i = 1, \dots, \mid\!\! \mathcal{P} \!\!\mid
+\end{align*}
+where POIs not in $\mathbf{y}$ will have a rank of $0$ in $r_{\mathbf{y}}$ and similarly in $r_{\hat{\mathbf{y}}}$.
+Then we have
+\begin{align*}
+C &= \frac{1}{2} \sum_{i,j} \left(\llb r_{\mathbf{y}}^i < r_{\mathbf{y}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j \rrb +
+     \llb r_{\mathbf{y}}^i > r_{\mathbf{y}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j \rrb \right), \\
+D &= \frac{1}{2} \sum_{i,j} \left(\llb r_{\mathbf{y}}^i < r_{\mathbf{y}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j \rrb +
+     \llb r_{\mathbf{y}}^i > r_{\mathbf{y}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j \rrb \right), \\
+T_{\mathbf{y}}       &= \frac{1}{2} \sum_{i \ne j} \llb r_{\mathbf{y}}^i = r_{\mathbf{y}}^j \rrb, \\
+T_{\hat{\mathbf{y}}} &= \frac{1}{2} \sum_{i \ne j} \llb r_{\hat{\mathbf{y}}}^i = r_{\hat{\mathbf{y}}}^j \rrb, \\
+T_{\mathbf{y},\hat{\mathbf{y}}} &= \frac{1}{2} \sum_{i \ne j} \llb r_{\hat{\mathbf{y}}}^i = r_{\hat{\mathbf{y}}}^j \rrb \cdot
+                                   \llb r_{\mathbf{y}}^i = r_{\mathbf{y}}^j \rrb, \\
+T &= T_{\mathbf{y}} - T_{\mathbf{y},\hat{\mathbf{y}}},~ U = T_{\hat{\mathbf{y}}} - T_{\mathbf{y},\hat{\mathbf{y}}}.
+\end{align*}
+\noindent
+Kendall's $\tau$
+\begin{equation*}
+\tau_b = \frac{C - D}{\sqrt{(C + D + T) (C + D + U)}},
+\end{equation*}
+F$_1$ score on points 
+\begin{equation*}
+F_1 = \frac{1}{K} \sum_i \llb r_{\mathbf{y}}^i > 0 \rrb \cdot \llb r_{\hat{\mathbf{y}}}^i > 0 \rrb,
+\end{equation*}
+and F$_1$ score on pairs
+\begin{equation*}
+\text{pairs-F}_1 = \frac{\frac{1}{2} \sum_{i,j} 
+                   \llb r_{\mathbf{y}}^i < r_{\mathbf{y}}^j \rrb \cdot \llb r_{\mathbf{y}}^i > 0 \rrb \cdot
+                   \llb r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^i > 0 \rrb +
+                   \frac{1}{2} \sum_{i,j} 
+                   \llb r_{\mathbf{y}}^i > r_{\mathbf{y}}^j \rrb \cdot \llb r_{\mathbf{y}}^j > 0 \rrb \cdot
+                   \llb r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^j > 0 \rrb}{K(K-1)/2}.
+\end{equation*}
+
+We can rewrite the number of concordant pairs as
+\begin{align*}
+C =& \frac{1}{2} \sum_{i,j} \left(\llb r_{\mathbf{y}}^i < r_{\mathbf{y}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j \rrb +
+     \llb r_{\mathbf{y}}^i > r_{\mathbf{y}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j \rrb \right), \\
+  =& \sum_{i < j} \llb r_{\mathbf{y}}^i < r_{\mathbf{y}}^j \rrb \cdot 
+     \left( \llb r_{\mathbf{y}}^i > 0 \rrb + \llb r_{\mathbf{y}}^i = 0 \rrb \right) \cdot 
+     \llb r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j \rrb \cdot
+     \left( \llb r_{\hat{\mathbf{y}}}^i > 0 \rrb + \llb r_{\hat{\mathbf{y}}}^i = 0 \rrb \right) + \\
+   & \sum_{i < j} \llb r_{\mathbf{y}}^i > r_{\mathbf{y}}^j \rrb \cdot 
+     \left( \llb r_{\mathbf{y}}^j > 0 \rrb + \llb r_{\mathbf{y}}^j = 0 \rrb \right) \cdot
+     \llb r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j \rrb \cdot
+     \left( \llb r_{\hat{\mathbf{y}}}^j > 0 \rrb + \llb r_{\hat{\mathbf{y}}}^j = 0 \rrb \right) \\
+  =& \sum_{i < j} \left( \uwave{\llb r_{\mathbf{y}}^i < r_{\mathbf{y}}^j \rrb \cdot \llb r_{\mathbf{y}}^i > 0 \rrb} +
+            \llb r_{\mathbf{y}}^i < r_{\mathbf{y}}^j \rrb \cdot \llb r_{\mathbf{y}}^i = 0 \rrb \right) \cdot 
+     \left( \uwave{\llb r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^i > 0 \rrb} + 
+            \llb r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^i = 0 \rrb \right) + \\
+   & \sum_{i < j} \left( \uwave{\llb r_{\mathbf{y}}^i > r_{\mathbf{y}}^j \rrb \cdot \llb r_{\mathbf{y}}^j > 0 \rrb} + 
+            \llb r_{\mathbf{y}}^i > r_{\mathbf{y}}^j \rrb \cdot \llb r_{\mathbf{y}}^j = 0 \rrb \right) \cdot
+     \left( \uwave{\llb r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^j > 0 \rrb} + 
+            \llb r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^j = 0 \rrb \right) \\
+  =& \sum_{i < j} \uwave{\llb r_{\mathbf{y}}^i < r_{\mathbf{y}}^j \rrb \cdot \llb r_{\mathbf{y}}^i > 0 \rrb \cdot
+                         \llb r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^i > 0 \rrb} +
+     \sum_{i < j} \uwave{\llb r_{\mathbf{y}}^i > r_{\mathbf{y}}^j \rrb \cdot \llb r_{\mathbf{y}}^j > 0 \rrb \cdot
+                         \llb r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^j > 0 \rrb} + \\
+   & \sum_{i < j} \left( \uwave{\llb r_{\mathbf{y}}^i < r_{\mathbf{y}}^j \rrb \cdot \llb r_{\mathbf{y}}^i > 0 \rrb} \cdot
+                         \llb r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^i = 0 \rrb + 
+                         \llb r_{\mathbf{y}}^i < r_{\mathbf{y}}^j \rrb \cdot \llb r_{\mathbf{y}}^i = 0 \rrb \cdot 
+                         \llb r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j \rrb \right) + \\ 
+   & \sum_{i < j} \left( \uwave{\llb r_{\mathbf{y}}^i > r_{\mathbf{y}}^j \rrb \cdot \llb r_{\mathbf{y}}^j > 0 \rrb} \cdot
+                         \llb r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^j = 0 \rrb +
+                         \llb r_{\mathbf{y}}^i > r_{\mathbf{y}}^j \rrb \cdot \llb r_{\mathbf{y}}^j = 0 \rrb \cdot
+                         \llb r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j \rrb \right) \\
+  =& ~\text{pairs-F}_1 \cdot \frac{K(K-1)}{2}~ + \\
+   & \sum_{i < j} \left( \uwave{\llb r_{\mathbf{y}}^i < r_{\mathbf{y}}^j \rrb \cdot \llb r_{\mathbf{y}}^i > 0 \rrb} \cdot
+                         \llb r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^i = 0 \rrb + 
+                         \llb r_{\mathbf{y}}^i < r_{\mathbf{y}}^j \rrb \cdot \llb r_{\mathbf{y}}^i = 0 \rrb \cdot 
+                         \llb r_{\hat{\mathbf{y}}}^i < r_{\hat{\mathbf{y}}}^j \rrb \right) + \\ 
+   & \sum_{i < j} \left( \uwave{\llb r_{\mathbf{y}}^i > r_{\mathbf{y}}^j \rrb \cdot \llb r_{\mathbf{y}}^j > 0 \rrb} \cdot
+                         \llb r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j \rrb \cdot \llb r_{\hat{\mathbf{y}}}^j = 0 \rrb +
+                         \llb r_{\mathbf{y}}^i > r_{\mathbf{y}}^j \rrb \cdot \llb r_{\mathbf{y}}^j = 0 \rrb \cdot
+                         \llb r_{\hat{\mathbf{y}}}^i > r_{\hat{\mathbf{y}}}^j \rrb \right).
+\end{align*}
