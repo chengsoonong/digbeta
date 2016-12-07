@@ -1,0 +1,160 @@
+\section{Evaluation metrics for sequence}
+
+In this section, we describe metrics employed to evaluate captions of images described in~\cite{chen2015microsoft},
+where the goal is to evaluate the quality of a candidate caption $c_i \in C$ for an image $I_i \in I$, 
+with respect to a set of reference captions $S_i = \{s_{i1},\dots,s_{im}\} \in S$.
+
+\subsection{BLEU}
+BLEU is a metric designed to evaluate machine translation.
+Given candidate captions $C$ and reference captions $S$, the BLEU score is defined as
+\begin{equation*}
+\text{CP}_n(C, S) =
+\frac{\sum_i \sum_k \min\left( h_k(c_i),~ \max_{j \in [m]} h_k(s_{ij}) \right)}
+     {\sum_i \sum_k h_k(c_i)},
+\end{equation*}
+where $h_k(s_{ij})$ is the number of times an $n$-gram $w_k \in \Omega$ occurs in sentence $s_{ij}$,
+and $k$ indexes the set of possible $n$-grams of length $n$.
+
+{\it 
+\paragraph{Note} 
+To compute $h_k(s_{ij})$, is the set of $n$-grams $\Omega$ predefined? Or it is constructed from sentence $s_{ij}$?
+i.e., given a sequence of $n$ items, we can construct $n$ unigrams, $n-1$ bigrams, $n-2$ trigrams and $n-k+1$ k-grams. \\
+}
+
+\noindent
+It is known that CP$_n$ is a precision score and it favors short sentences.
+So a brevity penalty is used:
+\begin{equation*}
+b(C, S) = \begin{cases}
+1 & \text{if}~ l_C > l_S \\
+\exp(1-l_S/l_C) & \text{if}~ l_C \le l_S
+\end{cases},
+\end{equation*}
+where $l_C$ is the total length of candidate sentences $c_i$'s and $l_S$ is the length of the corpus-level effective reference length.
+When there are multiple references for a candidate sentence, we choose to use the \textit{closest} reference length for the brevity penalty.
+
+{\it
+\paragraph{Note}
+Is $l_C = \sum_{c_i \in C} c_i$?
+What is the formula to compute $l_S$? \\
+}
+
+\noindent 
+The overall BLEU score is computed using a weighted geometric mean of the individual $n$-gram precision:
+\begin{equation*}
+\text{BLEU}_N(C, S) = b(C, S) \exp\left( \sum_{n=1}^N w_n \log \text{CP}_n(C, S) \right),
+\end{equation*}
+where $N=1,2,3,4$ and $w_n$ is typically held constant for all $n$.
+
+{\it
+\paragraph{Note}
+If $w_n = 1/N$, the above weighted summation is geometric mean, otherwise it will be geometric mean to the power of $N w_n$.
+}
+
+
+\subsection{ROUGE}
+ROUGE is a set of evaluation metrics designed to evaluate text summarisation algorithms.
+
+\paragraph{ROUGE$_N$} a metric that computes $n$-gram recall over all reference summaries given a candidate sentence,
+\begin{equation*}
+\text{ROUGE}_N (c_i, S_i) = \frac{\sum_j \sum_k \min\left( h_k(c_i),~ h_k(s_{ij}) \right)} {\sum_j \sum_k h_k(s_{ij})}
+\end{equation*}
+
+\paragraph{ROUGE$_L$} uses a measure based on the longest common subsequence (LCS).
+Let $l(c_i, s_{ij})$ denote the length of the LCS between sentence $c_i$ and $s_{ij}$,
+ROUGE$_L$ is a F-measure,
+\begin{equation*}
+\text{ROUGE}_L = \frac{(1 + \beta^2) R_l P_l} {R_l + \beta^2 P_l},
+\end{equation*}
+where $\beta$ is usually set to favour recall $R_l$ (e.g., $\beta=1.2$),
+$R_l$ and $P_l$ are recall and precision of LCS defined as
+\begin{equation*}
+R_l = \max_j \frac{l(c_i, s_{ij})} {\mid s_{ij} \mid}, ~~
+P_l = \max_j \frac{l(c_i, s_{ij})} {\mid c_i \mid}.
+\end{equation*}
+$n$-grams are implicit in this measure due to the use of LCS.
+
+\paragraph{ROUGE$_S$} uses skip bigrams instead of LCS or $n$-grams. 
+Skip bigrams are pairs of ordered words in a sentence where words may be skipped between pairs of words, which is similar to LCS.
+Let $f_k(s_{ij})$ be the skip bigram count for sentence $s_{ij}$,
+ROUGE$_S$ is defined as 
+\begin{equation*}
+\text{ROUGE}_S (c_i, S_i) = \frac{(1 + \beta^2) R_s P_s} {R_s + \beta^2 P_s} ~~\text{where}~~
+R_s = \max_j \frac{\sum_k \min\left( f_k(c_i),~ f_k(s_{ij}) \right)} {\sum_k f_k(s_{ij})} ~~\text{and}~~
+P_s = \max_j \frac{\sum_k \min\left( f_k(c_i),~ f_k(s_{ij}) \right)} {\sum_k f_k(c_i)}.
+\end{equation*}
+Skip bigrams are capable of capturing long range sentence structure.
+
+{\it
+\paragraph{Note} what is the difference between $f_1(s_{ij})$ and $f_2(s_{ij})$? i.e., the precise meaning of $k$ in $f_k(s_{ij})$.
+From the Wikipedia page of $n$-gram:
+A $k$-skip-$n$-gram is a length-$n$ subsequence where the components occur at distance at most $k$ from each other. 
+Does it actually use $k$-skip-bigrams here?
+}
+
+
+\subsection{METEOR}
+
+METEOR is calculated by generating an alignment between words in candidate and reference sentences, 
+the alignment is computed while minimising the number of chunks, $ch$, of the contiguous and identically ordered tokens in the sentence pair.
+Given a set of alignments, $m$, 
+the METEOR score is the harmonic mean of precision $P_m$ and recall $R_m$ between the best scoring reference and candidate,
+\begin{equation*}
+\text{METEOR} = (1 - \text{Pen}) F_\text{mean} ~~\text{where}~~
+\text{Pen} = \gamma \left( \frac{ch} {m} \right)^\theta, ~~
+F_\text{mean} = \frac{P_m R_m} {\alpha P_m + (1-\alpha) R_m} ~~\text{and}~~
+P_m = \frac{\mid m \mid} {\sum_k h_k(c_i)},~~
+R_m = \frac{\mid m \mid} {\sum_k h_k(s_{ij})}.
+\end{equation*}
+The METEOR score includes a penalty $\text{Pen}$ based on chunkiness of resolved matches and 
+a harmonic mean term that gives the quality of the resolved matches.
+
+{\it
+\paragraph{Note}
+Can we say that the alignment is computed by maximising (the product of) the length of each chunk?
+What is the penalty of mismatch and gap penalty? (assuming the Needleman-Wunsch algorithm is used to do sequence alignment).
+}
+
+
+\subsection{CIDEr}
+
+CIDEr measure the consensus in sentences by performing a term frequency inverse document frequency (TF-IDF) weighting for each $n$-gram.
+The TF-IDF weighting $g_k(s_{ij})$ for each $n$-gram $w_k$ is
+\begin{equation*}
+g_k(s_{ij}) = \frac{h_k(s_{ij})} {\sum_{w_l \in \Omega} h_l(s_{ij})} 
+              \log \left( \frac{\mid I \mid} {\sum_{I_p \in I} \min\left( 1,~ \sum_q h_k(s_{pq}) \right)} \right).
+\end{equation*}
+The CIDEr$_n$ score for $n$-grams of length $n$ is computed using the average cosine similarity between candidate sentence and refrence sentences,
+accounting for both precision and recall,
+\begin{equation*}
+\text{CIDEr}_n = 
+\frac{1}{m} \sum_j 
+\frac{\mathbf{g}^\mathbf{n}(c_i) \cdot \mathbf{g}^\mathbf{n}(s_{ij})} {\|\mathbf{g}^\mathbf{n}(c_i)\| \|\mathbf{g}^\mathbf{n}(s_{ij})\|},
+\end{equation*}
+where $\mathbf{g}^\mathbf{n}(c_i)$ is a vector formed by $g_k(c_i)$ corresponding to all $n$-grams of length $n$ and 
+$\|\mathbf{g}^\mathbf{n}(c_i)\|$ is its magnitude. Scores from $n$-grams of varying lengths are combined to form the final CIDEr score,
+\begin{equation*}
+\text{CIDEr}(c_i, S_i) = \sum_{n=1}^N w_n \cdot \text{CIDEr}_n(c_i, S_i),
+\end{equation*}
+where uniform weights are used, i.e., $w_n = 1/N$ and $N=4$.
+
+\paragraph{CIDEr-D} is a modification of CIDEr to make it more robust to gaming, 
+where gaming refers to the phenomenon that a sentence poorly judged by humans tends to score highly with an automated metric.
+To defend the CIDEr metric against gaming effects,
+clipping and a length based Gaussian penalty were added,
+\begin{equation}
+\label{eq:cider-d}
+\text{CIDEr-D}_n (c_i, S_i) = 
+\frac{10}{m} \sum_j \exp\left( \frac{-\left( l(c_i) - l(s_{ij}) \right)^2} {2 \sigma^2} \right) \cdot
+\frac{\min\left( \mathbf{g}^\mathbf{n}(c_i),~\mathbf{g}^\mathbf{n}(s_{ij}) \right) \cdot \mathbf{g}^\mathbf{n}(s_{ij})}
+     {\|\mathbf{g}^\mathbf{n}(c_i)\| \|\mathbf{g}^\mathbf{n}(s_{ij})\|},
+\end{equation}
+where a factor of $10$ is used to make the CIDEr-D scores numerically similar to the other metrics. 
+The CIDEr-D metric is computed in a similar manner to CIDEr,
+\begin{equation*}
+\text{CIDEr-D} = \sum_{n=1}^N w_n \cdot \text{CIDEr-D}_n(c_i, S_i).
+\end{equation*}
+
+{\it
+\paragraph{Note} What is the minimum of two vectors in Equation~\ref{eq:cider-d}? Or How to compare two vectors?
+}
