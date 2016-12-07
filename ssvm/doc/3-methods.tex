@@ -511,7 +511,8 @@ as described in Algorithm~\ref{alg:listviterbi}.
 \label{alg:listviterbi}
 \begin{algorithmic}[1]
 \STATE \textbf{Input}: $\mathbf{x}=(s, K),~ \mathcal{P},~ \mathbf{w},~ \Psi$
-\STATE Initialise score matrices $\alpha,~ \beta,~ f_t,~ f_{t, t+1}$, a max-heap $H,~ k=0$.
+%\STATE Initialise score matrices $\alpha,~ \beta,~ f_t,~ f_{t, t+1}$, a max-heap $H,~ k=0$.
+\STATE Initialise score matrices $\alpha,~ \beta,~ f_{t, t+1}$, a max-heap $H,~ k=0$.
 \STATE $\triangleright$ Do the forward-backward procedure~\cite{rabiner1989tutorial}
 \STATE $\forall p_j \in \mathcal{P},~ \alpha_t(p_j) = 
         \begin{cases}
@@ -527,7 +528,7 @@ as described in Algorithm~\ref{alg:listviterbi}.
         \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j) \right\},~ t = K-1,\dots,1
         \end{cases}$
 
-\STATE $\forall p_i \in \mathcal{P},~ f_t(p_i) = \alpha_t(p_i) + \beta_t(p_i),~ t = 1,\dots,K$
+%\STATE $\forall p_i \in \mathcal{P},~ f_t(p_i) = \alpha_t(p_i) + \beta_t(p_i),~ t = 1,\dots,K$
 \STATE $\forall p_i, p_j \in \mathcal{P},~ f_{t,t+1}(p_i, p_j) = \alpha_t(p_i) + \mathbf{w}_{ij}^\top \Psi_{ij}(\mathbf{x}, p_i, p_j) + 
                               \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j),~ t = 1,\dots,K-1$
 
@@ -538,7 +539,8 @@ as described in Algorithm~\ref{alg:listviterbi}.
                 \argmax_{p \in \mathcal{P}} \left\{ f_{t-1,t}(y_{t-1}^1, p) \right\},~ t = 2,\dots,K
                 \end{cases}$
 
-\STATE $r^1 = \max_{p \in \mathcal{P}} \left\{ f_K(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
+%\STATE $r^1 = \max_{p \in \mathcal{P}} \left\{ f_K(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
+\STATE $r^1 = \max_{p \in \mathcal{P}} \left\{ \alpha_{K}(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
 \STATE $H.\textit{push}\left(r^1,~ (\mathbf{y}^1, \textsc{nil}, \emptyset) \right)$
 
 \WHILE{$H \ne \emptyset$ \textbf{and} $k < \,\mid\!\!\mathcal{P}\!\!\mid^{K-1} - \prod_{t=2}^K (\mid\!\!\mathcal{P}\!\!\mid-t+1)$}
