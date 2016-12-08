@@ -16,13 +16,17 @@ where $h_k(s_{ij})$ is the number of times an $n$-gram $w_k \in \Omega$ occurs i
 and $k$ indexes the set of possible $n$-grams of length $n$.
 
 {\it 
-\paragraph{Note} 
+\paragraph{Q} 
 To compute $h_k(s_{ij})$, is the set of $n$-grams $\Omega$ predefined? Or it is constructed from sentence $s_{ij}$?
-i.e., given a sequence of $n$ items, we can construct $n$ unigrams, $n-1$ bigrams, $n-2$ trigrams and $n-k+1$ k-grams. \\
+i.e., given a sequence of $n$ items, we can construct $n$ unigrams, $n-1$ bigrams, $n-2$ trigrams and $n-k+1$ k-grams.
+
+\paragraph{A}
+$\Omega$ is predefined, specifically, we have a $\Omega$ for each value of $n$. 
+For trajectory evaluation, $n=1,2$ seems good enough, which means we have $\Omega_1$ for unigrams and $\Omega_2$ for bigrams. \\
 }
 
 \noindent
-It is known that CP$_n$ is a precision score and it favors short sentences.
+It is known that CP$_n$ is a \emph{precision} score and it favors short sentences.
 So a brevity penalty is used:
 \begin{equation*}
 b(C, S) = \begin{cases}
@@ -34,15 +38,20 @@ where $l_C$ is the total length of candidate sentences $c_i$'s and $l_S$ is the 
 When there are multiple references for a candidate sentence, we choose to use the \textit{closest} reference length for the brevity penalty.
 
 {\it
-\paragraph{Note}
-Is $l_C = \sum_{c_i \in C} c_i$?
-What is the formula to compute $l_S$? \\
+\paragraph{Q}
+Is $l_C = \sum_{c_i \in C} l(c_i)$?
+What is the formula to compute $l_S$? 
+
+\paragraph{A}
+According to reference [39] of~\cite{chen2015microsoft}, $l_C = \sum_{i=1}^{| C |} l(c_i)$ and 
+$l_S = \sum_{i=1}^{| C |} l\left( \argmin_{s \in S_i} | l(s) - l(c_i) | \right)$.
+For trajectory evaluation, if the length constraint is used, we have $b(C, S) = 1$ as $l_C = l_S$. \\
 }
 
 \noindent 
 The overall BLEU score is computed using a weighted geometric mean of the individual $n$-gram precision:
 \begin{equation*}
-\text{BLEU}_N(C, S) = b(C, S) \exp\left( \sum_{n=1}^N w_n \log \text{CP}_n(C, S) \right),
+\text{BLEU}_N(C, S) = b(C, S) \exp\left( \sum_{n=1}^N w_n \cdot \log \text{CP}_n(C, S) \right),
 \end{equation*}
 where $N=1,2,3,4$ and $w_n$ is typically held constant for all $n$.
 
@@ -55,7 +64,7 @@ If $w_n = 1/N$, the above weighted summation is geometric mean, otherwise it wil
 \subsection{ROUGE}
 ROUGE is a set of evaluation metrics designed to evaluate text summarisation algorithms.
 
-\paragraph{ROUGE$_N$} a metric that computes $n$-gram recall over all reference summaries given a candidate sentence,
+\paragraph{ROUGE$_N$} a metric that computes $n$-gram \emph{recall} over all reference summaries given a candidate sentence,
 \begin{equation*}
 \text{ROUGE}_N (c_i, S_i) = \frac{\sum_j \sum_k \min\left( h_k(c_i),~ h_k(s_{ij}) \right)} {\sum_j \sum_k h_k(s_{ij})}
 \end{equation*}
@@ -69,8 +78,8 @@ ROUGE$_L$ is a F-measure,
 where $\beta$ is usually set to favour recall $R_l$ (e.g., $\beta=1.2$),
 $R_l$ and $P_l$ are recall and precision of LCS defined as
 \begin{equation*}
-R_l = \max_j \frac{l(c_i, s_{ij})} {\mid s_{ij} \mid}, ~~
-P_l = \max_j \frac{l(c_i, s_{ij})} {\mid c_i \mid}.
+R_l = \max_j \frac{l(c_i, s_{ij})} {| s_{ij} |}, ~~
+P_l = \max_j \frac{l(c_i, s_{ij})} {| c_i |}.
 \end{equation*}
 $n$-grams are implicit in this measure due to the use of LCS.
 
@@ -86,10 +95,14 @@ P_s = \max_j \frac{\sum_k \min\left( f_k(c_i),~ f_k(s_{ij}) \right)} {\sum_k f_k
 Skip bigrams are capable of capturing long range sentence structure.
 
 {\it
-\paragraph{Note} what is the difference between $f_1(s_{ij})$ and $f_2(s_{ij})$? i.e., the precise meaning of $k$ in $f_k(s_{ij})$.
+\paragraph{Q} 
+what is the difference between $f_1(s_{ij})$ and $f_2(s_{ij})$? i.e., the precise meaning of $k$ in $f_k(s_{ij})$.
 From the Wikipedia page of $n$-gram:
 A $k$-skip-$n$-gram is a length-$n$ subsequence where the components occur at distance at most $k$ from each other. 
 Does it actually use $k$-skip-bigrams here?
+
+\paragraph{A}
+The $k$ here indexes the set of possible skip bigrams, like the $k$ in $h_k(c_i)$ for BLEU.
 }
 
 
@@ -103,16 +116,21 @@ the METEOR score is the harmonic mean of precision $P_m$ and recall $R_m$ betwee
 \text{METEOR} = (1 - \text{Pen}) F_\text{mean} ~~\text{where}~~
 \text{Pen} = \gamma \left( \frac{ch} {m} \right)^\theta, ~~
 F_\text{mean} = \frac{P_m R_m} {\alpha P_m + (1-\alpha) R_m} ~~\text{and}~~
-P_m = \frac{\mid m \mid} {\sum_k h_k(c_i)},~~
-R_m = \frac{\mid m \mid} {\sum_k h_k(s_{ij})}.
+P_m = \frac{| m |} {\sum_k h_k(c_i)},~~
+R_m = \frac{| m |} {\sum_k h_k(s_{ij})}.
 \end{equation*}
 The METEOR score includes a penalty $\text{Pen}$ based on chunkiness of resolved matches and 
 a harmonic mean term that gives the quality of the resolved matches.
 
 {\it
-\paragraph{Note}
+\paragraph{Q}
 Can we say that the alignment is computed by maximising (the product of) the length of each chunk?
 What is the penalty of mismatch and gap penalty? (assuming the Needleman-Wunsch algorithm is used to do sequence alignment).
+
+\paragraph{A}
+According to reference [41] of~\cite{chen2015microsoft}, an alignment is generated by a heuristic which optimise $4$ criteria.
+For trajectory evaluation, we can use the Needleman-Wunsch algorithm to minimise the edit distance, 
+i.e., both the penalty of gap and that of mismatch are $1$.
 }
 
 
@@ -122,7 +140,7 @@ CIDEr measure the consensus in sentences by performing a term frequency inverse 
 The TF-IDF weighting $g_k(s_{ij})$ for each $n$-gram $w_k$ is
 \begin{equation*}
 g_k(s_{ij}) = \frac{h_k(s_{ij})} {\sum_{w_l \in \Omega} h_l(s_{ij})} 
-              \log \left( \frac{\mid I \mid} {\sum_{I_p \in I} \min\left( 1,~ \sum_q h_k(s_{pq}) \right)} \right).
+              \log \left( \frac{| I |} {\sum_{I_p \in I} \min\left( 1,~ \sum_q h_k(s_{pq}) \right)} \right).
 \end{equation*}
 The CIDEr$_n$ score for $n$-grams of length $n$ is computed using the average cosine similarity between candidate sentence and refrence sentences,
 accounting for both precision and recall,
@@ -156,5 +174,22 @@ The CIDEr-D metric is computed in a similar manner to CIDEr,
 \end{equation*}
 
 {\it
-\paragraph{Note} What is the minimum of two vectors in Equation~\ref{eq:cider-d}? Or How to compare two vectors?
+\paragraph{Q} What is the minimum of two vectors in Equation~\ref{eq:cider-d}? Or How to compare two vectors?
+
+\paragraph{A} There is no further explanation in reference [42] of~\cite{chen2015microsoft}, 
+but the $\min$ operator in Equation~\ref{eq:cider-d} probably take element-wise minimum.
 }
+
+
+\subsection{Discussion}
+
+We note that the skip bigrams in the definition of ROUGE$_S$ is similar to the pairs in Kendall's $\tau$. \\
+In addition, if we consider only the neighbouring pairs in two ranks (i.e., a modified $\tau$), 
+it is similar to the bigram counts in the definition of BLEU$_2$ and ROUGE$_2$. \\
+It would be interesting to build connections among 
+\begin{itemize}
+\item BLEU$_2$ (a precision score), 
+\item ROUGE$_2$ (a recall score), 
+\item ROUGE$_S$, 
+\item Kendall's $\tau$ and pairs-F$_1$.
+\end{itemize}
