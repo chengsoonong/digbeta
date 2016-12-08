@@ -10,7 +10,7 @@ In general, there are two approaches to solve this problem,
 In this section, we briefly describe a variety of methods that following these two approaches.
 Suppose the training set contains $N$ trajectories 
 $\{ \mathbf{x}^{(i)}, \mathbf{y}^{(i)} \}_{i=1}^N$,
-where $\mathbf{y}^{(i)}$ is the $i$-th trajectory and $\mathbf{x}^{(i)} = (y_1^{(i)},~ \mid\!\! \mathbf{y}^{(i)} \!\!\mid)$ is the query 
+where $\mathbf{y}^{(i)}$ is the $i$-th trajectory and $\mathbf{x}^{(i)} = (y_1^{(i)},~ | \mathbf{y}^{(i)} |)$ is the query 
 with respect to trajectory $\mathbf{y}^{(i)}$.
 
 
@@ -18,24 +18,24 @@ with respect to trajectory $\mathbf{y}^{(i)}$.
 \subsection{Scoring POIs}
 \label{sec:scoring_point}
 
-We have a POI scoring function $S: \mathcal{X} \to \mathbb{R}^{\mid \mathcal{P} \mid}$, 
+We have a POI scoring function $S: \mathcal{X} \to \mathbb{R}^{| \mathcal{P} |}$, 
 and the target trajectory is produced by sorting all POIs in descending order according to their scores 
-$S(p \mid \mathbf{x}),~ \forall p \in \mathcal{P}$,
+$S(p | \mathbf{x}),~ \forall p \in \mathcal{P}$,
 then picking the top $K-1$ from $\mathcal{P} \setminus s$.
 
 First, we construct POI feature vectors $\Psi$ and labels $R$ for trajectories in training set, 
 \begin{align*}
 \Psi &= \left( \Psi(\mathbf{x}^{(i)}, p) \right)_{i=1,\dots,N,~p \in \mathcal{P}} = \left( \Psi_p^i \right)_{i,p}
-        \in \mathbb{R}^{(N \cdot \mid \mathcal{P} \mid) \times D}, \\
+        \in \mathbb{R}^{(N \cdot | \mathcal{P} |) \times D}, \\
    R &= \left( r(\mathbf{y}^{(i)}, p) \right)_{i=1,\dots,N,~p \in \mathcal{P}} = \left(r_p^i \right)_{i,p}
-        \in \mathbb{R}^{(N \cdot \mid \mathcal{P} \mid) \times 1},
+        \in \mathbb{R}^{(N \cdot | \mathcal{P} |) \times 1},
 \end{align*}
 where $D$ is the dimension of feature vector and label $r(\mathbf{y}, p)$ is computed from the location of POI $p$ in trajectory $\mathbf{y}$,
 \begin{equation*}
-r(\mathbf{y}, p) = \frac{1}{\mid\!\! \mathcal{P} \!\!\mid} 
-                   \sum_{j=1}^{\mid \mathbf{y} \mid} (\mid\!\! \mathcal{P} \!\!\mid\! - j + 1) \cdot \llb y_j = p \rrb,
+r(\mathbf{y}, p) = \frac{1}{| \mathcal{P} |} 
+                   \sum_{j=1}^{| \mathbf{y} |} (| \mathcal{P} | - j + 1) \cdot \llb y_j = p \rrb,
 \end{equation*}
-here $\llb \cdot \rrb$ is the indicator function, and the $j$-th POI in $\mathbf{y}$ will be scored $\mid\!\! \mathcal{P} \!\!\mid\! - j + 1$, 
+here $\llb \cdot \rrb$ is the indicator function, and the $j$-th POI in $\mathbf{y}$ will be scored $| \mathcal{P} | - j + 1$, 
 any POI that does not appear in $\mathbf{y}$ will be scored $0$ ($0$ is an arbitrary choice).
 
 
@@ -71,9 +71,9 @@ We can also share parameters between POIs by assuming $\mathbf{w}_p = \mathbf{u}
 
 The score of POI $p$ is the probability of $p$ occurring in trajectory $\mathbf{y}$ given query $\mathbf{x}$
 \begin{equation*}
-S(p \mid \mathbf{x})
-= \mathbb{P}(p \in \mathbf{y} \mid \mathbf{x}; \mathbf{w})
-= \mathbb{P}(r(\mathbf{y}, p) > 0 \mid \mathbf{x}; \mathbf{w})
+S(p \given \mathbf{x})
+= \mathbb{P}(p \in \mathbf{y} \given \mathbf{x}; \mathbf{w})
+= \mathbb{P}(r(\mathbf{y}, p) > 0 \given \mathbf{x}; \mathbf{w})
 = \sigma \left( \mathbf{w}_p^\top \Psi(\mathbf{x}, p) \right),
 \end{equation*}
 where $\sigma(z) = \frac{1}{1+\exp({-z})}$ is the logistic function.
@@ -85,16 +85,16 @@ where $\sigma(z) = \frac{1}{1+\exp({-z})}$ is the logistic function.
 
 Furthermore, we can model the probability of POI $p$ at location $k$ given query $\mathbf{x}$.
 That is, for each query $\mathbf{x}^{(i)},~ \forall i$, 
-we train a $\mid\!\! \mathcal{P} \!\!\mid$-class $K$-label classifier with examples $\{ \mathbf{x}^{(i)}, y_k^{(i)} \}_{k=2}^K$
+we train a $| \mathcal{P} |$-class $K$-label classifier with examples $\{ \mathbf{x}^{(i)}, y_k^{(i)} \}_{k=2}^K$
 using the one-versus-rest approach,
 \begin{equation*}
-\mathbb{P}(y_k = p \mid \mathbf{x}) = \frac{\exp \left( \mathbf{w}^\top \Psi(\mathbf{x}, p, k) \right)}
+\mathbb{P}(y_k = p \given \mathbf{x}) = \frac{\exp \left( \mathbf{w}^\top \Psi(\mathbf{x}, p, k) \right)}
                                            {\sum_{p' \in \mathcal{P}} \exp \left( \mathbf{w}^\top \Psi(\mathbf{x}, p', k) \right)}.
 \end{equation*}
 
 The recommendation is simply done by picking the most likely POI for each location $k$ independently,
 \begin{equation*}
-y_k^* = \argmax_{p \in \mathcal{P}}~ \mathbb{P}(y_k = p \mid \mathbf{x}),~ k = 2, \dots, K.
+y_k^* = \argmax_{p \in \mathcal{P}}~ \mathbb{P}(y_k = p \given \mathbf{x}),~ k = 2, \dots, K.
 \end{equation*}
 
 This approach can be described by a directed graphical model as shown in Figure~\ref{fig:pgm}(a).
@@ -115,8 +115,8 @@ and examples with $0$ labels, i.e., $r_p^i = 0$ are ignored in training.
 
 The score of POI $p$ is the expected rank of $p$ given query $\mathbf{x}$ 
 \begin{equation*}
-S(p \mid \mathbf{x})
-= \mathbb{E}(\hat{r}_p \mid \mathbf{x}; \mathbf{w}) 
+S(p \given \mathbf{x})
+= \mathbb{E}(\hat{r}_p | \mathbf{x}; \mathbf{w}) 
 = \mathbf{w}_p^\top \Psi(\mathbf{x}, p).
 \end{equation*}
 
@@ -155,7 +155,7 @@ There are a number of options for the design of labels $l_{p,p'}^i$,
       \end{cases}
       \end{equation*}
       This definition reflects whether $p$ was occurred more frequently than $p'$ for query $\mathbf{x}^{(i)}$.
-      To deal with ties, i.e., $\{(p, p') \mid c_p^i = c_{p'}^i\}$, we generate both the positive and the negative labels for these examples.
+      To deal with ties, i.e., $\{(p, p') | c_p^i = c_{p'}^i\}$, we generate both the positive and the negative labels for these examples.
 \item Alternatively, we can define
       \begin{equation*}
       l_{p,p'}^i = \begin{cases}
@@ -171,11 +171,11 @@ Similarly, we have a few options for the design of loss function $\phi(\cdot)$,
 \begin{itemize}
 \item if $\phi(z) = \max(0,~ 1-z)^2$, we are training a rankSVM with linear kernel and L2 loss, and the ranking score 
       \begin{equation*}
-      S(p \mid \mathbf{x})= \mathbf{w}^\top \Psi(\mathbf{x}, p);
+      S(p \given \mathbf{x})= \mathbf{w}^\top \Psi(\mathbf{x}, p);
       \end{equation*}
 \item if $\phi(z) = \log(1 + \exp(-z))$, we are training a logistic regression model, and the ranking score
       \begin{equation*}
-      S(p \mid \mathbf{x})= \mathbb{P}(p \mid \mathbf{x}; \mathbf{w}) = \sigma \left(\mathbf{w}^\top \Psi(\mathbf{x}, p) \right).
+      S(p \given \mathbf{x})= \mathbb{P}(p \given \mathbf{x}; \mathbf{w}) = \sigma \left(\mathbf{w}^\top \Psi(\mathbf{x}, p) \right).
       \end{equation*}
       We can train this ranking model by gradient descent. Let $J(\mathbf{w})$ be the cost function we want to minimise, i.e.,
       \begin{align*}
@@ -256,8 +256,8 @@ and different models described in this section basically employ different formul
 For MEMM, the compatibility function $f(\mathbf{x}, \mathbf{y})$ is the probability of trajectory $\mathbf{y}$ given query $\mathbf{x} = (s, K)$,
 \begin{equation*}
 f(\mathbf{x}, \mathbf{y}) 
-= \mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w}) 
-= \mathbb{P}(y_1 \mid \mathbf{x}; \mathbf{w}) \cdot \prod_{j=2}^K \mathbb{P}(y_j \mid y_{j-1}, \mathbf{x}; \mathbf{w})
+= \mathbb{P}(\mathbf{y} \given \mathbf{x}; \mathbf{w}) 
+= \mathbb{P}(y_1 \given \mathbf{x}; \mathbf{w}) \cdot \prod_{j=2}^K \mathbb{P}(y_j \given y_{j-1}, \mathbf{x}; \mathbf{w})
 = 1 \cdot \prod_{j=2}^{K}~
   \frac{\exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) \right)}
        {\sum_{y' \in \mathcal{P}} \exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y') \right)},
@@ -267,10 +267,10 @@ where we do local normalisation.
 The negative log-likelihood of training set is
 \begin{equation*}
 \ell(\mathbf{w}) 
-= -\sum_{i=1}^N \log \mathbb{P}(\mathbf{y}^{(i)} \mid \mathbf{x}^{(i)}; \mathbf{w}) \\
-= -\sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} 
+= -\sum_{i=1}^N \log \mathbb{P}(\mathbf{y}^{(i)} \given \mathbf{x}^{(i)}; \mathbf{w}) \\
+= -\sum_{i=1}^N \sum_{j=2}^{| \mathbf{y}^{(i)} |} 
                 \mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y_j^{(i)}) +
-   \sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} 
+   \sum_{i=1}^N \sum_{j=2}^{| \mathbf{y}^{(i)} |} 
                 \log \sum_{y' \in \mathcal{P}} \exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y') \right).
 \end{equation*}
 
@@ -286,16 +286,16 @@ Let $J(\mathbf{w})$ be the objective (cost function), i.e.,
 J(\mathbf{w}) 
 &= \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \ell(\mathbf{w}) \\
 &= \frac{1}{2} \mathbf{w}^\top \mathbf{w} -
-   C \sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} \mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y_j^{(i)}) +
-   C \sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} \log \sum_{y' \in \mathcal{P}} 
+   C \sum_{i=1}^N \sum_{j=2}^{| \mathbf{y}^{(i)} |} \mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y_j^{(i)}) +
+   C \sum_{i=1}^N \sum_{j=2}^{| \mathbf{y}^{(i)} |} \log \sum_{y' \in \mathcal{P}} 
      \exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y') \right).
 \end{align*}
 The gradient of the cost function w.r.t. parameters $\mathbf{w}$ is
 \begin{align*}
 \frac{\partial J{\mathbf{w}}}{\partial \mathbf{w}}
 &= \mathbf{w} + C \frac{\partial \ell(\mathbf{w})}{\partial \mathbf{w}} \\
-&= \mathbf{w} - C \sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y_j^{(i)}) +
-   C \sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} 
+&= \mathbf{w} - C \sum_{i=1}^N \sum_{j=2}^{| \mathbf{y}^{(i)} |} \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y_j^{(i)}) +
+   C \sum_{i=1}^N \sum_{j=2}^{| \mathbf{y}^{(i)} |} 
      \frac{\sum_{y' \in \mathcal{P}} \left( \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y') \cdot 
            \exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y') \right) \right)}
           {\sum_{y' \in \mathcal{P}} \exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y') \right)}.
@@ -311,8 +311,8 @@ To make a prediction, we need to do a MAP inference (which can be done using the
 \begin{aligned}
 \mathbf{y}^* 
 &= \argmax_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}}~f(\mathbf{x}, \mathbf{y})
- = \argmax_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}}~\mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w})
- = \argmax_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}}~\log \mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w}) \\
+ = \argmax_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}}~\mathbb{P}(\mathbf{y} \given \mathbf{x}; \mathbf{w})
+ = \argmax_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}}~\log \mathbb{P}(\mathbf{y} \given \mathbf{x}; \mathbf{w}) \\
 &= \argmax_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}}~\sum_{j=2}^{K} \mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) - 
    \sum_{j=2}^{K} \log \sum_{y' \in \mathcal{P}} \exp \left(\mathbf{w}^\top \Psi_j(\mathbf{x}, y_{j-1}, y') \right).
 \end{aligned}
@@ -322,8 +322,8 @@ Furthermore, we can explicitly model dependencies between POIs in trajectory by 
 which results in another compatibility function
 \begin{equation*}
 f(\mathbf{x}, \mathbf{y}) 
-= \mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w}) 
-= \mathbb{P}(y_1 \mid \mathbf{x}; \mathbf{w}) \cdot \prod_{j=2}^K \mathbb{P}(y_j \mid y_1,\dots, y_{j-1}, \mathbf{x}; \mathbf{w})
+= \mathbb{P}(\mathbf{y} \given \mathbf{x}; \mathbf{w}) 
+= \mathbb{P}(y_1 \given \mathbf{x}; \mathbf{w}) \cdot \prod_{j=2}^K \mathbb{P}(y_j \given y_1,\dots, y_{j-1}, \mathbf{x}; \mathbf{w})
 = 1 \cdot \prod_{j=2}^{K}~
   \frac{\exp \left(\mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_1, \dots, y_{j-1}, y_j) \right)}
        {\sum_{y' \in \mathcal{P}} \exp \left(\mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_1, \dots, y_{j-1}, y') \right)}.
@@ -339,7 +339,7 @@ It can be trained similarly using the maximum likelihood principle.
 For linear chain CRF, the compatibility function $f(\mathbf{x}, \mathbf{y})$ is also the probability of trajectory $\mathbf{y}$ given
 query $\mathbf{x} = (s, K)$,
 \begin{equation*}
-f(\mathbf{x}, \mathbf{y}) = \mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w}) 
+f(\mathbf{x}, \mathbf{y}) = \mathbb{P}(\mathbf{y} \given \mathbf{x}; \mathbf{w}) 
 = \frac{\exp \left( \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) \right)}
        {\sum_{\mathbf{y}' \in \mathcal{Y}_\mathbf{x}} \exp \left( \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}') \right)}
 = \frac{\prod_{j=2}^{K} \exp \left( \mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) \right)}
@@ -352,8 +352,8 @@ The denominator is known as the \emph{partition function} and we do global norma
 The negative log-likelihood of training set is
 \begin{equation*}
 \ell(\mathbf{w}) 
-= -\sum_{i=1}^N \log \mathbb{P}(\mathbf{y}^{(i)} \mid \mathbf{x}^{(i)}; \mathbf{w})
-= -\sum_{i=1}^N \sum_{j=2}^{\mid \mathbf{y}^{(i)} \mid} \mathbf{w}_j^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y_j^{(i)}) +
+= -\sum_{i=1}^N \log \mathbb{P}(\mathbf{y}^{(i)} \given \mathbf{x}^{(i)}; \mathbf{w})
+= -\sum_{i=1}^N \sum_{j=2}^{| \mathbf{y}^{(i)} |} \mathbf{w}_j^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}^{(i)}, y_j^{(i)}) +
    \sum_{i=1}^N \log \sum_{\mathbf{y}' \in \mathcal{Y}_\mathbf{x}} 
                 \prod_{j=2}^{K} \exp \left(\mathbf{w}_j^\top \Psi_j(\mathbf{x}^{(i)}, y_{j-1}', y_j')\right).
 \end{equation*}
@@ -372,8 +372,8 @@ To make a prediction, we need to do a MAP inference
 \begin{aligned}
 \mathbf{y}^* 
 &= \argmax_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}}~f(\mathbf{x}, \mathbf{y})
- = \argmax_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}}~\mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w})
- = \argmax_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}}~\log \mathbb{P}(\mathbf{y} \mid \mathbf{x}; \mathbf{w}) \\
+ = \argmax_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}}~\mathbb{P}(\mathbf{y} \given \mathbf{x}; \mathbf{w})
+ = \argmax_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}}~\log \mathbb{P}(\mathbf{y} \given \mathbf{x}; \mathbf{w}) \\
 &= \argmax_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}}~\sum_{j=2}^{K} \mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_{j-1}, y_j) -
    \log \sum_{\mathbf{y}' \in \mathcal{Y}_\mathbf{x}} \prod_{j=2}^{K} \exp \left( \mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_{j-1}', y_j') \right).
 \end{aligned}
@@ -397,7 +397,7 @@ for trajectory recommendation, we assume decomposition
 \begin{equation*}
 \label{eq:jointfeature}
 \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) 
-= \sum_{j=2}^{\mid \mathbf{y} \mid} 
+= \sum_{j=2}^{| \mathbf{y} |} 
   \left( \mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_j) + 
   \mathbf{w}_{j-1,j}^\top \Psi_{j-1, j}(\mathbf{x}, y_{j-1}, y_j) \right),
 \end{equation*}
@@ -543,7 +543,7 @@ as described in Algorithm~\ref{alg:listviterbi}.
 \STATE $r^1 = \max_{p \in \mathcal{P}} \left\{ \alpha_{K}(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
 \STATE $H.\textit{push}\left(r^1,~ (\mathbf{y}^1, \textsc{nil}, \emptyset) \right)$
 
-\WHILE{$H \ne \emptyset$ \textbf{and} $k < \,\mid\!\!\mathcal{P}\!\!\mid^{K-1} - \prod_{t=2}^K (\mid\!\!\mathcal{P}\!\!\mid-t+1)$}
+\WHILE{$H \ne \emptyset$ \textbf{and} $k < \,|\mathcal{P}|^{K-1} - \prod_{t=2}^K (|\mathcal{P}|-t+1)$}
     \STATE $r^k,~ (\mathbf{y}^k, I, S) = H.\textit{pop}()~~~ \triangleright$ 
            $r^k$ is the score of $\mathbf{y}^k=(y_1^k,\dots,y_K^k)$, $I$ is the partition index, and $S$ is the exclude set
     \STATE $k = k + 1$

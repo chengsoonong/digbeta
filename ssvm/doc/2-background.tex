@@ -80,7 +80,7 @@ which is called an \textit{objective cut} for problem (\ref{eq:cvxprob}) and
 it cuts out the half-space $\{z | \nabla f_0(q)^\top (z - q) > 0 \}$ with non-optimal points.
 
 If we keep track of the best (smallest) objective value for all feasible query points during the querying, i.e.,
-$f_\text{best} = f_0(q_\text{best}) = \min\{f_0(q^{(t)}) \mid q^{(t)} ~\text{is feasible}\}$,
+$f_\text{best} = f_0(q_\text{best}) = \min\{f_0(q^{(t)}) | q^{(t)} ~\text{is feasible}\}$,
 since the optimal point has an objective value at most $f_\text{best}$, 
 we can cut away the half-space of points $\{z | f_0(z) > f_\text{best} \}$ with objective values greater than $f_\text{best}$, 
 which means we add a constraint $f_0(z) \le f_\text{best}$, and from Equation~(\ref{eq:funprop}), 
@@ -808,7 +808,7 @@ it seems that Hamming loss is not a linear function of $u$ in this case.
 %On the other hand, 
 However, if we measure the discrepancy using the number of mispredicted POIs (normalised),
 \begin{equation}
-\Delta(\mathbf{y}, \bar{\mathbf{y}}) = \frac{1}{L} \mid \textbf{set}(\mathbf{y}) \setminus \textbf{set}(\bar{\mathbf{y}}) \mid 
+\Delta(\mathbf{y}, \bar{\mathbf{y}}) = \frac{1}{L} | \textbf{set}(\mathbf{y}) \setminus \textbf{set}(\bar{\mathbf{y}}) | 
                                      = \frac{1}{L} \sum_{j=1}^L \left( 1 - \sum_{k=1}^M u_{y_j, k} \right),
 \end{equation}
 or the number of mispredicted transitions (normalised),

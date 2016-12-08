@@ -43,8 +43,8 @@ where we recommend a sequence of songs given a specified song (a.k.a. the seed) 
 Formally, given a library of songs and a query $\mathbf{x} = (s, K)$, where $s$ is the seed and $K$ is the number of songs in playlist,
 we produce a list with $K$ songs (without duplication) by maximising the likelihood~\cite{chen2012playlist},
 \begin{equation*}
-%\max_{(y_1,\dots,y_K)} \prod_{k=2}^K \mathbb{P}(y_{k-1} \mid y_k),~ y_1 = s ~\text{and}~ y_j \ne y_k,~ j \ne k.
-\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{P}_\mathbf{x}}~ \mathbb{P}(\mathbf{y} \mid \mathbf{x}),~ \mathbf{y} = (y_1=s,\dots,y_K) 
+%\max_{(y_1,\dots,y_K)} \prod_{k=2}^K \mathbb{P}(y_{k-1} \given y_k),~ y_1 = s ~\text{and}~ y_j \ne y_k,~ j \ne k.
+\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{P}_\mathbf{x}}~ \mathbb{P}(\mathbf{y} \given \mathbf{x}),~ \mathbf{y} = (y_1=s,\dots,y_K) 
 ~\text{and}~ y_j \ne y_k ~\text{if}~ j \ne k.
 \end{equation*}
 
@@ -65,27 +65,27 @@ Metrics researchers have used include
       Let $\texttt{set}(\mathbf{y})$ denote the set of POIs in trajectory $\mathbf{y}$, F$_1$ score on points is defined as
 \begin{equation*}
 F_1 = \frac{2  P_{\textsc{point}}  R_{\textsc{point}}}{P_{\textsc{point}} + R_{\textsc{point}}} ~~\text{where}~
-P_{\textsc{point}} = \frac{\mid \texttt{set}(\hat{\mathbf{y}}) \cap \texttt{set}(\mathbf{y}) \mid}{\mid \texttt{set}(\hat{\mathbf{y}}) \mid}~\text{and}~
-R_{\textsc{point}} = \frac{\mid \texttt{set}(\hat{\mathbf{y}}) \cap \texttt{set}(\mathbf{y}) \mid}{\mid \texttt{set}(\mathbf{y}) \mid}.
+P_{\textsc{point}} = \frac{| \texttt{set}(\hat{\mathbf{y}}) \cap \texttt{set}(\mathbf{y}) |}{| \texttt{set}(\hat{\mathbf{y}}) |}~\text{and}~
+R_{\textsc{point}} = \frac{| \texttt{set}(\hat{\mathbf{y}}) \cap \texttt{set}(\mathbf{y}) |}{| \texttt{set}(\mathbf{y}) |}.
 \end{equation*}
-If $\mid\!\! \hat{\mathbf{y}} \!\!\mid = \mid\!\! \mathbf{y} \!\!\mid$, this metric is just the unordered Hamming loss, 
-i.e., Hamming loss between two binary indicator vectors of size $\mid\!\! \mathcal{P} \!\!\mid$.
+If $| \hat{\mathbf{y}} | = | \mathbf{y} |$, this metric is just the unordered Hamming loss, 
+i.e., Hamming loss between two binary indicator vectors of size $| \mathcal{P} |$.
 
 
 \item F$_1$ score on pairs~\cite{cikm16paper}, where we care about the set of correctly predicted POI pairs,
 \begin{equation*}
 \text{pairs-F}_1 = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}{P_{\textsc{pair}} + R_{\textsc{pair}}}~~\text{where}~
-P_{\textsc{pair}} = \frac{N_c} {\mid \texttt{set}(\hat{\mathbf{y}}) \mid (\mid \texttt{set}(\hat{\mathbf{y}}) \mid - 1) / 2}~\text{and}~
-R_{\textsc{pair}} = \frac{N_c} {\mid \texttt{set}(\mathbf{y}) \mid (\mid \texttt{set}(\mathbf{y}) \mid - 1) / 2},
+P_{\textsc{pair}} = \frac{N_c} {| \texttt{set}(\hat{\mathbf{y}}) | (| \texttt{set}(\hat{\mathbf{y}}) | - 1) / 2}~\text{and}~
+R_{\textsc{pair}} = \frac{N_c} {| \texttt{set}(\mathbf{y}) | (| \texttt{set}(\mathbf{y}) | - 1) / 2},
 \end{equation*}
-and $N_c = \sum_{j=1}^{\mid \mathbf{y} \mid - 1} \sum_{k=j+1}^{\mid \mathbf{y} \mid} \llb y_j \prec_{\bar{\mathbf{y}}} y_k \rrb$,
+and $N_c = \sum_{j=1}^{| \mathbf{y} | - 1} \sum_{k=j+1}^{| \mathbf{y} |} \llb y_j \prec_{\bar{\mathbf{y}}} y_k \rrb$,
 here $y_j \prec_{\bar{\mathbf{y}}} y_k$ denotes that POI $y_j$ appears before POI $y_k$ in trajectory $\bar{\mathbf{y}}$.
 We define pairs-F$_1 = 0$ when $N_c = 0$.
 
 \end{itemize}
 
 However, if we cast a trajectory $\mathbf{y} = (y_1,\dots,y_K)$ as a ranking of POIs in $\mathcal{P}$,
-where $y_k$ has a rank $\mid\!\! \mathcal{P} \!\!\mid\! - k + 1$ and any other POI $p \notin \mathbf{y}$ has a rank $0$ ($0$ is an arbitrary choice).
+where $y_k$ has a rank $| \mathcal{P} | - k + 1$ and any other POI $p \notin \mathbf{y}$ has a rank $0$ ($0$ is an arbitrary choice).
 We can make use of ranking evaluation metrics such as Kendall's $\tau$ or Spearman's $\rho$, by taking care of ties in ranks.
 
 \eat{TODO: Write these down and contrast, esp. to pairs-F1}.
