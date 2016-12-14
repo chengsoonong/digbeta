@@ -144,41 +144,48 @@ We can rewrite the number of concordant pairs as
 \begin{align*}
 C =& \frac{1}{2} \sum_{i,j} \left(\llb r_i < r_j \rrb  \llb \hat{r}_i < \hat{r}_j \rrb +
      \llb r_i > r_j \rrb  \llb \hat{r}_i > \hat{r}_j \rrb \right), \\
-  =& \sum_{i < j} \llb r_i < r_j \rrb  
+  =& \frac{1}{2} \sum_{i,j} \llb r_i < r_j \rrb  
      \left( \llb r_i > 0 \rrb + \llb r_i = 0 \rrb \right)  
      \llb \hat{r}_i < \hat{r}_j \rrb 
      \left( \llb \hat{r}_i > 0 \rrb + \llb \hat{r}_i = 0 \rrb \right) + \\
-   & \sum_{i < j} \llb r_i > r_j \rrb  
+   & \frac{1}{2} \sum_{i,j} \llb r_i > r_j \rrb  
      \left( \llb r_j > 0 \rrb + \llb r_j = 0 \rrb \right) 
      \llb \hat{r}_i > \hat{r}_j \rrb 
      \left( \llb \hat{r}_j > 0 \rrb + \llb \hat{r}_j = 0 \rrb \right) \\
-  =& \sum_{i < j} \left( \uwave{\llb r_i < r_j \rrb  \llb r_i > 0 \rrb} +
+  =& \frac{1}{2} \sum_{i,j} \left( \uwave{\llb r_i < r_j \rrb  \llb r_i > 0 \rrb} +
             \llb r_i < r_j \rrb  \llb r_i = 0 \rrb \right)  
      \left( \uwave{\llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i > 0 \rrb} + 
             \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i = 0 \rrb \right) + \\
-   & \sum_{i < j} \left( \uwave{\llb r_i > r_j \rrb  \llb r_j > 0 \rrb} + 
+   & \frac{1}{2} \sum_{i,j} \left( \uwave{\llb r_i > r_j \rrb  \llb r_j > 0 \rrb} + 
             \llb r_i > r_j \rrb  \llb r_j = 0 \rrb \right) 
      \left( \uwave{\llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j > 0 \rrb} + 
             \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j = 0 \rrb \right) \\
-  =& \sum_{i < j} \uwave{\llb r_i < r_j \rrb  \llb r_i > 0 \rrb 
+  =& \frac{1}{2} \sum_{i,j} \uwave{\llb r_i < r_j \rrb  \llb r_i > 0 \rrb 
                          \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i > 0 \rrb} +
-     \sum_{i < j} \uwave{\llb r_i > r_j \rrb  \llb r_j > 0 \rrb 
+     \frac{1}{2} \sum_{i,j} \uwave{\llb r_i > r_j \rrb  \llb r_j > 0 \rrb 
                          \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j > 0 \rrb} + \\
-   & \sum_{i < j} \left( \uwave{\llb r_i < r_j \rrb  \llb r_i > 0 \rrb} 
+   & \frac{1}{2} \sum_{i,j} \left( \uwave{\llb r_i < r_j \rrb  \llb r_i > 0 \rrb} 
                          \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i = 0 \rrb + 
                          \llb r_i < r_j \rrb  \llb r_i = 0 \rrb  
                          \llb \hat{r}_i < \hat{r}_j \rrb \right) + \\ 
-   & \sum_{i < j} \left( \uwave{\llb r_i > r_j \rrb  \llb r_j > 0 \rrb} 
+   & \frac{1}{2} \sum_{i,j} \left( \uwave{\llb r_i > r_j \rrb  \llb r_j > 0 \rrb} 
                          \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j = 0 \rrb +
                          \llb r_i > r_j \rrb  \llb r_j = 0 \rrb 
                          \llb \hat{r}_i > \hat{r}_j \rrb \right) \\
   =& ~\text{pairs-F}_1  \frac{K(K-1)}{2}~ + \\
-   & \sum_{i < j} \left( \uwave{\llb r_i < r_j \rrb  \llb r_i > 0 \rrb} 
+   & \frac{1}{2} \sum_{i,j} \left( \uwave{\llb r_i < r_j \rrb  \llb r_i > 0 \rrb} 
                          \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i = 0 \rrb + 
                          \llb r_i < r_j \rrb  \llb r_i = 0 \rrb  
                          \llb \hat{r}_i < \hat{r}_j \rrb \right) + \\ 
-   & \sum_{i < j} \left( \uwave{\llb r_i > r_j \rrb  \llb r_j > 0 \rrb} 
+   & \frac{1}{2} \sum_{i,j} \left( \uwave{\llb r_i > r_j \rrb  \llb r_j > 0 \rrb} 
                          \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j = 0 \rrb +
                          \llb r_i > r_j \rrb  \llb r_j = 0 \rrb 
                          \llb \hat{r}_i > \hat{r}_j \rrb \right).
+\end{align*}
+We can simplify $C-D$ and $C+D$ in a similar manner,
+\begin{align*}
+C-D &= \frac{1}{2} \sum_{i,j} \left( \llb r_j > 0 \rrb (1 - \llb r_i > r_j \rrb) - \llb r_i > 0 \rrb (1 - \llb r_i < r_j \rrb) \right)
+       \left( \llb \hat{r}_j > 0 \rrb (1 - \llb \hat{r}_i > \hat{r}_j \rrb) - \llb \hat{r}_i > 0 \rrb (1 - \llb \hat{r}_i < \hat{r}_j \rrb) \right) \\
+C+D &= \frac{1}{2} \sum_{i,j} \left( \llb r_j > 0 \rrb (1 + \llb r_i > r_j \rrb) + \llb r_i > 0 \rrb (1 + \llb r_i < r_j \rrb) \right)
+       \left( \llb \hat{r}_j > 0 \rrb (1 + \llb \hat{r}_i > \hat{r}_j \rrb) + \llb \hat{r}_i > 0 \rrb (1 + \llb \hat{r}_i < \hat{r}_j \rrb) \right)
 \end{align*}
