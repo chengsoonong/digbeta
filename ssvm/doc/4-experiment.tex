@@ -1,0 +1,25 @@
+\section{Experiment}
+\label{sec:experiment}
+
+% experiment protocol: Nested cross-validation with Monte-Carlo cross-validation for the inner loop
+We experiment methods developed in Section~\ref{sec:methods} on trajectories extracted from Flickr photos.
+
+We first group trajectories according to queries that they conform to,
+then evaluate the performance of each algorithm using nested cross validation,
+where the hyper-parameters are optimised in the inner loop using Monte Carlo cross validation~\cite{burman1989comparative},
+and the generalisation error is estimated in the outer loop using leave-one-out cross validation.
+
+In particular, for query $\mathbf{x}$ and the set of trajectories $\mathcal{Y}_\mathbf{x}$ that conform to $\mathbf{x}$,
+the nested cross validation are performed over dataset $\left\{(\mathbf{x}, \mathcal{Y}_\mathbf{x})\right\}_{i=1}^N$.
+
+% metric: F_1, pairs F_1, Kendall's tau
+We use metrics described in Section~\ref{sec:evaluation} to measure the quality of recommendation $\hat{\mathbf{y}}$ given
+query $\mathbf{x}$ and the set of trajectories $\mathcal{Y}_\mathbf{x}$ that conform to $\mathbf{x}$ as follows:
+\begin{align*}
+\text{F}_1 &= \max_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}} \, \text{F}_1', ~~
+\text{where F$_1'$ is the F$_1$ score on points for $\hat{\mathbf{y}}$ and $\mathbf{y}$} \\
+\text{pairs-F}_1 &= \max_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}} \, \text{pairs-F}_1', ~~
+\text{where pairs-F$_1'$ is the F$_1$ score on pairs for $\hat{\mathbf{y}}$ and $\mathbf{y}$} \\
+\tau &= \max_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}} \, \tau', ~~
+\text{where $\tau'$ is the Kendall's $\tau$ for $\hat{\mathbf{y}}$ and $\mathbf{y}$}
+\end{align*}
