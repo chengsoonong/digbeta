@@ -1,5 +1,5 @@
 \section{The cutting-plane methods}
-\label{sec:problem}
+\label{sec:cuttingplane}
 
 The goal of cutting-plane methods is to find/localise a point in a convex \textit{target set} $Z \in \mathbb{R}^n$,
 or determine that $Z$ is empty in some cases. 
@@ -369,7 +369,7 @@ From Algorithm~\ref{alg:nslacktrain} and Algorithm~\ref{alg:1slacktrain}, we obs
 \subsection{Query generation method}
 \label{sec:ssvm_query}
 
-Recall that in Section~\ref{sec:problem}, we have an objective $f_0(z)$ to minimise, in the case of $1$-slack formulation of structured SVM,
+Recall that in Section~\ref{sec:cuttingplane}, we have an objective $f_0(z)$ to minimise, in the case of $1$-slack formulation of structured SVM,
 $f_0(z)$ is the quadratic objective in Equation~(\ref{eq:1slackform}), 
 \begin{equation}
 \label{eq:optobj}
