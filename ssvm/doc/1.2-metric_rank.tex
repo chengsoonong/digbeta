@@ -8,8 +8,8 @@ Given two ranks $X$ and $Y$, each with $n$ observations, we define
       %C = \sum_{i < j} \left( \mathbbm{1}(X_i < X_j)  \mathbbm{1}(Y_i < Y_j) + \mathbbm{1}(X_i > X_j)  \mathbbm{1}(Y_i > Y_j) \right),
       C = \frac{1}{2} \sum_{i,j} \left( \llb X_i < X_j \rrb  \llb Y_i < Y_j \rrb + \llb X_i > X_j \rrb  \llb Y_i > Y_j \rrb \right),
       \end{equation*}
-      where $\llb  \rrb$ is the indicator function and 
-      $\sum_{i,j}$ means all ordered pairs $(i, j),~ i,j=1,\dots,n$ are counted twice.
+      where $\llb \cdot \rrb$ is the indicator function and 
+      $\sum_{i,j}$ means all unordered pairs $(i, j),~ i,j=1,\dots,n$ are counted twice.
 
 \item Number of discordant pairs 
       \begin{equation*}
