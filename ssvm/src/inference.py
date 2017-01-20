@@ -3,6 +3,7 @@ import pandas as pd
 import itertools
 import pulp
 
+USE_GUROBI = True
 
 def do_inference_brute_force(ps, L, M, unary_params, pw_params, unary_features, pw_features, 
                              y_true=None, y_true_list=None, debug=False):
