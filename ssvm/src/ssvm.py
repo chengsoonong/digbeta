@@ -7,7 +7,7 @@ from pystruct.models import StructuredModel
 from pystruct.learners import OneSlackSSVM
 
 sys.path.append('.')
-from shared import LOG_ZERO, LOG_SMALL, DF_COLUMNS
+from shared import LOG_ZERO, LOG_SMALL, DF_COLUMNS, LOG_TRANSITION
 
 class SSVM:
     """Structured SVM wrapper"""
@@ -342,7 +342,7 @@ def calc_node_features(startPOI, nPOI, poi_list, poi_info, dat_obj):
 
 
 
-def calc_edge_features(trajid_list, poi_list, poi_info, dat_obj):
+def calc_edge_features(trajid_list, poi_list, poi_info, dat_obj, log_transition=LOG_TRANSITION):
     """
     Compute edge features (transiton / pairwise)
     """
@@ -377,11 +377,14 @@ def calc_edge_features(trajid_list, poi_list, poi_info, dat_obj):
         
         for k in range(len(poi_list)): # NOTE: POI order
             pk = poi_list[k]
-            #edge_features[j, k, :] = np.log10( np.array(
             edge_features[j, k, :] = np.array(
                     [transmat_cat.loc[cat, poi_features.loc[pk, 'poiCat']], \
                      transmat_pop.loc[pop, poi_features.loc[pk, 'popularity']], \
                      transmat_visit.loc[visit, poi_features.loc[pk, 'nVisit']], \
                      transmat_duration.loc[duration, poi_features.loc[pk, 'avgDuration']], \
-                     transmat_neighbor.loc[cluster, poi_features.loc[pk, 'clusterID']]] ) #)
-    return edge_features
+                     transmat_neighbor.loc[cluster, poi_features.loc[pk, 'clusterID']]] )
+
+    if log_transition == True: 
+        return np.log10(edge_features)
+    else:
+        return edge_features
