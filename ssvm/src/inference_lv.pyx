@@ -46,12 +46,12 @@ cdef class HeapItem:  # an item in heapq (min-heap)
 
 
 cpdef do_inference_list_viterbi(int ps, int L, int M,
-        np.ndarray[dtype=np.float64_t, ndim=2] unary_params, 
-        np.ndarray[dtype=np.float64_t, ndim=3] pw_params, 
-        np.ndarray[dtype=np.float64_t, ndim=2] unary_features, 
-        np.ndarray[dtype=np.float64_t, ndim=3] pw_features, 
-        y_true=None, y_true_list=None):
-    """
+                                np.ndarray[dtype=np.float64_t, ndim=2] unary_params, 
+                                np.ndarray[dtype=np.float64_t, ndim=3] pw_params, 
+                                np.ndarray[dtype=np.float64_t, ndim=2] unary_features, 
+                                np.ndarray[dtype=np.float64_t, ndim=3] pw_features, 
+                                y_true=None, y_true_list=None):
+    """ 
     Inference using the list Viterbi algorithm, could be:
     - Train/prediction inference for single-label SSVM
     - Train/prediction inference for multi-label SSVM
@@ -126,7 +126,9 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
         k += 1; y_last = k_best
         
         if len(set(k_best)) == L:
-            if y_true is None: return k_best
+            if y_true is None: 
+                #print(-k_priority); 
+                return k_best
             else: # return k_best if it is NOT one of the ground truth labels
                 if not np.any([np.all(np.asarray(k_best) == np.asarray(yj)) for yj in y_true_list]):
                     return k_best
@@ -142,20 +144,24 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
             if parix == partition_index_start:
                 new_exclude_set = new_exclude_set | k_exclude_set
             
+            # new_best[:parix]
             new_best = np.zeros(L, dtype=np.int) * (-1)
-            for pk in range(parix):
-                new_best[pk] = k_best[pk]
+            new_best[:parix] = k_best[:parix]
+            if len(set(new_best[:parix])) < parix: # if there's sub-tour(s) in new_best[:parix]
+                #print('skipped')
+                continue  
             
+            # new_best[parix]
             candidate_points = [p for p in range(M) if p not in new_exclude_set]
             if len(candidate_points) == 0: continue
             candidate_maxix = np.argmax([Fp[parix-1, k_best[parix-1], p] for p in candidate_points])
             new_best[parix] = candidate_points[candidate_maxix]
             
+            # new_best[parix+1:]
             for pk in range(parix+1, L):
                 new_best[pk] = np.argmax([Fp[pk-1, new_best[pk-1], p] for p in range(M)])
             
             new_priority = Fp[parix-1, k_best[parix-1], new_best[parix]]
-            
             if k_partition_index > 0:
                 new_priority += (-k_priority) - Fp[parix-1, k_best[parix-1], k_best[parix]]
             new_priority *= -1.0   # NOTE: -np.inf - np.inf + np.inf = nan
