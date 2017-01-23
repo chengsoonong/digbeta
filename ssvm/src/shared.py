@@ -8,6 +8,7 @@ from scipy.stats import kendalltau
 LOG_SMALL = -10  # log(x) when x is a very small positive real number
 LOG_ZERO = -1000 # log(0)
 BIN_CLUSTER = 5  # discritization parameter
+LOG_TRANSITION = False
 
 
 """
@@ -43,6 +44,7 @@ class TrajData:
         self.trajid_set_all = sorted(self.traj_all['trajID'].unique().tolist())
         self.poi_info_all = self.calc_poi_info(self.trajid_set_all)
         self.calc_auxiliary_data()
+        self.traj_user = self.traj_all[['userID', 'trajID']].groupby('trajID').first()
         
                
         if self.debug == True:
@@ -62,6 +64,8 @@ class TrajData:
     def load_data(self, dat_ix):
         fpoi = os.path.join(self.data_dir, 'poi-' + self.dat_suffix[dat_ix] + '.csv')
         ftraj = os.path.join(self.data_dir, 'traj-' + self.dat_suffix[dat_ix] + '.csv')
+        #fpoi = os.path.realpath(fpoi); ftraj = os.path.realpath(ftraj)
+        #print(fpoi); print(ftraj)
         assert(os.path.exists(fpoi))
         assert(os.path.exists(ftraj))
         
@@ -273,10 +277,12 @@ class TrajData:
         return normalise_transmat(transmat_neighbor_cnt)
 
 
-    def evaluate(self, query, y_hat, use_max=True):
-        assert(query in self.TRAJ_GROUP_DICT)
-        y_true_list = [self.traj_dict[tid] for tid in self.TRAJ_GROUP_DICT[query]]
-        return calc_metrics(y_hat, y_true_list, self.POI_ID_DICT, use_max)
+
+def evaluate(dat_obj, query, y_hat, use_max=True):
+    assert(type(dat_obj) == TrajData)
+    assert(query in dat_obj.TRAJ_GROUP_DICT)
+    y_true_list = [dat_obj.traj_dict[tid] for tid in dat_obj.TRAJ_GROUP_DICT[query]]
+    return calc_metrics(y_hat, y_true_list, dat_obj.POI_ID_DICT, use_max)
 
 
 def normalise_transmat(transmat_cnt):
