@@ -138,20 +138,16 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
         if k_partition_index > 0:
             assert(k_partition_index < L)
             partition_index_start = k_partition_index
-            
+
         for parix in range(partition_index_start, L):    
-            new_exclude_set = set({k_best[parix]})
-            if parix == partition_index_start:
-                new_exclude_set = new_exclude_set | k_exclude_set
-            
             # new_best[:parix]
             new_best = np.zeros(L, dtype=np.int) * (-1)
             new_best[:parix] = k_best[:parix]
-            if len(set(new_best[:parix])) < parix: # if there's sub-tour(s) in new_best[:parix]
-                #print('skipped')
-                continue  
+            if len(set(new_best[:parix])) < parix: break  # here break is more efficient than continue (skip all trajectories with sub-tours at once)
             
             # new_best[parix]
+            new_exclude_set = set({k_best[parix]})
+            if parix == partition_index_start: new_exclude_set = new_exclude_set | k_exclude_set
             candidate_points = [p for p in range(M) if p not in new_exclude_set]
             if len(candidate_points) == 0: continue
             candidate_maxix = np.argmax([Fp[parix-1, k_best[parix-1], p] for p in candidate_points])

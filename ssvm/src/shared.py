@@ -116,15 +116,15 @@ class TrajData:
         self.traj_dict = {tid: self.extract_traj(tid) for tid in self.trajid_set_all}
         
         # define a query (in IR terminology) using tuple (start POI, #POI)
-        self.TRAJ_GROUP_DICT = dict()
+        self.TRAJID_GROUP_DICT = dict()
         for tid in sorted(self.traj_dict.keys()):
             if len(self.traj_dict[tid]) >= 2:
                 key = (self.traj_dict[tid][0], len(self.traj_dict[tid]))
-                if key in self.TRAJ_GROUP_DICT: self.TRAJ_GROUP_DICT[key].add(tid)
-                else: self.TRAJ_GROUP_DICT[key] = set({tid})
+                if key in self.TRAJID_GROUP_DICT: self.TRAJID_GROUP_DICT[key].add(tid)
+                else: self.TRAJID_GROUP_DICT[key] = set({tid})
         
         # (start, length) --> qid
-        self.QUERY_ID_DICT = {query: ix for ix, query in enumerate(sorted(self.TRAJ_GROUP_DICT.keys()))}
+        self.QUERY_ID_DICT = {query: ix for ix, query in enumerate(sorted(self.TRAJID_GROUP_DICT.keys()))}
 
         # POI ID --> index
         self.POI_ID_DICT = {poi: ix for ix, poi in enumerate(sorted(self.poi_all.index.tolist()))}
@@ -280,8 +280,8 @@ class TrajData:
 
 def evaluate(dat_obj, query, y_hat, use_max=True):
     assert(type(dat_obj) == TrajData)
-    assert(query in dat_obj.TRAJ_GROUP_DICT)
-    y_true_list = [dat_obj.traj_dict[tid] for tid in dat_obj.TRAJ_GROUP_DICT[query]]
+    assert(query in dat_obj.TRAJID_GROUP_DICT)
+    y_true_list = [dat_obj.traj_dict[tid] for tid in dat_obj.TRAJID_GROUP_DICT[query]]
     return calc_metrics(y_hat, y_true_list, dat_obj.POI_ID_DICT, use_max)
 
 

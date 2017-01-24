@@ -38,7 +38,7 @@ inference_method = do_inference_list_viterbi
 method_name = 'listViterbi'
 
 recdict_ssvm = dict()
-keys = sorted(dat_obj.TRAJ_GROUP_DICT.keys())
+keys = sorted(dat_obj.TRAJID_GROUP_DICT.keys())
 
 i = qix
 ps, L = keys[i]
@@ -49,7 +49,7 @@ keys_cv = keys[:i] + keys[i+1:]
 
 # use all training+validation set to compute POI features, 
 # make sure features do NOT change for training and validation
-trajid_set_i = set(dat_obj.trajid_set_all) - dat_obj.TRAJ_GROUP_DICT[keys[i]]
+trajid_set_i = set(dat_obj.trajid_set_all) - dat_obj.TRAJID_GROUP_DICT[keys[i]]
 poi_info_i = dat_obj.calc_poi_info(list(trajid_set_i))
 
 poi_set_i = {p for tid in trajid_set_i for p in dat_obj.traj_dict[tid] if len(dat_obj.traj_dict[tid]) >= 2}
@@ -69,9 +69,9 @@ for ssvm_C in C_SET:
             rand_ix = np.arange(len(keys_cv)); np.random.shuffle(rand_ix)
             test_ix = rand_ix[:int(MC_PORTION*len(rand_ix))]
             assert(len(test_ix) > 0)
-            trajid_set_train = set(dat_obj.trajid_set_all) - dat_obj.TRAJ_GROUP_DICT[keys[i]]
+            trajid_set_train = set(dat_obj.trajid_set_all) - dat_obj.TRAJID_GROUP_DICT[keys[i]]
             for j in test_ix: 
-                trajid_set_train = trajid_set_train - dat_obj.TRAJ_GROUP_DICT[keys_cv[j]]
+                trajid_set_train = trajid_set_train - dat_obj.TRAJID_GROUP_DICT[keys_cv[j]]
             poi_set = {p for tid in sorted(trajid_set_train) for p in dat_obj.traj_dict[tid] if len(dat_obj.traj_dict[tid]) >= 2}
             good_partition = True
             for j in test_ix: 

@@ -167,8 +167,11 @@ class MyModel(StructuredModel):
         self.traj_group_dict = dict()
         for i in range(len(X)):
             query = X[i][2]
-            if query in self.traj_group_dict: self.traj_group_dict[query].append(Y[i])
-            else: self.traj_group_dict[query] = [Y[i]]
+            if query in self.traj_group_dict: 
+                if not np.any([np.all(np.asarray(Y[i]) == np.asarray(yj)) for yj in self.traj_group_dict[query]]):  # NO duplication
+                    self.traj_group_dict[query].append(Y[i])
+            else: 
+                self.traj_group_dict[query] = [Y[i]]
         
         
     def __repr__(self):
