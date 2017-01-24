@@ -139,14 +139,15 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
             assert(k_partition_index < L)
             partition_index_start = k_partition_index
 
-        for parix in range(partition_index_start, L):    
+        for parix in range(partition_index_start, L):
             # new_best[:parix]
             new_best = np.zeros(L, dtype=np.int) * (-1)
             new_best[:parix] = k_best[:parix]
             if len(set(new_best[:parix])) < parix: break  # here break is more efficient than continue (skip all trajectories with sub-tours at once)
             
             # new_best[parix]
-            new_exclude_set = set({k_best[parix]})
+            #new_exclude_set = set({k_best[parix]})
+            new_exclude_set = set(k_best[:parix+1]) # exclude all visited POIs
             if parix == partition_index_start: new_exclude_set = new_exclude_set | k_exclude_set
             candidate_points = [p for p in range(M) if p not in new_exclude_set]
             if len(candidate_points) == 0: continue
@@ -156,11 +157,15 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
             # new_best[parix+1:]
             for pk in range(parix+1, L):
                 new_best[pk] = np.argmax([Fp[pk-1, new_best[pk-1], p] for p in range(M)])
+                #new_best[pk] = np.argmax([Fp[pk-1, new_best[pk-1], p] for p in range(M) if p not in new_best[:pk]])  # incorrect
+                #new_best[pk] = np.argmax([Fp[pk-1, new_best[pk-1], p] for p in range(M) if p not in new_best[:parix+1]]) # incorrect
             
             new_priority = Fp[parix-1, k_best[parix-1], new_best[parix]]
             if k_partition_index > 0:
                 new_priority += (-k_priority) - Fp[parix-1, k_best[parix-1], k_best[parix]]
             new_priority *= -1.0   # NOTE: -np.inf - np.inf + np.inf = nan
+
+            #print('push: %s, %d' % (str(new_best), parix))
             
             hq.heappush(Q, HeapItem(new_priority, (new_best, parix, new_exclude_set)))
             
