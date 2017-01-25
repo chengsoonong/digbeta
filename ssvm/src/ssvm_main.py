@@ -17,8 +17,8 @@ sys.path.append(src_dir)
 
 from shared import TrajData, evaluate
 from ssvm import SSVM
-import pyximport
-pyximport.install(setup_args={'include_dirs': np.get_include()}, reload_support=True)
+#import pyximport
+#pyximport.install(setup_args={'include_dirs': np.get_include()}, reload_support=True)
 from inference_lv import do_inference_list_viterbi
 
 random.seed(1234554321)
