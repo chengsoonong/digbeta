@@ -464,3 +464,19 @@ def vars_equal(d1, d2):
     elif type(d1) in {pd.DataFrame, pd.Series}: assert d1.equals(d2)
     else: assert False, 'UNrecognised type: %s\n' % type(d1)
     return True
+    
+    
+def do_evaluation(dat_obj, recdict):
+    assert(type(dat_obj) == TrajData)
+    
+    F1_list = []; pF1_list = []; Tau_list = []
+    for key in sorted(recdict.keys()):
+        F1, pF1, tau = evaluate(dat_obj, key, recdict[key]['PRED'])
+        F1_list.append(F1); pF1_list.append(pF1); Tau_list.append(tau)
+    nF1 = np.sum([True if np.abs(x-1.0) < 1e-6 else False for x in F1_list])
+    npF1 = np.sum([True if np.abs(x-1.0) < 1e-6 else False for x in pF1_list])
+
+    print('F1 (%.3f, %.3f), pairsF1 (%.3f, %.3f), Tau (%.3f, %.3f), perfectF1: %d/%d, perfectPairsF1: %d/%d' % \
+          (np.mean(F1_list), np.std(F1_list)/np.sqrt(len(F1_list)), \
+           np.mean(pF1_list), np.std(pF1_list)/np.sqrt(len(pF1_list)), \
+           np.mean(Tau_list), np.std(Tau_list)/np.sqrt(len(Tau_list)), nF1, len(F1_list), npF1, len(pF1_list)))
