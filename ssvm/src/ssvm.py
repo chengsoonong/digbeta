@@ -84,9 +84,9 @@ class SSVM:
             print('SSVM training finished.')
         #except ValueError:
         except:
-            raise
-        #    self.trained = False
-        #    sys.stderr.write('SSVM training FAILED.\n')
+            self.trained = False
+            sys.stderr.write('SSVM training FAILED.\n')
+            #raise
         return self.trained
 
 
