@@ -461,41 +461,45 @@ s.t.~~ ~& \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(ij)}) - \mathbf{w}
 
 \paragraph{Multi-user multi-label SSVM}
 We can extend the multi-label SSVM (\ref{eq:nslack_ml}) to the multi-user setting.
-In particular, let $i$ indexes users,  $j$ indexes queries of the  $i$-th user and $k$ indexes the labels of the $j$-th query of the $i$-th user,
-assume the parameters/weights for the $i$-th user is $\mathbf{\bar{w}} + \mathbf{w}_i$ where $\mathbf{\bar{w}}$ is a weight vector shared by all users,
+In particular, let $I$ denotes the number of users,  $J_i$ denotes the number of queries of the  $i$-th user and 
+$K_{ij}$ denotes the number of labels/trajectories of the $j$-th query of the $i$-th user.
+Suppose the parameters/weights for the $i$-th user is $(\mathbf{\bar{w}} + \mathbf{w}_i)$ where 
+$\mathbf{\bar{w}}$ is a weight vector shared by all users,
 the 1-slack formulation of multi-user multi-label SSVM is the following QP:
 \begin{equation}
 \label{eq:1slack_muml}
 \begin{aligned}
 \min_{\mathbf{\bar{w}}, \mathbf{w}_i, \xi \ge 0} ~& \frac{1}{2} \mathbf{\bar{w}}^\top \mathbf{\bar{w}} + 
-                                                    \frac{1}{2} \sum_i \mathbf{w}_i^\top \mathbf{w}_i + C \xi \\
-s.t.~~~~ ~& \frac{1}{N} \sum_i \sum_j \sum_k 
+                                                    \frac{1}{2} \sum_{i=1}^I \mathbf{w}_i^\top \mathbf{w}_i + C \xi \\
+s.t.~~~~ ~& \frac{1}{N} \sum_{i=1}^I \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} 
             \langle \mathbf{\bar{w}} + \mathbf{w}_i,~ \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \rangle \ge
-            \frac{1}{N} \sum_i \sum_j \sum_k \Delta(\mathbf{y}_{ijk}, \mathbf{\bar{y}}) - \xi,~~ 
+            \frac{1}{N} \sum_{i=1}^I \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} \Delta(\mathbf{y}_{ijk}, \mathbf{\bar{y}}) - \xi,~~ 
             \mathbf{\bar{y}} \in \mathcal{Y}_{\mathbf{x}_{ij}} \setminus \{\mathbf{y}_{ijk}\}_{\forall k}
 \end{aligned}
 \end{equation}
-where $N = \sum_i \sum_j \sum_k 1$ is the total number of all observed trajectories.
+where $N = \sum_{i=1}^I \sum_{j=1}^{J_i} K_{ij}$ is the total number of all observed trajectories.
 
 To solve problem (\ref{eq:1slack_muml}) using cutting plane algorithm and a QP solver, we need the Wolfe-dual of (\ref{eq:1slack_muml}).
 The Lagrangian of (\ref{eq:1slack_muml}) is 
 \begin{equation}
 \label{eq:lagrangian}
 L(\mathbf{\bar{w}}, \mathbf{w}_i, \bm{\alpha}) 
-= \frac{1}{2} \mathbf{\bar{w}}^\top \mathbf{\bar{w}} + \frac{1}{2} \sum_i \mathbf{w}_i^\top \mathbf{w}_i + C \xi + 
+= \frac{1}{2} \mathbf{\bar{w}}^\top \mathbf{\bar{w}} + \frac{1}{2} \sum_{i=1}^I \mathbf{w}_i^\top \mathbf{w}_i + C \xi + 
   \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} \left( 
-  \frac{1}{N} \sum_i \sum_j \sum_k \Delta(\mathbf{y}_{ijk}, \mathbf{\bar{y}}) - \xi - 
-  \frac{1}{N} \sum_i \sum_j \sum_k 
+  \frac{1}{N} \sum_{i=1}^I \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} \Delta(\mathbf{y}_{ijk}, \mathbf{\bar{y}}) - \xi - 
+  \frac{1}{N} \sum_{i=1}^I \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}}
   \langle \mathbf{\bar{w}} + \mathbf{w}_i,~ \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \rangle \right)
 \end{equation}
 Differentiating with respect to $\mathbf{\bar{w}}, \mathbf{w}_i$ and $\xi$, 
 \begin{align*}
 \frac{\partial L}{\partial \mathbf{\bar{w}}} 
 &= \mathbf{\bar{w}} + \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} 
-   \left( -\frac{1}{N} \sum_i \sum_j \sum_k \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right), \\
+   \left( -\frac{1}{N} \sum_{i=1}^I \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}}
+   \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right), \\
 \frac{\partial L}{\partial \mathbf{w}_i} 
 &= \mathbf{w}_i + \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} 
-   \left( -\frac{1}{N} \sum_j \sum_k \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right), \\
+   \left( -\frac{1}{N} \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}}
+   \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right), \\
 \frac{\partial L}{\partial \xi}
 &= C + \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} (-1),
 \end{align*}
@@ -505,10 +509,12 @@ and setting the derivatives to zero, we have
 \begin{aligned}
 \mathbf{\bar{w}} 
 &= \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} 
-   \left( \frac{1}{N} \sum_i \sum_j \sum_k \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right), \\
+   \left( \frac{1}{N} \sum_{i=1}^I \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}}
+   \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right), \\
 \mathbf{w}_i 
 &= \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} 
-   \left( \frac{1}{N} \sum_j \sum_k \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right), \\
+   \left( \frac{1}{N} \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}}
+   \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right), \\
 C
 &= \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}}.
 \end{aligned}
@@ -518,45 +524,59 @@ Plugging these equalities into the Lagrangian (\ref{eq:lagrangian}), we obtain t
 \label{eq:dual_obj}
 \begin{aligned}
 D(\bm{\alpha})
-=& \frac{1}{2} \mathbf{\bar{w}}^\top \mathbf{\bar{w}} + \frac{1}{2} \sum_i \mathbf{w}_i^\top \mathbf{w}_i + 
-   \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} \left( \frac{1}{N} \sum_i \sum_j \sum_k \Delta(\mathbf{y}_{ijk}, \mathbf{\bar{y}}) \right) - 
-   \mathbf{\bar{w}}^\top \mathbf{\bar{w}} -
-   \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} \left( \frac{1}{N} \sum_i \mathbf{w}_i^\top 
-   \left[ \sum_j \sum_k \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right] \right) \\
-=& -\frac{1}{2} \mathbf{\bar{w}}^\top \mathbf{\bar{w}} + \frac{1}{2} \sum_i \mathbf{w}_i^\top \mathbf{w}_i + 
-   \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} \left( \frac{1}{N} \sum_i \sum_j \sum_k \Delta(\mathbf{y}_{ijk}, \mathbf{\bar{y}}) \right) - 
-   \sum_i \mathbf{w}_i^\top \left[
-   \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} \left( \frac{1}{N}
-   \sum_j \sum_k \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right) \right] \\
-=& -\frac{1}{2} \mathbf{\bar{w}}^\top \mathbf{\bar{w}} + \frac{1}{2} \sum_i \mathbf{w}_i^\top \mathbf{w}_i + 
-   \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} \left( \frac{1}{N} \sum_i \sum_j \sum_k \Delta(\mathbf{y}_{ijk}, \mathbf{\bar{y}}) \right) - 
-   \sum_i \mathbf{w}_i^\top \mathbf{w}_i \\
-=& -\frac{1}{2} \mathbf{\bar{w}}^\top \mathbf{\bar{w}} - \frac{1}{2} \sum_i \mathbf{w}_i^\top \mathbf{w}_i + 
-   \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} \left( \frac{1}{N} \sum_i \sum_j \sum_k \Delta(\mathbf{y}_{ijk}, \mathbf{\bar{y}}) \right) \\
+=& \frac{1}{2} \mathbf{\bar{w}}^\top \mathbf{\bar{w}} + \frac{1}{2} \sum_{i=1}^I \mathbf{w}_i^\top \mathbf{w}_i + 
+   \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}}
+   \left( \frac{1}{N} \sum_{i=1}^I \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} 
+   \Delta(\mathbf{y}_{ijk}, \mathbf{\bar{y}}) \right) - \mathbf{\bar{w}}^\top \mathbf{\bar{w}} -
+   \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} \left( \frac{1}{N} \sum_{i=1}^I \mathbf{w}_i^\top 
+   \left[ \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} 
+   \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right] \right) \\
+=& -\frac{1}{2} \mathbf{\bar{w}}^\top \mathbf{\bar{w}} + \frac{1}{2} \sum_{i=1}^I \mathbf{w}_i^\top \mathbf{w}_i + 
+   \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} 
+   \left( \frac{1}{N} \sum_{i=1}^I \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} 
+   \Delta(\mathbf{y}_{ijk}, \mathbf{\bar{y}}) \right) - \sum_{i=1}^I \mathbf{w}_i^\top \left[
+   \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} 
+   \left( \frac{1}{N} \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} 
+   \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right) \right] \\
+=& -\frac{1}{2} \mathbf{\bar{w}}^\top \mathbf{\bar{w}} + \frac{1}{2} \sum_{i=1}^I \mathbf{w}_i^\top \mathbf{w}_i + 
+   \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} 
+   \left( \frac{1}{N} \sum_{i=1}^I \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} 
+   \Delta(\mathbf{y}_{ijk}, \mathbf{\bar{y}}) \right) - \sum_{i=1}^I \mathbf{w}_i^\top \mathbf{w}_i \\
+=& -\frac{1}{2} \mathbf{\bar{w}}^\top \mathbf{\bar{w}} - \frac{1}{2} \sum_{i=1}^I \mathbf{w}_i^\top \mathbf{w}_i + 
+   \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} 
+   \left( \frac{1}{N} \sum_{i=1}^I \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} 
+   \Delta(\mathbf{y}_{ijk}, \mathbf{\bar{y}}) \right) \\
 =& -\frac{1}{2} \left[
    \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} 
-   \left( \frac{1}{N} \sum_i \sum_j \sum_k \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right)
-   \right]^\top \left[
+   \left( \frac{1}{N} \sum_{i=1}^I \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} 
+   \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right) \right]^\top \left[
    \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} 
-   \left( \frac{1}{N} \sum_i \sum_j \sum_k \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right)
-   \right] \\
-& -\frac{1}{2} \sum_i \left[ 
+   \left( \frac{1}{N} \sum_{i=1}^I \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} 
+   \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right) \right] \\
+& -\frac{1}{2} \sum_{i=1}^I \left[ 
    \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}}
-   \left( \frac{1}{N} \sum_j \sum_k \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right)
-   \right]^\top \left[
+   \left( \frac{1}{N} \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} 
+   \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right) \right]^\top \left[
    \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} 
-   \left( \frac{1}{N} \sum_j \sum_k \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right) \right] \\
-& + \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} \left( \frac{1}{N} \sum_i \sum_j \sum_k \Delta(\mathbf{y}_{ijk}, \mathbf{\bar{y}}) \right) \\
+   \left( \frac{1}{N} \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} 
+   \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right) \right] \\
+& +\sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} 
+   \left( \frac{1}{N} \sum_{i=1}^I \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} 
+   \Delta(\mathbf{y}_{ijk}, \mathbf{\bar{y}}) \right) \\
 =& -\frac{1}{2} 
    \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} 
    \sum_{\mathbf{\bar{y}}'} \alpha_{\mathbf{\bar{y}}'} \frac{1}{N^2}
-   \left[ \sum_i \sum_j \sum_k \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right]^\top 
-   \left[ \sum_i \sum_j \sum_k \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}') \right) \right] \\
-& -\frac{1}{2} \sum_i
+   \left[ \sum_{i=1}^I \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} 
+   \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right]^\top 
+   \left[ \sum_{i=1}^I \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} 
+   \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}') \right) \right] \\
+& -\frac{1}{2} \sum_{i=1}^I
    \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}}
    \sum_{\mathbf{\bar{y}}'} \alpha_{\mathbf{\bar{y}}'} \frac{1}{N^2}
-   \left[ \sum_j \sum_k \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right]^\top 
-   \left[ \sum_j \sum_k \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}'}) \right) \right] \\
+   \left[ \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} 
+   \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}}) \right) \right]^\top 
+   \left[ \sum_{j=1}^{J_i} \sum_{k=1}^{K_{ij}} 
+   \left( \Psi(\mathbf{x}_{ij}, \mathbf{y}_{ijk}) - \Psi(\mathbf{x}_{ij}, \mathbf{\bar{y}'}) \right) \right] \\
 & + \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} \left( \frac{1}{N} \sum_i \sum_j \sum_k \Delta(\mathbf{y}_{ijk}, \mathbf{\bar{y}}) \right) \\
 \end{aligned}
 \end{equation}
@@ -569,7 +589,7 @@ Putting (\ref{eq:equalities}) and (\ref{eq:dual_obj}) together, the dual problem
 s.t.~~ ~& \sum_{\mathbf{\bar{y}}} \alpha_{\mathbf{\bar{y}}} = C.
 \end{aligned}
 \end{equation}
-Note that this dual problem (\ref{eq:dual}) is a QP and can be rewritten into the standard form
+Note that this dual problem (\ref{eq:dual}) is also a QP and can be rewritten into the standard form
 \begin{equation}
 \label{eq:qp}
 \begin{aligned}
