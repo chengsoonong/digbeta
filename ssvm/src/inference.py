@@ -55,9 +55,7 @@ def do_inference_greedy(ps, L, M, unary_params, pw_params, unary_features, pw_fe
     assert(L <= M)
     assert(ps >= 0)
     assert(ps < M)
-    if y_true is not None:
-        assert(y_true_list is not None and type(y_true_list) == list)
-        assert(len(y_true_list) == 1)
+    if y_true is not None: assert(y_true_list is not None and type(y_true_list) == list)
     
     Cu = np.zeros(M, dtype=np.float)      # unary_param[p] x unary_features[p]
     Cp = np.zeros((M, M), dtype=np.float) # pw_param[pi, pj] x pw_features[pi, pj]
@@ -71,10 +69,22 @@ def do_inference_greedy(ps, L, M, unary_params, pw_params, unary_features, pw_fe
     for t in range(1, L):
         candidate_points = [p for p in range(M) if p not in y_hat]
         p = y_hat[-1]
-        maxix = np.argmax([Cp[p, p1] + Cu[p1] + float(p1 != y_true[t]) if y_true is not None else \
-                           Cp[p, p1] + Cu[p1] for p1 in candidate_points])
-        y_hat.append(candidate_points[maxix])
-        
+        #maxix = np.argmax([Cp[p, p1] + Cu[p1] + float(p1 != y_true[t]) if y_true is not None else \
+        #                   Cp[p, p1] + Cu[p1] for p1 in candidate_points])
+        scores = [Cp[p, p1] + Cu[p1] + float(p1 != y_true[t]) if y_true is not None else Cp[p, p1] + Cu[p1] for p1 in candidate_points]
+        indices = list(np.argsort(-np.asarray(scores)))
+        if t < L-1 or y_true is None:
+            y_hat.append(candidate_points[indices[0]])
+        else:
+            for j in range(len(candidate_points)):
+                y = y_hat + [candidate_points[indices[j]]]
+                if not np.any([np.all(np.asarray(y) == np.asarray(yj)) for yj in y_true_list]): 
+                    y_hat.append(candidate_points[indices[j]])
+                    break
+            if len(y_hat) < L: 
+                sys.stderr.write('Greedy inference EQUALS (one of) ground truth, return ground truth\n')
+                y_hat.append(candidate_points[indices[-1]])
+
     return np.asarray(y_hat)
 
 
