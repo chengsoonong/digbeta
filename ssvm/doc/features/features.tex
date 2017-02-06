@@ -1,0 +1,135 @@
+\documentclass[9pt]{extarticle}
+\usepackage[a4paper,top=0.79in,left=0.79in,bottom=0.79in,right=0.79in]{geometry} % A4 paper margins in LibreOffice
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{stmaryrd}
+\usepackage[sc]{mathpazo}
+\linespread{1.05}         % Palladio needs more leading (space between lines)
+\usepackage[T1]{fontenc}
+\usepackage{multirow}
+\usepackage{array}
+
+\title{Features}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\begin{table}[ht]
+\caption{List of "session" features used to model the behavior of a tourist in a city~\cite{baraglia2013learnext}.}
+\centering
+\begin{tabular}{l|m{.6\textwidth}} \hline
+\textbf{Feature Name} & \textbf{Description} \\ \hline
+actualTransferTime & Total transfer time from a POI to the next one in a session. \\ \hline
+actualVisitTime    & The visit time for all POIs in a session. \\ \hline
+categsPerSess      & Number of categories per session. \\ \hline
+distLat\_Avg       & \multirow{8}{*}{Average, Max, Min, Total Latitude and Longitude distance between POIs in a session.} \\
+distLat\_Max       & \\
+distLat\_Min       & \\
+distLat\_Tot       & \\
+distLen\_Avg       & \\
+distLen\_Max       & \\
+distLen\_Min       & \\
+distLen\_Tot       & \\ \hline
+euclideanDist\_Avg & \multirow{4}{*}{Average, Max, Min, Total Euclidean distance between POIs in a session.} \\
+euclideanDist\_Max & \\
+euclideanDist\_Min & \\
+euclideanDist\_Total & \\ \hline
+phPOISess\_Avg     & \multirow{4}{*}{Average, Max, Min, Total number of photos of POIs in a session.} \\
+phPOISess\_Max     & \\
+phPOISess\_Min     & \\
+phPOISess\_Tot     & \\ \hline
+uniqueCategsPerSess & The number of unique categories per session. \\ \hline
+sessLen            & Number of POIs in a session. \\ \hline
+sessTime           & Total time for a session, from beginning to end. \\ \hline
+userSessLen\_Avg   & \multirow{4}{*}{Average, Max, Min, Total length of sessions belonging to a user.} \\
+userSessLen\_Max   & \\
+userSessLen\_Min   & \\
+userSessLen\_Total & \\ \hline
+userSessRatio      & The ratio between the number of sessions made by the user and the maximum number of sessions for a user.\\ \hline
+\end{tabular}
+\end{table}
+
+
+\begin{table}[ht]
+\caption{List of "POI" features used to model the characteristics of each candidate destination~\cite{baraglia2013learnext}.}
+\centering
+\begin{tabular}{l|m{.6\textwidth}} \hline
+\textbf{Feature Name}  & \textbf{Description} \\ \hline
+cat1, cat2, ..., cat10 & Top 10 most frequent categories.\\ \hline
+distFromFirstPOI\_Eucl & \multirow{6}{*}{Latitude, Longitude and Euclidean distance from last and first POI of the session.} \\
+distFromFirstPOI\_Lat  & \\
+distFromFirstPOI\_Len  & \\
+distFromLastPOI\_Eucl  & \\
+distFromLastPOI\_Lat   & \\
+distFromLastPOI\_Len   & \\ \hline
+entropy                & The entropy of the last POI in the session. \\ \hline
+freqBigrams            & The frequency of the POI given the last POI in session.\\ \hline
+freqTrigrams           & The frequency of the POI given the last two POIs in session. \\ \hline
+middleProbab           & The probability that the POI is within a trail and not in the extremes. \\ \hline
+numCategories          & The number of categories assigned to the POI. \\ \hline
+numPhotos\_Avg         & \multirow{4}{*}{Average, Max, Min and Total number of photos of the POI in the collection.} \\ 
+numPhotos\_Max         & \\
+numPhotos\_Min         & \\
+numPhotos\_Total       & \\ \hline
+noOfVisits             & The total number of visits of a POI in the collection.\\ \hline
+photosPerUser          & The total number of photos of belonging to a user. \\ \hline
+photosPOI\_userId\_Avg   & \multirow{2}{*}{Average and total number of photos of a POI for a user.} \\
+photosPOI\_userId\_Total & \\ \hline
+ratioPhotosPOI           & The ratio between the number of photos for the POI and the maximum number of photos for a POI. \\ \hline
+ratioPOIInUserPhotos     & The ratio between the number of photos of a POI for a user and all the photos belonging to the user. \\ \hline
+ratioSessWithPOI         & The ratio between the number of sessions containing the POI and the total number of sessions. \\ \hline
+ratioUsersVisitingPOI    & The ratio between the number of users visiting the POI and the total number of users. \\ \hline
+startProb                & \multirow{2}{*}{The probability that a POI is first or last in a trail.} \\  
+stopProb                 & \\ \hline
+visitTimePOI\_User       & The total visit time of a POI for a user. \\ \hline
+visitTime\_Avg           & \multirow{5}{*}{Average, Max, Min, StdDev and Total visit time of the POI.} \\
+visitTime\_Max           & \\
+visitTime\_Min           & \\ 
+visitTime\_StdDev        & \\
+visitTime\_Total         & \\ \hline
+\end{tabular}
+\end{table}
+
+
+POI popularity, visiting time, categorization.
+Each POI $p$ is identified by its geographic coordinates, a name, a radius specifying its spatial extent, 
+and a relevance vector, $v_p \in [0, 1]^{|C|}$, measuring the normalized relevance of $p$ w.r.t a set of categories $C$. 
+we assume that the set $C$ is predetermined and fixed and that the relevance of every POI for each category is known~\cite{brilhante2013shall}.
+
+
+POIs for each city C are obtained from various sources, including Yahoo! Travel (\texttt{http://travel.yahoo.com/}) and 
+Lonely Planet (\texttt{http://travel.lonelyplanet.com/}).
+Each POI is then described with the following attributes: \textit{pname} uniquely identifies the POI;
+\textit{city} is the city it belongs to; and $g_{lat}^l$ and $g_{long}^l$ are its latitude and longitude. 
+Examples including museums, parks, historical sites, and religious places~\cite{ht10}.
+
+
+\begin{table}[ht]
+\caption{Description of the venue-dependent Foursquare features (Venue) used in this work~\cite{deveaud2014importance}.}
+\centering
+\begin{tabular}{l|m{.6\textwidth}} \hline
+\textbf{Feature name} & \textbf{Description} \\ \hline
+NbCheckins & Total number of check-ins in the venue. \\ \hline
+NbLikes    & Total number of "likes" for the venue. \\ \hline
+NbTips     & Total number of "tips" for the venue. \\ \hline
+NbPhotos   & Total number of photos that have been taken in the venue. \\ \hline
+Rating     & Average of all the ratings given by the users for the venue. \\ \hline
+CheckinRatio & $\frac{\text{NbCheckins}}{\text{NbCheckinsInCity}}$ \\ \hline
+LikeRatio    & $\frac{\text{NbLikes}}{\text{NbLikesInCity}}$ \\ \hline
+TipRatio     & $\frac{\text{NbTips}}{\text{NbTipsInCity}}$ \\ \hline
+PhotoRatio   & $\frac{\text{NbPhotos}}{\text{NbPhotosInCity}}$ \\ \hline
+Distance     & Distance of the venue from the center of the city. \\ \hline
+\end{tabular}
+\end{table}
+
+
+Each POI $p$ is also labelled with a category $Cat_p$ (e.g., church, park, beach) and latitude/longitude coordinates. 
+We denote a function $Pop(p)$ that indicates the popularity of a POI $p$, based on the number of times POI $p$ has been visited~\cite{ijcai15}.
+
+\bibliographystyle{ieeetr}
+\bibliography{ref}
+
+\end{document}
