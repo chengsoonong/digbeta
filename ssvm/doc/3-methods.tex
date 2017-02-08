@@ -173,11 +173,29 @@ Similarly, we have a few options for the design of loss function $\phi(\cdot)$,
       \begin{equation*}
       S(p \given \mathbf{x})= \mathbf{w}^\top \Psi(\mathbf{x}, p);
       \end{equation*}
+      We can train this ranking model by gradient descent. Let $J(\mathbf{w})$ be the cost function that we want to minimise, i.e.,
+      \begin{align*}
+      J(\mathbf{w})
+      &= \frac{1}{2} \mathbf{w}^\top \mathbf{w} +  
+         C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} \phi \left( l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right) \\
+      &= \frac{1}{2} \mathbf{w}^\top \mathbf{w} + 
+         C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} \max\left(0,~ 1 - l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right)^2.
+      \end{align*}
+      The gradient of the cost function w.r.t. parameters $\mathbf{w}$ is
+      \begin{align*}
+      \frac{\partial J(\mathbf{w})}{\partial \mathbf{w}} 
+      &= \mathbf{w} + C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} 
+         (-l_{p,p'}^i) \cdot (\Psi_p^i - \Psi_{p'}^i) \cdot 
+         (-2) \cdot \max\left(0,~ 1 - l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right) \\
+      &= \mathbf{w} + 2C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} 
+         l_{p,p'}^i \cdot (\Psi_p^i - \Psi_{p'}^i) \cdot \max\left(0,~ 1 - l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right).
+      \end{align*} 
+
 \item if $\phi(z) = \log(1 + \exp(-z))$, we are training a logistic regression model, and the ranking score
       \begin{equation*}
       S(p \given \mathbf{x})= \mathbb{P}(p \given \mathbf{x}; \mathbf{w}) = \sigma \left(\mathbf{w}^\top \Psi(\mathbf{x}, p) \right).
       \end{equation*}
-      We can train this ranking model by gradient descent. Let $J(\mathbf{w})$ be the cost function we want to minimise, i.e.,
+      We can train this ranking model by gradient descent. The cost function is
       \begin{align*}
       J(\mathbf{w})
       &= \frac{1}{2} \mathbf{w}^\top \mathbf{w} +  

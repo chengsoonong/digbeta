@@ -129,6 +129,16 @@ Distance     & Distance of the venue from the center of the city. \\ \hline
 Each POI $p$ is also labelled with a category $Cat_p$ (e.g., church, park, beach) and latitude/longitude coordinates. 
 We denote a function $Pop(p)$ that indicates the popularity of a POI $p$, based on the number of times POI $p$ has been visited~\cite{ijcai15}.
 
+POI category tree from Foursquare, Gowalla; user preference transition over POI categories, category-aware POI recommendation~\cite{liu2013personalized}.
+
+Modelling geographical neighborhood of a location. The neighborhood is modelled at two levels:~\cite{liu2014exploiting}
+\begin{itemize}
+\item the instance-level neighborhood defined by a few nearest neighbors of the location, 
+      i.e., nearest neighboring locations tend to share more similar user preferences
+\item the region-level neighborhood for the geographical region where the location exists. 
+      i.e., locations in the same geographical region may share similar user preferences
+\end{itemize}
+
 \bibliographystyle{ieeetr}
 \bibliography{ref}
 
