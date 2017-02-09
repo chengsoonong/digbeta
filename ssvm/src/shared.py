@@ -278,11 +278,17 @@ class TrajData:
 
 
 
-def evaluate(dat_obj, query, y_hat, use_max=True):
+def evaluate(dat_obj, query, y_hat_list, use_max=True):
     assert(type(dat_obj) == TrajData)
     assert(query in dat_obj.TRAJID_GROUP_DICT)
+    assert(type(y_hat_list) == list)
     y_true_list = [dat_obj.traj_dict[tid] for tid in dat_obj.TRAJID_GROUP_DICT[query]]
-    return calc_metrics(y_hat, y_true_list, dat_obj.POI_ID_DICT, use_max)
+    F1_list = []; pF1_list = []; Tau_list = []
+    for y_hat in y_hat_list:
+        F1, pF1, tau = calc_metrics(y_hat, y_true_list, dat_obj.POI_ID_DICT, use_max)
+        F1_list.append(F1); pF1_list.append(pF1); Tau_list.append(tau)
+    maxix = np.argmax(F1_list) # max of pF1_list or Tau_list?
+    return (F1_list[maxix], pF1_list[maxix], Tau_list[maxix])
 
 
 def normalise_transmat(transmat_cnt):
