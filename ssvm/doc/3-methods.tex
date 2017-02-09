@@ -144,6 +144,12 @@ We can learn a ranking model
 \min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^\top \mathbf{w} +  
 C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} \phi \left( l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right).
 \end{equation*}
+Due to symmetry, it is necessary to consider only the pairs $(p, p')$ when $l_{p, p'}^i = +1$, which means we can further simplify 
+the cost function of the ranking model
+\begin{equation*}
+\min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^\top \mathbf{w} +  
+C \sum_{i=1}^N \sum_{\substack{p, p' \in \mathcal{P} \\ l_{p,p'}^i > 0}} \phi \left(\mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right).
+\end{equation*}
 
 There are a number of options for the design of labels $l_{p,p'}^i$,
 \begin{itemize}
@@ -177,19 +183,41 @@ Similarly, we have a few options for the design of loss function $\phi(\cdot)$,
       \begin{align*}
       J(\mathbf{w})
       &= \frac{1}{2} \mathbf{w}^\top \mathbf{w} +  
-         C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} \phi \left( l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right) \\
+         C \sum_{i=1}^N \sum_{\substack{p, p' \in \mathcal{P} \\ l_{p,p'}^i >0}} \phi \left( \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right) \\
       &= \frac{1}{2} \mathbf{w}^\top \mathbf{w} + 
-         C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} \max\left(0,~ 1 - l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right)^2.
+         C \sum_{i=1}^N \sum_{\substack{p, p' \in \mathcal{P} \\ l_{p,p'}^i >0}} \max\left(0,~ 1 - \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right)^2.
       \end{align*}
-      The gradient of the cost function w.r.t. parameters $\mathbf{w}$ is
+      To compute the gradient of the cost function w.r.t. parameters, note that
+      \begin{equation*}
+      \max(0,~ 1-z)^2 
+      = \begin{cases}
+        (1-z)^2, & z \le 1 \\
+        0,       & z > 1
+        \end{cases}
+      \end{equation*} 
+      and $\lim_{z \to 1} \max(0,~ 1-z)^2 = 0$, which means the loss function is differentiable at $z=1$ and its gradient is
+      \begin{equation*}
+      \frac{\partial \max(0,~ 1-z)^2}{\partial z} 
+      = \begin{cases}
+        -2(1-z), & z \le 1 \\
+        0,       & z > 1
+        \end{cases}
+      \end{equation*} 
+      As a result, the gradient of the cost function w.r.t. parameters $\mathbf{w}$ is
       \begin{align*}
       \frac{\partial J(\mathbf{w})}{\partial \mathbf{w}} 
-      &= \mathbf{w} + C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} 
-         (-l_{p,p'}^i) \cdot (\Psi_p^i - \Psi_{p'}^i) \cdot 
-         (-2) \cdot \max\left(0,~ 1 - l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right) \\
-      &= \mathbf{w} + 2C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} 
-         l_{p,p'}^i \cdot (\Psi_p^i - \Psi_{p'}^i) \cdot \max\left(0,~ 1 - l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right).
+      = \mathbf{w} + C \sum_{i=1}^N \sum_{\substack{p, p' \in \mathcal{P} \\ l_{p,p'}^i >0}} g_{p,p'}^i(\mathbf{w})
       \end{align*} 
+      where 
+      \begin{equation*}
+      g_{p,p'}^i(\mathbf{w}) 
+      = \begin{cases}
+        -2 \cdot (\Psi_p^i - \Psi_{p'}^i) \cdot \left(1 - \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right), 
+        & \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \le 1 \\
+        0, 
+        & \text{otherwise}
+        \end{cases}
+      \end{equation*}
 
 \item if $\phi(z) = \log(1 + \exp(-z))$, we are training a logistic regression model, and the ranking score
       \begin{equation*}
@@ -199,18 +227,18 @@ Similarly, we have a few options for the design of loss function $\phi(\cdot)$,
       \begin{align*}
       J(\mathbf{w})
       &= \frac{1}{2} \mathbf{w}^\top \mathbf{w} +  
-         C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} \phi \left( l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right) \\
-      &= \frac{1}{2} \mathbf{w}^\top \mathbf{w} + 
-         C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} \log\left(1 + \exp\left(-l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right)\right).
+         C \sum_{i=1}^N \sum_{\substack{p, p' \in \mathcal{P} \\ l_{p,p'}^i >0}} \phi \left( \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right) \\
+      &= \frac{1}{2} \mathbf{w}^\top \mathbf{w} + C \sum_{i=1}^N \sum_{\substack{p, p' \in \mathcal{P} \\ l_{p,p'}^i >0}} 
+         \log\left(1 + \exp\left( -\mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right)\right).
       \end{align*}
       The gradient of the cost function w.r.t. parameters $\mathbf{w}$ is
       \begin{align*}
       \frac{\partial J(\mathbf{w})}{\partial \mathbf{w}} 
-      &= \mathbf{w} + C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} 
-         \frac{-l_{p,p'}^i \cdot (\Psi_p^i - \Psi_{p'}^i) \cdot \exp\left( -l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right)}
-              {1 + \exp\left( -l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right)} \\
-      &= \mathbf{w} + C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} 
-         \frac{-l_{p,p'}^i \cdot (\Psi_p^i - \Psi_{p'}^i)}{1 + \exp\left( l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right)}.
+      &= \mathbf{w} + C \sum_{i=1}^N \sum_{\substack{p, p' \in \mathcal{P} \\ l_{p,p'}^i >0}}
+         \frac{-(\Psi_p^i - \Psi_{p'}^i) \cdot \exp\left( -\mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right)}
+              {1 + \exp\left( -\mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right)} \\
+      &= \mathbf{w} + C \sum_{i=1}^N \sum_{\substack{p, p' \in \mathcal{P} \\ l_{p,p'}^i >0}}
+         \frac{-(\Psi_p^i - \Psi_{p'}^i)}{1 + \exp\left( \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right)}.
       \end{align*} 
 \end{itemize}
 
