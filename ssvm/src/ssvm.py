@@ -102,9 +102,10 @@ class SSVM:
         #X_node_test = X_node_test.reshape(self.fdim)
 
         X_test = [(X_node_test, self.edge_features, (self.poi_id_dict[startPOI], nPOI))]
-        y_hat = self.osssvm.predict(X_test)
+        y_hat_list = self.osssvm.predict(X_test)[0]
+        #print(y_hat_list)
 
-        return np.array([self.poi_id_rdict[x] for x in y_hat[0]])
+        return [np.array([self.poi_id_rdict[x] for x in y_hat]) for y_hat in y_hat_list]
 
     
     

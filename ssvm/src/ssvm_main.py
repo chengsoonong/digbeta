@@ -87,9 +87,9 @@ for ssvm_C in C_SET:
         if ssvm.train(sorted(trajid_set_train), n_jobs=N_JOBS) == True:            
             for j in test_ix: # test
                 ps_cv, L_cv = keys_cv[j]
-                y_hat = ssvm.predict(ps_cv, L_cv)
-                if y_hat is not None:
-                    F1, pF1, tau = evaluate(dat_obj, keys_cv[j], y_hat)
+                y_hat_list = ssvm.predict(ps_cv, L_cv)
+                if y_hat_list is not None:
+                    F1, pF1, tau = evaluate(dat_obj, keys_cv[j], y_hat_list)
                     F1_ssvm.append(F1); pF1_ssvm.append(pF1); Tau_ssvm.append(tau)
         else: 
             for j in test_ix:
@@ -109,10 +109,10 @@ sys.stdout.flush()
 ssvm = SSVM(inference_train=inference_method, inference_pred=inference_method, dat_obj=dat_obj, 
             share_params=SSVM_SHARE_PARAMS, multi_label=SSVM_MULTI_LABEL, C=best_C, poi_info=poi_info_i)
 if ssvm.train(sorted(trajid_set_i), n_jobs=N_JOBS) == True:
-    y_hat = ssvm.predict(ps, L)
-    print(y_hat)
-    if y_hat is not None:
-        recdict_ssvm[(ps, L)] = {'PRED': y_hat, 'W': ssvm.osssvm.w, 'C': ssvm.C}
+    y_hat_list = ssvm.predict(ps, L)
+    print(y_hat_list)
+    if y_hat_list is not None:
+        recdict_ssvm[(ps, L)] = {'PRED': y_hat_list, 'W': ssvm.osssvm.w, 'C': ssvm.C}
 
 fssvm = os.path.join(data_dir, 'ssvm-' + method_name + '-' + dat_obj.dat_suffix[dat_ix] + '-%d.pkl' % (qix))
 pickle.dump(recdict_ssvm, open(fssvm, 'bw'))

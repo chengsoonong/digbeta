@@ -1,12 +1,30 @@
 import numpy as np
 import pandas as pd
+import heapq as hq
 import itertools
 import pulp
 
 USE_GUROBI = True
 
+
+class HeapTerm:  # an item in heapq (min-heap)
+    def __init__(self, priority, task):
+        self.priority = priority
+        self.task = task
+        self.string = str(priority) + ': ' + str(task)
+        
+    def __lt__(self, other):
+        return self.priority < other.priority
+    
+    def __repr__(self):
+        return self.string
+    
+    def __str__(self):
+        return self.string
+
+
 def do_inference_brute_force(ps, L, M, unary_params, pw_params, unary_features, pw_features, 
-                             y_true=None, y_true_list=None, debug=False):
+                             y_true=None, y_true_list=None, debug=False, top=5):
     """
     Inference using brute force search (for sanity check), could be:
     - Train/prediction inference for single-label SSVM
@@ -16,7 +34,9 @@ def do_inference_brute_force(ps, L, M, unary_params, pw_params, unary_features, 
     assert(L <= M)
     assert(ps >= 0)
     assert(ps < M)
+    assert(top > 0)
     if y_true is not None: assert(y_true_list is not None and type(y_true_list) == list)
+    if y_true is not None: top = 1
     
     Cu = np.zeros(M, dtype=np.float)      # unary_param[p] x unary_features[p]
     Cp = np.zeros((M, M), dtype=np.float) # pw_param[pi, pj] x pw_features[pi, pj]
@@ -25,9 +45,8 @@ def do_inference_brute_force(ps, L, M, unary_params, pw_params, unary_features, 
         Cu[pi] = np.dot(unary_params[pi, :], unary_features[pi, :]) # if pi != ps else -np.inf
         for pj in range(M):
             Cp[pi, pj] = -np.inf if (pj == ps or pi == pj) else np.dot(pw_params[pi, pj, :], pw_features[pi, pj, :])
-    
-    max_score = 0
-    y_best = None
+
+    Q = []
     for x in itertools.permutations([p for p in range(M) if p != ps], int(L-1)):
         y = [ps] + list(x)
         score = 0
@@ -37,11 +56,26 @@ def do_inference_brute_force(ps, L, M, unary_params, pw_params, unary_features, 
         for j in range(1, L): score += Cp[y[j-1], y[j]] + Cu[y[j]]
         if y_true is not None: score += np.sum(np.asarray(y) != np.asarray(y_true))
         
-        if score > max_score:
-            max_score = score
-            y_best = y
-    if debug == True: print(max_score)
-    return y_best
+        if len(Q) < top:
+            hq.heappush(Q, HeapTerm(score, np.array(y)))
+        else:
+            hq.heappushpop(Q, HeapTerm(score, np.array(y)))  # pop the smallest, then push
+
+    results = []
+    scores = []
+    while len(Q) > 0: 
+        hterm = hq.heappop(Q)
+        results.append(hterm.task); scores.append(hterm.priority)
+
+    # reverse the order: smallest -> largest => largest -> smallest
+    results.reverse(); scores.reverse()
+    
+    if debug == True: 
+        for score, y in zip(scores, results): print(score, y)
+    
+    if y_true is not None: results = results[0]    
+
+    return results
 
 
 

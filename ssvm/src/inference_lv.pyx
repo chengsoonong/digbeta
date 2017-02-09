@@ -50,7 +50,7 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
                                 np.ndarray[dtype=np.float64_t, ndim=3] pw_params, 
                                 np.ndarray[dtype=np.float64_t, ndim=2] unary_features, 
                                 np.ndarray[dtype=np.float64_t, ndim=3] pw_features, 
-                                y_true=None, y_true_list=None):
+                                y_true=None, y_true_list=None, top=5):
     """ 
     Inference using the list Viterbi algorithm, could be:
     - Train/prediction inference for single-label SSVM
@@ -60,6 +60,7 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
     assert(M >= L)
     assert(ps >= 0)
     assert(ps < M)
+    assert(top > 0)
     if y_true is not None: assert(y_true_list is not None and type(y_true_list) == list)
     
     cdef int pi, pj, t, k, pk, parix, partition_index, partition_index_start, k_partition_index
@@ -108,7 +109,7 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
     
     Q = []  # priority queue (min-heap)
     with np.errstate(invalid='raise'):  # deal with overflow
-        try: nIter = np.power(M, L-1) - np.prod([M-kx for kx in range(1,L)]) + 1 + \
+        try: nIter = np.power(M, L-1) - np.prod([M-kx for kx in range(1,L)]) + top + \
                      (0 if y_true is None else len(y_true_list))
         except: nIter = maxIter
     nIter = np.min([nIter, maxIter])
@@ -119,6 +120,7 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
     exclude_set = set()  # -1 * score as priority
     hq.heappush(Q, HeapItem(priority, (y_best, partition_index, exclude_set)))
     
+    results = []
     k = 0; y_last = None
     while len(Q) > 0 and k < nIter:
         hitem = hq.heappop(Q)
@@ -129,7 +131,8 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
         if y_true is None: 
             if len(set(k_best)) == L:
                 #print(-k_priority); 
-                return k_best
+                results.append(k_best); top -= 1
+                if top == 0: return results
         else: # return k_best if it is NOT one of the ground truth labels
             if not np.any([np.all(np.asarray(k_best) == np.asarray(yj)) for yj in y_true_list]): return k_best
 
@@ -182,4 +185,5 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
         sys.stderr.write('WARN: reaching max number of iterations, NO optimal solution found, return the last one.\n')
     if len(Q) == 0:
         sys.stderr.write('WARN: empty queue, return the last one\n')
-    return y_last
+    if y_true is None: return [y_last]
+    else: return y_last
