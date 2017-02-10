@@ -805,24 +805,44 @@ features that describe the transition preference between different POIs are show
 \caption{Features of POI $p$ with respect to query $(s,K)$}
 \label{tab:poifeature}
 \centering
+
+
 \setlength{\tabcolsep}{10pt} % tweak the space between columns
 \begin{tabular}{l|l} \hline
-\textbf{Feature}  & \textbf{Description} \\ \hline
-\texttt{category}               & one-hot encoding of the category of $p$ \\
-\texttt{neighbourhood}          & one-hot encoding of the POI cluster that $p$ resides in \\
-\texttt{popularity}             & logarithm of POI popularity of $p$ \\
-\texttt{nVisit}                 & logarithm of the total number of visit by all users at $p$ \\
-\texttt{avgDuration}            & logarithm of the average duration at $p$ \\ \hline
-
+\textbf{Feature}       & \textbf{Description} \\ \hline
+\texttt{category}      & one-hot encoding of the category of $p$ \\
+\texttt{neighbourhood} & one-hot encoding of the POI cluster that $p$ resides in \\
+\texttt{popularity}    & logarithm of POI popularity of $p$ \\
+\texttt{nVisit}        & logarithm of the total number of visit by all users at $p$ \\
+\texttt{nPhotoTotal}   & logarithm of the total number of photos taken at $p$ \\
+\texttt{nPhotoMean}    & logarithm of the average number of photos taken at $p$ \\
+\texttt{nPhotoP10}     & logarithm of the $10$-th percentile of the number of photos taken at $p$ \\
+\texttt{nPhotoP50}     & logarithm of the $50$-th percentile of the number of photos taken at $p$ \\
+\texttt{nPhotoP90}     & logarithm of the $90$-th percentile of the number of photos taken at $p$ \\
+\texttt{durationTotal} & logarithm of the accumulated visit duration at $p$ \\
+\texttt{durationMean}  & logarithm of the average visit duration at $p$ \\
+\texttt{durationP10}   & logarithm of the $10$-th percentile of visit duration at $p$ \\
+\texttt{durationP50}   & logarithm of the $50$-th percentile of visit duration at $p$ \\
+\texttt{durationP90}   & logarithm of the $90$-th percentile of visit duration at $p$ \\
+\hline
 %\texttt{nOccurrence}            & the number of times $p$ occurred in a trajectory that satisfies the query \\ DON'T know given new query
 
-\texttt{trajLen}                & trajectory length $K$, i.e., the number of POIs required \\
-\texttt{sameCatStart}           & $1$ if the category of $p$ is the same as that of $s$, $-1$ otherwise \\
-\texttt{sameNeighbourhoodStart} & $1$ if $p$ resides in the same POI cluster as $s$, $-1$ otherwise \\
-\texttt{distStart}              & distance between $p$ and $s$, calculated using the Haversine formula \\
-\texttt{diffPopStart}           & real-valued difference in POI popularity of $p$ from that of $s$ \\
-\texttt{diffNVisitStart}        & real-valued difference in the total number of visit at $p$ from that at $s$ \\
-\texttt{diffDurationStart}      & real-valued difference in average duration at $p$ from that at $s$ \\
+\texttt{trajLen}           & trajectory length $K$, i.e., the number of POIs required \\
+\texttt{sameCategory}      & $1$ if the category of $p$ is the same as that of $s$, $-1$ otherwise \\
+\texttt{sameNeighbourhood} & $1$ if $p$ resides in the same POI cluster as $s$, $-1$ otherwise \\
+\texttt{diffPopularity}    & real-valued difference in POI popularity of $p$ from that of $s$ \\
+\texttt{diffNVisit}        & real-valued difference in the total number of visit at $p$ from that at $s$ \\
+\texttt{diffNPhotoTotal}   & real-valued difference in the total number of photos taken at $p$ from that at $s$ \\
+\texttt{diffNPhotoMean}    & real-valued difference in the average number of photos taken at $p$ from that at $s$ \\ 
+\texttt{diffNPhotoP10}     & real-valued difference in the $10$-th percentile of the number of photos taken at $p$ from that at $s$ \\
+\texttt{diffNPhotoP50}     & real-valued difference in the $50$-th percentile of the number of photos taken at $p$ from that at $s$ \\
+\texttt{diffNPhotoP90}     & real-valued difference in the $90$-th percentile of the number of photos taken at $p$ from that at $s$ \\
+\texttt{diffDurationTotal} & real-valued difference in the accumulated visit duration from that at $s$ \\
+\texttt{diffDurationMean}  & real-valued difference in average duration at $p$ from that at $s$ \\
+\texttt{diffDurationP10}   & real-valued difference in the $10$-th percentile of visit duration from that at $s$ \\
+\texttt{diffDurationP50}   & real-valued difference in the $50$-th percentile of visit duration from that at $s$ \\
+\texttt{diffDurationP90}   & real-valued difference in the $90$-th percentile of visit duration from that at $s$ \\
+\texttt{distance}          & distance between $p$ and $s$, calculated using the Haversine formula \\
 \hline
 \end{tabular}
 \end{table*}
@@ -840,6 +860,6 @@ features that describe the transition preference between different POIs are show
 \texttt{neighbourhood} & the cluster that a POI resides in \\
 \texttt{popularity}    & (discretised) popularity of POI \\
 \texttt{nVisit}        & (discretised) total number of visit at POI \\
-\texttt{avgDuration}   & (discretised) average duration at POI \\ \hline
+\texttt{durationMean}  & (discretised) average duration at POI \\ \hline
 \end{tabular}
 \end{table}
