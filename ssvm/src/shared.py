@@ -17,18 +17,45 @@ POI Features given query (startPOI, nPOI):
 - neighbourhood: one-hot encoding of POI cluster, encode True as 1 and False as -1
 - popularity: log of POI popularity, i.e., the number of distinct users that visited the POI
 - nVisit: log of the total number of visit by all users
-- avgDuration: log of average POI visit duration
+- nPhotoTotal: log of the total number of photos taken at this POI
+- nPhotoMean: log of the average number of photos taken at this POI
+- nPhotoP10: log of the 10th percentile of the number of photos taken at this POI
+- nPhotoP50: log of the 50th percentile of the number of photos taken at this POI
+- nPhotoP90: log of the 90th percentile of the number of photos taken at this POI
+- durationTotal: log of the accumulated POI visit duration
+- durationMean: log of the average POI visit duration
+- durationP10: log of the 10th percentile of POI visit duration
+- durationP50: log of the 50th percentile of POI visit duration
+- durationP90: log of the 90th percentile of POI visit duration
 - trajLen: trajectory length, i.e., the number of POIs nPOI in trajectory, copy from query
-- sameCatStart: 1 if POI category is the same as that of startPOI, -1 otherwise
-- distStart: distance (haversine formula) from startPOI
-- diffPopStart: difference in POI popularity from startPOI (NO LOG as it could be negative)
-- diffNVisitStart: difference in the total number of visit from startPOI
-- diffDurationStart: difference in average POI visit duration from the actual duration spent at startPOI
-- sameNeighbourhoodStart: 1 if POI resides in the same cluster as that of startPOI, -1 otherwise
+- sameCategory: 1 if POI category is the same as that of startPOI, -1 otherwise
+- sameNeighbourhood: 1 if POI resides in the same cluster as that of startPOI, -1 otherwise
+- diffPopularity: difference in POI popularity from that of startPOI (NO LOG as it could be negative)
+- diffNVisit: difference in the total number of visit from that of startPOI
+- diffNPhotoTotal: difference in the total number of photos from that of startPOI
+- diffNPhotoMean: difference in the average number of photos from that of startPOI
+- diffNPhotoP10: difference in the 10th percentile of the number of photos from that of startPOI
+- diffNPhotoP50: difference in the 50th percentile of the number of photos from that of startPOI
+- diffNPhotoP90: difference in the 90th percentile of the number of photos from that of startPOI
+- diffDurationTotal: difference in the accumulated POI visit duration from that of startPOI
+- diffDurationMean: difference in the average POI visit duration from that of startPOI
+- diffDurationP10: difference in the 10th percentile of POI visit duration from that of startPOI
+- diffDurationP50: difference in the 50th percentile of POI visit duration from that of startPOI
+- diffDurationP90: difference in the 90th percentile of POI visit duration from that of startPOI
+- distance: distance (haversine formula) from startPOI
 """
 DF_COLUMNS = ['poiID', 'label', 'queryID', 'category', 'neighbourhood', 'popularity', 
-              'nVisit', 'avgDuration', 'trajLen', 'sameCatStart', 'distStart', 
+              'nVisit', 'avgDuration', 
+              #'trajLen', 
+              'sameCatStart', 'distStart', 
               'diffPopStart', 'diffNVisitStart', 'diffDurationStart', 'sameNeighbourhoodStart']
+
+FEATURES = ['category', 'neighbourhood', 'popularity', 'nVisit',
+            'nPhotoTotal', 'nPhotoMean', 'nPhotoP10', 'nPhotoP50', 'nPhotoP90',
+            'durationTotal', 'durationMean', 'durationP10', 'durationP50', 'durationP90',
+            'trajLen', 'sameCategory', 'sameNeighbourhood', 'diffPopularity', 'diffNVisit', 
+            'diffNPhotoTotal', 'diffNPhotoMean', 'diffNPhotoP10', 'diffNPhotoP50', 'diffNPhotoP90',
+            'diffDurationTotal', 'diffDurationMean', 'diffDurationP10', 'diffDurationP50', 'diffDurationP90', 'distance']
 
 
 class TrajData:
@@ -45,7 +72,6 @@ class TrajData:
         self.poi_info_all = self.calc_poi_info(self.trajid_set_all)
         self.calc_auxiliary_data()
         self.traj_user = self.traj_all[['userID', 'trajID']].groupby('trajID').first()
-        
                
         if self.debug == True:
             num_user = self.traj_all['userID'].unique().shape[0]
@@ -82,16 +108,20 @@ class TrajData:
     
     def calc_poi_info(self, trajid_list):
         assert(len(trajid_list) > 0)
-        poi_info = self.traj_all[self.traj_all['trajID'] == trajid_list[0]][['poiID', 'poiDuration']].copy() 
-        for i in range(1, len(trajid_list)):
-            traj = self.traj_all[self.traj_all['trajID'] == trajid_list[i]][['poiID', 'poiDuration']]
-            poi_info = poi_info.append(traj, ignore_index=True)
-
-        poi_info = poi_info.groupby('poiID').agg([np.mean, np.size])
+        poi_df = self.traj_all[self.traj_all['trajID'].isin(trajid_list)][['poiID', '#photo', 'poiDuration']].copy() 
+        photo_gb = poi_df[['poiID', '#photo']].groupby('poiID')
+        duration_gb = poi_df[['poiID', 'poiDuration']].groupby('poiID')
+        poi_info = photo_gb.agg([np.size, np.sum, np.mean]).copy()
         poi_info.columns = poi_info.columns.droplevel()
-        poi_info.reset_index(inplace=True)
-        poi_info.rename(columns={'mean':'avgDuration', 'size':'nVisit'}, inplace=True)
-        poi_info.set_index('poiID', inplace=True) 
+        poi_info.rename(columns={'size':'nVisit', 'sum':'nPhotoTotal', 'mean':'nPhotoMean'}, inplace=True)
+        poi_info['nPhotoP10'] = photo_gb.quantile(0.1).loc[poi_info.index, '#photo']
+        poi_info['nPhotoP50'] = photo_gb.quantile(0.5).loc[poi_info.index, '#photo']
+        poi_info['nPhotoP90'] = photo_gb.quantile(0.9).loc[poi_info.index, '#photo']
+        poi_info['durationTotal']      = duration_gb.sum().loc[poi_info.index,  'poiDuration']
+        poi_info['durationMean']       = duration_gb.mean().loc[poi_info.index, 'poiDuration']
+        poi_info['durationP10'] = duration_gb.quantile(0.1).loc[poi_info.index, 'poiDuration']
+        poi_info['durationP50'] = duration_gb.quantile(0.5).loc[poi_info.index, 'poiDuration']
+        poi_info['durationP90'] = duration_gb.quantile(0.9).loc[poi_info.index, 'poiDuration']
         poi_info['poiCat'] = self.poi_all.loc[poi_info.index, 'poiCat']
         poi_info['poiLon'] = self.poi_all.loc[poi_info.index, 'poiLon']
         poi_info['poiLat'] = self.poi_all.loc[poi_info.index, 'poiLat']
@@ -101,6 +131,8 @@ class TrajData:
         pop_df = pop_df.groupby('poiID').agg(pd.Series.nunique)
         pop_df.rename(columns={'userID':'nunique'}, inplace=True)
         poi_info['popularity'] = pop_df.loc[poi_info.index, 'nunique']
+
+        poi_info.fillna(value=0.0, inplace=True)  # replace NaN with 0.0
 
         return poi_info.copy()
     
@@ -152,7 +184,7 @@ class TrajData:
             self.LOGBINS_VISIT[-1] = self.poi_info_all['nVisit'].max() + 1
 
         # discretize the average visit duration with uniform log-scale bins
-        poi_durations = self.poi_info_all['avgDuration'].values
+        poi_durations = self.poi_info_all['durationMean'].values
         expo_duration1 = np.log10(max(1, min(poi_durations)))
         expo_duration2 = np.log10(max(poi_durations))
         self.LOGBINS_DURATION = np.logspace(np.floor(expo_duration1), np.ceil(expo_duration2), BIN_CLUSTER + 1)
@@ -252,8 +284,8 @@ class TrajData:
                     p1 = t[pi]
                     p2 = t[pi+1]
                     assert(p1 in poi_info.index and p2 in poi_info.index)
-                    d1 = poi_info.loc[p1, 'avgDuration']
-                    d2 = poi_info.loc[p2, 'avgDuration']
+                    d1 = poi_info.loc[p1, 'durationMean']
+                    d2 = poi_info.loc[p2, 'durationMean']
                     dc1, dc2 = np.digitize([d1, d2], self.LOGBINS_DURATION)
                     transmat_duration_cnt.loc[dc1, dc2] += 1
         return normalise_transmat(transmat_duration_cnt)

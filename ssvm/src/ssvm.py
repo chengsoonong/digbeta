@@ -7,7 +7,7 @@ from pystruct.models import StructuredModel
 from pystruct.learners import OneSlackSSVM
 
 sys.path.append('.')
-from shared import LOG_ZERO, LOG_SMALL, DF_COLUMNS, LOG_TRANSITION
+from shared import LOG_ZERO, LOG_SMALL, LOG_TRANSITION, FEATURES
 
 class SSVM:
     """Structured SVM wrapper"""
@@ -299,13 +299,13 @@ def calc_node_features(startPOI, nPOI, poi_list, poi_info, dat_obj):
     """
     Compute node features (singleton) for all POIs given query (startPOI, nPOI)
     """
-    columns = DF_COLUMNS[3:]
+    columns = FEATURES.copy()
     p0, trajLen = startPOI, nPOI
     assert(p0 in poi_info.index)
     
     # DEBUG: use uniform node features
-    nrows = len(poi_list)
-    ncols = len(columns) + len(dat_obj.POI_CAT_LIST) + len(dat_obj.POI_CLUSTER_LIST) - 2
+    #nrows = len(poi_list)
+    #ncols = len(columns) + len(dat_obj.POI_CAT_LIST) + len(dat_obj.POI_CLUSTER_LIST) - 2
     #return np.ones((nrows, ncols), dtype=np.float)
     #return np.zeros((nrows, ncols), dtype=np.float)
     
@@ -315,27 +315,44 @@ def calc_node_features(startPOI, nPOI, poi_list, poi_info, dat_obj):
         lon, lat = poi_info.loc[poi, 'poiLon'], poi_info.loc[poi, 'poiLat']
         pop, nvisit = poi_info.loc[poi, 'popularity'], poi_info.loc[poi, 'nVisit']
         cat, cluster = poi_info.loc[poi, 'poiCat'], dat_obj.POI_CLUSTERS.loc[poi, 'clusterID']
-        duration = poi_info.loc[poi, 'avgDuration']
+        nphotos = poi_info.loc[poi, ['nPhotoTotal', 'nPhotoMean', 'nPhotoP10', 'nPhotoP50', 'nPhotoP90']].tolist()
+        durations = poi_info.loc[poi, ['durationTotal', 'durationMean', 'durationP10', 'durationP50', 'durationP90']].tolist()
         idx = poi
         df_.set_value(idx, 'category', tuple((cat == np.array(dat_obj.POI_CAT_LIST)).astype(np.int) * 2 - 1))
         df_.set_value(idx, 'neighbourhood', tuple((cluster == np.array(dat_obj.POI_CLUSTER_LIST)).astype(np.int) * 2 - 1))
         df_.loc[idx, 'popularity'] = LOG_SMALL if pop < 1 else np.log10(pop)
         df_.loc[idx, 'nVisit'] = LOG_SMALL if nvisit < 1 else np.log10(nvisit)
-        df_.loc[idx, 'avgDuration'] = LOG_SMALL if duration < 1 else np.log10(duration)
+        df_.loc[idx, 'nPhotoTotal'] = LOG_SMALL if nphotos[0] < 1 else np.log10(nphotos[0])
+        df_.loc[idx, 'nPhotoMean']  = LOG_SMALL if nphotos[1] < 1 else np.log10(nphotos[1])
+        df_.loc[idx, 'nPhotoP10']   = LOG_SMALL if nphotos[2] < 1 else np.log10(nphotos[2])
+        df_.loc[idx, 'nPhotoP50']   = LOG_SMALL if nphotos[3] < 1 else np.log10(nphotos[3])
+        df_.loc[idx, 'nPhotoP90']   = LOG_SMALL if nphotos[4] < 1 else np.log10(nphotos[4])
+        df_.loc[idx, 'durationTotal'] = LOG_SMALL if durations[0] < 1 else np.log10(durations[0])
+        df_.loc[idx, 'durationMean']  = LOG_SMALL if durations[1] < 1 else np.log10(durations[1])
+        df_.loc[idx, 'durationP10']   = LOG_SMALL if durations[2] < 1 else np.log10(durations[2])
+        df_.loc[idx, 'durationP50']   = LOG_SMALL if durations[3] < 1 else np.log10(durations[3])
+        df_.loc[idx, 'durationP90']   = LOG_SMALL if durations[4] < 1 else np.log10(durations[4])
         df_.loc[idx, 'trajLen'] = trajLen
-        df_.loc[idx, 'sameCatStart'] = 1 if cat == poi_info.loc[p0, 'poiCat'] else -1
-        df_.loc[idx, 'distStart'] = dat_obj.POI_DISTMAT.loc[poi, p0]
-        df_.loc[idx, 'diffPopStart'] = pop - poi_info.loc[p0, 'popularity']
-        df_.loc[idx, 'diffNVisitStart'] = nvisit - poi_info.loc[p0, 'nVisit']
-        df_.loc[idx, 'diffDurationStart'] = duration - poi_info.loc[p0, 'avgDuration']
-        df_.loc[idx, 'sameNeighbourhoodStart'] = 1 if cluster == dat_obj.POI_CLUSTERS.loc[p0, 'clusterID'] else -1
-        
+        df_.loc[idx, 'sameCategory'] = 1 if cat == poi_info.loc[p0, 'poiCat'] else -1
+        df_.loc[idx, 'sameNeighbourhood'] = 1 if cluster == dat_obj.POI_CLUSTERS.loc[p0, 'clusterID'] else -1
+        df_.loc[idx, 'diffPopularity'] = pop - poi_info.loc[p0, 'popularity']
+        df_.loc[idx, 'diffNVisit'] = nvisit - poi_info.loc[p0, 'nVisit']
+        df_.loc[idx, 'diffNPhotoTotal'] = nphotos[0] - poi_info.loc[p0, 'nPhotoTotal']
+        df_.loc[idx, 'diffNPhotoMean']  = nphotos[1] - poi_info.loc[p0, 'nPhotoMean']
+        df_.loc[idx, 'diffNPhotoP10']   = nphotos[2] - poi_info.loc[p0, 'nPhotoP10']
+        df_.loc[idx, 'diffNPhotoP50']   = nphotos[3] - poi_info.loc[p0, 'nPhotoP50']
+        df_.loc[idx, 'diffNPhotoP90']   = nphotos[4] - poi_info.loc[p0, 'nPhotoP90']
+        df_.loc[idx, 'diffDurationTotal'] = durations[0] - poi_info.loc[p0, 'durationTotal']
+        df_.loc[idx, 'diffDurationMean']  = durations[1] - poi_info.loc[p0, 'durationMean']
+        df_.loc[idx, 'diffDurationP10']   = durations[2] - poi_info.loc[p0, 'durationP10']
+        df_.loc[idx, 'diffDurationP50']   = durations[3] - poi_info.loc[p0, 'durationP50']
+        df_.loc[idx, 'diffDurationP90']   = durations[4] - poi_info.loc[p0, 'durationP90']
+        df_.loc[idx, 'distance'] = dat_obj.POI_DISTMAT.loc[poi, p0]
+     
     # features other than category and neighbourhood
-    feature_name = ['popularity', 'nVisit', 'avgDuration', 'trajLen', 'sameCatStart', 'distStart', 
-                    'diffPopStart', 'diffNVisitStart', 'diffDurationStart', 'sameNeighbourhoodStart']
     #X = df_[sorted(set(df_.columns) - {'category', 'neighbourhood'})].values
-    X = df_[feature_name].values
-    
+    X = df_[FEATURES[2:]].values
+
     # boolean features: category (+1, -1)
     cat_features = np.vstack([list(df_.loc[x, 'category']) for x in df_.index])
     
@@ -350,7 +367,7 @@ def calc_edge_features(trajid_list, poi_list, poi_info, dat_obj, log_transition=
     """
     Compute edge features (transiton / pairwise)
     """
-    feature_names = ['poiCat', 'popularity', 'nVisit', 'avgDuration', 'clusterID']
+    feature_names = ['poiCat', 'popularity', 'nVisit', 'durationMean', 'clusterID']
     n_features = len(feature_names)
     
     # DEBUG: use uniform edge features
@@ -368,7 +385,7 @@ def calc_edge_features(trajid_list, poi_list, poi_info, dat_obj, log_transition=
     poi_features['poiCat'] = poi_info.loc[poi_list, 'poiCat']
     poi_features['popularity'] = np.digitize(poi_info.loc[poi_list, 'popularity'], dat_obj.LOGBINS_POP)
     poi_features['nVisit'] = np.digitize(poi_info.loc[poi_list, 'nVisit'], dat_obj.LOGBINS_VISIT)
-    poi_features['avgDuration'] = np.digitize(poi_info.loc[poi_list, 'avgDuration'], dat_obj.LOGBINS_DURATION)
+    poi_features['durationMean'] = np.digitize(poi_info.loc[poi_list, 'durationMean'], dat_obj.LOGBINS_DURATION)
     poi_features['clusterID'] = dat_obj.POI_CLUSTERS.loc[poi_list, 'clusterID']
     
     edge_features = np.zeros((len(poi_list), len(poi_list), n_features), dtype=np.float64)
@@ -377,7 +394,7 @@ def calc_edge_features(trajid_list, poi_list, poi_info, dat_obj, log_transition=
         pj = poi_list[j]
         cat, pop = poi_features.loc[pj, 'poiCat'], poi_features.loc[pj, 'popularity']
         visit, cluster = poi_features.loc[pj, 'nVisit'], poi_features.loc[pj, 'clusterID']
-        duration = poi_features.loc[pj, 'avgDuration']
+        duration = poi_features.loc[pj, 'durationMean']
         
         for k in range(len(poi_list)): # NOTE: POI order
             pk = poi_list[k]
@@ -385,7 +402,7 @@ def calc_edge_features(trajid_list, poi_list, poi_info, dat_obj, log_transition=
                     [transmat_cat.loc[cat, poi_features.loc[pk, 'poiCat']], \
                      transmat_pop.loc[pop, poi_features.loc[pk, 'popularity']], \
                      transmat_visit.loc[visit, poi_features.loc[pk, 'nVisit']], \
-                     transmat_duration.loc[duration, poi_features.loc[pk, 'avgDuration']], \
+                     transmat_duration.loc[duration, poi_features.loc[pk, 'durationMean']], \
                      transmat_neighbor.loc[cluster, poi_features.loc[pk, 'clusterID']]] )
 
     if log_transition == True: 
