@@ -63,9 +63,9 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
     assert(top > 0)
     if y_true is not None: assert(y_true_list is not None and type(y_true_list) == list)
     
-    cdef int pi, pj, t, k, pk, parix, partition_index, partition_index_start, k_partition_index
-    cdef long nIter, maxIter = long(1e6)
-    cdef float loss, priority
+    cdef int pi, pj, t, pk, parix, partition_index, partition_index_start, k_partition_index
+    cdef long k, nIter, maxIter = long(1e7)
+    cdef float loss, priority, new_priority
     
     Cu = np.zeros(M, dtype=np.float)      # unary_param[p] x unary_features[p]
     Cp = np.zeros((M, M), dtype=np.float) # pw_param[pi, pj] x pw_features[pi, pj]
@@ -108,29 +108,31 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
         y_best[t] = np.argmax(Fp[t-1, y_best[t-1], :])
     
     Q = []  # priority queue (min-heap)
-    with np.errstate(invalid='raise'):  # deal with overflow
-        try: nIter = np.power(M, L-1) - np.prod([M-kx for kx in range(1,L)]) + top + \
-                     (0 if y_true is None else len(y_true_list))
-        except: nIter = maxIter
-    nIter = np.min([nIter, maxIter])
+    #with np.errstate(invalid='raise'):  # deal with overflow
+    #    try: nIter = np.power(M, L-1) - np.prod([M-kx for kx in range(1,L)]) + top + \
+    #                 (0 if y_true is None else len(y_true_list))
+    #    except: nIter = maxIter
+    #nIter = np.min([nIter, maxIter])
+    nIter = maxIter
         
     # heap item for the best path/walk
-    priority = -np.max(Alpha[L-1, :])
+    priority = -np.max(Alpha[L-1, :])  # -1 * score as priority
     partition_index = -1
-    exclude_set = set()  # -1 * score as priority
+    exclude_set = set()  
     hq.heappush(Q, HeapItem(priority, (y_best, partition_index, exclude_set)))
     
     results = []
     k = 0; y_last = None
     while len(Q) > 0 and k < nIter:
         hitem = hq.heappop(Q)
-        k_priority, (k_best, k_partition_index, k_exclude_set) = hitem.priority, hitem.task
+        k_priority = hitem.priority
+        (k_best, k_partition_index, k_exclude_set) = hitem.task
         k += 1; y_last = k_best
         
         # allow trajectory with sub-tours for training
         if y_true is None: 
             if len(set(k_best)) == L:
-                #print(-k_priority); 
+                #print(-k_priority)
                 results.append(k_best); top -= 1
                 if top == 0: return results
         else: # return k_best if it is NOT one of the ground truth labels
@@ -185,5 +187,11 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
         sys.stderr.write('WARN: reaching max number of iterations, NO optimal solution found, return the last one.\n')
     if len(Q) == 0:
         sys.stderr.write('WARN: empty queue, return the last one\n')
-    if y_true is None: return [y_last]
-    else: return y_last
+    if y_true is None: 
+        while len(Q) > 0 and top > 0:
+            hitem = hq.heappop(Q)
+            results.append(hitem.task[0])
+            top -= 1
+        return results
+    else: 
+        return y_last
