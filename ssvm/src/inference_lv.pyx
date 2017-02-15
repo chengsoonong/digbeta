@@ -64,7 +64,7 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
     if y_true is not None: assert(y_true_list is not None and type(y_true_list) == list)
     
     cdef int pi, pj, t, pk, parix, partition_index, partition_index_start, k_partition_index
-    cdef long k, nIter, maxIter = long(1e7)
+    cdef long k, nIter, maxIter = long(1e6)
     cdef float loss, priority, new_priority
     
     Cu = np.zeros(M, dtype=np.float)      # unary_param[p] x unary_features[p]
@@ -184,10 +184,11 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
             hq.heappush(Q, HeapItem(new_priority, (new_best, parix, new_exclude_set)))
             
     if k >= nIter: 
-        sys.stderr.write('WARN: reaching max number of iterations, NO optimal solution found, return the last one.\n')
+        sys.stderr.write('WARN: reaching max number of iterations, NO optimal solution found, return suboptimal solution.\n')
     if len(Q) == 0:
         sys.stderr.write('WARN: empty queue, return the last one\n')
     if y_true is None: 
+        results.append(y_last); top -= 1
         while len(Q) > 0 and top > 0:
             hitem = hq.heappop(Q)
             results.append(hitem.task[0])
