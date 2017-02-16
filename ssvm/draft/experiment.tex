@@ -72,7 +72,7 @@ Metrics researchers have used include
 \item F$_1$ score on points~\cite{ijcai15}, where we care about the set of correctly recommended POIs. 
       Let $\texttt{set}(\mathbf{y})$ denote the set of POIs in trajectory $\mathbf{y}$, F$_1$ score on points is defined as
 \begin{equation*}
-F_1 = \frac{2  P_{\textsc{point}}  R_{\textsc{point}}}{P_{\textsc{point}} + R_{\textsc{point}}} ~~\text{where}~
+F_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{2  P_{\textsc{point}}  R_{\textsc{point}}}{P_{\textsc{point}} + R_{\textsc{point}}} ~~\text{where}~
 P_{\textsc{point}} = \frac{| \texttt{set}(\hat{\mathbf{y}}) \cap \texttt{set}(\mathbf{y}) |}{| \texttt{set}(\hat{\mathbf{y}}) |}~\text{and}~
 R_{\textsc{point}} = \frac{| \texttt{set}(\hat{\mathbf{y}}) \cap \texttt{set}(\mathbf{y}) |}{| \texttt{set}(\mathbf{y}) |}.
 \end{equation*}
@@ -81,7 +81,7 @@ i.e., Hamming loss between two binary indicator vectors of size $| \mathcal{P} |
 
 \item F$_1$ score on pairs~\cite{cikm16paper}, where we care about the set of correctly predicted POI pairs,
 \begin{equation*}
-\text{pairs-F}_1 = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}{P_{\textsc{pair}} + R_{\textsc{pair}}}~~\text{where}~
+\text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}{P_{\textsc{pair}} + R_{\textsc{pair}}}~~\text{where}~
 P_{\textsc{pair}} = \frac{N_c} {| \texttt{set}(\hat{\mathbf{y}}) | (| \texttt{set}(\hat{\mathbf{y}}) | - 1) / 2}~\text{and}~
 R_{\textsc{pair}} = \frac{N_c} {| \texttt{set}(\mathbf{y}) | (| \texttt{set}(\mathbf{y}) | - 1) / 2},
 \end{equation*}
@@ -124,22 +124,23 @@ T_{\mathbf{y},\hat{\mathbf{y}}} &= \frac{1}{2} \sum_{i \ne j} \llb r_i = r_j \rr
 \end{align*}
 Kendall's $\tau$ (version $b$)~\cite{kendall1945,agresti2010analysis} is
 \begin{equation*}
-\tau_b = \frac{C - D}{\sqrt{(C + D + T) (C + D + U)}},
+\tau_b(\mathbf{y}, \hat{\mathbf{y}}) = \frac{C - D}{\sqrt{(C + D + T) (C + D + U)}},
 \end{equation*}
 where $T = T_{\mathbf{y}} - T_{\mathbf{y},\hat{\mathbf{y}}}$ and $U = T_{\hat{\mathbf{y}}} - T_{\mathbf{y},\hat{\mathbf{y}}}$.
 
 Furthermore, F$_1$ score on points can be written as
 \begin{equation*}
-F_1 = \frac{1}{K} \sum_i \llb r_i > 0 \rrb  \llb \hat{r}_i > 0 \rrb,
+F_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{1}{K} \sum_i \llb r_i > 0 \rrb  \llb \hat{r}_i > 0 \rrb,
 \end{equation*}
 and F$_1$ score on pairs can be written as
 \begin{equation*}
-\text{pairs-F}_1 = \frac{\frac{1}{2} \sum_{i,j} 
-                   \llb r_i < r_j \rrb  \llb r_i > 0 \rrb 
-                   \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i > 0 \rrb +
-                   \frac{1}{2} \sum_{i,j} 
-                   \llb r_i > r_j \rrb  \llb r_j > 0 \rrb 
-                   \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j > 0 \rrb}{K(K-1)/2}.
+\text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}) 
+= \frac{\frac{1}{2} \sum_{i,j} 
+  \llb r_i < r_j \rrb  \llb r_i > 0 \rrb  
+  \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i > 0 \rrb + 
+  \frac{1}{2} \sum_{i,j} 
+  \llb r_i > r_j \rrb  \llb r_j > 0 \rrb 
+  \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j > 0 \rrb}{K(K-1)/2}.
 \end{equation*}
 
 
@@ -152,21 +153,35 @@ then evaluate the performance of each algorithm using nested cross validation,
 where the hyper-parameters are optimised in the inner loop using Monte Carlo cross validation~\cite{burman1989comparative},
 and the generalisation error is estimated in the outer loop using leave-one-out cross validation.
 
-In particular, for query $\mathbf{x}$ and the set of trajectories $\mathcal{Y}_\mathbf{x}$ that conform to $\mathbf{x}$,
-the nested cross validation are performed over dataset $\left\{(\mathbf{x}, \mathcal{Y}_\mathbf{x})\right\}_{i=1}^N$.
+In particular, for query $\mathbf{x}^{(i)}$ and the set of trajectories $\mathcal{Y}_{\mathbf{x}^{(i)}}$ that conform to $\mathbf{x}^{(i)}$,
+the nested cross validation are performed over dataset $\left\{(\mathbf{x}^{(i)}, \mathcal{Y}_{\mathbf{x}^{(i)}})\right\}_{i=1}^N$.
 
 % metric: F_1, pairs F_1, Kendall's tau
-We use metrics described in Section~\ref{sec:metric} to measure the quality of recommendation $\hat{\mathbf{y}}$ given
-query $\mathbf{x}$ and the set of trajectories $\mathcal{Y}_\mathbf{x}$ that conform to $\mathbf{x}$ as follows:
+In particular, given query $\mathbf{x}^{(i)}$ and the set of trajectories $\mathcal{Y}_{\mathbf{x}^{(i)}}$ that conform to $\mathbf{x}^{(i)}$,
+we measure the quality of the top-$k$ ($k=5$ in our experiment) recommendations $\left\{\hat{\mathbf{y}}^{il}\right\}_{l=1}^{k}$ 
+by computing the metrics described in Section~\ref{sec:metric} as follows:
 \begin{align*}
-\text{F}_1 &= \max_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}} \, \text{F}_1', ~~
-\text{where F$_1'$ is the F$_1$ score on points for $\hat{\mathbf{y}}$ and $\mathbf{y}$} \\
-\text{pairs-F}_1 &= \max_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}} \, \text{pairs-F}_1', ~~
-\text{where pairs-F$_1'$ is the F$_1$ score on pairs for $\hat{\mathbf{y}}$ and $\mathbf{y}$} \\
-\tau &= \max_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}} \, \tau', ~~
-\text{where $\tau'$ is the Kendall's $\tau$ for $\hat{\mathbf{y}}$ and $\mathbf{y}$}
+\text{F}_1 
+&= \frac{1}{N} \sum_{i=1}^N \text{F}_1^i 
+ = \frac{1}{N} \sum_{i=1}^N \max_{\mathbf{y} \in \mathcal{Y}_{\mathbf{x}^{(i)}}} \, \text{F}_1(\mathbf{y}, \hat{\mathbf{y}}^{(i)*}), \\
+%\text{where F$_1'$ is the F$_1$ score on points for $\hat{\mathbf{y}}$ and $\mathbf{y}$} \\
+\text{pairs-F}_1 
+&= \frac{1}{N} \sum_{i=1}^N \text{pairs-F}_1^i 
+ = \frac{1}{N} \sum_{i=1}^N \max_{\mathbf{y} \in \mathcal{Y}_{\mathbf{x}^{(i)}}} \, \text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}^{(i)*}), \\
+%\text{where pairs-F$_1'$ is the F$_1$ score on pairs for $\hat{\mathbf{y}}$ and $\mathbf{y}$} \\
+\tau 
+&= \frac{1}{N} \sum_{i=1}^N \tau^i 
+ = \frac{1}{N} \sum_{i=1}^N \max_{\mathbf{y} \in \mathcal{Y}_{\mathbf{x}^{(i)}}} \, \tau(\mathbf{y}, \hat{\mathbf{y}}^{(i)*}),
+%\text{where $\tau'$ is the Kendall's $\tau$ for $\hat{\mathbf{y}}$ and $\mathbf{y}$}
 \end{align*}
+where 
+$\hat{\mathbf{y}}^{(i)*} = \argmax_{\hat{\mathbf{y}} \in \left\{\hat{\mathbf{y}}^{il}\right\}_{l=1}^{k}} 
+ \max_{\mathbf{y} \in \mathcal{Y}_{\mathbf{x}^{(i)}}} \, \tau(\mathbf{y}, \hat{\mathbf{y}})$
 
+{\it Currently, the three evaluation metrics are related like this: 
+for a given query, choose the best recommended trajectory (max of max) in terms of $\tau$,
+then use this trajectory to compute F$_1$ and pairs-F$_1$. 
+An alternative approach is computing every metric independently, i.e. each metric is computed as a max of max of its own.}
 
 
 \subsection{Experimental Results}
