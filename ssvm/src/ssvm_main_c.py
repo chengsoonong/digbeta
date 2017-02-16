@@ -95,14 +95,7 @@ mean_F1  = np.mean(F1_ssvm)
 mean_pF1 = np.mean(pF1_ssvm)
 mean_Tau = np.mean(Tau_ssvm)
 
-# train model using all examples in training set and measure performance on test set
-ssvm = SSVM(inference_train=inference_method, inference_pred=inference_method, dat_obj=dat_obj, 
-            share_params=SSVM_SHARE_PARAMS, multi_label=SSVM_MULTI_LABEL, C=ssvm_C, poi_info=poi_info_i)
-if ssvm.train(sorted(trajid_set_i), n_jobs=N_JOBS) == True:
-    y_hat_list = ssvm.predict(ps, L)
-    print(y_hat_list)
-    if y_hat_list is not None:
-        recdict_ssvm[(ps, L)] = {'mean_F1': mean_F1, 'mean_pF1': mean_pF1, 'mean_Tau': mean_Tau, 'C': ssvm_C, 'PRED': y_hat_list, 'W': ssvm.osssvm.w}
-        fssvm = os.path.join(data_dir, 'ssvm-' + dat_obj.dat_suffix[dat_ix] + '-%g-%d.pkl' % (ssvm_C, qix))
-        pickle.dump(recdict_ssvm, open(fssvm, 'bw'))
+recdict_ssvm[(ps, L)] = {'mean_F1': mean_F1, 'mean_pF1': mean_pF1, 'mean_Tau': mean_Tau, 'C': ssvm_C}
+fssvm = os.path.join(data_dir, 'ssvm-' + dat_obj.dat_suffix[dat_ix] + '-%g-%d.pkl' % (ssvm_C, qix))
+pickle.dump(recdict_ssvm, open(fssvm, 'bw'))
 
