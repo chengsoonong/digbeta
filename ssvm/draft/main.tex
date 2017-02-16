@@ -1,0 +1,48 @@
+%\documentclass[10pt,a4paper]{article}
+\documentclass[9pt]{extarticle}
+\usepackage[a4paper,top=0.79in,left=0.79in,bottom=0.79in,right=0.79in]{geometry} % A4 paper margins in LibreOffice
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{mathrsfs}
+\usepackage{bm}
+\usepackage{bbm}
+\usepackage{stmaryrd}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage[sc]{mathpazo}
+\linespread{1.05}         % Palladio needs more leading (space between lines)
+\usepackage[T1]{fontenc}
+\usepackage{subcaption}  % sub-figures
+\usepackage{graphicx}
+\graphicspath{{fig/}} % Location of the graphics files
+
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+\newcommand{\eat}[1]{}
+\setlength{\columnsep}{1.5em} % spacing between columns
+
+\title{The Trajectory Recommendation Problem}
+
+\author{}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\newcommand{\given}{\mid}
+\newcommand{\llb}{\llbracket}
+\newcommand{\rrb}{\rrbracket}
+
+
+\input{problem}
+\input{methods}
+\input{experiment}
+
+
+\bibliographystyle{ieeetr}
+\bibliography{ref}
+
+\end{document}

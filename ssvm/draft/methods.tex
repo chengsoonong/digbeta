@@ -1,0 +1,293 @@
+\section{Methods}
+\label{sec:method}
+
+In general, there are two approaches to solve this problem,
+\begin{enumerate}
+\item \emph{Scoring POIs}, and then pick the $K-1$ highest scored POIs from $\mathcal{P} \setminus s$,
+\item \emph{Scoring trajectories}, and then pick the highest scored trajectory with respect to query $\mathbf{x}$.
+\end{enumerate}
+
+In this section, we briefly describe a variety of methods that following these two approaches.
+Suppose the training set contains $N$ trajectories 
+$\{ \mathbf{x}^{(i)}, \mathbf{y}^{(i)} \}_{i=1}^N$,
+where $\mathbf{y}^{(i)}$ is the $i$-th trajectory and $\mathbf{x}^{(i)} = (y_1^{(i)},~ | \mathbf{y}^{(i)} |)$ is the query 
+with respect to trajectory $\mathbf{y}^{(i)}$.
+
+
+
+\subsection{Scoring POIs}
+\label{sec:scoring_point}
+
+We have a POI scoring function $S: \mathcal{X} \to \mathbb{R}^{| \mathcal{P} |}$, 
+and the target trajectory is produced by sorting all POIs in descending order according to their scores 
+$S(p | \mathbf{x}),~ \forall p \in \mathcal{P}$,
+then picking the top $K-1$ from $\mathcal{P} \setminus s$.
+
+First, we construct POI feature vectors $\Psi$ for trajectories in training set, 
+\begin{equation*}
+\Psi = \left( \Psi(\mathbf{x}^{(i)}, p) \right)_{i=1,\dots,N,~p \in \mathcal{P}} = \left( \Psi_p^i \right)_{i,p}
+       \in \mathbb{R}^{(N \cdot | \mathcal{P} |) \times D}, \\
+\end{equation*}
+where $D$ is the dimension of feature vector.
+
+
+
+\subsubsection{Pairwise ranking}
+\label{sec:rank}
+
+Let $\phi(\cdot)$ be a loss function and $l_{p,p'}^i$ be a binary label
+\begin{equation*}
+l_{p,p'}^i = \begin{cases}
++1,~ \mathbf{y}^{(i)} ~\text{prefers}~ p, \\
+-1,~ \mathbf{y}^{(i)} ~\text{prefers}~ p'.
+\end{cases}
+\end{equation*}
+We can learn a ranking model
+\begin{equation*}
+\min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^\top \mathbf{w} +  
+C \sum_{i=1}^N \sum_{p, p' \in \mathcal{P}} \phi \left( l_{p,p'}^i \cdot \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right).
+\end{equation*}
+Due to symmetry, it is necessary to consider only the pairs $(p, p')$ when $l_{p, p'}^i = +1$, which means we can further simplify 
+the cost function of the ranking model
+\begin{equation*}
+\min_{\mathbf{w}} \frac{1}{2} \mathbf{w}^\top \mathbf{w} +  
+C \sum_{i=1}^N \sum_{\substack{p, p' \in \mathcal{P} \\ l_{p,p'}^i > 0}} \phi \left(\mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right).
+\end{equation*}
+
+If we let $c_p^i$ denotes the number of times 
+POI $p$ was observed in trajectories satisfying query $\mathbf{x}^{(i)}$ (except the start POI), and define
+\begin{equation*}
+l_{p,p'}^i = \begin{cases}
++1,~ c_p^i > c_{p'}^i, \\
+-1,~ c_p^i < c_{p'}^i.
+\end{cases}
+\end{equation*}
+This definition reflects whether $p$ was occurred more frequently than $p'$ for query $\mathbf{x}^{(i)}$.
+To deal with ties, i.e., $\{(p, p') | c_p^i = c_{p'}^i\}$, we generate both the positive and the negative labels for these examples.
+
+Furthermore, if we use the squared hinge loss as the loss function, i.e.,
+$\phi(z) = \max(0,~ 1-z)^2$, we are training a rankSVM with linear kernel and L2 loss, and the ranking score 
+\begin{equation*}
+S(p \given \mathbf{x})= \mathbf{w}^\top \Psi(\mathbf{x}, p);
+\end{equation*}
+We can train this ranking model by gradient descent. Let $J(\mathbf{w})$ be the cost function that we want to minimise, i.e.,
+\begin{align*}
+J(\mathbf{w}) 
+&= \frac{1}{2} \mathbf{w}^\top \mathbf{w} +  
+   C \sum_{i=1}^N \sum_{\substack{p, p' \in \mathcal{P} \\ l_{p,p'}^i >0}} \phi \left( \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right) \\
+&= \frac{1}{2} \mathbf{w}^\top \mathbf{w} + 
+   C \sum_{i=1}^N \sum_{\substack{p, p' \in \mathcal{P} \\ l_{p,p'}^i >0}} \max\left(0,~ 1 - \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right)^2.
+\end{align*}
+To compute the gradient of the cost function w.r.t. parameters, note that
+\begin{equation*}
+\max(0,~ 1-z)^2 
+= \begin{cases}
+  (1-z)^2, & z \le 1 \\
+  0,       & z > 1
+\end{cases}
+\end{equation*} 
+and $\lim_{z \to 1} \max(0,~ 1-z)^2 = 0$, which means the loss function is differentiable at $z=1$ and its gradient is
+\begin{equation*}
+\frac{\partial \max(0,~ 1-z)^2}{\partial z} 
+= \begin{cases}
+  -2(1-z), & z \le 1 \\
+  0,       & z > 1
+\end{cases}
+\end{equation*} 
+As a result, the gradient of the cost function w.r.t. parameters $\mathbf{w}$ is
+\begin{align*}
+\frac{\partial J(\mathbf{w})}{\partial \mathbf{w}} 
+= \mathbf{w} + C \sum_{i=1}^N \sum_{\substack{p, p' \in \mathcal{P} \\ l_{p,p'}^i >0}} g_{p,p'}^i(\mathbf{w})
+\end{align*} 
+where 
+\begin{equation*}
+g_{p,p'}^i(\mathbf{w}) 
+= \begin{cases}
+  -2 \cdot (\Psi_p^i - \Psi_{p'}^i) \cdot \left(1 - \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \right), 
+  & \mathbf{w}^\top (\Psi_p^i - \Psi_{p'}^i) \le 1 \\
+  0, & \text{otherwise}
+  \end{cases}
+\end{equation*}
+
+
+\subsubsection{Discussion}
+
+We note that the point-wise POI scoring approach does not consider the inter-dependencies between POIs,
+moreover, the pairwise ranking approach only considers the relative order between two individual points, 
+i.e., modelling each pair independently.
+
+
+
+\subsection{Scoring trajectories}
+\label{sec:structured}
+
+One approach that captures long-term dependencies is scoring a trajectory as a whole,
+that is, we model the dependences between different POIs in a trajectory by employing structured prediction models such as the structured SVM.
+
+We model the desired trajectory with respect to query $\mathbf{x}$ as a sequence of discrete variables with inter-dependencies,
+each variable has $|\mathcal{P}|$ states, and the first variable being observed.
+To make a recommendation, we find a trajectory that achieves the highest score
+\begin{equation*}
+\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}}~ f(\mathbf{x}, \mathbf{y}),
+\end{equation*}
+%where $\mathcal{Y}_\mathbf{x}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ and satisfying query $\mathbf{x}$,
+where $f(\mathbf{x}, \mathbf{y})$ is a function that scores the compatibility between query $\mathbf{x}$ and a specific trajectory $\mathbf{y}$,
+and different models described in this section basically employ different formulations of $f(\cdot,\cdot)$. 
+
+
+
+\subsubsection{Structured SVM}
+\label{sec:ssvm}
+
+The compatibility function $f(\mathbf{x}, \mathbf{y})$ for structured SVM is this linear form,
+\begin{equation*}
+f(\mathbf{x}, \mathbf{y}) = \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}),
+\end{equation*}
+where $\Psi(\mathbf{x}, \mathbf{y})$ is a \emph{joint feature map} 
+that captures features extracted from both query $\mathbf{x}$ and trajectory $\mathbf{y}$.
+
+The design of joint feature $\Psi(\cdot,\cdot)$ is problem specific, 
+for trajectory recommendation, we assume decomposition
+\begin{equation*}
+\label{eq:jointfeature}
+\mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) 
+= \sum_{j=2}^{| \mathbf{y} |} 
+  \left( \mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_j) + 
+  \mathbf{w}_{j-1,j}^\top \Psi_{j-1, j}(\mathbf{x}, y_{j-1}, y_j) \right),
+\end{equation*}
+where $\Psi_j$ is a feature vector of POI $y_j$ (w.r.t. query $\mathbf{x}$)
+and $\Psi_{j-1,j}$ is a pairwise feature vector that captures the affinity of transition from POI $y_{j-1}$ to POI $y_j$.
+
+To learn the parameters, we train the structured SVM by optimising a quadratic program (QP),
+\begin{equation}
+\label{eq:nslack}
+\begin{aligned}
+\min_{\mathbf{w}, ~\bm{\xi} \ge 0} ~& \frac{1}{2} \mathbf{w}^\top \mathbf{w} + \frac{C}{N} \sum_{i=1}^N \xi_i \\
+s.t.~~ ~& \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) - \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) \ge 
+       \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}) - \xi_i, ~\bar{\mathbf{y}} \in \mathcal{Y}_{\mathbf{x}^{(i)}},~\forall i,
+\end{aligned}
+\end{equation}
+where $\Delta(\mathbf{y}, \bar{\mathbf{y}})$ is a discrepancy function that measures the loss 
+for predicting $\bar{\mathbf{y}}$ given ground truth $\mathbf{y}$, 
+and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th example~\cite{tsochantaridis2005large},
+\begin{equation*}
+\xi_i = \max \left( 0,~ 
+        \max_{\bar{\mathbf{y}} \in \mathcal{Y}_{\mathbf{x}^{(i)}}} 
+        \left\{ \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}^{(i)}) + \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) \right\} -
+        \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) \right).
+\end{equation*}
+%This formulation is called "$n$-slack" as we have one slack variable for each example in training set.
+
+We can rewrite the constraint in problem (\ref{eq:nslack}) as
+\begin{equation}
+\label{eq:ssvminf}
+\mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) + \xi_i \ge
+          \max_{\bar{\mathbf{y}^{(i)}} \in \mathcal{Y}_{\mathbf{x}^{(i)}}}
+          \left\{\mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) + \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}) \right\},~ \forall i,
+\end{equation}
+where the right hand side is known as the \emph{loss-augmented inference}.
+
+To solve problem (\ref{eq:nslack}), one option is simply enumerating all constraints, and feeding the problem into a standard QP solver.
+However, this approach is impractical as there is a constraint for every possible label $\bar{\mathbf{y}}$.
+Instead, we use a cutting-plane algorithm which repeatedly solves QP (\ref{eq:nslack}) 
+w.r.t. different set of constraints~\cite{joachims2009predicting}.
+In each iteration, a new constraint is formed by solving the loss-augmented inference, 
+which helps shrink the feasible region of the problem.
+
+\paragraph{Multi-label SSVM}
+Given a query $\mathbf{x} = (s, K)$, we normally observed more than one trajectories, which is different from the one-to-one correspondence 
+between feature vectors and labels in the classification setting.
+We can model this multi-label setting with a multi-label SSVM, in other words,
+for each query $\mathbf{x}^{(i)}$, we have multiple labels $\mathbf{y}^{(ij)}, j=1,\dots,n_i$ 
+where $n_i$ is the number of labels for query $\mathbf{x}_i$ in training set. 
+
+We can train this multi-label SSVM by optimising a QP similar to (\ref{eq:nslack}),
+\begin{equation}
+\label{eq:nslack_ml}
+\begin{aligned}
+\min_{\mathbf{w}, ~\bm{\xi} \ge 0} ~& \frac{1}{2} \mathbf{w}^\top \mathbf{w} + \frac{C}{N} \sum_{i=1}^N \xi_{ij} \\
+s.t.~~ ~& \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(ij)}) - \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) \ge 
+       \Delta(\mathbf{y}^{(ij)}, \bar{\mathbf{y}}) - \xi_{ij}, 
+~\bar{\mathbf{y}} \in \mathcal{Y}_{\mathbf{x}^{(i)}} \setminus \{\mathbf{y}^{(ij)}\}_{j=1}^{n_i},~\forall j,~\forall i.
+\end{aligned}
+\end{equation}
+
+
+Both the loss-augmented inference and prediction inference for structured SVM (Section~\ref{sec:ssvm}) cannot be done efficiently 
+if the no duplicates constraints are required, moreover, we would like to recommend more than one trajectories given a query.
+To achieve this, we resort to a variant of the list Viterbi algorithm~\cite{nilsson2001sequentially,seshadri1994list}
+which sequentially find the $k$-th best (scored) trajectory given the best, $2$nd best, \dots, $(k-1)$-th best (scored) trajectories,
+as described in Algorithm~\ref{alg:listviterbi}.
+
+
+\begin{algorithm}[htbp]
+\caption{The list Viterbi algorithm for inference}
+\label{alg:listviterbi}
+\begin{algorithmic}[1]
+\STATE \textbf{Input}: $\mathbf{x}=(s, K),~ \mathcal{P},~ \mathbf{w},~ \Psi,~ l$
+%\STATE Initialise score matrices $\alpha,~ \beta,~ f_t,~ f_{t, t+1}$, a max-heap $H,~ k=0$.
+\STATE Initialise score matrices $\alpha,~ \beta,~ f_{t, t+1}$, a max-heap $H$, result set $R$, $k=0$.
+\STATE $\triangleright$ Do the forward-backward procedure~\cite{rabiner1989tutorial}
+\STATE $\forall p_j \in \mathcal{P},~ \alpha_t(p_j) = 
+        \begin{cases}
+        0,~ t = 1 \\
+        \max_{p_i \in \mathcal{P}} \left\{ \alpha_{t-1}(p_i) + \mathbf{w}_{ij}^\top \Psi_{ij}(\mathbf{x}, p_i, p_j) + 
+        \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) \right\},~ t=2,\dots,K
+        \end{cases}$
+
+\STATE $\forall p_i \in \mathcal{P},~ \beta_t(p_i) = 
+        \begin{cases}
+        0,~ t = K \\
+        \max_{p_j \in \mathcal{P}} \left\{ \mathbf{w}_{ij}^\top \Psi_{ij}(\mathbf{x}, p_i, p_j) + 
+        \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j) \right\},~ t = K-1,\dots,1
+        \end{cases}$
+
+%\STATE $\forall p_i \in \mathcal{P},~ f_t(p_i) = \alpha_t(p_i) + \beta_t(p_i),~ t = 1,\dots,K$
+\STATE $\forall p_i, p_j \in \mathcal{P},~ f_{t,t+1}(p_i, p_j) = \alpha_t(p_i) + \mathbf{w}_{ij}^\top \Psi_{ij}(\mathbf{x}, p_i, p_j) + 
+                              \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j),~ t = 1,\dots,K-1$
+
+\STATE $\triangleright$ Identify the best (scored) trajectory $\mathbf{y}^1=(y_1^1,\dots,y_K^1)$ (possibly with sub-tours)
+\STATE $y_t^1 = \begin{cases}
+                s,~ t = 1 \\
+%                \argmax_{p \in \mathcal{P}} \left\{ f_{1,2}(s, p) \right\},~ t = 2, \\
+                \argmax_{p \in \mathcal{P}} \left\{ f_{t-1,t}(y_{t-1}^1, p) \right\},~ t = 2,\dots,K
+                \end{cases}$
+
+%\STATE $r^1 = \max_{p \in \mathcal{P}} \left\{ f_K(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
+\STATE $r^1 = \max_{p \in \mathcal{P}} \left\{ \alpha_{K}(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
+\STATE $H.\textit{push}\left(r^1,~ (\mathbf{y}^1, \textsc{nil}, \emptyset) \right)$
+
+\WHILE{$H \ne \emptyset$ \textbf{and} $k < \,|\mathcal{P}|^{K-1} - \prod_{t=2}^K (|\mathcal{P}|-t+1)$}
+    \STATE $r^k,~ (\mathbf{y}^k, I, S) = H.\textit{pop}()~~~ \triangleright$ 
+           $r^k$ is the score of $\mathbf{y}^k=(y_1^k,\dots,y_K^k)$, $I$ is the partition index, and $S$ is the exclude set
+    \STATE $k = k + 1$
+    \STATE Add $\mathbf{y}^k$ to $R$ if NO sub-tours in $\mathbf{y}^k$
+    \RETURN $R$ if it contains $l$ trajectories
+    \STATE $\bar{I} = \begin{cases}
+                      2,~ I = \textsc{nil} \\
+                      I,~ \text{otherwise}
+                      \end{cases}$
+
+    \FOR{$t = \bar{I},\dots,K$}
+        \STATE $\bar{S} = \begin{cases}
+                          S \cup \{ y_t^k \},~ t = \bar{I} \\
+                          \{ y_t^k \},~ \text{otherwise}
+                          \end{cases}$
+
+        \STATE $\bar{y}_j = \begin{cases}
+                            y_j^k,~~ j=1,\dots,t-1 \\
+                            %\argmax_{p \in \mathcal{P} \setminus \textit{new\_exclude\_set}} f_{t-1,t}(y_{t-1}^k, p),~ j=t \\
+                            \argmax_{p \in \mathcal{P} \setminus \bar{S}} \left\{ f_{t-1,t}(y_{t-1}^k, p) \right\},~ j=t \\
+                            \argmax_{p \in \mathcal{P}} \left\{ f_{j-1, j}(\bar{y}_{j-1}, p) \right\},~ j=t+1,\dots,K
+                \end{cases}$
+        \STATE $\bar{r} = \begin{cases}
+                          f_{t-1,t}(y_{t-1}^k, \bar{y}_t),~ I = \textsc{nil} \\
+                          r^k + f_{t-1,t}(y_{t-1}^k, \bar{y}_t) - f_{t-1,t}(y_{t-1}^k, y_t^k),~ \text{otherwise}
+                          \end{cases}$
+
+        $H.\textit{push}\left(\bar{r}, (\bar{\mathbf{y}}, t, \bar{S}) \right)$
+    \ENDFOR
+\ENDWHILE
+\end{algorithmic}
+\end{algorithm}
+
