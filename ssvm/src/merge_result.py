@@ -37,7 +37,6 @@ if 'mean_F1' in recdicts[0][key0]:
         maxix = np.argmax(metric_dict[key]['Tau_list'])
         dix = metric_dict[key]['Index'][maxix]
         assert(key in recdicts[dix])
-        #recdict_all[key] = {'PRED': recdicts[dix][key]['PRED'], 'W': recdicts[dix][key]['W'], 'C': recdicts[dix][key]['C']}
         recdict_all[key] = recdicts[dix][key]['C']
 
 else:
