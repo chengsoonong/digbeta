@@ -142,10 +142,10 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
         #if len(set(k_best)) == L:
         #    if y_true is None: 
         #        #print(-k_priority); 
-        #        return k_best
+        #        results.append(k_best); top -= 1
+        #        if top == 0: return results
         #    else: # return k_best if it is NOT one of the ground truth labels
-        #        if not np.any([np.all(np.asarray(k_best) == np.asarray(yj)) for yj in y_true_list]):
-        #            return k_best
+        #        if not np.any([np.all(np.asarray(k_best) == np.asarray(yj)) for yj in y_true_list]): return k_best
 
         # identify the (k+1)-th best path/walk given the 1st, 2nd, ..., k-th best: adapted from the IJCAI01 paper
         partition_index_start = 1

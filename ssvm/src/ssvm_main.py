@@ -63,7 +63,7 @@ for ssvm_C in C_SET:
     F1_ssvm = []; pF1_ssvm = []; Tau_ssvm = []        
 
     # inner loop to evaluate the performance of a model with a specified C by Monte-Carlo cross validation
-    for j in range(MC_NITER):
+    for l in range(MC_NITER):
         poi_list = []
         while True: # make sure the start POI in test set are also in training set
             rand_ix = np.arange(len(keys_cv)); np.random.shuffle(rand_ix)
@@ -84,7 +84,7 @@ for ssvm_C in C_SET:
         ssvm = SSVM(inference_train=inference_method, inference_pred=inference_method, 
                     dat_obj=dat_obj, share_params=SSVM_SHARE_PARAMS, multi_label=SSVM_MULTI_LABEL, 
                     C=ssvm_C, poi_info=poi_info_i.loc[poi_list].copy())
-        if ssvm.train(sorted(trajid_set_train), n_jobs=N_JOBS) == True:            
+        if ssvm.train(sorted(trajid_set_train), n_jobs=N_JOBS) == True:
             for j in test_ix: # test
                 ps_cv, L_cv = keys_cv[j]
                 y_hat_list = ssvm.predict(ps_cv, L_cv)

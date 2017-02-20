@@ -46,7 +46,7 @@ POI Features given query (startPOI, nPOI):
 """
 DF_COLUMNS = ['poiID', 'label', 'queryID', 'category', 'neighbourhood', 'popularity', 
               'nVisit', 'avgDuration', 
-              #'trajLen', 
+              'trajLen', 
               'sameCatStart', 'distStart', 
               'diffPopStart', 'diffNVisitStart', 'diffDurationStart', 'sameNeighbourhoodStart']
 
