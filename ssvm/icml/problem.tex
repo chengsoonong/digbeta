@@ -1,4 +1,35 @@
-\section{Problem formulation}
+\section{Multiple Ground Truths}
+
+We consider the problem of supervised learning with multiple ground truths. In many practical
+problems we may observe more than one label for the same set of features, which violates
+the implicit assumptions of many learning algorithms. In this work we explicitly consider
+all observed labels of a particular example to be useful for training, that is we use
+the multiset of ground truths in training.
+In particular we focus on the structured prediction case,
+where the output of the classifier is from a large set $\mathcal{Y}$ with internal structure.
+An example of this is when $y\in\mathcal{Y}$ is a sequence of binary values.
+Given an example $x_i$ there may be multiple label sequences $y_{ij}$, where $j=1,...,J$.
+
+Suggested order:
+\begin{enumerate}
+  \item structured SVM
+  \item multiset SSVM
+  \item list Viterbi for multiple ground truths
+\end{enumerate}
+
+Then focus on trajectory
+\begin{enumerate}
+  \item Trajectory recommendation
+  \item ILP for subtour elimination
+  \item 2 uses of list Viterbi
+  \begin{itemize}
+    \item multiple ground truths
+    \item subtour elimination
+  \end{itemize}
+\end{enumerate}
+
+
+\section{Trajectory recommendation}
 \label{sec:formulation}
 
 The trajectory recommendation problem is: given a set of points-of-interest (POI) $\mathcal{P}$ and a trajectory query $\mathbf{x} = (s, K)$,
@@ -8,11 +39,11 @@ We want to recommend a sequence of POIs $\mathbf{y}^*$ that maximises utility, i
 \mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}_\mathbf{x}}~f(\mathbf{x}, \mathbf{y}),
 \end{equation*}
 where $\mathcal{Y}_\mathbf{x}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ and satisfying query $\mathbf{x}$.
-$\mathbf{y} = (y_1 = s,~ y_2, \dots, y_K)$ is a trajectory with $K$ POIs, and $y_j \ne y_k$ if $j \ne k$ 
+$\mathbf{y} = (y_1 = s,~ y_2, \dots, y_K)$ is a trajectory with $K$ POIs, and $y_j \ne y_k$ if $j \ne k$
 which is known as \emph{no duplicates constraint}.
 
 Instead of the number of desired POIs, we can constrain the trajectory with a total time budget $T$.
-In this case, the number of POIs $K$ can be treated as a \emph{hidden} variable, with additional constraint $\sum_{k=1}^K t_k \le T$ 
+In this case, the number of POIs $K$ can be treated as a \emph{hidden} variable, with additional constraint $\sum_{k=1}^K t_k \le T$
 where $t_k$ is the time spent at POI $y_k$.
 
 
@@ -20,16 +51,14 @@ where $t_k$ is the time spent at POI $y_k$.
 \subsection{Related problems}
 \label{sec:related}
 
-This problem is related to automatic playlist generation, 
+This problem is related to automatic playlist generation,
 where we recommend a sequence of songs given a specified song (a.k.a. the seed) and the number of new songs.
 Formally, given a library of songs and a query $\mathbf{x} = (s, K)$, where $s$ is the seed and $K$ is the number of songs in playlist,
 we produce a list with $K$ songs (without duplication) by maximising the likelihood~\cite{chen2012playlist},
 \begin{equation*}
 %\max_{(y_1,\dots,y_K)} \prod_{k=2}^K \mathbb{P}(y_{k-1} \given y_k),~ y_1 = s ~\text{and}~ y_j \ne y_k,~ j \ne k.
-\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{P}_\mathbf{x}}~ \mathbb{P}(\mathbf{y} \given \mathbf{x}),~ \mathbf{y} = (y_1=s,\dots,y_K) 
+\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{P}_\mathbf{x}}~ \mathbb{P}(\mathbf{y} \given \mathbf{x}),~ \mathbf{y} = (y_1=s,\dots,y_K)
 ~\text{and}~ y_j \ne y_k ~\text{if}~ j \ne k.
 \end{equation*}
 
 Another similar problem is choosing a small set of photos from a large photo library and compiling them into a slideshow or movie.
-
-
