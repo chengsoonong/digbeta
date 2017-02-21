@@ -153,35 +153,28 @@ then evaluate the performance of each algorithm using nested cross validation,
 where the hyper-parameters are optimised in the inner loop using Monte Carlo cross validation~\cite{burman1989comparative},
 and the generalisation error is estimated in the outer loop using leave-one-out cross validation.
 
-In particular, for query $\mathbf{x}^{(i)}$ and the set of trajectories $\mathcal{Y}_{\mathbf{x}^{(i)}}$ that conform to $\mathbf{x}^{(i)}$,
-the nested cross validation are performed over dataset $\left\{(\mathbf{x}^{(i)}, \mathcal{Y}_{\mathbf{x}^{(i)}})\right\}_{i=1}^N$.
+In particular, for query $\mathbf{x}^{(i)}$ and the set of trajectories $\mathcal{Y}^{(i)}$ that conform to $\mathbf{x}^{(i)}$,
+the nested cross validation are performed over dataset $\left\{(\mathbf{x}^{(i)}, \mathcal{Y}^{(i)})\right\}_{i=1}^N$.
 
 % metric: F_1, pairs F_1, Kendall's tau
-In particular, given query $\mathbf{x}^{(i)}$ and the set of trajectories $\mathcal{Y}_{\mathbf{x}^{(i)}}$ that conform to $\mathbf{x}^{(i)}$,
-we measure the quality of the top-$k$ ($k=5$ in our experiment) recommendations $\left\{\hat{\mathbf{y}}^{il}\right\}_{l=1}^{k}$ 
+In particular, given query $\mathbf{x}^{(i)}$ and the set of trajectories $\mathcal{Y}^{(i)}$ that conform to $\mathbf{x}^{(i)}$,
+we measure the quality of the top-$k$ recommendations $\hat{\mathcal{Y}}^{(i)}$ 
 by computing the metrics described in Section~\ref{sec:metric} as follows:
 \begin{align*}
 \text{F}_1 
-&= \frac{1}{N} \sum_{i=1}^N \text{F}_1^i 
- = \frac{1}{N} \sum_{i=1}^N \max_{\mathbf{y} \in \mathcal{Y}_{\mathbf{x}^{(i)}}} \, \text{F}_1(\mathbf{y}, \hat{\mathbf{y}}^{(i)*}), \\
+&= \frac{1}{N} \sum_{i=1}^N \max_{\mathbf{y} \in \mathcal{Y}^{(i)}, \hat{\mathbf{y}} \in \hat{\mathcal{Y}}^{(i)}} \, 
+   \text{F}_1(\mathbf{y}, \hat{\mathbf{y}}), \\
 %\text{where F$_1'$ is the F$_1$ score on points for $\hat{\mathbf{y}}$ and $\mathbf{y}$} \\
 \text{pairs-F}_1 
-&= \frac{1}{N} \sum_{i=1}^N \text{pairs-F}_1^i 
- = \frac{1}{N} \sum_{i=1}^N \max_{\mathbf{y} \in \mathcal{Y}_{\mathbf{x}^{(i)}}} \, \text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}^{(i)*}), \\
+&= \frac{1}{N} \sum_{i=1}^N \max_{\mathbf{y} \in \mathcal{Y}^{(i)}, \hat{\mathbf{y}} \in \hat{\mathcal{Y}}^{(i)}} \, 
+   \text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}), \\
 %\text{where pairs-F$_1'$ is the F$_1$ score on pairs for $\hat{\mathbf{y}}$ and $\mathbf{y}$} \\
 \tau 
-&= \frac{1}{N} \sum_{i=1}^N \tau^i 
- = \frac{1}{N} \sum_{i=1}^N \max_{\mathbf{y} \in \mathcal{Y}_{\mathbf{x}^{(i)}}} \, \tau(\mathbf{y}, \hat{\mathbf{y}}^{(i)*}),
+&= \frac{1}{N} \sum_{i=1}^N \max_{\mathbf{y} \in \mathcal{Y}^{(i)}, \hat{\mathbf{y}} \in \hat{\mathcal{Y}}^{(i)}} \, 
+   \tau(\mathbf{y}, \hat{\mathbf{y}}).
 %\text{where $\tau'$ is the Kendall's $\tau$ for $\hat{\mathbf{y}}$ and $\mathbf{y}$}
 \end{align*}
-where 
-$\hat{\mathbf{y}}^{(i)*} = \argmax_{\hat{\mathbf{y}} \in \left\{\hat{\mathbf{y}}^{il}\right\}_{l=1}^{k}} 
- \max_{\mathbf{y} \in \mathcal{Y}_{\mathbf{x}^{(i)}}} \, \tau(\mathbf{y}, \hat{\mathbf{y}})$
 
-{\it Currently, the three evaluation metrics are related like this: 
-for a given query, choose the best recommended trajectory (max of max) in terms of $\tau$,
-then use this trajectory to compute F$_1$ and pairs-F$_1$. 
-An alternative approach is computing every metric independently, i.e. each metric is computed as a max of max of its own.}
 
 
 \subsection{Experimental Results}
