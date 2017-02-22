@@ -1,36 +1,5 @@
-\section{Multiple Ground Truths}
-
-We consider the problem of supervised learning with multiple ground truths. In many practical
-problems we may observe more than one label for the same set of features, which violates
-the implicit assumptions of many learning algorithms. In this work we explicitly consider
-all observed labels of a particular example to be useful for training, that is we use
-the multiset of ground truths in training.
-In particular we focus on the structured prediction case,
-where the output of the classifier is from a large set $\mathcal{Y}$ with internal structure.
-An example of this is when $y\in\mathcal{Y}$ is a sequence of binary values.
-Given an example $x_i$ there may be multiple label sequences $y_{ij}$, where $j=1,...,J$.
-
-Suggested order:
-\begin{enumerate}
-  \item structured SVM
-  \item multiset SSVM
-  \item list Viterbi for multiple ground truths
-\end{enumerate}
-
-Then focus on trajectory
-\begin{enumerate}
-  \item Trajectory recommendation
-  \item ILP for subtour elimination
-  \item 2 uses of list Viterbi
-  \begin{itemize}
-    \item multiple ground truths
-    \item subtour elimination
-  \end{itemize}
-\end{enumerate}
-
-
-\section{Trajectory recommendation}
-\label{sec:formulation}
+\section{Application on Trajectory Recommendation}
+\label{sec:trajrec}
 
 The trajectory recommendation problem is: given a set of points-of-interest (POI) $\mathcal{P}$ and a trajectory query $\mathbf{x} = (s, K)$,
 where $s \in \mathcal{P}$ is the desired start POI and $K > 1$ is the number of POIs in the desired trajectory (including the start location $s$).
@@ -47,10 +16,6 @@ In this case, the number of POIs $K$ can be treated as a \emph{hidden} variable,
 where $t_k$ is the time spent at POI $y_k$.
 
 
-
-\subsection{Related problems}
-\label{sec:related}
-
 This problem is related to automatic playlist generation,
 where we recommend a sequence of songs given a specified song (a.k.a. the seed) and the number of new songs.
 Formally, given a library of songs and a query $\mathbf{x} = (s, K)$, where $s$ is the seed and $K$ is the number of songs in playlist,
@@ -62,3 +27,115 @@ we produce a list with $K$ songs (without duplication) by maximising the likelih
 \end{equation*}
 
 Another similar problem is choosing a small set of photos from a large photo library and compiling them into a slideshow or movie.
+
+Both the loss-augmented inference and prediction inference for structured SVM (Section~\ref{sec:ssvm}) cannot be done efficiently 
+if the no duplicates constraints are required, moreover, we would like to recommend more than one trajectories given a query.
+To achieve this, we resort to a variant of the list Viterbi algorithm~\cite{nilsson2001sequentially,seshadri1994list}
+which sequentially find the $k$-th best (scored) trajectory given the best, $2$nd best, \dots, $(k-1)$-th best (scored) trajectories,
+as described in Algorithm~\ref{alg:listviterbi}.
+
+
+\subsection{Sub-tour Elimination}
+\label{sec:subtour}
+
+% ILP for subtour elimination
+The no duplicates constraint can be achieved by adapting the sub-tour elimination constraints of the travelling salesman problem (TSP),
+in particular, we solve the following integer linear program (ILP),
+\begin{alignat}{5}
+& \max_{u,v} ~&& \sum_{k=1}^M \mathbf{w}_k^\top \phi_k(\mathbf{x}, p_k) \sum_{j=1}^M u_{jk} + 
+                 \sum_{j=1}^M \sum_{k=1}^M u_{jk} \mathbf{w}_{jk}^\top \phi_{j, k}(\mathbf{x}, p_j, p_k) \\
+& s.t. ~~ ~&& u_{jk}, ~z_j \in \{0, 1\}, ~u_{jj}=0, ~z_1=0, ~v_j \in \mathbf{Z},~ p_j \in \mathcal{P}, ~\forall j, k = 1,\cdots,M   \label{eq:cons1} \\
+&          && \sum_{k=2}^M u_{1k} = 1, ~\sum_{j=2}^M u_{j1} = 0  \label{eq:cons2} \\
+&          && \sum_{j=1}^M u_{jl} = z_l + \sum_{k=2}^M u_{lk} \le 1,   ~\forall l=2,\cdots,M                    \label{eq:cons3} \\
+&          && \sum_{j=1}^M \sum_{k=1}^M u_{jk} = L-1,                                                           \label{eq:cons4} \\
+&          && v_j - v_k + 1 \le (M-1) (1-u_{jk}),                     \forall j,k=2,\cdots,M                    \label{eq:cons5}
+\end{alignat}
+where $u_{jk}$ is a binary decision variable that determines whether the transition from $p_j$ to $p_k$ is in the resulting trajectory,
+$z_j$ is a binary decision variable that determines whether $p_j$ is the last POI in trajectory.
+$L$ is the number of POIs in trajectory.
+For brevity, we arrange the POIs such that $p_1 = s$.
+Firstly, the desired trajectory should start from $s$ (Constraint~\ref{eq:cons2}).
+In addition, any POI could be visited at most once (Constraint~\ref{eq:cons3}).
+Moreover, only $L-1$ transitions between POIs are permitted (Constraint~\ref{eq:cons4}),
+i.e., the number of POI visits should be exactly $L$ (including $s$).
+The last constraint, where $v_i$ is an auxiliary variable,
+enforces that only a single sequence of POIs without sub-tours is permitted in the trajectory.
+
+If we employ the above ILP to do loss-augmented inference, one restriction is that the loss should be a linear function of $u_{jk}$,
+e.g., $\Delta(\mathbf{y}, \bar{\mathbf{y}}) = 1 - \sum_{j=1}^M \sum_{k=1}^M u_{j, y_k}$ if we define the loss as the number of mispredicted POIs,
+where $\mathbf{y}$ is the ground truth and $\bar{\mathbf{y}}$ is the trajectory corresponding to the optimal solution of this ILP.
+
+
+% 2 uses of list Viterbi: 1) multiple ground truths; 2) subtour elimination
+
+\begin{algorithm}[htbp]
+\caption{The list Viterbi algorithm for inference}
+\label{alg:listviterbi}
+\begin{algorithmic}[1]
+\STATE \textbf{Input}: $\mathbf{x}=(s, K),~ \mathcal{P},~ \mathbf{w},~ \Psi,~ l$
+%\STATE Initialise score matrices $\alpha,~ \beta,~ f_t,~ f_{t, t+1}$, a max-heap $H,~ k=0$.
+\STATE Initialise score matrices $\alpha,~ \beta,~ f_{t, t+1}$, a max-heap $H$, result set $R$, $k=0$.
+\STATE $\triangleright$ Do the forward-backward procedure~\cite{rabiner1989tutorial}
+\STATE $\forall p_j \in \mathcal{P},~ \alpha_t(p_j) = 
+        \begin{cases}
+        0,~ t = 1 \\
+        \max_{p_i \in \mathcal{P}} \left\{ \alpha_{t-1}(p_i) + \mathbf{w}_{ij}^\top \Psi_{ij}(\mathbf{x}, p_i, p_j) + 
+        \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) \right\},~ t=2,\dots,K
+        \end{cases}$
+
+\STATE $\forall p_i \in \mathcal{P},~ \beta_t(p_i) = 
+        \begin{cases}
+        0,~ t = K \\
+        \max_{p_j \in \mathcal{P}} \left\{ \mathbf{w}_{ij}^\top \Psi_{ij}(\mathbf{x}, p_i, p_j) + 
+        \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j) \right\},~ t = K-1,\dots,1
+        \end{cases}$
+
+%\STATE $\forall p_i \in \mathcal{P},~ f_t(p_i) = \alpha_t(p_i) + \beta_t(p_i),~ t = 1,\dots,K$
+\STATE $\forall p_i, p_j \in \mathcal{P},~ f_{t,t+1}(p_i, p_j) = \alpha_t(p_i) + \mathbf{w}_{ij}^\top \Psi_{ij}(\mathbf{x}, p_i, p_j) + 
+                              \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j),~ t = 1,\dots,K-1$
+
+\STATE $\triangleright$ Identify the best (scored) trajectory $\mathbf{y}^1=(y_1^1,\dots,y_K^1)$ (possibly with sub-tours)
+\STATE $y_t^1 = \begin{cases}
+                s,~ t = 1 \\
+%                \argmax_{p \in \mathcal{P}} \left\{ f_{1,2}(s, p) \right\},~ t = 2, \\
+                \argmax_{p \in \mathcal{P}} \left\{ f_{t-1,t}(y_{t-1}^1, p) \right\},~ t = 2,\dots,K
+                \end{cases}$
+
+%\STATE $r^1 = \max_{p \in \mathcal{P}} \left\{ f_K(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
+\STATE $r^1 = \max_{p \in \mathcal{P}} \left\{ \alpha_{K}(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
+\STATE $H.\textit{push}\left(r^1,~ (\mathbf{y}^1, \textsc{nil}, \emptyset) \right)$
+
+\WHILE{$H \ne \emptyset$ \textbf{and} $k < \,|\mathcal{P}|^{K-1} - \prod_{t=2}^K (|\mathcal{P}|-t+1)$}
+    \STATE $r^k,~ (\mathbf{y}^k, I, S) = H.\textit{pop}()~~~ \triangleright$ 
+           $r^k$ is the score of $\mathbf{y}^k=(y_1^k,\dots,y_K^k)$, $I$ is the partition index, and $S$ is the exclude set
+    \STATE $k = k + 1$
+    \STATE Add $\mathbf{y}^k$ to $R$ if NO sub-tours in $\mathbf{y}^k$
+    \RETURN $R$ if it contains $l$ trajectories
+    \STATE $\bar{I} = \begin{cases}
+                      2,~ I = \textsc{nil} \\
+                      I,~ \text{otherwise}
+                      \end{cases}$
+
+    \FOR{$t = \bar{I},\dots,K$}
+        \STATE $\bar{S} = \begin{cases}
+                          S \cup \{ y_t^k \},~ t = \bar{I} \\
+                          \{ y_t^k \},~ \text{otherwise}
+                          \end{cases}$
+
+        \STATE $\bar{y}_j = \begin{cases}
+                            y_j^k,~~ j=1,\dots,t-1 \\
+                            %\argmax_{p \in \mathcal{P} \setminus \textit{new\_exclude\_set}} f_{t-1,t}(y_{t-1}^k, p),~ j=t \\
+                            \argmax_{p \in \mathcal{P} \setminus \bar{S}} \left\{ f_{t-1,t}(y_{t-1}^k, p) \right\},~ j=t \\
+                            \argmax_{p \in \mathcal{P}} \left\{ f_{j-1, j}(\bar{y}_{j-1}, p) \right\},~ j=t+1,\dots,K
+                \end{cases}$
+        \STATE $\bar{r} = \begin{cases}
+                          f_{t-1,t}(y_{t-1}^k, \bar{y}_t),~ I = \textsc{nil} \\
+                          r^k + f_{t-1,t}(y_{t-1}^k, \bar{y}_t) - f_{t-1,t}(y_{t-1}^k, y_t^k),~ \text{otherwise}
+                          \end{cases}$
+
+        $H.\textit{push}\left(\bar{r}, (\bar{\mathbf{y}}, t, \bar{S}) \right)$
+    \ENDFOR
+\ENDWHILE
+\end{algorithmic}
+\end{algorithm}
+ 

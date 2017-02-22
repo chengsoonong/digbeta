@@ -1,7 +1,8 @@
 % Use the following line _only_ if you're still using LaTeX 2.09.
 %\documentstyle[icml2017,epsf,natbib]{article}
 % If you rely on Latex2e packages, like most moden people use this:
-\documentclass{article}
+%\documentclass{article}
+\documentclass[9pt]{extarticle}
 
 % use Times
 \usepackage{times}
@@ -51,9 +52,12 @@
 \usepackage{algorithm}
 \usepackage{algorithmic}
 \usepackage[sc]{mathpazo}
-\linespread{1.05}         % Palladio needs more leading (space between lines)
-\usepackage[T1]{fontenc}
+%\linespread{1.05}         % Palladio needs more leading (space between lines)
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
 %\usepackage{subcaption}  % sub-figures
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{booktabs} % professional-quality tables
 \usepackage{graphicx}
 \graphicspath{{fig/}} % Location of the graphics files
 
@@ -67,7 +71,22 @@
 \newcommand{\given}{\mid}
 \newcommand{\llb}{\llbracket}
 \newcommand{\rrb}{\rrbracket}
+\newcommand{\indicator}[1]{\llbracket #1 \rrbracket}
+\newcommand{\eat}[1]{}
+\newcommand{\Q}{\mathsf{Q}}
+\newcommand{\X}{\mathsf{X}}
+\newcommand{\Y}{\mathsf{Y}}
+\newcommand{\CCal}{\mathscr{C}}
+\newcommand{\QCal}{\mathscr{Q}}
+\newcommand{\XCal}{\mathscr{X}}
+\newcommand{\YCal}{\mathscr{Y}}
+\newcommand{\SSf}{\mathsf{S}}
+\newcommand{\Real}{\mathbb{R}}
+\newcommand{\E}[2]{\underset{#1}{\mathbb{E}}\left[ #2 \right]}
+\newcommand{\ES}[2]{\underset{#1}{\mathbb{E}}\, #2}
 
+\newcommand{\eg}{e.g.\ }
+\newcommand{\ie}{i.e.\ }
 
 
 
@@ -144,12 +163,12 @@ The purpose of this document is to provide both the basic paper template and
 submission guidelines. Abstracts should be a single paragraph, between 4--6 sentences long, ideally.  Gross violations will trigger corrections at the camera-ready phase.
 \end{abstract}
 
-
-
-\input{introduction}
-\input{problem}
-\input{methods}
-\input{experiment}
+\input{1-introduction}
+\input{2-multiset}
+\input{3-trajrec}
+\input{4-experiment}
+\input{5-related}
+\input{6-supplement}
 
 % Acknowledgements should only appear in the accepted version.
 \section*{Acknowledgements}

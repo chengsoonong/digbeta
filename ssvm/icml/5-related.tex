@@ -1,153 +1,8 @@
-\documentclass{article}
+\section{Related work}
+\label{sec:related}
 
-\usepackage[left=1.25in, top=1in, bottom=1in, right=1.25in]{geometry}
-\parskip 2.mm
-\parindent 0.mm
-
-\usepackage[utf8]{inputenc} % allow utf-8 input
-\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
-\usepackage[colorlinks=true,citecolor=blue]{hyperref}       % hyperlinks
-\usepackage{url}            % simple URL typesetting
-\usepackage{booktabs}       % professional-quality tables
-\usepackage{amsfonts}       % blackboard math symbols
-\usepackage{nicefrac}       % compact symbols for 1/2, etc.
-\usepackage{microtype}      % microtypography
-
-\usepackage{natbib}
-
-\usepackage{float}
-\usepackage[font=footnotesize,format=hang]{caption}
-\usepackage{graphicx}
-\usepackage[export]{adjustbox}
-\usepackage{enumerate}
-
-\usepackage{amsmath,amssymb,amsthm}
-\usepackage{newtxtext,newtxmath}
-\usepackage[mathscr]{eucal}
-\usepackage{stmaryrd}
-%\usepackage{stix}
-
-\usepackage{mdframed}
-\usepackage{setspace}
-
-\usepackage{booktabs,colortbl,multirow}
-
-%%%%%%%%%%%%%%%%%%%%%
-\newcommand*\widefbox[1]{\fbox{\hspace{0.8em}#1\hspace{0.8em}}}
-
-\graphicspath{{figs//}}
-
-%\allowdisplaybreaks
-
-%%%
-
-%
-
-\newcommand{\eg}{e.g.\ }
-\newcommand{\ie}{i.e.\ }
-
-%
-
-\newcommand{\Equation}[1]{Equation \ref{#1}}
-
-\newcommand{\defEq}{\stackrel{.}{=}}
-
-\newcommand{\indicator}[1]{\llbracket #1 \rrbracket}
-\newcommand{\sign}{\operatorname{sign}}
-
-\newcommand{\tick}{$\checkmark$}
-\newcommand{\cross}{$\times$}
-
-\newcommand\independent{\protect\mathpalette{\protect\independenT}{\perp}}
-\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
-
-%
-
-\newcommand{\argmin}[2]{\underset{#1}{\operatorname{Argmin }}\, #2}
-\newcommand{\argmax}[2]{\underset{#1}{\operatorname{Argmax }}\, #2}
-\newcommand{\argminUnique}[2]{\underset{#1}{\operatorname{argmin }}\, #2}
-\newcommand{\argmaxUnique}[2]{\underset{#1}{\operatorname{argmax }}\, #2}
-
-\renewcommand{\Pr}{\mathbb{P}}
-\newcommand{\E}[2]{\underset{#1}{\mathbb{E}}\left[ #2 \right]}
-\newcommand{\ES}[2]{\underset{#1}{\mathbb{E}}\, #2}
-
-%
-
-\newcommand{\A}{\mathsf{A}}
-\newcommand{\B}{\mathsf{B}}
-\newcommand{\C}{\mathsf{C}}
-\newcommand{\D}{\mathsf{D}}
-\newcommand{\F}{\mathsf{F}}
-\newcommand{\G}{\mathsf{G}}
-\newcommand{\HSf}{\mathsf{H}}
-\newcommand{\I}{\mathsf{I}}
-\newcommand{\K}{\mathsf{K}}
-\newcommand{\X}{\mathsf{X}}
-\newcommand{\Y}{\mathsf{Y}}
-\newcommand{\YHat}{\hat{\mathsf{Y}}}
-\newcommand{\PP}{\mathsf{P}}
-\newcommand{\Q}{\mathsf{Q}}
-\newcommand{\R}{\mathsf{R}}
-\newcommand{\SSf}{\mathsf{S}}
-\newcommand{\T}{\mathsf{T}}
-\newcommand{\U}{\mathsf{U}}
-\newcommand{\V}{\mathsf{V}}
-\newcommand{\Z}{\mathsf{Z}}
-
-\newcommand{\f}{\mathbf{f}}
-\newcommand{\m}{\mathbf{m}}
-\newcommand{\uu}{\mathbf{u}}
-\newcommand{\vv}{\mathbf{v}}
-\newcommand{\w}{\mathbf{w}}
-\newcommand{\x}{\mathbf{x}}
-\newcommand{\y}{\mathbf{y}}
-\newcommand{\z}{\mathbf{z}}
-
-\newcommand{\noise}{\sigma_\epsilon^2}
-\newcommand{\prior}{\sigma_\w^2}
-
-%
-
-\newcommand{\ACal}{\mathscr{A}}
-\newcommand{\BCal}{\mathscr{B}}
-\newcommand{\CCal}{\mathscr{C}}
-\newcommand{\DCal}{\mathscr{D}}
-\newcommand{\ECal}{\mathscr{E}}
-\newcommand{\FCal}{\mathscr{F}}
-\newcommand{\GCal}{\mathscr{G}}
-\newcommand{\HCal}{\mathscr{H}}
-\newcommand{\ICal}{\mathscr{I}}
-\newcommand{\LCal}{\mathscr{L}}
-\newcommand{\MCal}{\mathscr{M}}
-\newcommand{\NCal}{\mathscr{N}}
-\newcommand{\PCal}{\mathscr{P}}
-\newcommand{\QCal}{\mathscr{Q}}
-\newcommand{\RCal}{\mathscr{R}}
-\newcommand{\SCal}{\mathscr{S}}
-\newcommand{\TCal}{\mathscr{T}}
-\newcommand{\UCal}{\mathscr{U}}
-\newcommand{\VCal}{\mathscr{V}}
-\newcommand{\WCal}{\mathscr{W}}
-\newcommand{\XCal}{\mathscr{X}}
-\newcommand{\YCal}{\mathscr{Y}}
-\newcommand{\ZCal}{\mathscr{Z}}
-
-\newcommand{\Real}{\mathbb{R}}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\title{Trajectory recommendation and ranking problems}
-%\author{Aditya Krishna Menon \\ {\tt aditya.menon@data61.csiro.au}}
-
-\begin{document}
-
-\maketitle
-
-\begin{abstract}
 This note attempts to relate trajectory recommendation to several problems in the ranking literature.
 At present, we believe the problem bears similarity to both subset and label ranking.
-\end{abstract}
 
 %
 \textbf{Trajectory recommendation}.
@@ -183,7 +38,7 @@ another where the ranking is over \emph{labels}.
 We survey representative problems from each of these settings,
 and connect the ``master'' problem from each to trajectory recommendation.
 
-\begin{table}[!h]
+\begin{table*}[!h]
 	\centering
 	\renewcommand{\arraystretch}{1.25}
 	\begin{tabular}{@{}llll@{}}
@@ -203,7 +58,7 @@ and connect the ``master'' problem from each to trajectory recommendation.
 	
 	\caption{Ranking problems considered in document; we have (instance, label, query) sets $(\XCal,\YCal,\QCal)$, and categories $K \in \mathbb{N}_+$.}
 	\label{tbl:problems}
-\end{table}
+\end{table*}
 
 \vspace{12pt}
 \hrule
@@ -293,7 +148,7 @@ Pick any instance set $\XCal$
 and category set $\CCal$.
 %For some $C \in \mathbb{N}_+$,
 Let $\YCal = \{ 0, 1 \}^{|\CCal|}$.
-In multilabel learning,\footnote{I was wrong about ``multiclass multilabel learning''; apparently people use that to mean the problem as described here.}
+In multilabel learning,
 we have a training sample $\SSf = \{ ( x^{(i)}, y^{(i)} ) \}_{i = 1}^N$,
 where
 $x^{(i)} \in \XCal$,
@@ -361,5 +216,3 @@ In trajectory recommendation, one uses a ``query normalised'' training objective
 {\color{red} TODO: write down the objective explicitly.}
 
 {\color{red} TODO: multi-output multi-class classification.}
-
-\end{document}

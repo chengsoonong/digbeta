@@ -5,7 +5,7 @@
 \label{sec:dataset}
 
 % experiment protocol: Nested cross-validation with Monte-Carlo cross-validation for the inner loop
-We experiment methods developed in Section~\ref{sec:method} on trajectories extracted from Flickr photos~\cite{thomee2016yfcc100m}.
+We experiment methods developed in Section~\ref{sec:trajrec} on trajectories extracted from Flickr photos~\cite{thomee2016yfcc100m}.
 
 \subsection{Features}
 \label{sec:feature}
@@ -47,7 +47,7 @@ features that describe the transition preference between different POIs are show
 \caption{POI features used to estimate the (feature-wise) transition probabilities}
 \label{tab:tranfeature}
 \centering
-%\setlength{\tabcolsep}{28pt} % tweak the space between columns
+\setlength{\tabcolsep}{2pt} % tweak the space between columns
 \begin{tabular}{l|l} \hline
 \textbf{Feature}       & \textbf{Description} \\ \hline
 \texttt{category}      & category of POI \\
@@ -72,18 +72,20 @@ Metrics researchers have used include
 \item F$_1$ score on points~\cite{ijcai15}, where we care about the set of correctly recommended POIs. 
       Let $\texttt{set}(\mathbf{y})$ denote the set of POIs in trajectory $\mathbf{y}$, F$_1$ score on points is defined as
 \begin{equation*}
-F_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{2  P_{\textsc{point}}  R_{\textsc{point}}}{P_{\textsc{point}} + R_{\textsc{point}}} ~~\text{where}~
-P_{\textsc{point}} = \frac{| \texttt{set}(\hat{\mathbf{y}}) \cap \texttt{set}(\mathbf{y}) |}{| \texttt{set}(\hat{\mathbf{y}}) |}~\text{and}~
-R_{\textsc{point}} = \frac{| \texttt{set}(\hat{\mathbf{y}}) \cap \texttt{set}(\mathbf{y}) |}{| \texttt{set}(\mathbf{y}) |}.
+F_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{2  P_{\textsc{point}}  R_{\textsc{point}}}{P_{\textsc{point}} + R_{\textsc{point}}}
+%~~\text{where}~
+%P_{\textsc{point}} = \frac{| \texttt{set}(\hat{\mathbf{y}}) \cap \texttt{set}(\mathbf{y}) |}{| \texttt{set}(\hat{\mathbf{y}}) |}~\text{and}~
+%R_{\textsc{point}} = \frac{| \texttt{set}(\hat{\mathbf{y}}) \cap \texttt{set}(\mathbf{y}) |}{| \texttt{set}(\mathbf{y}) |}.
 \end{equation*}
 If $| \hat{\mathbf{y}} | = | \mathbf{y} |$, this metric is just the unordered Hamming loss, 
 i.e., Hamming loss between two binary indicator vectors of size $| \mathcal{P} |$.
 
 \item F$_1$ score on pairs~\cite{cikm16paper}, where we care about the set of correctly predicted POI pairs,
 \begin{equation*}
-\text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}{P_{\textsc{pair}} + R_{\textsc{pair}}}~~\text{where}~
-P_{\textsc{pair}} = \frac{N_c} {| \texttt{set}(\hat{\mathbf{y}}) | (| \texttt{set}(\hat{\mathbf{y}}) | - 1) / 2}~\text{and}~
-R_{\textsc{pair}} = \frac{N_c} {| \texttt{set}(\mathbf{y}) | (| \texttt{set}(\mathbf{y}) | - 1) / 2},
+\text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}{P_{\textsc{pair}} + R_{\textsc{pair}}}
+%~~\text{where}~
+%P_{\textsc{pair}} = \frac{N_c} {| \texttt{set}(\hat{\mathbf{y}}) | (| \texttt{set}(\hat{\mathbf{y}}) | - 1) / 2}~\text{and}~
+%R_{\textsc{pair}} = \frac{N_c} {| \texttt{set}(\mathbf{y}) | (| \texttt{set}(\mathbf{y}) | - 1) / 2},
 \end{equation*}
 and $N_c = \sum_{j=1}^{| \mathbf{y} | - 1} \sum_{k=j+1}^{| \mathbf{y} |} \llb y_j \prec_{\bar{\mathbf{y}}} y_k \rrb$,
 here $y_j \prec_{\bar{\mathbf{y}}} y_k$ denotes that POI $y_j$ appears before POI $y_k$ in trajectory $\bar{\mathbf{y}}$.
@@ -111,16 +113,15 @@ C &= \frac{1}{2} \sum_{i,j} \left(\llb r_i < r_j \rrb  \llb \hat{r}_i < \hat{r}_
      \llb r_i > r_j \rrb  \llb \hat{r}_i > \hat{r}_j \rrb \right), \\
 D &= \frac{1}{2} \sum_{i,j} \left(\llb r_i < r_j \rrb  \llb \hat{r}_i > \hat{r}_j \rrb +
      \llb r_i > r_j \rrb  \llb \hat{r}_i < \hat{r}_j \rrb \right), \\
-T_{\mathbf{y}} &= \frac{1}{2} \sum_{i \ne j} \llb r_i = r_j \rrb 
-                = \frac{1}{2} \sum_{i \ne j} \llb r_i = 0 \rrb  \llb r_j = 0 \rrb 
-                = \frac{1}{2} \left( |\mathcal{P}| - K \right) \left( |\mathcal{P}| - K - 1 \right), \\ 
-T_{\hat{\mathbf{y}}} &= \frac{1}{2} \sum_{i \ne j} \llb \hat{r}_i = \hat{r}_j \rrb
-                      = \frac{1}{2} \sum_{i \ne j} \llb \hat{r}_i = 0 \rrb  \llb \hat{r}_j = 0 \rrb
-                      = \frac{1}{2} \left( |\mathcal{P}| - K \right) \left( |\mathcal{P}| - K - 1 \right), \\ 
-T_{\mathbf{y},\hat{\mathbf{y}}} &= \frac{1}{2} \sum_{i \ne j} \llb r_i = r_j \rrb  \llb \hat{r}_i = \hat{r}_j \rrb
-                                 = \frac{1}{2} \sum_{i \ne j} \llb r_i = 0 \rrb  \llb r_j = 0 \rrb 
-                                   \llb \hat{r}_i = 0 \rrb  \llb \hat{r}_j = 0 \rrb
-                                 = \frac{1}{2} {d(d-1)},
+T_{\mathbf{y}} &= \frac{1}{2} \sum_{i \ne j} \llb r_i = r_j \rrb \\
+               &= \frac{1}{2} \sum_{i \ne j} \llb r_i = 0 \rrb  \llb r_j = 0 \rrb \\
+               &= \frac{1}{2} \left( |\mathcal{P}| - K \right) \left( |\mathcal{P}| - K - 1 \right), \\ 
+T_{\hat{\mathbf{y}}} &= \frac{1}{2} \sum_{i \ne j} \llb \hat{r}_i = \hat{r}_j \rrb \\
+                     &= \frac{1}{2} \sum_{i \ne j} \llb \hat{r}_i = 0 \rrb  \llb \hat{r}_j = 0 \rrb \\
+                     &= \frac{1}{2} \left( |\mathcal{P}| - K \right) \left( |\mathcal{P}| - K - 1 \right), \\ 
+T_{\mathbf{y},\hat{\mathbf{y}}} &= \frac{1}{2} \sum_{i \ne j} \llb r_i = r_j \rrb  \llb \hat{r}_i = \hat{r}_j \rrb \\
+                                &= \frac{1}{2} \sum_{i \ne j} \llb r_i = 0 \rrb  \llb r_j = 0 \rrb 
+                                   \llb \hat{r}_i = 0 \rrb  \llb \hat{r}_j = 0 \rrb.
 \end{align*}
 Kendall's $\tau$ (version $b$)~\cite{kendall1945,agresti2010analysis} is
 \begin{equation*}
@@ -133,15 +134,15 @@ Furthermore, F$_1$ score on points can be written as
 F_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{1}{K} \sum_i \llb r_i > 0 \rrb  \llb \hat{r}_i > 0 \rrb,
 \end{equation*}
 and F$_1$ score on pairs can be written as
-\begin{equation*}
-\text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}) 
-= \frac{\frac{1}{2} \sum_{i,j} 
-  \llb r_i < r_j \rrb  \llb r_i > 0 \rrb  
-  \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i > 0 \rrb + 
-  \frac{1}{2} \sum_{i,j} 
-  \llb r_i > r_j \rrb  \llb r_j > 0 \rrb 
-  \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j > 0 \rrb}{K(K-1)/2}.
-\end{equation*}
+\begin{align*}
+& \text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}) \\
+&= \left( \frac{1}{2} \sum_{i,j} \llb r_i < r_j \rrb  \llb r_i > 0 \rrb \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i > 0 \rrb \right. \\
+&  \left. ~+ \frac{1}{2} \sum_{i,j} \llb r_i > r_j \rrb  \llb r_j > 0 \rrb \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j > 0 \rrb \right)
+   \cdot \frac{1}{K(K-1)/2} \\
+&= \frac{\sum_{i,j} \llb r_i < r_j \rrb  \llb r_i > 0 \rrb \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i > 0 \rrb +
+         \sum_{i,j} \llb r_i > r_j \rrb  \llb r_j > 0 \rrb \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j > 0 \rrb} 
+        {K(K-1)}
+\end{align*}
 
 
 
