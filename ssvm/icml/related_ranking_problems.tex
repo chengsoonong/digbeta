@@ -1,0 +1,365 @@
+\documentclass{article}
+
+\usepackage[left=1.25in, top=1in, bottom=1in, right=1.25in]{geometry}
+\parskip 2.mm
+\parindent 0.mm
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage[colorlinks=true,citecolor=blue]{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+
+\usepackage{natbib}
+
+\usepackage{float}
+\usepackage[font=footnotesize,format=hang]{caption}
+\usepackage{graphicx}
+\usepackage[export]{adjustbox}
+\usepackage{enumerate}
+
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{newtxtext,newtxmath}
+\usepackage[mathscr]{eucal}
+\usepackage{stmaryrd}
+%\usepackage{stix}
+
+\usepackage{mdframed}
+\usepackage{setspace}
+
+\usepackage{booktabs,colortbl,multirow}
+
+%%%%%%%%%%%%%%%%%%%%%
+\newcommand*\widefbox[1]{\fbox{\hspace{0.8em}#1\hspace{0.8em}}}
+
+\graphicspath{{figs//}}
+
+%\allowdisplaybreaks
+
+%%%
+
+%
+
+\newcommand{\eg}{e.g.\ }
+\newcommand{\ie}{i.e.\ }
+
+%
+
+\newcommand{\Equation}[1]{Equation \ref{#1}}
+
+\newcommand{\defEq}{\stackrel{.}{=}}
+
+\newcommand{\indicator}[1]{\llbracket #1 \rrbracket}
+\newcommand{\sign}{\operatorname{sign}}
+
+\newcommand{\tick}{$\checkmark$}
+\newcommand{\cross}{$\times$}
+
+\newcommand\independent{\protect\mathpalette{\protect\independenT}{\perp}}
+\def\independenT#1#2{\mathrel{\rlap{$#1#2$}\mkern2mu{#1#2}}}
+
+%
+
+\newcommand{\argmin}[2]{\underset{#1}{\operatorname{Argmin }}\, #2}
+\newcommand{\argmax}[2]{\underset{#1}{\operatorname{Argmax }}\, #2}
+\newcommand{\argminUnique}[2]{\underset{#1}{\operatorname{argmin }}\, #2}
+\newcommand{\argmaxUnique}[2]{\underset{#1}{\operatorname{argmax }}\, #2}
+
+\renewcommand{\Pr}{\mathbb{P}}
+\newcommand{\E}[2]{\underset{#1}{\mathbb{E}}\left[ #2 \right]}
+\newcommand{\ES}[2]{\underset{#1}{\mathbb{E}}\, #2}
+
+%
+
+\newcommand{\A}{\mathsf{A}}
+\newcommand{\B}{\mathsf{B}}
+\newcommand{\C}{\mathsf{C}}
+\newcommand{\D}{\mathsf{D}}
+\newcommand{\F}{\mathsf{F}}
+\newcommand{\G}{\mathsf{G}}
+\newcommand{\HSf}{\mathsf{H}}
+\newcommand{\I}{\mathsf{I}}
+\newcommand{\K}{\mathsf{K}}
+\newcommand{\X}{\mathsf{X}}
+\newcommand{\Y}{\mathsf{Y}}
+\newcommand{\YHat}{\hat{\mathsf{Y}}}
+\newcommand{\PP}{\mathsf{P}}
+\newcommand{\Q}{\mathsf{Q}}
+\newcommand{\R}{\mathsf{R}}
+\newcommand{\SSf}{\mathsf{S}}
+\newcommand{\T}{\mathsf{T}}
+\newcommand{\U}{\mathsf{U}}
+\newcommand{\V}{\mathsf{V}}
+\newcommand{\Z}{\mathsf{Z}}
+
+\newcommand{\f}{\mathbf{f}}
+\newcommand{\m}{\mathbf{m}}
+\newcommand{\uu}{\mathbf{u}}
+\newcommand{\vv}{\mathbf{v}}
+\newcommand{\w}{\mathbf{w}}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\z}{\mathbf{z}}
+
+\newcommand{\noise}{\sigma_\epsilon^2}
+\newcommand{\prior}{\sigma_\w^2}
+
+%
+
+\newcommand{\ACal}{\mathscr{A}}
+\newcommand{\BCal}{\mathscr{B}}
+\newcommand{\CCal}{\mathscr{C}}
+\newcommand{\DCal}{\mathscr{D}}
+\newcommand{\ECal}{\mathscr{E}}
+\newcommand{\FCal}{\mathscr{F}}
+\newcommand{\GCal}{\mathscr{G}}
+\newcommand{\HCal}{\mathscr{H}}
+\newcommand{\ICal}{\mathscr{I}}
+\newcommand{\LCal}{\mathscr{L}}
+\newcommand{\MCal}{\mathscr{M}}
+\newcommand{\NCal}{\mathscr{N}}
+\newcommand{\PCal}{\mathscr{P}}
+\newcommand{\QCal}{\mathscr{Q}}
+\newcommand{\RCal}{\mathscr{R}}
+\newcommand{\SCal}{\mathscr{S}}
+\newcommand{\TCal}{\mathscr{T}}
+\newcommand{\UCal}{\mathscr{U}}
+\newcommand{\VCal}{\mathscr{V}}
+\newcommand{\WCal}{\mathscr{W}}
+\newcommand{\XCal}{\mathscr{X}}
+\newcommand{\YCal}{\mathscr{Y}}
+\newcommand{\ZCal}{\mathscr{Z}}
+
+\newcommand{\Real}{\mathbb{R}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{Trajectory recommendation and ranking problems}
+%\author{Aditya Krishna Menon \\ {\tt aditya.menon@data61.csiro.au}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This note attempts to relate trajectory recommendation to several problems in the ranking literature.
+At present, we believe the problem bears similarity to both subset and label ranking.
+\end{abstract}
+
+%
+\textbf{Trajectory recommendation}.
+Let $\CCal$ be a set of ``points of interest'' (POIs) in a city.
+Let $\QCal = \CCal \times \mathbb{N}_+$ be a set of possible queries, which comprise a start POI and a trip length.
+%For any $n \in \mathbb{N}_+$,
+%let
+%$\YCal_n = \CCal^{n}$ be the set of all possible length $n$-sequences of POIs,
+%which we call trajectories of length $n$.
+Let
+$\YCal = \bigcup_{n = 1}^\infty \CCal^{n}$ be the set of all possible sequences of POIs, which we call trajectories.
+In trajectory recommendation,
+we have a training sample $\SSf = \{ ( q^{(i)}, y^{(i)} ) \}_{i = 1}^N$,
+where
+$q^{(i)} = ( s^{(i)}, n^{(i)} ) \in \QCal$,
+and
+%$y^{(i)} \in \YCal_{n^{(i)}}$
+$y^{(i)} \in \YCal$
+is a trajectory of the specified length.
+Our goal is to learn a trajectory recommender %$f \colon \QCal \to \bigcup_{n = 1}^\infty \YCal_n$.
+$f \colon \QCal \to \YCal$.
+
+In general, $\SSf$ is characterised by the same $q \in \QCal$ appearing multiple times, with different trajectories $y \in \YCal$.
+One can equally partition the training sample by query, yielding
+$ \SSf = \{ ( q^{(j)}, ( y^{(1)}, \ldots, y^{(N_j)} ) ) \}_{j = 1}^{M} $,
+where $M$ is the number of unique queries,
+and $N_j$ is the number of trajectories associated with the $j$th query.
+
+We want to relate this problem to extant problems in the learning to rank literature.
+There are two main strands of work here:
+one where the ranking is over \emph{instances},
+another where the ranking is over \emph{labels}.
+We survey representative problems from each of these settings,
+and connect the ``master'' problem from each to trajectory recommendation.
+
+\begin{table}[!h]
+	\centering
+	\renewcommand{\arraystretch}{1.25}
+	\begin{tabular}{@{}llll@{}}
+		\toprule
+		\toprule
+		\textbf{Problem} & \textbf{Input} & \textbf{Output} & \textbf{Comments} \\
+		\toprule
+		Trajectory recommendation & $\{ ( q^{(i)}, y^{(i)} ) \}$ 		 & $f \colon \QCal \to \YCal$ & $\YCal = \bigcup_{n = 1}^\infty [K]^n$ \\
+		\midrule
+		Instance ranking & $\{ ( x^{(i)}, y^{(i)} ) \}$ 		 & $r \colon \XCal \to \Real$ & $\YCal$ totally ordered \\
+		Subset ranking 	 & $\{ ( q^{(i)}, x^{(i)}, y^{(i)} ) \}$ & $r \colon \QCal \times \XCal \to \Real$ & $\YCal$ totally ordered \\
+		\midrule
+		Multilabel learning & $\{ ( x^{(i)}, y^{(i)} ) \}$ 		 & $f \colon \XCal \to \YCal$ & $\YCal = \{ 0, 1 \}^K$ \\
+		Label ranking 		& $\{ ( x^{(i)}, y^{(i)} ) \}$ 		 & $r \colon \XCal \times [K] \to \Real$ & $\YCal = \{ 0, 1 \}^{K \times K}$ \\
+		\bottomrule
+	\end{tabular}
+	
+	\caption{Ranking problems considered in document; we have (instance, label, query) sets $(\XCal,\YCal,\QCal)$, and categories $K \in \mathbb{N}_+$.}
+	\label{tbl:problems}
+\end{table}
+
+\vspace{12pt}
+\hrule
+\vspace{12pt}
+
+%
+\textbf{Multipartite instance ranking}.
+Pick any instance set $\XCal$.
+For some $C \in \mathbb{N}_+$,
+let $\YCal = \{ 0, 1, \ldots, C - 1 \}$.
+In multipartite instance ranking,
+we have a training sample $\SSf = \{ ( x^{(i)}, y^{(i)} ) \}_{i = 1}^N$,
+where
+$x^{(i)} \in \XCal$,
+$y^{(i)} \in \YCal$.
+Our goal is to learn an instance ranker $r \colon \XCal \to \Real$.
+Performance is measured using the pairwise disagreement,
+$$ \mathrm{PD}( r ) = \ES{\X, \Y, \Y'}{ \indicator{\Y > \Y'} \cdot \indicator{ r( \X ) < r( \X' ) } }. $$
+
+When $C = 2$, $\YCal = \{ 0, 1 \}$, and this is the bipartite ranking problem.
+
+\emph{Example}.
+Suppose $\XCal$ represents features of various movies, and $C$ is the number of possible star ratings a person can give a movie.
+Then, we are given a snapshot of a single person's preference ranking over movies,
+where movies with higher star ratings are ranked above those with lower star ratings.
+We would look to find the complete preference ranking $r \colon \XCal \to \Real$ over movies.
+
+
+%
+\textbf{Subset ranking}.
+Pick any instance set $\XCal$,
+query set $\QCal$,
+and totally ordered label set $\YCal$.
+In subset ranking,\footnote{This appears to just be called ``learning to rank'', \eg in Tie-Yan Liu's book, and elsewhere in information retrieval. In machine learning, the terminology appears to come from a 2008 paper of Cossock and Zhang.}
+we have a training sample $\SSf = \{ ( q^{(i)}, x^{(i)}, y^{(i)} ) \}_{i = 1}^N$,
+where
+$q^{(i)} \in \QCal$,
+$x^{(i)} \in \XCal$,
+$y^{(i)} \in \YCal$.
+Our goal is to learn a query-instance ranker $r \colon \QCal \times \XCal \to \Real$.
+Performance is measured using the
+query-aggregated
+pairwise disagreement,
+$$ \mathrm{PD}_{\mathrm{query}}( r ) = \E{\Q}{ \ES{\X, \Y, \Y' \mid \Q}{ \indicator{ \Y > \Y' } \cdot \indicator{ r( \Q, \X ) < r( \Q, \X' ) } } }. $$
+
+This captures multipartite ranking as a special case.
+Suppose $\QCal = \{ 1 \}$, so that every example has the same query.
+Then, the problem trivially reduces to the multipartite setting.
+
+In general, $\SSf$ is characterised by the same $q \in \QCal$ appearing multiple times, with different trajectories $y \in \YCal$.
+One can equally partition the training sample by query, yielding
+$ \SSf = \{ ( q^{(j)}, ( ( x^{(1)}, y^{(1)} ), \ldots, ( x^{(N_j)}, y^{(N_j)} ) ) ) \}_{j = 1}^{M} $,
+where $M$ is the number of unique queries,
+and $N_j$ is the number of instance-label pairs associated with the $j$th query.
+
+\emph{Example}.
+Suppose $\XCal$ represents features of various movies, $\YCal = \{ 0, 1, \ldots, C - 1 \}$ where $C$ is the number of possible star ratings a person can give a movie,
+and $\QCal$ represents features of various people.
+Then, in subset ranking we are given snapshots of \emph{multiple} persons' preference rankings over movies.
+We would look to find the complete preference ranking $r \colon \QCal \times \XCal \to \Real$ for \emph{any} possible user.
+
+\emph{Reduction from trajectory recommendation?}.
+Suppose $\XCal = \emptyset$,
+and let $\QCal, \YCal$ be as in the trajectory recommendation problem.
+Then, the training samples in the trajectory recommendation and subset ranking problem are identical.
+However, the subset ranking problem requires that we be able to compare two elements of $\YCal$, \ie that we can order the set of all trajectories of a given length.
+It is not obvious how to do this.
+
+Alternately, suppose $\XCal = \CCal$,
+let $\QCal$ be as in the trajectory recommendation problem,
+and let $\YCal = \{ 0, 1 \}$.
+Then, for a given query in trajectory recommendation,
+the corresponding trajectories could be unrolled into the POIs that are present in the trajectory, with an associated positive label;
+the POIs that are not present could be associated with a negative label.
+
+One could similarly do this for pairs of POIs, where the label is whether one POI appears ahead of another.
+This bears similarity to the trajectory recommendation problem when using pairwise features.
+
+
+\vspace{12pt}
+\hrule
+\vspace{12pt}
+
+%
+\textbf{Multilabel learning}.
+Pick any instance set $\XCal$
+and category set $\CCal$.
+%For some $C \in \mathbb{N}_+$,
+Let $\YCal = \{ 0, 1 \}^{|\CCal|}$.
+In multilabel learning,\footnote{I was wrong about ``multiclass multilabel learning''; apparently people use that to mean the problem as described here.}
+we have a training sample $\SSf = \{ ( x^{(i)}, y^{(i)} ) \}_{i = 1}^N$,
+where
+$x^{(i)} \in \XCal$,
+$y^{(i)} \in \YCal$.
+Our goal is to learn a multilabel classifier $f \colon \XCal \to \YCal$.
+Performance is measured via the risk
+$$ R( f ) = \E{\X, \Y}{ \ell( \Y, f( \X ) ) } $$
+for some multilabel loss function $\ell \colon \YCal \times \YCal \to \Real_+$.
+Examples are the subset 0-1 loss
+$$ \ell_{\mathrm{sub}}( y, \hat{y} ) = \indicator{ y \neq \hat{y} }, $$
+Hamming loss
+$$ \ell_{\mathrm{hamm}}( y, \hat{y} ) = \sum_{c = 1}^{|\CCal|} \indicator{ y_c \neq \hat{y}_c }, $$
+and ranking loss
+$$ \ell_{\mathrm{rank}}( y, \hat{y} ) = \sum_{c, c' = 1}^{|\CCal|} \indicator{ y_c < y_{c'} } \cdot \indicator{ \hat{y}_c > \hat{y}_c }. $$
+
+\emph{Example}.
+Suppose $\XCal$ represents features of various movies, and
+$\CCal = \{ 0, 1, \ldots, U \}$ where $U$ is some number of people who use a rating system.
+Then, in multilabel learning, we are given a snapshot of people's binary preference for movies.
+We would look to find a predictor of these people's preferences for any given movie.
+
+
+%
+\textbf{Label ranking}.
+Pick any instance set $\XCal$
+and category set $\CCal$.
+Let $\YCal \subset \{ 0, 1 \}^{|\CCal| \times |\CCal|}$ represent the set of (adjacency matrices for) all possible graphs over $\CCal$, excluding those with self-loops.
+In label ranking,
+we have a training sample $\SSf = \{ ( x^{(i)}, y^{(i)} ) \}_{i = 1}^N$,
+where
+$x^{(i)} \in \XCal$,
+$y^{(i)} \in \YCal$.
+Our goal is to learn a label ranker $r \colon \XCal \times \CCal \to \Real$.
+Performance is measured using the disagreement error
+$$ \mathrm{DA}( r ) = \E{\X, \Y}{ \frac{1}{\sum_{c, c'} \Y_{c c'}} \cdot \sum_{c, c' = 1}^{C} \indicator{\Y_{c c'} = 1} \cdot \indicator{ r( \X, c ) < r( \X, c' ) } }. $$
+
+This captures multilabel learning as a special case.
+Suppose $\YCal$ comprises the set of bipartite graphs.
+Then, we can equally encode any $y \in \YCal$
+as a vector $y \in \{ 0, 1 \}^{|\CCal|}$,
+where $y_i = 1$ if and only if $i$ is a source node in the graph.
+
+\emph{Example}.
+...
+
+\emph{Reduction from trajectory recommendation?}.
+Let $\CCal$ be a set of POIs above.
+Then $\YCal$ is the set of possible graphs over POIs,
+which includes the set of sequence graphs.
+If we treat the query set $\QCal$ in the trajectory recommendation problem as the instance set $\XCal$ in the label ranking problem,
+then the training samples for both problems align.
+That is, we can view trajectory recommendation as a special case of label ranking.
+
+One subtlety is the issue of the same query in the trajectory recommendation problem having multiple associated ground truths. 
+This is of course allowed in the label ranking problem (\ie it does not break the formulation),
+but is not explicitly dealt with it while training.
+In trajectory recommendation, one uses a ``query normalised'' training objective.
+
+\vspace{12pt}
+\hrule
+\vspace{12pt}
+
+{\color{red} TODO: probabilistic models of rankings, \eg Mallows, Plackett-Luce.}
+
+{\color{red} TODO: write down the objective explicitly.}
+
+{\color{red} TODO: multi-output multi-class classification.}
+
+\end{document}
