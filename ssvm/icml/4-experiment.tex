@@ -6,177 +6,72 @@
 
 % experiment protocol: Nested cross-validation with Monte-Carlo cross-validation for the inner loop
 We experiment methods developed in Section~\ref{sec:trajrec} on trajectories extracted from Flickr photos~\cite{thomee2016yfcc100m}.
+The statistics of datasets are shown in Table~\ref{tab:data} and 
+the histograms of the number of ground truths for queries are shown in Figure~\ref{fig:hist}.
 
-\subsection{Features}
-\label{sec:feature}
-
-The POI and query specific features extracted from trajectories are shown in Table~\ref{tab:poifeature},
-features that describe the transition preference between different POIs are shown in Table~\ref{tab:tranfeature}.
-
-\begin{table*}[ht]
-\caption{Features of POI $p$ with respect to query $(s,K)$}
-\label{tab:poifeature}
+% dataset stats
+\begin{table}[t]
+\caption{Statistics of trajectory dataset}
+\label{tab:data}
 \centering
-
-
-\setlength{\tabcolsep}{10pt} % tweak the space between columns
-\begin{tabular}{l|l} \hline
-\textbf{Feature}       & \textbf{Description} \\ \hline
-\texttt{category}      & one-hot encoding of the category of $p$ \\
-\texttt{neighbourhood} & one-hot encoding of the POI cluster that $p$ resides in \\
-\texttt{popularity}    & logarithm of POI popularity of $p$ \\
-\texttt{nVisit}        & logarithm of the total number of visit by all users at $p$ \\
-\texttt{avgDuration}  & logarithm of the average visit duration at $p$ \\
+\setlength{\tabcolsep}{4pt} % tweak the space between columns
+\begin{tabular}{l*{5}{r}} \hline
+\textbf{Dataset} & \textbf{\#Photos} & \textbf{\#Visits} & \textbf{\#Traj.} & \textbf{\#Users} & \textbf{\#Queries} \\ \hline
+Edinburgh & 82,060 & 33,944 & 5,028 & 1,454 & 147 \\
+Glasgow & 29,019 & 11,434 & 2,227 & 601 & 64 \\
+Melbourne & 94,142 & 23,995 & 5,106 & 1,000 & 280 \\
+Osaka & 392,420 & 7,747 & 1,115 & 450 & 47 \\
+Toronto & 157,505 & 39,419 & 6,057 & 1,395 & 99 \\
 \hline
-%\texttt{nOccurrence}            & the number of times $p$ occurred in a trajectory that satisfies the query \\ DON'T know given new query
-
-\texttt{trajLen}           & trajectory length $K$, i.e., the number of POIs required \\
-\texttt{sameCatStart}      & $1$ if the category of $p$ is the same as that of $s$, $-1$ otherwise \\
-\texttt{sameNeighbourhoodStart} & $1$ if $p$ resides in the same POI cluster as $s$, $-1$ otherwise \\
-\texttt{diffPopStart}    & real-valued difference in POI popularity of $p$ from that of $s$ \\
-\texttt{diffNVisitStart}        & real-valued difference in the total number of visit at $p$ from that at $s$ \\
-\texttt{diffDurationStart}  & real-valued difference in average duration at $p$ from that at $s$ \\
-\texttt{distStart}          & distance between $p$ and $s$, calculated using the Haversine formula \\
-\hline
-\end{tabular}
-\end{table*}
-
-
-
-\begin{table}[ht]
-\caption{POI features used to estimate the (feature-wise) transition probabilities}
-\label{tab:tranfeature}
-\centering
-\setlength{\tabcolsep}{2pt} % tweak the space between columns
-\begin{tabular}{l|l} \hline
-\textbf{Feature}       & \textbf{Description} \\ \hline
-\texttt{category}      & category of POI \\
-\texttt{neighbourhood} & the cluster that a POI resides in \\
-\texttt{popularity}    & (discretised) popularity of POI \\
-\texttt{nVisit}        & (discretised) total number of visit at POI \\
-\texttt{avgDuration}  & (discretised) average duration at POI \\ \hline
 \end{tabular}
 \end{table}
 
 
+% histogram of #ground truth
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=\textwidth]{hist.pdf}
+	\caption{Histogram of the number of ground truth}
+	\label{fig:hist}
+\end{figure*}
 
-\subsection{Evaluation metrics}
-\label{sec:metric}
 
-To evaluate the performance of a certain recommendation algorithm,
-we need to measure the similarity (or loss) given prediction $\hat{\mathbf{y}}$ and ground truth $\mathbf{y}$.
-Metrics researchers have used include
-\begin{itemize}
-\item Hamming loss $\frac{1}{K} \sum_{j=1}^K \llb \hat{y}_j \neq y_j \rrb$, this checks if every position is the same.
+% leave-one-out evaluation (with query aggregation)
+As described in Section~\ref{sec:queryagg}, 
+we first group trajectories according to queries that they conform to,
+then evaluate the performance of each algorithm using leave-one-out cross validation,
+where we hold each query and its associated trajectories for test and all other trajectories for training.
+% model selection (Monte Carlo CV) (with query aggregation): 90/10 random split for 5 times
+Furthermore, 
+the hyper-parameter (regularisation constant $C$) is tuned using the Monte Carlo cross validation~\cite{burman1989comparative} on training set.
 
-\item F$_1$ score on points~\cite{ijcai15}, where we care about the set of correctly recommended POIs. 
-      Let $\texttt{set}(\mathbf{y})$ denote the set of POIs in trajectory $\mathbf{y}$, F$_1$ score on points is defined as
-\begin{equation*}
-F_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{2  P_{\textsc{point}}  R_{\textsc{point}}}{P_{\textsc{point}} + R_{\textsc{point}}}
-%~~\text{where}~
-%P_{\textsc{point}} = \frac{| \texttt{set}(\hat{\mathbf{y}}) \cap \texttt{set}(\mathbf{y}) |}{| \texttt{set}(\hat{\mathbf{y}}) |}~\text{and}~
-%R_{\textsc{point}} = \frac{| \texttt{set}(\hat{\mathbf{y}}) \cap \texttt{set}(\mathbf{y}) |}{| \texttt{set}(\mathbf{y}) |}.
-\end{equation*}
-If $| \hat{\mathbf{y}} | = | \mathbf{y} |$, this metric is just the unordered Hamming loss, 
-i.e., Hamming loss between two binary indicator vectors of size $| \mathcal{P} |$.
-
-\item F$_1$ score on pairs~\cite{cikm16paper}, where we care about the set of correctly predicted POI pairs,
-\begin{equation*}
-\text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}{P_{\textsc{pair}} + R_{\textsc{pair}}}
-%~~\text{where}~
-%P_{\textsc{pair}} = \frac{N_c} {| \texttt{set}(\hat{\mathbf{y}}) | (| \texttt{set}(\hat{\mathbf{y}}) | - 1) / 2}~\text{and}~
-%R_{\textsc{pair}} = \frac{N_c} {| \texttt{set}(\mathbf{y}) | (| \texttt{set}(\mathbf{y}) | - 1) / 2},
-\end{equation*}
-and $N_c = \sum_{j=1}^{| \mathbf{y} | - 1} \sum_{k=j+1}^{| \mathbf{y} |} \llb y_j \prec_{\bar{\mathbf{y}}} y_k \rrb$,
-here $y_j \prec_{\bar{\mathbf{y}}} y_k$ denotes that POI $y_j$ appears before POI $y_k$ in trajectory $\bar{\mathbf{y}}$.
-We define pairs-F$_1 = 0$ when $N_c = 0$.
-
-\end{itemize}
-
-However, if we cast a trajectory $\mathbf{y} = (y_1,\dots,y_K)$ as a ranking of POIs in $\mathcal{P}$,
-where $y_k$ has a rank $| \mathcal{P} | - k + 1$ and any other POI $p \notin \mathbf{y}$ has a rank $0$ ($0$ is an arbitrary choice).
-We can make use of ranking evaluation metrics such as Kendall's $\tau$ by taking care of ties in ranks.
-
-Given a prediction $\hat{\mathbf{y}} = (\hat{y}_1, \hat{y}_2, \dots, \hat{y}_K)$ and ground truth $\mathbf{y} = (y_1, y_2, \dots, y_K)$,
-for a specific ordering of POIs $(p_1, p_2, \dots, p_{|\mathcal{P}|})$,
-we produce two ranks according to $\mathbf{y}$ and $\hat{\mathbf{y}}$,
-\begin{align*}
-r_i       &= \sum_{j=1}^K (| \mathcal{P} | - j + 1)  \llb p_i = y_j \rrb,~
-i = 1, \dots, | \mathcal{P} | \\
-\hat{r}_i &= \sum_{j=1}^K (| \mathcal{P} | - j + 1)  \llb p_i = \hat{y}_j \rrb,~ 
-i = 1, \dots, | \mathcal{P} |
+% evaluation metric: kendall's Tau (mention F1, pF1)
+To evaluate the performance of each algorithm variant, 
+we compute the Kendall's $\tau$ (version $b$)~\cite{kendall1945,agresti2010analysis} to measure the quality of recommendation.
+In particular,
+we define the rank of POIs $\mathcal{P}$ given trajectory $\mathbf{y} = (y_1,\dots,y_K)$ as
+\begin{align*} 
+r_\mathbf{y} &= (r_1,\dots,r_j,\dots,r_{|\mathcal{P}|}), \\
+r_j &= \sum_{k=1}^K (| \mathcal{P} | - k + 1)  \llb p_j = y_k \rrb, ~ j = 1, \dots, | \mathcal{P} |.
 \end{align*}
-where POIs not in $\mathbf{y}$ will have a rank of $0$ in $r$ and similarly in $r$.
-Then we have
-\begin{align*}
-C &= \frac{1}{2} \sum_{i,j} \left(\llb r_i < r_j \rrb  \llb \hat{r}_i < \hat{r}_j \rrb +
-     \llb r_i > r_j \rrb  \llb \hat{r}_i > \hat{r}_j \rrb \right), \\
-D &= \frac{1}{2} \sum_{i,j} \left(\llb r_i < r_j \rrb  \llb \hat{r}_i > \hat{r}_j \rrb +
-     \llb r_i > r_j \rrb  \llb \hat{r}_i < \hat{r}_j \rrb \right), \\
-T_{\mathbf{y}} &= \frac{1}{2} \sum_{i \ne j} \llb r_i = r_j \rrb \\
-               &= \frac{1}{2} \sum_{i \ne j} \llb r_i = 0 \rrb  \llb r_j = 0 \rrb \\
-               &= \frac{1}{2} \left( |\mathcal{P}| - K \right) \left( |\mathcal{P}| - K - 1 \right), \\ 
-T_{\hat{\mathbf{y}}} &= \frac{1}{2} \sum_{i \ne j} \llb \hat{r}_i = \hat{r}_j \rrb \\
-                     &= \frac{1}{2} \sum_{i \ne j} \llb \hat{r}_i = 0 \rrb  \llb \hat{r}_j = 0 \rrb \\
-                     &= \frac{1}{2} \left( |\mathcal{P}| - K \right) \left( |\mathcal{P}| - K - 1 \right), \\ 
-T_{\mathbf{y},\hat{\mathbf{y}}} &= \frac{1}{2} \sum_{i \ne j} \llb r_i = r_j \rrb  \llb \hat{r}_i = \hat{r}_j \rrb \\
-                                &= \frac{1}{2} \sum_{i \ne j} \llb r_i = 0 \rrb  \llb r_j = 0 \rrb 
-                                   \llb \hat{r}_i = 0 \rrb  \llb \hat{r}_j = 0 \rrb.
-\end{align*}
-Kendall's $\tau$ (version $b$)~\cite{kendall1945,agresti2010analysis} is
+Unlike the F$_1$ sore on points~\cite{ijcai15} or the F$_1$ score on pairs~\cite{cikm16paper}, 
+which only cares about either the set of correctly recommended POIs or the set of correctly predicted POI pairs,
+this metric taking both factors into account.
+
+In addition, we take the maximum of all pairs,
+i.e.,
 \begin{equation*}
-\tau_b(\mathbf{y}, \hat{\mathbf{y}}) = \frac{C - D}{\sqrt{(C + D + T) (C + D + U)}},
+\tau_b^{(i)} = 
+\max_{(\mathbf{y}, \hat{\mathbf{y}}) \in \{\mathbf{y}^{(ij)}\}_{j=1}^{N_i} \times \{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k} 
+\tau_b(r_\mathbf{y}, r_{\hat{\mathbf{y}}}),
 \end{equation*}
-where $T = T_{\mathbf{y}} - T_{\mathbf{y},\hat{\mathbf{y}}}$ and $U = T_{\hat{\mathbf{y}}} - T_{\mathbf{y},\hat{\mathbf{y}}}$.
-
-Furthermore, F$_1$ score on points can be written as
-\begin{equation*}
-F_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{1}{K} \sum_i \llb r_i > 0 \rrb  \llb \hat{r}_i > 0 \rrb,
-\end{equation*}
-and F$_1$ score on pairs can be written as
-\begin{align*}
-& \text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}) \\
-&= \left( \frac{1}{2} \sum_{i,j} \llb r_i < r_j \rrb  \llb r_i > 0 \rrb \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i > 0 \rrb \right. \\
-&  \left. ~+ \frac{1}{2} \sum_{i,j} \llb r_i > r_j \rrb  \llb r_j > 0 \rrb \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j > 0 \rrb \right)
-   \cdot \frac{1}{K(K-1)/2} \\
-&= \frac{\sum_{i,j} \llb r_i < r_j \rrb  \llb r_i > 0 \rrb \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i > 0 \rrb +
-         \sum_{i,j} \llb r_i > r_j \rrb  \llb r_j > 0 \rrb \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j > 0 \rrb} 
-        {K(K-1)}
-\end{align*}
-
-
-
-\subsection{Evaluation Protocol}
-\label{sec:protocol}
-
-We first group trajectories according to queries that they conform to,
-then evaluate the performance of each algorithm using nested cross validation,
-where the hyper-parameters are optimised in the inner loop using Monte Carlo cross validation~\cite{burman1989comparative},
-and the generalisation error is estimated in the outer loop using leave-one-out cross validation.
-
-In particular, for query $\mathbf{x}^{(i)}$ and the set of trajectories $\mathcal{Y}^{(i)}$ that conform to $\mathbf{x}^{(i)}$,
-the nested cross validation are performed over dataset $\left\{(\mathbf{x}^{(i)}, \mathcal{Y}^{(i)})\right\}_{i=1}^N$.
-
-% metric: F_1, pairs F_1, Kendall's tau
-In particular, given query $\mathbf{x}^{(i)}$ and the set of trajectories $\mathcal{Y}^{(i)}$ that conform to $\mathbf{x}^{(i)}$,
-we measure the quality of the top-$k$ recommendations $\hat{\mathcal{Y}}^{(i)}$ 
-by computing the metrics described in Section~\ref{sec:metric} as follows:
-\begin{align*}
-\text{F}_1 
-&= \frac{1}{N} \sum_{i=1}^N \max_{\mathbf{y} \in \mathcal{Y}^{(i)}, \hat{\mathbf{y}} \in \hat{\mathcal{Y}}^{(i)}} \, 
-   \text{F}_1(\mathbf{y}, \hat{\mathbf{y}}), \\
-%\text{where F$_1'$ is the F$_1$ score on points for $\hat{\mathbf{y}}$ and $\mathbf{y}$} \\
-\text{pairs-F}_1 
-&= \frac{1}{N} \sum_{i=1}^N \max_{\mathbf{y} \in \mathcal{Y}^{(i)}, \hat{\mathbf{y}} \in \hat{\mathcal{Y}}^{(i)}} \, 
-   \text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}), \\
-%\text{where pairs-F$_1'$ is the F$_1$ score on pairs for $\hat{\mathbf{y}}$ and $\mathbf{y}$} \\
-\tau 
-&= \frac{1}{N} \sum_{i=1}^N \max_{\mathbf{y} \in \mathcal{Y}^{(i)}, \hat{\mathbf{y}} \in \hat{\mathcal{Y}}^{(i)}} \, 
-   \tau(\mathbf{y}, \hat{\mathbf{y}}).
-%\text{where $\tau'$ is the Kendall's $\tau$ for $\hat{\mathbf{y}}$ and $\mathbf{y}$}
-\end{align*}
+where $\{\mathbf{y}^{(ij)}\}_{j=1}^{N_i}$ are the ground truths for query $\mathbf{x}^{(i)}$ and
+$\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 
 
 
 \subsection{Experimental Results}
 \label{sec:result}
+
+% experimental results
+The results of experiment on five trajectory datasets are shown in Table.

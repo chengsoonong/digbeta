@@ -1,0 +1,212 @@
+\section{Supplement}
+\label{sec:supplement}
+
+\subsection{Features}
+\label{sec:feature}
+
+The POI and query specific features extracted from trajectories are shown in Table~\ref{tab:poifeature},
+features that describe the transition preference between different POIs are shown in Table~\ref{tab:tranfeature}.
+
+\begin{table*}[ht]
+\caption{Features of POI $p$ with respect to query $(s,K)$}
+\label{tab:poifeature}
+\centering
+
+
+\setlength{\tabcolsep}{10pt} % tweak the space between columns
+\begin{tabular}{l|l} \hline
+\textbf{Feature}       & \textbf{Description} \\ \hline
+\texttt{category}      & one-hot encoding of the category of $p$ \\
+\texttt{neighbourhood} & one-hot encoding of the POI cluster that $p$ resides in \\
+\texttt{popularity}    & logarithm of POI popularity of $p$ \\
+\texttt{nVisit}        & logarithm of the total number of visit by all users at $p$ \\
+\texttt{avgDuration}  & logarithm of the average visit duration at $p$ \\
+\hline
+%\texttt{nOccurrence}            & the number of times $p$ occurred in a trajectory that satisfies the query \\ DON'T know given new query
+
+\texttt{trajLen}           & trajectory length $K$, i.e., the number of POIs required \\
+\texttt{sameCatStart}      & $1$ if the category of $p$ is the same as that of $s$, $-1$ otherwise \\
+\texttt{sameNeighbourhoodStart} & $1$ if $p$ resides in the same POI cluster as $s$, $-1$ otherwise \\
+\texttt{diffPopStart}    & real-valued difference in POI popularity of $p$ from that of $s$ \\
+\texttt{diffNVisitStart}        & real-valued difference in the total number of visit at $p$ from that at $s$ \\
+\texttt{diffDurationStart}  & real-valued difference in average duration at $p$ from that at $s$ \\
+\texttt{distStart}          & distance between $p$ and $s$, calculated using the Haversine formula \\
+\hline
+\end{tabular}
+\end{table*}
+
+
+
+\begin{table}[ht]
+\caption{POI features used to estimate the (feature-wise) transition probabilities}
+\label{tab:tranfeature}
+\centering
+\setlength{\tabcolsep}{2pt} % tweak the space between columns
+\begin{tabular}{l|l} \hline
+\textbf{Feature}       & \textbf{Description} \\ \hline
+\texttt{category}      & category of POI \\
+\texttt{neighbourhood} & the cluster that a POI resides in \\
+\texttt{popularity}    & (discretised) popularity of POI \\
+\texttt{nVisit}        & (discretised) total number of visit at POI \\
+\texttt{avgDuration}  & (discretised) average duration at POI \\ \hline
+\end{tabular}
+\end{table}
+
+
+
+\subsection{Evaluation metrics}
+\label{sec:metric}
+
+To evaluate the performance of a certain recommendation algorithm,
+we need to measure the similarity (or loss) given prediction $\hat{\mathbf{y}}$ and ground truth $\mathbf{y}$.
+Metrics researchers have used include
+\begin{itemize}
+\item Hamming loss $\frac{1}{K} \sum_{j=1}^K \llb \hat{y}_j \neq y_j \rrb$, this checks if every position is the same.
+
+\item F$_1$ score on points~\cite{ijcai15}, where we care about the set of correctly recommended POIs. 
+      Let $\texttt{set}(\mathbf{y})$ denote the set of POIs in trajectory $\mathbf{y}$, F$_1$ score on points is defined as
+\begin{equation*}
+F_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{2  P_{\textsc{point}}  R_{\textsc{point}}}{P_{\textsc{point}} + R_{\textsc{point}}}
+%~~\text{where}~
+%P_{\textsc{point}} = \frac{| \texttt{set}(\hat{\mathbf{y}}) \cap \texttt{set}(\mathbf{y}) |}{| \texttt{set}(\hat{\mathbf{y}}) |}~\text{and}~
+%R_{\textsc{point}} = \frac{| \texttt{set}(\hat{\mathbf{y}}) \cap \texttt{set}(\mathbf{y}) |}{| \texttt{set}(\mathbf{y}) |}.
+\end{equation*}
+If $| \hat{\mathbf{y}} | = | \mathbf{y} |$, this metric is just the unordered Hamming loss, 
+i.e., Hamming loss between two binary indicator vectors of size $| \mathcal{P} |$.
+
+\item F$_1$ score on pairs~\cite{cikm16paper}, where we care about the set of correctly predicted POI pairs,
+\begin{equation*}
+\text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}{P_{\textsc{pair}} + R_{\textsc{pair}}}
+%~~\text{where}~
+%P_{\textsc{pair}} = \frac{N_c} {| \texttt{set}(\hat{\mathbf{y}}) | (| \texttt{set}(\hat{\mathbf{y}}) | - 1) / 2}~\text{and}~
+%R_{\textsc{pair}} = \frac{N_c} {| \texttt{set}(\mathbf{y}) | (| \texttt{set}(\mathbf{y}) | - 1) / 2},
+\end{equation*}
+and $N_c = \sum_{j=1}^{| \mathbf{y} | - 1} \sum_{k=j+1}^{| \mathbf{y} |} \llb y_j \prec_{\bar{\mathbf{y}}} y_k \rrb$,
+here $y_j \prec_{\bar{\mathbf{y}}} y_k$ denotes that POI $y_j$ appears before POI $y_k$ in trajectory $\bar{\mathbf{y}}$.
+We define pairs-F$_1 = 0$ when $N_c = 0$.
+
+\end{itemize}
+
+However, if we cast a trajectory $\mathbf{y} = (y_1,\dots,y_K)$ as a ranking of POIs in $\mathcal{P}$,
+where $y_k$ has a rank $| \mathcal{P} | - k + 1$ and any other POI $p \notin \mathbf{y}$ has a rank $0$ ($0$ is an arbitrary choice).
+We can make use of ranking evaluation metrics such as Kendall's $\tau$ by taking care of ties in ranks.
+
+Given a prediction $\hat{\mathbf{y}} = (\hat{y}_1, \hat{y}_2, \dots, \hat{y}_K)$ and ground truth $\mathbf{y} = (y_1, y_2, \dots, y_K)$,
+for a specific ordering of POIs $(p_1, p_2, \dots, p_{|\mathcal{P}|})$,
+we produce two ranks according to $\mathbf{y}$ and $\hat{\mathbf{y}}$,
+\begin{align*}
+r_i       &= \sum_{j=1}^K (| \mathcal{P} | - j + 1)  \llb p_i = y_j \rrb,~
+i = 1, \dots, | \mathcal{P} | \\
+\hat{r}_i &= \sum_{j=1}^K (| \mathcal{P} | - j + 1)  \llb p_i = \hat{y}_j \rrb,~ 
+i = 1, \dots, | \mathcal{P} |
+\end{align*}
+where POIs not in $\mathbf{y}$ will have a rank of $0$ in $r$ and similarly in $r$.
+Then we have
+\begin{align*}
+C &= \frac{1}{2} \sum_{i,j} \left(\llb r_i < r_j \rrb  \llb \hat{r}_i < \hat{r}_j \rrb +
+     \llb r_i > r_j \rrb  \llb \hat{r}_i > \hat{r}_j \rrb \right), \\
+D &= \frac{1}{2} \sum_{i,j} \left(\llb r_i < r_j \rrb  \llb \hat{r}_i > \hat{r}_j \rrb +
+     \llb r_i > r_j \rrb  \llb \hat{r}_i < \hat{r}_j \rrb \right), \\
+T_{\mathbf{y}} &= \frac{1}{2} \sum_{i \ne j} \llb r_i = r_j \rrb \\
+               &= \frac{1}{2} \sum_{i \ne j} \llb r_i = 0 \rrb  \llb r_j = 0 \rrb \\
+               &= \frac{1}{2} \left( |\mathcal{P}| - K \right) \left( |\mathcal{P}| - K - 1 \right), \\ 
+T_{\hat{\mathbf{y}}} &= \frac{1}{2} \sum_{i \ne j} \llb \hat{r}_i = \hat{r}_j \rrb \\
+                     &= \frac{1}{2} \sum_{i \ne j} \llb \hat{r}_i = 0 \rrb  \llb \hat{r}_j = 0 \rrb \\
+                     &= \frac{1}{2} \left( |\mathcal{P}| - K \right) \left( |\mathcal{P}| - K - 1 \right), \\ 
+T_{\mathbf{y},\hat{\mathbf{y}}} &= \frac{1}{2} \sum_{i \ne j} \llb r_i = r_j \rrb  \llb \hat{r}_i = \hat{r}_j \rrb \\
+                                &= \frac{1}{2} \sum_{i \ne j} \llb r_i = 0 \rrb  \llb r_j = 0 \rrb 
+                                   \llb \hat{r}_i = 0 \rrb  \llb \hat{r}_j = 0 \rrb.
+\end{align*}
+Kendall's $\tau$ (version $b$)~\cite{kendall1945,agresti2010analysis} is
+\begin{equation*}
+\tau_b(\mathbf{y}, \hat{\mathbf{y}}) = \frac{C - D}{\sqrt{(C + D + T) (C + D + U)}},
+\end{equation*}
+where $T = T_{\mathbf{y}} - T_{\mathbf{y},\hat{\mathbf{y}}}$ and $U = T_{\hat{\mathbf{y}}} - T_{\mathbf{y},\hat{\mathbf{y}}}$.
+
+Furthermore, F$_1$ score on points can be written as
+\begin{equation*}
+F_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{1}{K} \sum_i \llb r_i > 0 \rrb  \llb \hat{r}_i > 0 \rrb,
+\end{equation*}
+and F$_1$ score on pairs can be written as
+\begin{align*}
+& \text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}) \\
+&= \left( \frac{1}{2} \sum_{i,j} \llb r_i < r_j \rrb  \llb r_i > 0 \rrb \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i > 0 \rrb \right. \\
+&  \left. ~+ \frac{1}{2} \sum_{i,j} \llb r_i > r_j \rrb  \llb r_j > 0 \rrb \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j > 0 \rrb \right)
+   \cdot \frac{1}{K(K-1)/2} \\
+&= \frac{\sum_{i,j} \llb r_i < r_j \rrb  \llb r_i > 0 \rrb \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i > 0 \rrb +
+         \sum_{i,j} \llb r_i > r_j \rrb  \llb r_j > 0 \rrb \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j > 0 \rrb} 
+        {K(K-1)}
+\end{align*}
+
+
+\begin{algorithm}[htbp]
+\caption{The list Viterbi algorithm for inference}
+\label{alg:listviterbi}
+\begin{algorithmic}[1]
+\STATE \textbf{Input}: $\mathbf{x}=(s, K),~ \mathcal{P},~ \mathbf{w},~ \Psi,~ l$
+%\STATE Initialise score matrices $\alpha,~ \beta,~ f_t,~ f_{t, t+1}$, a max-heap $H,~ k=0$.
+\STATE Initialise score matrices $\alpha,~ \beta,~ f_{t, t+1}$, a max-heap $H$, result set $R$, $k=0$.
+\STATE $\triangleright$ Do the forward-backward procedure~\cite{rabiner1989tutorial}
+\STATE $\forall p_j \in \mathcal{P},~ \alpha_t(p_j) = 
+        \begin{cases}
+        0,~ t = 1 \\
+        \max_{p_i \in \mathcal{P}} \left\{ \alpha_{t-1}(p_i) + \mathbf{w}_{ij}^\top \Psi_{ij}(\mathbf{x}, p_i, p_j) + 
+        \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) \right\},~ t=2,\dots,K
+        \end{cases}$
+
+\STATE $\forall p_i \in \mathcal{P},~ \beta_t(p_i) = 
+        \begin{cases}
+        0,~ t = K \\
+        \max_{p_j \in \mathcal{P}} \left\{ \mathbf{w}_{ij}^\top \Psi_{ij}(\mathbf{x}, p_i, p_j) + 
+        \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j) \right\},~ t = K-1,\dots,1
+        \end{cases}$
+
+%\STATE $\forall p_i \in \mathcal{P},~ f_t(p_i) = \alpha_t(p_i) + \beta_t(p_i),~ t = 1,\dots,K$
+\STATE $\forall p_i, p_j \in \mathcal{P},~ f_{t,t+1}(p_i, p_j) = \alpha_t(p_i) + \mathbf{w}_{ij}^\top \Psi_{ij}(\mathbf{x}, p_i, p_j) + 
+                              \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j),~ t = 1,\dots,K-1$
+
+\STATE $\triangleright$ Identify the best (scored) trajectory $\mathbf{y}^1=(y_1^1,\dots,y_K^1)$ (possibly with sub-tours)
+\STATE $y_t^1 = \begin{cases}
+                s,~ t = 1 \\
+%                \argmax_{p \in \mathcal{P}} \left\{ f_{1,2}(s, p) \right\},~ t = 2, \\
+                \argmax_{p \in \mathcal{P}} \left\{ f_{t-1,t}(y_{t-1}^1, p) \right\},~ t = 2,\dots,K
+                \end{cases}$
+
+%\STATE $r^1 = \max_{p \in \mathcal{P}} \left\{ f_K(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
+\STATE $r^1 = \max_{p \in \mathcal{P}} \left\{ \alpha_{K}(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
+\STATE $H.\textit{push}\left(r^1,~ (\mathbf{y}^1, \textsc{nil}, \emptyset) \right)$
+
+\WHILE{$H \ne \emptyset$ \textbf{and} $k < \,|\mathcal{P}|^{K-1} - \prod_{t=2}^K (|\mathcal{P}|-t+1)$}
+    \STATE $r^k,~ (\mathbf{y}^k, I, S) = H.\textit{pop}()~~~ \triangleright$ 
+           $r^k$ is the score of $\mathbf{y}^k=(y_1^k,\dots,y_K^k)$, $I$ is the partition index, and $S$ is the exclude set
+    \STATE $k = k + 1$
+    \STATE Add $\mathbf{y}^k$ to $R$ if NO sub-tours in $\mathbf{y}^k$
+    \RETURN $R$ if it contains $l$ trajectories
+    \STATE $\bar{I} = \begin{cases}
+                      2,~ I = \textsc{nil} \\
+                      I,~ \text{otherwise}
+                      \end{cases}$
+
+    \FOR{$t = \bar{I},\dots,K$}
+        \STATE $\bar{S} = \begin{cases}
+                          S \cup \{ y_t^k \},~ t = \bar{I} \\
+                          \{ y_t^k \},~ \text{otherwise}
+                          \end{cases}$
+
+        \STATE $\bar{y}_j = \begin{cases}
+                            y_j^k,~~ j=1,\dots,t-1 \\
+                            %\argmax_{p \in \mathcal{P} \setminus \textit{new\_exclude\_set}} f_{t-1,t}(y_{t-1}^k, p),~ j=t \\
+                            \argmax_{p \in \mathcal{P} \setminus \bar{S}} \left\{ f_{t-1,t}(y_{t-1}^k, p) \right\},~ j=t \\
+                            \argmax_{p \in \mathcal{P}} \left\{ f_{j-1, j}(\bar{y}_{j-1}, p) \right\},~ j=t+1,\dots,K
+                \end{cases}$
+        \STATE $\bar{r} = \begin{cases}
+                          f_{t-1,t}(y_{t-1}^k, \bar{y}_t),~ I = \textsc{nil} \\
+                          r^k + f_{t-1,t}(y_{t-1}^k, \bar{y}_t) - f_{t-1,t}(y_{t-1}^k, y_t^k),~ \text{otherwise}
+                          \end{cases}$
+
+        $H.\textit{push}\left(\bar{r}, (\bar{\mathbf{y}}, t, \bar{S}) \right)$
+    \ENDFOR
+\ENDWHILE
+\end{algorithmic}
+\end{algorithm}
+ 
