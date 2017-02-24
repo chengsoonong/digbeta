@@ -178,3 +178,19 @@ with the performance of the {\sc SP} method largely unaffected.
 Overall, these results indicate that our structured prediction approach to the problem has
 benefits over non-structured approaches,
 and that our extensions to the vanilla structured approach are important to further improve performance.
+
+
+\subsection{Example}
+\label{sec:example}
+
+\begin{figure*}[t]
+	\centering
+	\includegraphics[width=0.99\textwidth]{example.pdf}
+	\caption{Example of structured recommender versus baseline on a query with two ground truths as shown in Figure (c). 
+             (a) \textsc{PoiRank} cannot make a recommendation related to any of the ground truths; 
+             (b) \textsc{SP} and \textsc{SR} recommend a better trajectory than \textsc{PoiRank}, but not fully consistent with the ground truths;
+             (c) \textsc{SRpath} hit both ground truths at rank 3 and 5 respectively.}
+	\label{fig:example}
+\end{figure*}
+
+
