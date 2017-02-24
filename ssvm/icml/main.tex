@@ -41,7 +41,8 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Custom packages
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\usepackage{hyperref}
+% AKM: already present above!
+%\usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{amsfonts}
 \usepackage{mathrsfs}
@@ -59,7 +60,7 @@
 \usepackage{booktabs} % professional-quality tables
 \graphicspath{{fig/}} % Location of the graphics files
 
-
+\usepackage{enumitem}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Custom notation
@@ -165,8 +166,15 @@
 %\footnotetext{hi}
 
 \begin{abstract}
-The purpose of this document is to provide both the basic paper template and
-submission guidelines. Abstracts should be a single paragraph, between 4--6 sentences long, ideally.  Gross violations will trigger corrections at the camera-ready phase.
+Content recommendation systems have seen considerable success, but have largely focussed on the case of static, unstructured content.
+In many recommendation scenarios, we would like to predict content that has some sequential structure,
+such as when recommending a playlist of songs, or a trajectory of points-of-interest in a city.
+In this paper, we present an approach to such sequential recommendation problems based on techniques from structured prediction.
+While the problem can be posed as a vanilla application of such models,
+we propose two important corrections that are necessary to ensure quality recommendations.
+First, we modify the training objective to take into account the existence of multiple ground truths.
+Second, we modify the training and inference procedures to avoid predicting loops in the sequence via an extension of the classic Viterbi algorithm.
+Experiments on two real-world trajectory recommendation datasets shows the benefits of our approach over existing, non-structured recommendation approaches.
 \end{abstract}
 
 \input{1-introduction}
@@ -179,13 +187,16 @@ submission guidelines. Abstracts should be a single paragraph, between 4--6 sent
 
 
 % Acknowledgements should only appear in the accepted version.
-\section*{Acknowledgements}
-
-\textbf{Do not} include acknowledgements in the initial version of
-the paper submitted for blind review.
+%\section*{Acknowledgements}
+%
+%\textbf{Do not} include acknowledgements in the initial version of
+%the paper submitted for blind review.
 
 \bibliographystyle{icml2017}
 \bibliography{ref,ref_aditya}
+
+\clearpage
+\onecolumn
 
 \input{6-supplement}
 
