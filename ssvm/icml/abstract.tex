@@ -5,9 +5,9 @@ In many recommendation scenarios, we would like to predict content that has sequ
 such as when recommending a playlist of songs, or a trajectory of points-of-interests in a city.
 We propose an approach to sequential recommendation problems based
 on techniques from structured prediction.
-Starting from a classic structured support vector machine
+Starting from a classic structured support vector machine,
 we propose two changes to the method (originally designed for classification)
 enabling us to solve structured recommendation problems.
 First, we modify the training objective to account for the existence of multiple ground truths.
 Second, we modify the prediction and loss augmented inference procedures to avoid predicting loops in the sequence via an extension of the classic Viterbi algorithm.
-Experiments on real-world trajectory recommendation datasets shows the benefits of our approach over existing, non-structured recommendation approaches.
+Experiments on real-world trajectory recommendation datasets show the benefits of our approach over existing, non-structured recommendation approaches.
