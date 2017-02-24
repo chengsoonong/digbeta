@@ -3,24 +3,73 @@
 \section{Introduction}
 \label{sec:intro}
 
-structured prediction problems;
-recsys problems and methods. 
-gap: 
-people need recommendation for sequences and sets (e.g. \cite{chen2012playlist}, google tour)
+Content recommendation has been the subject of a rich body of literature~\citep{Goldberg:1992,Resnick:1994,Konstan:1997,Sarwar:2001,Koren:2010},
+with established techniques seeing widespread adoption in large e-commerce companies~\citep{Linden:2003,Agarwal:2013,Amatriain:2015,Gomez-Uribe:2015}.
+The success of these methods is explained by both the explosion in availability of user's explicit and implicit preferences for content,
+as well as the design of methods that can suitably exploit these to make useful recommendations~\citep{Koren:2009}.
 
-what we did:
-define sequence recommendation problems in ML; 
-novel solutions in the following aspects:
-1. use structured prediction (ssvm) for recsys
-2. making the recsys ranking objective work for ssvm 
-3. no loops/repetitions in the recommended sequence
-4. learning and inference 
+For the most part, models for recommendation have been been limited to the case of static, \emph{unstructured} content.
+While this setting has considerable value by itself,
+in many important scenarios one needs to recommend content that possesses some \emph{structure}.
+In its simplest form, this structure may be manifest by the items we wish to recommend being \emph{sequential} in nature.
+For example, consider the problem of recommending a playlist of songs to users based on their listening history~\citep{McFee:2011,chen2012playlist},
+or alternately,
+recommending a trajectory of points of interest in a city to a visitor~\citep{lu2010photo2trip,ijcai15,lu2012personalized}.
 
+A na\"{i}ve approach to such sequential recommendation problems is to simply ignore the structure,
+and learn a standard recommendation model.
+In the playlist example, we could learn a user's preference for individual songs,
+and then create a playlist based on the top ranked songs.
+However, it is easy to construct cases where such an approach is sub-optimal:
+%This however completely ignores the fact that while a user's
+for example, while a user's two favourite songs might belong
+the metal and country genres respectively,
+it is questionable that a playlist featuring these songs in succession will be as enjoyable to the user.
+Similarly, in the trajectory recommendation problem, it is unlikely a user will want to visit three museums in a row.
 
-Bullet list of contributions
-\begin{itemize}
-  \item structured recommendation 
-  \item two uses of list Viterbi
-  \item apply to trajectory recommendation, better than CIKM2016
-  \item framework to understand related work
+The above raises the question of how one can effectively learn from such sequential content.
+In this paper, we show how to cast sequence recommendation as a \emph{structured prediction} problem,
+which allows us to leverage the toolkit of structured SVMs~\citep{tsochantaridis2005large}.
+However, a vanilla application of such methods does not suffice,
+as they do not account for the fact that each input can have multiple ground truths,
+and the fact that \emph{loops} in predicted sequences are undesirable.
+We show how one can overcome this by
+suitably normalising the loss function for the model,
+and by modifying the inference and prediction steps of the model using a variant of the Viterbi algorithm.
+
+Specifically, our contributions are follows:
+\begin{itemize}[leftmargin=0.1in,itemsep=2pt]
+	\item We cast the problem of sequence recommendation as a structured prediction task, and show how this may be modelled using structured SVMs.
+
+	\item We propose an important correction to the na\"{i}ve implementation of structured SVMs to the recommendation problem, so as to account for the existence of multiple ground truths for each input.
+
+	\item We show how one can avoid recommending sequences with loops or repetitions via an extension of the classic Viterbi algorithm that returns a list of the highest scored sequences under some model; we show that this extension may be incorporated during both the training and prediction steps of our structured SVM.
+
+	\item We present experiments on two real-world trajectory recommendation problems, and demonstrate our proposed structured prediction approaches to offer consistent benefits over existing non-structured baselines.
 \end{itemize}
+
+We begin with an overview of related work, before presenting our model.
+
+% structured prediction problems;
+% recsys problems and methods. 
+% gap: 
+% people need recommendation for sequences and sets (e.g. \cite{chen2012playlist}, google tour)
+
+% what we did:
+% define sequence recommendation problems in ML; 
+
+% novel solutions in the following aspects:
+% 1. use structured prediction (ssvm) for recsys
+% 2. making the recsys ranking objective work for ssvm 
+% 3. no loops/repetitions in the recommended sequence
+% 4. learning and inference 
+
+%
+
+% Bullet list of contributions
+% \begin{itemize}
+%   \item structured recommendation 
+%   \item two uses of list Viterbi
+%   \item apply to trajectory recommendation, better than CIKM2016
+%   \item framework to understand related work
+% \end{itemize}
