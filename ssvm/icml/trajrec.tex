@@ -55,43 +55,4 @@ We can learn to recommend trajectories by training a multiset SSVM described in 
 
 % multiset SSVM: training, prediction
 
-% sub-tour elimination
-\section{Sub-tour Elimination}
-\label{sec:subtour}
 
-Both the loss-augmented inference and prediction inference for structured SVM (Section~\ref{sec:ssvm}) cannot be done efficiently 
-if the no duplicates constraints are required, moreover, we would like to recommend more than one trajectories given a query.
-To achieve this, we resort to a variant of the list Viterbi algorithm~\cite{nilsson2001sequentially,seshadri1994list}
-which sequentially find the $k$-th best (scored) trajectory given the best, $2$nd best, \dots, $(k-1)$-th best (scored) trajectories,
-as described in Algorithm~\ref{alg:listviterbi}.
-
-
-% ILP for subtour elimination
-The no duplicates constraint can be achieved by adapting the sub-tour elimination constraints of the travelling salesman problem (TSP),
-in particular, we solve the following integer linear program (ILP),
-\begin{alignat}{5}
-& \max_{u,v} ~&& \sum_{k=1}^M \mathbf{w}_k^\top \phi_k(\mathbf{x}, p_k) \sum_{j=1}^M u_{jk} + 
-                 \sum_{j=1}^M \sum_{k=1}^M u_{jk} \mathbf{w}_{jk}^\top \phi_{j, k}(\mathbf{x}, p_j, p_k) \\
-& s.t. ~~ ~&& u_{jk}, ~z_j \in \{0, 1\}, ~u_{jj}=0, ~z_1=0, ~v_j \in \mathbf{Z},~ p_j \in \mathcal{P}, ~\forall j, k = 1,\cdots,M   \label{eq:cons1} \\
-&          && \sum_{k=2}^M u_{1k} = 1, ~\sum_{j=2}^M u_{j1} = 0  \label{eq:cons2} \\
-&          && \sum_{j=1}^M u_{jl} = z_l + \sum_{k=2}^M u_{lk} \le 1,   ~\forall l=2,\cdots,M                    \label{eq:cons3} \\
-&          && \sum_{j=1}^M \sum_{k=1}^M u_{jk} = L-1,                                                           \label{eq:cons4} \\
-&          && v_j - v_k + 1 \le (M-1) (1-u_{jk}),                     \forall j,k=2,\cdots,M                    \label{eq:cons5}
-\end{alignat}
-where $u_{jk}$ is a binary decision variable that determines whether the transition from $p_j$ to $p_k$ is in the resulting trajectory,
-$z_j$ is a binary decision variable that determines whether $p_j$ is the last POI in trajectory.
-$L$ is the number of POIs in trajectory.
-For brevity, we arrange the POIs such that $p_1 = s$.
-Firstly, the desired trajectory should start from $s$ (Constraint~\ref{eq:cons2}).
-In addition, any POI could be visited at most once (Constraint~\ref{eq:cons3}).
-Moreover, only $L-1$ transitions between POIs are permitted (Constraint~\ref{eq:cons4}),
-i.e., the number of POI visits should be exactly $L$ (including $s$).
-The last constraint, where $v_i$ is an auxiliary variable,
-enforces that only a single sequence of POIs without sub-tours is permitted in the trajectory.
-
-If we employ the above ILP to do loss-augmented inference, one restriction is that the loss should be a linear function of $u_{jk}$,
-e.g., $\Delta(\mathbf{y}, \bar{\mathbf{y}}) = 1 - \sum_{j=1}^M \sum_{k=1}^M u_{j, y_k}$ if we define the loss as the number of mispredicted POIs,
-where $\mathbf{y}$ is the ground truth and $\bar{\mathbf{y}}$ is the trajectory corresponding to the optimal solution of this ILP.
-
-
-% 2 uses of list Viterbi: 1) multiple ground truths; 2) subtour elimination
