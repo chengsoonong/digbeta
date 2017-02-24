@@ -168,15 +168,13 @@ which helps shrink the feasible region of the problem.
 \subsection{SSVM for recommendation: the SR model}
 \label{ssec:sr}
 
-\TODO{talk about ranking objectives}
-
 Recall that the structured recommendation problem
 involves observing \emph{multiple} ground truth output sequences for each input.
 %If we observed more than one labels for a particular set of features, 
 The classic SSVM described in Section~\ref{ssec:ssvm} can be easily generalised to capture this setting:
 given feature vector $\mathbf{x}^{(i)}$ and the corresponding set of ground truths $\{\mathbf{y}^{(ij)}\}_{j=1}^{n_i}$
 where $n_i$ is the number of labels for $\mathbf{x}_i$,
-we can train a \emph{structured recommendation} (\emph{SR}) model by optimising a QP similar to (\ref{eq:nslack}),
+we can train a \emph{structured recommendation} (\emph{SR}) model by optimising a quadratic program similar to (\ref{eq:nslack}),
 \begin{equation}
 \label{eq:nslack_ml}
 \resizebox{0.99\linewidth}{!}{$
@@ -187,7 +185,7 @@ s.t.~ ~& \langle \mathbf{w}, \, \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(ij)}) - \Psi
 \end{aligned}
 $}
 \end{equation}
-where $N = \sum_i n_i$ and $\bar{\mathbf{y}} \in \mathcal{Y} \setminus \{\mathbf{y}^{(ij)}\}_{j=1}^{n_i}$.
+where $N = \sum_i n_i$ and $\bar{\y} \in \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}$.
 Compared to (\ref{eq:nslack}), the key distinction is that the above
 explicitly aggregates all the ground truth labels for each input when generating the constraints;
 in this way, we do not have apparently contradictory constraints where
@@ -205,21 +203,38 @@ s.t.~ ~& \frac{1}{N} \sum_{i,j} \langle \w, \, \Psi(\x^{(i)}, \y^{(ij)}) - \Psi(
 $}
 \end{equation}
 where $\bar{\y}^{(i)} \in \mathcal{Y} \setminus \{\y^{ij}\}_{j=1}^{N_i}$.
+\TODO{explain how 1-slack connects to n-slack and this is what's implemented}
 
-
-
+\TODO{maybe: talk about this actually being a ranking objective for positive-only training sequences re: recommendations }
 
 % sub-tour elimination
-\subsection{Sequence decoding for SR model}
+\subsection{Sequence decoding for the SR model}
 \label{ssec:subtour}
 
-Both the loss-augmented inference and prediction inference for structured SVM (Section~\ref{sec:ssvm}) cannot be done efficiently 
-if the no duplicates constraints are required, moreover, we would like to recommend more than one trajectories given a query.
-To achieve this, we resort to a variant of the list Viterbi algorithm~\cite{nilsson2001sequentially,seshadri1994list}
-which sequentially find the $k$-th best (scored) trajectory given the best, $2$nd best, \dots, $(k-1)$-th best (scored) trajectories,
-as described in Algorithm~\ref{alg:listviterbi}.
+The SR model require two algorithmic components for inference and learning that is missing from the SSVM algorithms. 
+This section discusses two distinct algorithms, and applied in novel contexts, can be used in the SR model. 
 
+The first is being able to predict a {\em path}, \ie sequences whose elements are distinct from each other. 
+As described in Section~\ref{sec:intro}, this is desirable since users traversing a sequence (of locations or music)
+would not want to see repeated entries. 
+Given desired sequence length $l$ among $L$ possible points, dynamic programming~\cite{tsochantaridis2005large} 
+will generate the length-$l$ sequence with the best score, i.e. $\y^* = \argmax_\y f(\x,\y)$. 
+One may then use the well-known 
+Christofes algorithm~\cite{christofides1976} on $y^*$ to eliminate loops in the sequence. 
+%is known to generate a solutions within a factor of 3/2 of the optimal solution for traveling salesman problems. 
+However, the resulting sequence will have less than the desired number of points, and the resulting score won't be optimal. 
 
+The second is being able to do loss-augmented inference by excluding multiple known sequences. 
+As described in Section~\ref{ssec:sr}, this involves %we would want to maximize the loss-augmented objective function 
+$\max_{\bar\y} \left\{ \w^\top \Psi(\x^{(i)}, \bar\y) + \Delta(\y^{(ij)}, \bar{\y}) \right\}$
+where the domain of candidate sequences excludes the known sequences for query $\x^{(i)}$, \ie $\bar{\y} \in \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}$. \TODO{should this be in Sec 3.2?}
+Note that the dynamic programming~\cite{tsochantaridis2005large} algorithm use back-tracking to find the best sequence, 
+and does not easily support excluding known sequences. 
+
+%Both the loss-augmented inference and prediction inference for structured SVM (Section~\ref{sec:ssvm}) cannot be done efficiently 
+%if the no duplicates constraints are required, moreover, we would like to recommend more than one trajectories given a query.
+
+\TODO{first talk about ILP}
 % ILP for subtour elimination
 The no duplicates constraint can be achieved by adapting the sub-tour elimination constraints of the travelling salesman problem (TSP),
 in particular, we solve the following integer linear program (ILP),
@@ -247,7 +262,13 @@ If we employ the above ILP to do loss-augmented inference, one restriction is th
 e.g., $\Delta(\mathbf{y}, \bar{\mathbf{y}}) = 1 - \sum_{j=1}^M \sum_{k=1}^M u_{j, y_k}$ if we define the loss as the number of mispredicted POIs,
 where $\mathbf{y}$ is the ground truth and $\bar{\mathbf{y}}$ is the trajectory corresponding to the optimal solution of this ILP.
 
+\TODO{then talk about list Viterbi variants}
 % 2 uses of list Viterbi: 1) multiple ground truths; 2) subtour elimination
+To achieve this, we resort to a variant of the list Viterbi algorithm~\cite{nilsson2001sequentially,seshadri1994list}
+which sequentially find the $k$-th best (scored) trajectory given the best, $2$nd best, \dots, $(k-1)$-th best (scored) trajectories,
+as described in Algorithm~\ref{alg:listviterbi}.
+
+\TODO{Briefly discuss which one to use, when}
 
 \subsection{Inference for structured recommendation}
 \label{ssec:SRinf}
