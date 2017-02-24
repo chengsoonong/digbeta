@@ -3,10 +3,12 @@
 \section{Experimental results}
 \label{sec:experiment}
 
-We now present experiments assessing the viability of our structured prediction approach
-for the concrete sequential recommendation task of
-trajectory recommendation.
-We compare our methods to a number of non-structured baselines, over which we demonstrate significant improvements.
+We now present evaluations assessing the viability of our structured prediction approach
+for the sequential recommendation task discussed in Section~\ref{sec:trajrec}. 
+%of trajectory recommendation.
+On two real-world dataset of photo tours, our methods is shown to significantly outperform 
+a number of non-structured baselines or those that do not take into account the recommendation setting. 
+%, over which we demonstrate significant improvements.
 
 
 %
@@ -17,7 +19,7 @@ We compare our methods to a number of non-structured baselines, over which we de
 We assess the recommendation performance %methods developed in Section~\ref{sec:trajrec}
 of various methods
 on trajectories extracted from Flickr photos
-for the cities of Glasgow and Osaka~\cite{thomee2016yfcc100m}.
+for the cities of Glasgow and Osaka~\cite{thomee2016yfcc100m,ijcai15}.
 Each dataset comprises a
 list of trajectories, being a sequence of points of interest (POI), as visited by various Flickr users.
 The statistics of datasets are shown in Table~\ref{tab:data}.
