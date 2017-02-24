@@ -177,7 +177,7 @@ involves observing \emph{multiple} ground truth output sequences for each input.
 %If we observed more than one labels for a particular set of features, 
 The classic SSVM described in Section~\ref{ssec:ssvm} can be easily generalised to capture this setting:
 given feature vector $\x^{(i)}$ and the corresponding set of ground truths $\{\y^{(ij)}\}_{j=1}^{n_i}$
-where $n_i$ is the number of labels for $\x_i$,
+where $n_i$ is the number of labels for $\x^{(i)}$,
 we can train a \emph{structured recommendation} (\emph{SR}) model by optimising a quadratic program similar to (\ref{eq:nslack}),
 \begin{equation}
 \label{eq:nslack_ml}
@@ -195,7 +195,9 @@ explicitly aggregates all the ground truth labels for each input when generating
 in this way, we do not have apparently contradictory constraints where
 two ground truth sequences are each required to have larger score than the other.
 
-one-slack formulation:
+Instead of using $N$ slack variables as that in (\ref{eq:nslack_ml}), 
+we can one variable to represent the sum of the $N$ hinge losses, 
+which leads to this one-slack formulation,
 \begin{equation}
 \label{eq:1slack_ml}
 \resizebox{0.99\linewidth}{!}{$
@@ -207,6 +209,8 @@ s.t.~ ~& \frac{1}{N} \sum_{i,j} \w^\top \Psi(\x^{(i)}, \y^{(ij)}) - \w^\top \Psi
 $}
 \end{equation}
 where $\bar{\y}^{(i)} \in \mathcal{Y} \setminus \{\y^{ij}\}_{j=1}^{N_i}$.
+This one-slack formulation can be trained more efficiently and is the one employed in this work.
+
 \TODO{explain how 1-slack connects to n-slack and this is what's implemented}
 
 \TODO{maybe - talk about this actually being a ranking objective for positive-only training sequences re: recommendations }
