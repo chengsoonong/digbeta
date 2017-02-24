@@ -3,6 +3,7 @@
 \section{The sequence recommendation problem}
 \label{sec:recseq}
 
+We begin with an overview of the sequence recommendation problem, before presenting our model.
 Consider the following abstract
 \emph{structured recommendation} problem:
 given an input query $\x \in \mathcal{X}$ -- representing for example a user, a location, or some ``seed'' item --
@@ -44,7 +45,7 @@ On the other hand, for typical recommender systems problems, one assumes that th
 Thus, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$.
 For structured recommendation problems, computing $\argmax_\y f(\x,\y)$ is harder since it is often impossible to efficiently enumerate $\y$ (\eg all possible trajectories in a city).
 
-In the rest of this section, we will first review the background of structured prediction problems (Sec~\ref{ssec:ssvm}), then present a model for structured recommendation (Sec~\ref{ssec:sr}), followed by algorithms for its learning (Sec~\ref{ssec:SRtrain}) and inference (Sec~\ref{ssec:SRinf}).
+In the rest of this section, we will first review the background of structured prediction problems (Sec~\ref{ssec:ssvm}), then present a model for structured recommendation (Sec~\ref{ssec:sr}), followed by algorithms for its learning (Sec~\ref{ssec:subtour}) and inference (Sec~\ref{ssec:SRinf}).
 
 % In many practical
 % problems we may observe more than one label for the same set of features, which violates
@@ -186,6 +187,11 @@ Compared to (\ref{eq:nslack}), the key distinction is that the above
 explicitly aggregates all the ground truth labels for each input when generating the constraints;
 in this way, we do not have apparently contradictory constraints where
 two ground truth sequences are each required to have larger score than the other.
+Equation~\ref{eq:nslack_ml} is similar to a ranking objective, as the constraints enforce
+that the positively labeled sequences (the known items that the user likes) are scored
+higher than all other unseen sequences. Recent work on positive and unlabelled data have
+theoretically shown the close relationship between positive and unlabelled learning and two class
+classification.
 
 Instead of using $N$ slack variables as that in (\ref{eq:nslack_ml}),
 we can use one slack variable to represent the sum of the $N$ hinge losses in (\ref{eq:nslack_ml}),
@@ -200,10 +206,8 @@ which leads to this one-slack formulation,
 \end{aligned}
 $}
 \end{equation}
-This one-slack formulation can be trained more efficiently than the $N$-slack formulation (\ref{eq:nslack_ml}) and is employed in this work.
+This one-slack formulation can be trained more efficiently than the $N$-slack formulation (\ref{eq:nslack_ml}) and we use it here.
 
-
-\TODO{maybe - talk about this actually being a ranking objective for positive-only training sequences re: recommendations }
 
 \input{listviterbi}
 
@@ -235,6 +239,6 @@ However, we can pretend that $\bar{\y}$ can be any label in $\mathcal{Y}$ and do
 which can sometimes be solved efficiently, then we filter out the optimal solution if it has been observed,
 i.e., in $\{\y^{(ij)}\}_{j=1}^{n_i}$.
 In addition to train multiset SSVM, this technique can be further used to deal with other constraints such as sub-tour elimination
-as described in Section~\ref{sec:subtour}.
+as described in Section~\ref{ssec:subtour}.
 
 %\TODO{talk about multiple truths and what it means in prediction}

@@ -36,17 +36,13 @@ and the fact that \emph{loops} in predicted sequences are undesirable.
 We show how one can overcome this by
 suitably normalising the loss function for the model,
 and by modifying the inference and prediction steps of the model using a variant of the Viterbi algorithm.
-
 Specifically, our contributions are follows:
-\begin{itemize}
+\begin{itemize}[noitemsep]
 	\item We cast the problem of sequence recommendation as a structured prediction task, and show how this may be modelled using structured SVMs (\S\ref{sec:recseq}).
-
 	\item We propose an important correction to the na\"{i}ve implementation of structured SVMs to the recommendation problem, so as to account for the existence of multiple ground truths for each input (\S\ref{ssec:sr}). Following \citet{joachims2009cutting} we propose both $n$-slack and 1-slack versions of the structured recommender. This new structured recommender can in principle be applied to any problem where loss augmented inference can be efficiently computed. We focus on sequence recommendation in this paper.
-
 	\item We show how one can avoid recommending sequences with loops or repetitions via an extension of the classic Viterbi algorithm that returns a list of the highest scored sequences under some model; we show that this extension may be incorporated during both the training (via loss augmented inference) and prediction steps of our structured recommendation (\S\ref{ssec:subtour}).
-
 	\item We explicate how trajectory recommendation can be seen as a sequential recommendation task (\S\ref{sec:trajrec}). We then present experiments on two real-world trajectory recommendation problems, and demonstrate our structured prediction approaches to offer consistent benefits over existing non-structured baselines (\S\ref{sec:experiment}).
 \end{itemize}
 
 %We begin with an overview of related work, before presenting our model.
-We begin with an overview of the sequence recommendation problem, before presenting our model.
+%We begin with an overview of the sequence recommendation problem, before presenting our model.
