@@ -68,7 +68,7 @@ Glasgow          & 351              & 25              & 219              & 64   
 \subsection{Methods compared}
 
 We compare the performance of our methods to the following three baselines:
-\begin{itemize}[leftmargin=0.125in]
+\begin{itemize}[leftmargin=0.125in]\itemmoveup
 \parskip -.05em
 	\item The \textsc{Random} baseline simply recommends a sequence of POIs by sampling uniformly at random from the whole set of POIs (without replacement).
 	
@@ -76,35 +76,45 @@ We compare the performance of our methods to the following three baselines:
 
 	\item \textsc{PoiRank}~\cite{cikm16paper} is a generalisation of \textsc{Popularity} which considers a number of POI features in addition to the popularity,
 and trains a RankSVM model to learn a score for each POI. The top-$k$ scoring POIs are then used to construct a trajectory.
-\end{itemize}
+\end{itemize}\itemmoveup
 
-To assess the viability of our structured prediction approach, and the necessity of our two extensions (normalising the loss per query and disallowing loops), we implemented the following versions of our structured prediction methods:
-\begin{itemize}[leftmargin=0.125in]
+To assess the viability of our structured prediction approach, and the necessity of our two extensions (normalising the loss per query and disallowing loops), we implemented the following versions of our structured prediction methods. 
+All variants predicts with the list Viterbi algorithm (Section~\ref{ssec:subtour}) to generate a path.
+\begin{itemize}[leftmargin=0.125in]\itemmoveup
 \parskip -.05em
-	\item The structured prediction ({\sc SP}) method employs the vanilla structured SVM framework in order to learn a score for trajectories given a query.
+	\item The structured prediction ({\sc SP}) method employs the vanilla structured SVM framework in order to learn a score for trajectories given a query.  
 
-	\item The structured recommendation ({\sc SR}) method extends the {\sc SP} method by additionally performing normalisation of the loss function per query,
-	so that we do not attempt to distinguish between multiple ground truths for the same query.
+	\item The structured recommendation ({\sc SR}) method extends the {\sc SP} method by additionally incorporating multiple ground truths into 
+	forming the constraints and adding them in cutting-plane algorithm, 
+	described in Section~\ref{ssec:sr} and \ref{ssec:SRinf}. 
+	%performing normalisation of the loss function per query,
+	%so that we do not attempt to distinguish between multiple ground truths for the same query.
 
 	\item The variants {\sc SPpath} and {\sc SRpath} extend the above methods by enforcing the constraint during training that sequences with loops are disallowed.
-\end{itemize}
+\end{itemize}\itemmoveup
 
 
-%
+\secmoveup
 \subsection{Evaluation procedure}
+\textmoveup
 
 % leave-one-out evaluation (with query aggregation)
 %As described in Section~\ref{sec:queryagg}, 
-To evaluate the performance of the various methods under comparison,
-we first group the trajectories according to queries that they conform to.
-We then evaluate the performance of each algorithm using leave-one-out cross validation,
+%To evaluate the performance of the various methods under comparison,
+%we first group the trajectories  %according to queries that they conform to.
+We then evaluate the performance of each algorithm using leave-one-query-out cross validation. That is, holding out each query $\x\pb{i}$, and also all of its relevant trajectories $\{\y\pb{ij}\}_{j=1}^{n^i}$ in each round. 
 where in each iteration of this procedure,
-one query and its associated trajectories serves as a test point, with all other trajectories for training.
-(Note that without this query aggregation, there will be considerable overlap between the train and test set, and simple nearest neighbour methods will be hard to outperform.)
+%one query and its associated trajectories serves as a test point, with all other trajectories for training.
+%(Note that without this query aggregation, there will be considerable overlap between the train and test set, and simple nearest neighbour methods will be hard to outperform.)
 % model selection (Monte Carlo CV) (with query aggregation): 90/10 random split for 5 times
-Furthermore, 
-all relevant hyper-parameters (e.g.\ the regularisation constant $C$) are tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
+Relevant hyper-parameters (e.g.\ the regularisation constant $C$) are tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
 
+We use three different measures to compare algorithm performances. 
+The {\bf F$_1$ score on points}~\cite{ijcai15} computes F$_1$ on the predicted versus seen points 
+without considering their relative order. 
+The {\bf F$_1$ score on pairs}~\cite{cikm16paper} is proposed to mitigate this by computing F$_1$ on all ordered pairs in the predicted versus groundtruth sequence. It is 1 iff both sequences agree completely. 
+The well-known rank correlation {\bf Kendall's $\tau$} (version $b$)~\cite{agresti2010analysis} computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all ($\frac{1}{2}l(l-1)$) pairs, ignoring ties. 
+\eat{
 % evaluation metric: kendall's Tau (mention F1, pF1)
 We use three performance measures to assess the test fold performance of each algorithm:
 point-F$_1$ score~\cite{ijcai15},
@@ -127,7 +137,11 @@ The Kendall's $\tau$ score is then computed on $r_\mathbf{y}$ versus $r_\mathbf{
 Unlike the F$_1$ scores on points and pairs, 
 which only care about the set of correctly recommended POIs or POI pairs,
 this metric taking both factors into account.
+}
 
+Structured recommendation problems aims to perform ranking on a very large $m^l$ labelset. 
+We adopt the practice of {\em best of top 10}~\cite{russakovsky2015imagenet} for reporting results. Or, predict top 10 trajectories and then report the best match of any in the top 10 to any trajectory in the ground truth set. 
+\eat{
 As described previously, our methods are capable of recommending not merely a single trajectory,
 but rather a list of trajectories.
 While one can simply take the top recommended trajectory as the prediction,
@@ -144,7 +158,7 @@ i.e.,
 \end{equation*}
 where $\{\mathbf{y}^{(ij)}\}_{j=1}^{N_i}$ are the ground truths for query $\mathbf{x}^{(i)}$ and
 $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
-
+}
 
 \secmoveup
 \subsection{Results and discussion}
