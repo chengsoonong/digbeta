@@ -205,14 +205,13 @@ $}
 where $\bar{\y}^{(i)} \in \mathcal{Y} \setminus \{\y^{ij}\}_{j=1}^{N_i}$.
 \TODO{explain how 1-slack connects to n-slack and this is what's implemented}
 
-\TODO{maybe: talk about this actually being a ranking objective for positive-only training sequences re: recommendations }
+\TODO{maybe - talk about this actually being a ranking objective for positive-only training sequences re: recommendations }
 
 % sub-tour elimination
 \subsection{Sequence decoding for the SR model}
 \label{ssec:subtour}
 
 The SR model require two algorithmic components for inference and learning that is missing from the SSVM algorithms. 
-This section discusses two distinct algorithms, and applied in novel contexts, can be used in the SR model. 
 
 The first is being able to predict a {\em path}, \ie sequences whose elements are distinct from each other. 
 As described in Section~\ref{sec:intro}, this is desirable since users traversing a sequence (of locations or music)
@@ -234,7 +233,13 @@ and does not easily support excluding known sequences.
 %Both the loss-augmented inference and prediction inference for structured SVM (Section~\ref{sec:ssvm}) cannot be done efficiently 
 %if the no duplicates constraints are required, moreover, we would like to recommend more than one trajectories given a query.
 
-\TODO{first talk about ILP}
+The rest of this section describes two algorithms, each intuitively aimed to address one of the two requirements above. 
+But it turns how that applied in novel contexts of the SR model, 
+either algorithm can satisfy the needs of both inference and learning. 
+We will also describe practical choices about which algorithm to use when. 
+
+
+\subsubsection{Traversing points with integer linear programming}
 % ILP for subtour elimination
 The no duplicates constraint can be achieved by adapting the sub-tour elimination constraints of the travelling salesman problem (TSP),
 in particular, we solve the following integer linear program (ILP),
@@ -262,7 +267,7 @@ If we employ the above ILP to do loss-augmented inference, one restriction is th
 e.g., $\Delta(\mathbf{y}, \bar{\mathbf{y}}) = 1 - \sum_{j=1}^M \sum_{k=1}^M u_{j, y_k}$ if we define the loss as the number of mispredicted POIs,
 where $\mathbf{y}$ is the ground truth and $\bar{\mathbf{y}}$ is the trajectory corresponding to the optimal solution of this ILP.
 
-\TODO{then talk about list Viterbi variants}
+\subsubsection{Finding $k$-best sequences}
 % 2 uses of list Viterbi: 1) multiple ground truths; 2) subtour elimination
 To achieve this, we resort to a variant of the list Viterbi algorithm~\cite{nilsson2001sequentially,seshadri1994list}
 which sequentially find the $k$-th best (scored) trajectory given the best, $2$nd best, \dots, $(k-1)$-th best (scored) trajectories,
