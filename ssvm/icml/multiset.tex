@@ -1,7 +1,9 @@
 %!TEX root = main.tex
 %\section{Recommending sequences}
+\secmoveup
 \section{The sequence recommendation problem}
 \label{sec:recseq}
+\textmoveup
 
 We begin with an overview of the sequence recommendation problem, before presenting our model.
 Consider the following abstract
@@ -77,8 +79,10 @@ Then focus on trajectory
 \end{enumerate}
 }
 
+\secmoveup
 \subsection{Preliminaries: structured SVMs}
 \label{ssec:ssvm}
+\textmoveup
 
 %In structured prediction, the output of classifier given feature vector $\x$ is
 %\begin{equation*}
@@ -160,9 +164,10 @@ with a growing set of constraints~\cite{joachims2009predicting}.
 In each iteration, a new constraint is formed by solving the loss-augmented inference,
 which helps shrink the feasible region of the problem.
 
-
+\secmoveup
 \subsection{SSVM for recommendation: the SR model}
 \label{ssec:sr}
+\textmoveup
 
 Recall that the structured recommendation problem
 involves observing \emph{multiple} ground truth output sequences for each input.
@@ -217,8 +222,10 @@ classification.
 
 \input{listviterbi}
 
+\secmoveup
 \subsection{Inference and learning for SR}
 \label{ssec:SRinf}
+\textmoveup
 
 For inference in SR model, both ILP and list Viterbi algorithms can be used, and they will generate the
 same result if terminated and converged within a given time budget.
