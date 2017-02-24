@@ -121,13 +121,13 @@ To learn a suitable set of weights $\w$, SSVMs solve the following optimisation 
 \resizebox{.99\linewidth}{!}{
   \begin{minipage}{\linewidth}
 \begin{align}
-&\min_{\x, \, \bm{\xi} \ge 0} \frac{1}{2} \x^\top \x + \frac{C}{n} \sum_{i=1}^n \xi_i \label{eq:nslack}\\
+&\min_{\w, \, \bm{\xi} \ge 0} \frac{1}{2} \w^\top \w + \frac{C}{n} \sum_{i=1}^n \xi_i \label{eq:nslack}\\
 &s.t.~  \forall i, \nonumber\\
-&\w^\top \Psi(\x^{(i)}, \y^{(i)}) + \xi_i \ge
-          \max_{\bar{\y} \in \mathcal{Y}}
-          \left\{\w^\top \Psi(\x^{(i)}, \bar{\y}) + \Delta(\y^{(i)}, \bar{\y}) \right\}. \nonumber
-%\langle \mathbf{w}, \, \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) - \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) \rangle \ge 
-%       \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}) - \xi_i, 
+%&\w^\top \Psi(\x^{(i)}, \y^{(i)}) + \xi_i \ge
+%          \max_{\bar{\y} \in \mathcal{Y}}
+%          \left\{\w^\top \Psi(\x^{(i)}, \bar{\y}) + \Delta(\y^{(i)}, \bar{\y}) \right\}. \nonumber
+& \langle \w, \, \Psi(\x^{(i)}, \y^{(i)}) - \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) \rangle \ge 
+       \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}) - \xi_i \nonumber
 \end{align}
 \end{minipage}
 }
@@ -138,23 +138,23 @@ Here the right hand side is known as the \emph{loss-augmented inference}.
 Loss-augmented inference can be efficiently done if loss function $\Delta(,)$ is also decomposable 
 with respect to individual and pairs of label elements in a way similar to Equation~\eqref{eq:jointfeature}.
 %%LX: we don't need the def of \xi_i below?
-%and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th example~\cite{tsochantaridis2005large},
-%\begin{equation*}
-%\xi_i = \max \left( 0, \,
-%        \max_{\bar{\mathbf{y}} \in \mathcal{Y}} 
-%        \left\{ \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}^{(i)}) + \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) %\right\} -
-%        \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) \right).
-%\end{equation*}
+and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th example~\cite{tsochantaridis2005large},
+\begin{equation*}
+\xi_i = \max \left( 0, \,
+       \max_{\bar{\mathbf{y}} \in \mathcal{Y}} 
+       \left\{ \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}^{(i)}) + \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) \right\} -
+       \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) \right).
+\end{equation*}
 %This formulation is called "$n$-slack" as we have one slack variable for each example in training set.
 
 %%LX: merge above, no need to write out the constraint twice
-% We can rewrite the constraint in problem (\ref{eq:nslack}) as
-% \begin{equation}
-% \label{eq:ssvminf}
-% \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) + \xi_i \ge
-%           \max_{\bar{\mathbf{y}} \in \mathcal{Y}}
-%           \left\{\mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) + \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}) \right\},
-% \end{equation}
+We can rewrite the constraint in problem (\ref{eq:nslack}) as
+\begin{equation}
+\label{eq:ssvminf}
+\mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) + \xi_i \ge
+          \max_{\bar{\mathbf{y}} \in \mathcal{Y}}
+          \left\{\mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) + \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}) \right\},
+\end{equation}
 
 
 To solve problem (\ref{eq:nslack}), one option is to simply enumerate all constraints, and feed the problem into a standard solver.
@@ -213,7 +213,7 @@ where $\bar{\y}^{(i)} \in \mathcal{Y} \setminus \{\y^{ij}\}_{j=1}^{N_i}$.
 
 The SR model require two algorithmic components for inference and learning that is missing from the SSVM algorithms. 
 
-The first is being able to predict a {\em path}, \ie sequences whose elements are distinct from each other. 
+For inference, SR needs to predict a {\em path}, \ie a sequence whose elements are distinct from each other. 
 As described in Section~\ref{sec:intro}, this is desirable since users traversing a sequence (of locations or music)
 would not want to see repeated entries. 
 Given desired sequence length $l$ among $L$ possible points, dynamic programming~\cite{tsochantaridis2005large} 
@@ -223,36 +223,44 @@ Christofes algorithm~\cite{christofides1976} on $y^*$ to eliminate loops in the 
 %is known to generate a solutions within a factor of 3/2 of the optimal solution for traveling salesman problems. 
 However, the resulting sequence will have less than the desired number of points, and the resulting score won't be optimal. 
 
-The second is being able to do loss-augmented inference by excluding multiple known sequences. 
+For learning an SR model, loss-augmented inference needs to be done by excluding multiple known sequences. 
 As described in Section~\ref{ssec:sr}, this involves %we would want to maximize the loss-augmented objective function 
 $\max_{\bar\y} \left\{ \w^\top \Psi(\x^{(i)}, \bar\y) + \Delta(\y^{(ij)}, \bar{\y}) \right\}$
 where the domain of candidate sequences excludes the known sequences for query $\x^{(i)}$, \ie $\bar{\y} \in \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}$. \TODO{should this be in Sec 3.2?}
 Note that the dynamic programming~\cite{tsochantaridis2005large} algorithm use back-tracking to find the best sequence, 
-and does not easily support excluding known sequences. 
+and cannot easily exclude known sequences. 
 
 %Both the loss-augmented inference and prediction inference for structured SVM (Section~\ref{sec:ssvm}) cannot be done efficiently 
 %if the no duplicates constraints are required, moreover, we would like to recommend more than one trajectories given a query.
 
 The rest of this section describes two algorithms, each intuitively aimed to address one of the two requirements above. 
-But it turns how that applied in novel contexts of the SR model, 
-either algorithm can satisfy the needs of both inference and learning. 
+Both can be applied in novel contexts of the SR model. 
 We will also describe practical choices about which algorithm to use when. 
 
 
 \subsubsection{Traversing points with integer linear programming}
 % ILP for subtour elimination
-The no duplicates constraint can be achieved by adapting the sub-tour elimination constraints of the travelling salesman problem (TSP),
-in particular, we solve the following integer linear program (ILP),
+Inference in the SR model requires finding the best path that traverses exactly $l$ of $L$ candidate points. 
+This is can be seen as a variant of the traveling salesman problem (TSP), or the best of $C_L^l$ TSPs.
+Such a point traversal problem can be solved by incorporating 
+sub-tour elimination constraints of the travelling salesman problem (TSP).
+In particular, the following integer linear program (ILP) formulation~\cite{ijcai15,cikm16paper} 
+will solve SR inference for trajectory $\y$ of length $l$. 
+\resizebox{.99\columnwidth}{!}{
+  \begin{minipage}{\linewidth}
 \begin{alignat}{5}
-& \max_{u,v} ~&& \sum_{k=1}^M \mathbf{w}_k^\top \phi_k(\mathbf{x}, p_k) \sum_{j=1}^M u_{jk} + 
-                 \sum_{j=1}^M \sum_{k=1}^M u_{jk} \mathbf{w}_{jk}^\top \phi_{j, k}(\mathbf{x}, p_j, p_k) \\
-& s.t. ~~ ~&& u_{jk}, ~z_j \in \{0, 1\}, ~u_{jj}=0, ~z_1=0, ~v_j \in \mathbf{Z},~ p_j \in \mathcal{P}, ~\forall j, k = 1,\cdots,M   \label{eq:cons1} \\
-&          && \sum_{k=2}^M u_{1k} = 1, ~\sum_{j=2}^M u_{j1} = 0  \label{eq:cons2} \\
-&          && \sum_{j=1}^M u_{jl} = z_l + \sum_{k=2}^M u_{lk} \le 1,   ~\forall l=2,\cdots,M                    \label{eq:cons3} \\
-&          && \sum_{j=1}^M \sum_{k=1}^M u_{jk} = L-1,                                                           \label{eq:cons4} \\
-&          && v_j - v_k + 1 \le (M-1) (1-u_{jk}),                     \forall j,k=2,\cdots,M                    \label{eq:cons5}
+\max_{\bu,\bv} ~& \sum_{k=1}^l \w_k^\top \Psi_k(\x, y_k) \sum_{j=1}^l u_{jk} \nonumber\\
+                & + \sum_{j=1}^l \sum_{k=1}^l u_{jk} \w_{jk}^\top \Psi_{j, k}(\x, y_j, y_k) \\
+s.t. ~& u_{jk}, ~z_j \in \{0, 1\}, ~u_{jj}=0, ~z_1=0, ~v_j \in \mathbf{Z},~ \\
+  & p_j \in \mathcal{P}, ~\forall j, k = 1,\cdots,M   \label{eq:cons1} \\
+  & \sum_{k=2}^M u_{1k} = 1, ~\sum_{j=2}^M u_{j1} = 0  \label{eq:cons2} \\
+  & \sum_{j=1}^M u_{jl} = z_l + \sum_{k=2}^M u_{lk} \le 1,   ~\forall l=2,\cdots,M                    \label{eq:cons3} \\
+  & \sum_{j=1}^M \sum_{k=1}^M u_{jk} = L-1,                                                           \label{eq:cons4} \\
+  & v_j - v_k + 1 \le (M-1) (1-u_{jk}),                     \forall j,k=2,\cdots,M                    \label{eq:cons5}
 \end{alignat}
-where $u_{jk}$ is a binary decision variable that determines whether the transition from $p_j$ to $p_k$ is in the resulting trajectory,
+\end{minipage}
+}
+Here $u_{jk}$ are binary decision variables that determines whether the transition from $y_j$ to $y_k$ is in the resulting trajectory,
 $z_j$ is a binary decision variable that determines whether $p_j$ is the last POI in trajectory.
 $L$ is the number of POIs in trajectory.
 For brevity, we arrange the POIs such that $p_1 = s$.
