@@ -82,13 +82,14 @@ by solving an optimisation problem that does not exploit historical data~\cite{g
 
 % AKM: probably can omit this stuff as I dunno how to frame it properly
 
-The trajectory recommendation problem can be related at an abstract level to the label ranking problem~\citep{Dekel:2003},
+The sequence recommendation problem can be related at an abstract level to the label ranking problem~\citep{Dekel:2003},
 where the input comprises a query and a corresponding graph as a label.
 The goal in such problems is to learn a ranking over the nodes of the graph,
 which is similar to our setting;
-however, these are typically not learned using structured prediction models.
+however, these are typically not learned using structured prediction models,
+but rather by computing a loss function over pairs.
 
 Our problem can also be related to the listwise ranking approach in information retrieval~\citep{Cao:2007},
 which attempts to learn a good set of results for a query by exploiting structure embedded in the entire set of results.
-One contribution of this work is in casting trajectory recommendation as such a structured prediction problem, as opposed to
-pointwise and pairwise approaches considered in previous work.
+In this light, previous methods for sequence recommendation are akin to pointwise and pairwise approaches for ranking~\citep{Liu:2009}.
+One contribution of this work is in casting sequence recommendation as such a structured prediction problem, where one considers the information embedded in the entire sequence associated with an input.

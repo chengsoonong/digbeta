@@ -1,27 +1,45 @@
 %!TEX root = main.tex
-\section{Recommending sequences}
+%\section{Recommending sequences}
+\section{The sequence recommendation problem}
 \label{sec:recseq}
 
-We consider the problem of given an input query $\x$ -- a user, a location, or some items of interest -- 
-recommend one or more sequences $\y$ according to a learned score function $f(\x,\y)$. 
-For this work we assume the output $\y$ is a sequence of $l$ points, or $y_{1:l}$. 
-Having this assumption does not limit the generality of the approach, 
-as inferring $\y$ of other structure can be achieved by using the corresponding inference and loss-augmented inference algorithms~\cite{joachims2009predicting}.  %LX - this sentence can be cut or merged above
-There are two notable differences between the problem of interest -- recommending sequences, and what is being solved 
-in structured prediction and recommender systems. 
+Consider the following abstract
+\emph{structured recommendation} problem:
+given an input query $\x$ -- possibly representing a user, a location, or some ``seed'' item --
+recommend one or more \emph{structured outputs} $\y$ according to a learned score function $f(\x,\y)$. 
+To learn such a scoring function $f$,
+we are provided as input a training set
+%$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$,
+$\{ ( \x\pb{i}, \{ \y\pb{ij} \}_{j=1}^{n^i} ) \}_{i=1}^{n}$,
+comprising a collection of inputs $\x\pb{i}$ with an associated \emph{set} of output structures $\{ \y\pb{ij} \}$.
+As an example, this might represent a collection of users in a city, along with a set of trajectories that the user has visited.
 
-In structured recommendation, the goal is to learn from 
-$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$, or a set of output sequences for each input $\x\pb{i}$. 
-This setting generalises from structured prediction and recommendation problems in the following ways. 
+For this work, we assume the output $\y$ is a \emph{sequence} of $l$ points, denoted $y_{1:l}$
+where each $y_i$ belongs to some fixed set (e.g.\ places of interest in a city).
+We call the resulting specialisation the \emph{sequence recommendation} problem,
+and this shall be our primary interest in this paper.
+The assumption that $\y$ is a sequence does not limit the generality of our approach, 
+as inferring $\y$ of other structure can be achieved using corresponding inference and loss-augmented inference algorithms~\cite{joachims2009predicting}.  %LX - this sentence can be cut or merged above
+
+There are notable differences between the sequence recommendation problem, and %what is being solved in
+the standard problems considered in structured prediction and recommender systems. 
+%This setting generalises from structured prediction and recommendation problems in the following ways. 
+This brings unique challenges for both inference and learning. 
 In a typical structured prediction setting, the goal is to learn from a collection of $n$
-input vector and output sequence tuples $(\x\pb{i}, \y\pb{i})$, $i=1:n$. Here, 
-for each distinct input $\x\pb{i}$ there is usually one unique output sequence $\y\pb{i}$. 
-In a typical recommender systems, however, the typical setting is to learn from 
-tuples $(\x\pb{i}, \{ y\pb{ij} \}_{j=1:n^i})$, $i=1:n$. That is to say, for each input $\x\pb{i}$ (\eg users)
-have not one, but a set of correct output values $\{ y\pb{ij} \}_{j=1:n^i}$ (\eg movies). 
+input vector and output sequence tuples %$(\x\pb{i}, \y\pb{i})$, $i=1:n$.
+$\{ (\x\pb{i}, \y\pb{i}) \}_{i = 1}^n$. Here, 
+for each distinct input $\x\pb{i}$ there is usually one \emph{unique} output sequence $\y\pb{i}$. 
+In a typical sequence recommendation problem, however, we expect that %learn from 
+%tuples $(\x\pb{i}, \{ y\pb{ij} \}_{j=1:n^i})$, $i=1:n$. That is to say,
+for each input $\x\pb{i}$ (\eg users),
+there %is %have not one, but a set of
+are multiple associated outputs %$\{ y\pb{ij} \}_{j=1:n^i}$ (\eg movies). 
+$\{ \y\pb{ij} \}_{j=1}^{n^i}$ (\eg trajectories they have visited).
+For model learning, structured prediction approaches do not have a standard way to take into account multiple output sequences $\{ \y\pb{ij} \}_{j=1:n^i}$ for each input $\x\pb{i}$ yet. 
 
-Such a setting brings unique challenges for both inference and learning. 
-For recommender systems, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$, whereas for structured prediction problems $\argmax_\y f(\x,\y)$ is harder since it is impossible to efficiently enumerate $\y$. For model learning, structured prediction approaches do not have a standard way to take into account multiple output sequences $\{ \y\pb{ij} \}_{j=1:n^i}$ for each input $\x\pb{i}$ yet. 
+On the other hand, for typical recommender systems problems, one assumes that the outputs are non-structured (\eg real-valued ratings for movies).
+Thus, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$.
+For structured recommendation problems, computing $\argmax_\y f(\x,\y)$ is harder since it is often impossible to efficiently enumerate $\y$ (\eg all possible trajectories in a city).
 
 In the rest of this section, we will first review the background of structured prediction problems (Sec~\ref{ssec:ssvm}), then present a model for structured recommendation (Sec~\ref{ssec:sr}), followed by algorithms for its learning (Sec~\ref{ssec:SRtrain}) and inference (Sec~\ref{ssec:SRinf}).
 
@@ -55,7 +73,7 @@ Then focus on trajectory
 \end{enumerate}
 }
 
-\subsection{Preliminary: Structured SVM}
+\subsection{Preliminaries: Structured SVM}
 \label{ssec:ssvm}
 
 %In structured prediction, the output of classifier given feature vector $\x$ is
