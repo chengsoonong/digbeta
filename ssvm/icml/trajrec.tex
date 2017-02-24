@@ -1,55 +1,74 @@
-\section{Trajectory Recommendation as Structured Prediction}
+% !TEX root = ./main.tex
+
+\section{Trajectory Recommendation as a Structured Prediction Problem}
 \label{sec:trajrec}
 
-The trajectory recommendation problem is: given a set of points-of-interest (POI) $\mathcal{P}$ and a trajectory query $\mathbf{x} = (s, K)$,
-where $s \in \mathcal{P}$ is the desired start POI and $K > 1$ is the number of POIs in the desired trajectory (including the start location $s$).
-We want to recommend a sequence of POIs $\mathbf{y}^*$ that maximises utility, i.e., for a suitable function $f(\cdot,\cdot)$,
+Travel recommendation problems involve a set of points-of-interest (POIs) $\mathcal{P}$ in a city.
+The \emph{trajectory recommendation} problem is: given a \emph{trajectory query} $\mathbf{x} = (s, K)$,
+comprising a start POI $s \in \mathcal{P}$ and trip length\footnote{Instead of specifying the number of desired POIs, we can constrain the trajectory with a total time budget $T$.
+In this case, the number of POIs $K$ can be treated as a \emph{hidden} variable, with additional constraint $\sum_{k=1}^K t_k \le T$
+where $t_k$ is the time spent at POI $y_k$.} $K > 1$ (including the start location $s$),
+we want to recommend a sequence of POIs $\mathbf{y}^*$ that maximises some notion of utility.
+That is, for a suitable function $f(\cdot,\cdot)$, we wish to find
 \begin{equation*}
 \mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~f(\mathbf{x}, \mathbf{y}),
 \end{equation*}
-where $\mathcal{Y}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ and conform to query $\mathbf{x}$.
-$\mathbf{y} = (y_1 = s,~ y_2, \dots, y_K)$ is a trajectory with $K$ POIs, and $y_j \ne y_k$ if $j \ne k$, 
-i.e.,
-there is no sub-tours in trajectory $\mathbf{y}$.
+where $\mathcal{Y}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ that conform to the constraints imposed by the query $\mathbf{x}$.
+In particular,
+$\mathbf{y} = (y_1 = s,~ y_2, \dots, y_K)$ is a trajectory with $K$ POIs, which has no sub-tours i.e. $y_j \ne y_k$ if $j \ne k$.
 
+% AKM: not sure these are suitable here
+%
+% This problem is related to automatic playlist generation,
+% where we recommend a sequence of songs given a specified song (a.k.a. the seed) and the number of new songs.
+% Formally, given a library of songs and a query $\mathbf{x} = (s, K)$, where $s$ is the seed and $K$ is the number of songs in playlist,
+% we produce a list with $K$ songs (without duplication) by maximising the likelihood~\cite{chen2012playlist},
+% \begin{equation*}
+% %\max_{(y_1,\dots,y_K)} \prod_{k=2}^K \mathbb{P}(y_{k-1} \given y_k),~ y_1 = s ~\text{and}~ y_j \ne y_k,~ j \ne k.
+% \mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{P}_\mathbf{x}}~ \mathbb{P}(\mathbf{y} \given \mathbf{x}),~ \mathbf{y} = (y_1=s,\dots,y_K)
+% ~\text{and}~ y_j \ne y_k ~\text{if}~ j \ne k.
+% \end{equation*}
 
-Instead of specifying the number of desired POIs, we can constrain the trajectory with a total time budget $T$.
-In this case, the number of POIs $K$ can be treated as a \emph{hidden} variable, with additional constraint $\sum_{k=1}^K t_k \le T$
-where $t_k$ is the time spent at POI $y_k$.
+% Another similar problem is choosing a small set of photos from a large photo library and compiling them into a slideshow or movie.
 
+To learn a suitable $f$ for trajectory recommendation,
+we are provided as input a training set
+%$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$,
+$\{ ( \x\pb{i}, \{ \y\pb{ij} \}_{j=1}^{n^i} ) \}_{i=1}^{n}$.
+Here, each $\x\pb{i}$ is a distinct query,
+while the corresponding $\{ \y\pb{ij} \}_{j=1}^{n^i}$ is the set of trajectories observed for that query.
+Note that we expect most queries to have several distinct trajectories;
+minimally,
+for example,
+there may two nearby POIs that are visited in interchangeable order by different travellers.
 
-This problem is related to automatic playlist generation,
-where we recommend a sequence of songs given a specified song (a.k.a. the seed) and the number of new songs.
-Formally, given a library of songs and a query $\mathbf{x} = (s, K)$, where $s$ is the seed and $K$ is the number of songs in playlist,
-we produce a list with $K$ songs (without duplication) by maximising the likelihood~\cite{chen2012playlist},
-\begin{equation*}
-%\max_{(y_1,\dots,y_K)} \prod_{k=2}^K \mathbb{P}(y_{k-1} \given y_k),~ y_1 = s ~\text{and}~ y_j \ne y_k,~ j \ne k.
-\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{P}_\mathbf{x}}~ \mathbb{P}(\mathbf{y} \given \mathbf{x}),~ \mathbf{y} = (y_1=s,\dots,y_K)
-~\text{and}~ y_j \ne y_k ~\text{if}~ j \ne k.
-\end{equation*}
+Comparing the above to the discussion in the previous section, it is clear that
+we can cast trajectory recommendation as a special case of the structured recommendation problem.
+Consequently, we may approach it using structured prediction methods such as the SSVM,
+as well as the extensions proposed to account for multiple ground truths and eliminate loops during training.
 
-Another similar problem is choosing a small set of photos from a large photo library and compiling them into a slideshow or movie.
-
-
+% AKM: repetitive
+%
 % standard SSVM
-We can learn a recommender by training a SSVM on the set of observed trajectories $\{\mathbf{x}^{(i')}, \mathbf{y}^{(i')}\}_{i'=1}^{N'}$,
-However, we ignore the fact that for the same query, we normally observed more than one trajectory,
-we would like to exploit this fact to better modelling the observed trajectories.
+% We can learn a recommender by training a SSVM on the set of observed trajectories $\{\mathbf{x}^{(i')}, \mathbf{y}^{(i')}\}_{i'=1}^{N'}$,
+% However, we ignore the fact that for the same query, we normally observed more than one trajectory,
+% we would like to exploit this fact to better modelling the observed trajectories.
+
+% AKM: repetitive
+%
+% \subsection{Query Aggregation}
+% \label{sec:query}
+
+% To modelling the fact that a given query has multiple observed trajectories, 
+% we firstly group trajectories according to queries, in other words,
+% we now have a dataset $\{\mathbf{x}^{(i)}, \{\mathbf{y}^{(ij)}\}_{j=1}^{N_i}\}_{i=1}^N$
+% with $N$ queries and queries $\mathbf{x}^{(i)}$ has $N_i$ trajectories observed.
 
 
-\subsection{Query Aggregation}
-\label{sec:query}
+% \subsection{Recommendation with Multiset SSVM}
+% \label{sec:trajrec-ssvm}
 
-To modelling the fact that a given query has multiple observed trajectories, 
-we firstly group trajectories according to queries, in other words,
-we now have a dataset $\{\mathbf{x}^{(i)}, \{\mathbf{y}^{(ij)}\}_{j=1}^{N_i}\}_{i=1}^N$
-with $N$ queries and queries $\mathbf{x}^{(i)}$ has $N_i$ trajectories observed.
-
-
-\subsection{Recommendation with Multiset SSVM}
-\label{sec:trajrec-ssvm}
-
-We can learn to recommend trajectories by training a multiset SSVM described in Section~\ref{sec:ssvm-ms}
+% We can learn to recommend trajectories by training a multiset SSVM described in Section~\ref{sec:ssvm-ms}
 
 % multiset SSVM
 
