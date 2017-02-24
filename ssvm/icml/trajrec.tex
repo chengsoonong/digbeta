@@ -41,7 +41,7 @@ based on implicit preference data in the training set.
 Perhaps the simplest such approach is based on learning a model to predict whether a particular POI occurs, or not, in the trajectory corresponding to a query.
 Formally, from the given set of trajectories
 we derive a training set $\{ ( \x^{(i)}, p^{(i)}, y^{(i)} ) \}_{i = 1}^N$,
-where each POI $p^{(i)}$ is augmented with a label $y^{(i)} \in \{ 0, 1 \}$ denoting whether or not it appeared in a trajectory corresponding to the query $\x^{(i)}$. 
+where each POI $p^{(i)}$ is augmented with a label $y^{(i)} \in \{ \pm 1 \}$ denoting whether or not it appeared in a trajectory corresponding to the query $\x^{(i)}$. 
 Formally, the objective used for training is
 $$ \min_{\w} \frac{1}{2} \w^T \w + C \cdot \sum_{i = 1}^N \ell\left( y^{(i)} \cdot ( \w^T \Phi( \x^{(i)}, p^{(i)} ) ) \right) $$
 where
@@ -56,17 +56,27 @@ which %is fed as input %pairs $(p_i, p_j)$ of POIs such that $p_i$ appears ahead
 learns a model to predict whether a POI is likely to appear ahead of another POI in a trajectory corresponding to some query.
 Formally, the objective used for training is
 %$$ \min_{\w} \frac{1}{2} \w^T \w + C \cdot \sum_{\mathbf{x} \in \mathcal{Q}} \sum_{p_i \succeq_{\mathbf{x}} p_j} \max\left( 0, 1 - \w^T ( \Phi( \x, p_i ), \Phi( \x, p_j ) ) \right)^2 $$
-$$ \min_{\w} \frac{1}{2} \w^T \w + C \cdot \sum_{\x \in \mathcal{Q}} \sum_{p_i \succeq_{\mathbf{x}} p_j} \ell\left( \w^T ( \Phi( \x, p_i ) - \Phi( \x, p_j ) ) \right), $$
+
+\resizebox{0.99\linewidth}{!}{
+$\displaystyle \min_{\w} \frac{1}{2} \w^T \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathcal{R}( \x^{(i)} )} \ell\left( \w^T ( \Phi( \x^{(i)}, p ) - \Phi( \x, p' ) ) \right), $
+}
+
 where $\Phi, C$ are as before,
 $\ell( v ) = \max( 0, 1 - v )^2$ is the squared hinge loss,
 and
-$p_i \succeq_{\mathbf{x}} p_j$ is denoted to mean that the POI $p_i$ is ranked above the POI $p_j$ in the trajectories associated with $\x$ according to some notion.
+%$p \succeq_{\mathbf{x}} p'$ is denoted to mean that the
+$\mathcal{R}( \x )$
+denotes all pairs of POIs $(p, p')$ such that
+POI $p$ is ranked above the POI $p'$ in the trajectories associated with $\x$ according to some notion.
 For example, this may be computed \eg by counting the number of times a POI appears in the trajectories associated with a query, and using this to determine which of two POIs is more suitable for a query.
 
 While such approaches can certainly learn to recommend useful trajectories,
 we observe that their modelling power is inherently limited:
 they are not capable of ensuring the \emph{global} cohesion of a trajectory,
 as they inherently rely on either pointwise or pairwise preferences for POIs.
+For example, as argued in the Introduction,
+we might find three restaurants to be the highest scoring POIs in a city;
+however, this it is unlikely that these three POIs form a trajectory that most travellers will enjoy.
 
 This motivates an approach that attempts to directly ensure such global cohesion.
 To do this, we show how the problem can be cast as one of sequential recommendation, 

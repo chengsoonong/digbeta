@@ -1,0 +1,19 @@
+% !TEX root = ./main.tex
+
+\section{Conclusion}
+
+We showed how the problem of sequential recommendation,
+which arises in contexts such as
+recommending a playlist of songs, or a trajectory of points-of-interest in a city,
+can be viewed as a structured prediction problem.
+We proposed a structured support vector machine for this recommendation task, with two important changes:
+first, we modified the training objective to account for the existence of multiple ground truths;
+second, we modified the prediction and loss augmented inference procedures to avoid predicting loops in the sequence via an extension of the classic Viterbi algorithm.
+Experiments on two real-world trajectory recommendation datasets showed the benefits of our approach over existing, non-structured recommendation approaches.
+
+There are several important directions for future work.
+First, it is of interest to assess the viability of probabilistic approaches to structured prediction,
+such as the conditional random field and maximum entropy Markov model.
+Second, extending our approaches to additionally capture latent user- and POI-representations, when sufficient personalised data of this type is available, would be of interest.
+Third, applying structured prediction approaches to other sequential prediction problems, such as playlist generation, may indicate similar benefits as observed in the trajectory recommendation problem.
+%Third, it will be beneficial to consider loss-augmented inference for more complex performance measures.
