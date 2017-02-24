@@ -6,7 +6,7 @@
 Consider the following abstract
 \emph{structured recommendation} problem:
 given an input query $\x \in \mathcal{X}$ -- representing for example a user, a location, or some ``seed'' item --
-we wish to recommend one or more \emph{structured outputs} $\y \in \mathcal{Y}$ according to a learned \emph{score function} $f(\x,\y)$. 
+we wish to recommend one or more \emph{structured outputs} $\y \in \mathcal{Y}$ according to a learned \emph{score function} $f(\x,\y)$.
 To learn a suitable $f$,
 we are provided as input a training set
 %$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$,
@@ -18,27 +18,27 @@ For this work, we assume the output $\y$ is a \emph{sequence} of $l$ points, den
 where each $y_i$ belongs to some fixed set (e.g.\ places of interest in a city).
 We call the resulting specialisation the \emph{sequence recommendation} problem,
 and this shall be our primary interest in this paper.
-The assumption that $\y$ is a sequence does not limit the generality of our approach, 
+The assumption that $\y$ is a sequence does not limit the generality of our approach,
 as inferring $\y$ of other structure can be achieved using corresponding inference and loss-augmented inference algorithms~\cite{joachims2009predicting}.  %LX - this sentence can be cut or merged above
 
 There are notable differences between the sequence recommendation problem and %what is being solved in
-the standard problems considered in structured prediction and recommender systems. 
-%This setting generalises from structured prediction and recommendation problems in the following ways. 
-These differences bring unique challenges for both inference and learning. 
+the standard problems considered in structured prediction and recommender systems.
+%This setting generalises from structured prediction and recommendation problems in the following ways.
+These differences bring unique challenges for both inference and learning.
 In a typical structured prediction setting, the goal is to learn from a collection of $n$
 input vector and output sequence tuples %$(\x\pb{i}, \y\pb{i})$, $i=1:n$.
-$\{ (\x\pb{i}, \y\pb{i}) \}_{i = 1}^n$. Here, 
-for each distinct input $\x\pb{i}$ there is usually one \emph{unique} output sequence $\y\pb{i}$. 
-In a typical sequence recommendation problem, however, we expect that %learn from 
+$\{ (\x\pb{i}, \y\pb{i}) \}_{i = 1}^n$. Here,
+for each distinct input $\x\pb{i}$ there is usually one \emph{unique} output sequence $\y\pb{i}$.
+In a typical sequence recommendation problem, however, we expect that %learn from
 %tuples $(\x\pb{i}, \{ y\pb{ij} \}_{j=1:n^i})$, $i=1:n$. That is to say,
 for each input $\x\pb{i}$ (\eg users),
 there %is %have not one, but a set of
-are multiple associated outputs %$\{ y\pb{ij} \}_{j=1:n^i}$ (\eg movies). 
+are multiple associated outputs %$\{ y\pb{ij} \}_{j=1:n^i}$ (\eg movies).
 $\{ \y\pb{ij} \}_{j=1}^{n^i}$ (\eg trajectories they have visited).
 Indeed, the existence of multiple outputs is the basis on which even non-structured recommendation systems are built, as one looks to exploit signal embedded in the aggregate information.
 For model learning, structured prediction approaches do not have a standard way to take into account multiple output sequences %$\{ \y\pb{ij} \}_{j=1:n^i}$
 for each input %$\x\pb{i}$
-yet. 
+yet.
 
 On the other hand, for typical recommender systems problems, one assumes that the outputs are non-structured (\eg real-valued ratings for movies).
 Thus, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$.
@@ -84,7 +84,7 @@ Then focus on trajectory
 %\y^* = \argmax_{\y \in \mathcal{Y}}~ f(\x, \y),
 %\end{equation*}
 %where $\mathcal{Y}_\mathbf{x}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ and satisfying query $\mathbf{x}$,
-One well known model for structured prediction is the Structured Support Vector Machines (SSVM)~\cite{joachims2009predicting,tsochantaridis2005large}. 
+One well known model for structured prediction is the Structured Support Vector Machines (SSVM)~\cite{joachims2009predicting,tsochantaridis2005large}.
 This comprises three essential ingredients.
 
 \emph{Score function}. In SSVMs, we specify that the score function $f(\x, \y)$ takes a linear form:
@@ -93,29 +93,29 @@ This comprises three essential ingredients.
 \begin{equation*}
 f(\x, \y) = \w^\top \Psi(\x, \y),
 \end{equation*}
-where $\w$ is a weight vector, and $\Psi(\x, \y)$ is a \emph{joint feature map} 
+where $\w$ is a weight vector, and $\Psi(\x, \y)$ is a \emph{joint feature map}
 between the input $\x$ and label sequence $\y$.
-The design of the feature map $\Psi(\cdot,\cdot)$ is problem specific. 
-For many problems, we can assume that it is a vector whose elements represent unary 
- terms for each element in the label $y_{1:l}$, and pairwise interactions between the labels. 
- For sequence data, in particular, we also assume that the pair-wise interactions are between 
- adjacent elements, i.e. $y_j$ and $y_{j+1}$ for $j=1:l-1$. 
- Subsequently, the score function $f(\x,\y)$ decomposes into a sum of 
+The design of the feature map $\Psi(\cdot,\cdot)$ is problem specific.
+For many problems, we can assume that it is a vector whose elements represent unary
+ terms for each element in the label $y_{1:l}$, and pairwise interactions between the labels.
+ For sequence data, in particular, we also assume that the pair-wise interactions are between
+ adjacent elements, i.e. $y_j$ and $y_{j+1}$ for $j=1:l-1$.
+ Subsequently, the score function $f(\x,\y)$ decomposes into a sum of
  each of these unary and pairwise features with the corresponding feature weight:
 \begin{equation}
 \label{eq:jointfeature}
 \resizebox{0.99\linewidth}{!}{$\displaystyle
-f(\x, \y) =  %\w^\top \Psi(\x,\y) 
-\sum_{j=1}^l \w_j^\top \Psi_j(\x, y_j)  
+f(\x, \y) =  %\w^\top \Psi(\x,\y)
+\sum_{j=1}^l \w_j^\top \Psi_j(\x, y_j)
   + \sum_{j=1}^{l-1} \w_{j,j+1}^\top \Psi_{j,j+1}(\x, y_{j}, y_{j+1}). %\nonumber
   $}
 \end{equation}
 Here, $\Psi_j$ is a feature map between the input and one output label element $y_j$, with a corresponding weight vector $\w_j$
-and $\Psi_{j,j+1}$ is a pairwise feature vector that captures the interactions between consecutive labels $y_j$ $y_{j-1}$, 
+and $\Psi_{j,j+1}$ is a pairwise feature vector that captures the interactions between consecutive labels $y_j$ $y_{j-1}$,
 with a corresponding weight vector $\w_{j,j+1}$.
 
 %To learn the parameters, we train the structured SVM by optimising a quadratic program (QP),
-\emph{Objective function}. 
+\emph{Objective function}.
 To learn a suitable set of weights $\w$, SSVMs solve the following optimisation problem during training:
 
 \begin{equation}
@@ -126,16 +126,16 @@ To learn a suitable set of weights $\w$, SSVMs solve the following optimisation 
 %&\w^\top \Psi(\x^{(i)}, \y^{(i)}) + \xi_i \ge
 %          \max_{\bar{\y} \in \mathcal{Y}}
 %          \left\{\w^\top \Psi(\x^{(i)}, \bar{\y}) + \Delta(\y^{(i)}, \bar{\y}) \right\}. \nonumber
-& \w^\top \Psi(\x^{(i)}, \y^{(i)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}) \ge 
+& \w^\top \Psi(\x^{(i)}, \y^{(i)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}) \ge
   \Delta(\y^{(i)}, \bar{\y}) - \xi_i \nonumber
 \end{aligned}
 $}
 \end{equation}
 
 Here, $\bar\y$ is a candidate sequence,  % \in \mathcal{Y} -- LX: what is cal Y anyway?
-and $\Delta(\y, \bar\y)$ is the loss function between $\bar\y$ and the ground truth $\y$. 
-Here the right hand side is known as the \emph{loss-augmented inference}. 
-Loss-augmented inference can be efficiently done if loss function $\Delta(,)$ is also decomposable 
+and $\Delta(\y, \bar\y)$ is the loss function between $\bar\y$ and the ground truth $\y$.
+Here the right hand side is known as the \emph{loss-augmented inference}.
+Loss-augmented inference can be efficiently done if loss function $\Delta(,)$ is also decomposable
 with respect to individual and pairs of label elements in a way similar to Equation~\eqref{eq:jointfeature}.
 %%LX: we don't need the def of \xi_i below?
 and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th example~\cite{tsochantaridis2005large},
@@ -143,7 +143,7 @@ and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i
   \begin{minipage}{\linewidth}
 \begin{equation*}
 \xi_i = \max \left( 0, \,
-       \max_{\bar{\y} \in \mathcal{Y}} 
+       \max_{\bar{\y} \in \mathcal{Y}}
        \left\{ \Delta(\y^{(i)}, \bar{\y}^{(i)}) + \w^\top \Psi(\x^{(i)}, \bar{\y}^{(i)}) \right\} -
        \w^\top \Psi(\x^{(i)}, \y^{(i)}) \right).
 \end{equation*}
@@ -163,9 +163,9 @@ We can rewrite the constraint in problem (\ref{eq:nslack}) as
 
 To solve problem (\ref{eq:nslack}), one option is to simply enumerate all constraints, and feed the problem into a standard solver.
 However, this approach is impractical as there is a constraint for every possible label $\bar{\y}$.
-Instead, we use a cutting-plane algorithm which repeatedly solves the quadratic program (\ref{eq:nslack}) 
+Instead, we use a cutting-plane algorithm which repeatedly solves the quadratic program (\ref{eq:nslack})
 with a growing set of constraints~\cite{joachims2009predicting}.
-In each iteration, a new constraint is formed by solving the loss-augmented inference, 
+In each iteration, a new constraint is formed by solving the loss-augmented inference,
 which helps shrink the feasible region of the problem.
 
 
@@ -174,7 +174,7 @@ which helps shrink the feasible region of the problem.
 
 Recall that the structured recommendation problem
 involves observing \emph{multiple} ground truth output sequences for each input.
-%If we observed more than one labels for a particular set of features, 
+%If we observed more than one labels for a particular set of features,
 The classic SSVM described in Section~\ref{ssec:ssvm} can be easily generalised to capture this setting:
 given feature vector $\x^{(i)}$ and the corresponding set of ground truths $\{\y^{(ij)}\}_{j=1}^{n_i}$
 where $n_i$ is the number of labels for $\x^{(i)}$,
@@ -184,7 +184,7 @@ we can train a \emph{structured recommendation} (\emph{SR}) model by optimising 
 \resizebox{0.99\linewidth}{!}{$
 \begin{aligned}
 \min_{\w, \, \bm{\xi} \ge 0} ~& \frac{1}{2} \w^\top \w + \frac{C}{N} \sum_{i,j} \xi_{ij} \\
-s.t.~ ~& \w^\top \Psi(\x^{(i)}, \y^{(ij)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}) \rangle \ge 
+s.t.~ ~& \w^\top \Psi(\x^{(i)}, \y^{(ij)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}) \rangle \ge
          \Delta(\y^{(ij)}, \bar{\y}) - \xi_{ij}, \, \forall j, \, \forall i.
 \end{aligned}
 $}
@@ -195,61 +195,53 @@ explicitly aggregates all the ground truth labels for each input when generating
 in this way, we do not have apparently contradictory constraints where
 two ground truth sequences are each required to have larger score than the other.
 
-Instead of using $N$ slack variables as that in (\ref{eq:nslack_ml}), 
-we can one variable to represent the sum of the $N$ hinge losses, 
+Instead of using $N$ slack variables as that in (\ref{eq:nslack_ml}),
+we can one variable to represent the sum of the $N$ hinge losses,
 which leads to this one-slack formulation,
 \begin{equation}
 \label{eq:1slack_ml}
 \resizebox{0.99\linewidth}{!}{$
 \begin{aligned}
 \min_{\w, \, \xi \ge 0} ~& \frac{1}{2} \w^\top \w + C \xi \\
-s.t.~ ~& \frac{1}{N} \sum_{i,j} \w^\top \Psi(\x^{(i)}, \y^{(ij)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}^{(i)}) \ge 
-         \frac{1}{N} \sum_{i,j} \Delta(\y^{(ij)}, \bar{\y}^{(i)}) - \xi, 
+s.t.~ ~& \frac{1}{N} \sum_{i,j} \w^\top \Psi(\x^{(i)}, \y^{(ij)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}^{(i)}) \ge
+         \frac{1}{N} \sum_{i,j} \Delta(\y^{(ij)}, \bar{\y}^{(i)}) - \xi,
 \end{aligned}
 $}
 \end{equation}
 where $\bar{\y}^{(i)} \in \mathcal{Y} \setminus \{\y^{ij}\}_{j=1}^{N_i}$.
 This one-slack formulation can be trained more efficiently and is the one employed in this work.
 
-\TODO{explain how 1-slack connects to n-slack and this is what's implemented}
-
-\TODO{maybe - talk about this actually being a ranking objective for positive-only training sequences re: recommendations }
 
 \input{listviterbi}
 
 \subsection{Inference and learning for SR}
 \label{ssec:SRinf}
 
-For inference in SR model, both ILP and list Viterbi algorithms can be used, and they will generate the 
-same result if terminated and converged within a given time budget. 
-List Viterbi algorithms are polynomial time given the list depth $k$, 
-but in reality $k$ is unknown a priori and can be very large for long sequences 
+For inference in SR model, both ILP and list Viterbi algorithms can be used, and they will generate the
+same result if terminated and converged within a given time budget.
+List Viterbi algorithms are polynomial time given the list depth $k$,
+but in reality $k$ is unknown a priori and can be very large for long sequences
 We found that state-of-the-art ILP solvers converge to a solution faster if sequence length $l$ is large.
-In the experiments, we use list Viterbi for short sequences, and ILP for long ($l>10$) sequences. 
+In the experiments, we use list Viterbi for short sequences, and ILP for long ($l>10$) sequences.
 
 \TODO{revise this para to describe listViterbi for lost-augmented inf, without loops, and with multiple examples.}
-Similar to the loss-augmented inference described in Section~\ref{ssec:ssvm}, 
+Similar to the loss-augmented inference described in Section~\ref{ssec:ssvm},
 we can rewrite the constraints in problem (\ref{eq:nslack_ml}) into
 \begin{equation*}
 \resizebox{0.99\linewidth}{!}
 {$
-\w^\top \Psi(\x^{(i)}, \y^{(ij)}) + \xi_{ij} \ge 
+\w^\top \Psi(\x^{(i)}, \y^{(ij)}) + \xi_{ij} \ge
 \max_{\bar{\y}} \left( \Delta(\y^{(ij)}, \bar{\y}) + \w^\top \Psi(\x^{(i)}, \bar{\y}) \right),
 \, \forall j.
 $}
-\end{equation*} 
-Normally, the maximisation at the right side of the above inequality cannot be solved efficiently due to the constraint that 
+\end{equation*}
+Normally, the maximisation at the right side of the above inequality cannot be solved efficiently due to the constraint that
 $\bar{\y}$ is in $\mathcal{Y}$,
 but should not be in the set of observed labels $\{\y^{(ij)}\}_{j=1}^{n_i}$.
 However, we can pretend that $\bar{\y}$ can be any label in $\mathcal{Y}$ and do the unconstrained optimisation,
-which can sometimes be solved efficiently, then we filter out the optimal solution if it has been observed, 
-i.e., in $\{\y^{(ij)}\}_{j=1}^{n_i}$. 
-In addition to train multiset SSVM, this technique can be further used to deal with other constraints such as sub-tour elimination 
+which can sometimes be solved efficiently, then we filter out the optimal solution if it has been observed,
+i.e., in $\{\y^{(ij)}\}_{j=1}^{n_i}$.
+In addition to train multiset SSVM, this technique can be further used to deal with other constraints such as sub-tour elimination
 as described in Section~\ref{sec:subtour}.
 
 %\TODO{talk about multiple truths and what it means in prediction}
-
-
-
-
-
