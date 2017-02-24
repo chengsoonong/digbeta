@@ -231,7 +231,7 @@ For inference in SR model, both ILP and list Viterbi algorithms can be used, and
 same result if terminated and converged within a given time budget.
 List Viterbi algorithms are polynomial time given the list depth $k$,
 but in reality $k$ is unknown a priori and can be very large for long sequences
-We found that state-of-the-art ILP solvers converge to a solution faster if sequence length $l$ is large.
+We found that state-of-the-art ILP solvers converge to a solution faster if the sequence length $l$ is large.
 In the experiments, we use list Viterbi for short sequences, and ILP for long ($l>10$) sequences.
 
 %\TODO{revise this para to describe listViterbi for lost-augmented inf, without loops, and with multiple examples.}
