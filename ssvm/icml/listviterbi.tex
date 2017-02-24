@@ -4,73 +4,74 @@
 \subsection{Sequence decoding for the SR model}
 \label{ssec:subtour}
 
-The SR model require two algorithmic components for inference and learning that is missing from the SSVM algorithms. 
+The SR model require two algorithmic components for inference and learning that is missing from the SSVM algorithms.
 
-For inference, SR needs to predict a {\em path}, \ie a sequence whose elements are distinct from each other. 
+For inference, SR needs to predict a {\em path}, \ie a sequence whose elements are distinct from each other.
 As described in Section~\ref{sec:intro}, this is desirable since users traversing a sequence (of locations or music)
-would not want to see repeated entries. 
-Given desired sequence length $l$ among $L$ possible points, the Viterbi~\cite{tsochantaridis2005large} 
-will generate the length-$l$ sequence with the best score, i.e. $\y^* = \argmax_\y f(\x,\y)$. 
-One may then use the well-known 
-Christofes algorithm~\cite{christofides1976} on $y^*$ to eliminate loops in the sequence. 
-%is known to generate a solutions within a factor of 3/2 of the optimal solution for traveling salesman problems. 
-However, the resulting sequence will have less than the desired number of points, and the resulting score won't be optimal. 
+would not want to see repeated entries.
+Given desired sequence length $l$ among $m$ possible points, the Viterbi~\cite{tsochantaridis2005large}
+will generate the length-$l$ sequence with the best score, i.e. $\y^* = \argmax_\y f(\x,\y)$.
+One may then use the well-known
+Christofes algorithm~\cite{christofides1976} on $y^*$ to eliminate loops in the sequence.
+%is known to generate a solutions within a factor of 3/2 of the optimal solution for traveling salesman problems.
+However, the resulting sequence will have less than the desired number of points, and the resulting score won't be optimal.
 
-For learning an SR model, loss-augmented inference needs to be done by excluding multiple known sequences. 
-As described in Section~\ref{ssec:sr}, this involves %we would want to maximize the loss-augmented objective function 
-$\max_{\bar\y} \left\{ \w^\top \Psi(\x^{(i)}, \bar\y) + \Delta(\y^{(ij)}, \bar{\y}) \right\}$
-where the domain of candidate sequences excludes the known sequences for query $\x^{(i)}$, \ie $\bar{\y} \in \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}$. 
-Note that the Viterbi algorithm use back-tracking to find the best sequence, 
-and cannot easily exclude known sequences. 
+For learning an SR model, loss-augmented inference (\ref{eq:loss_aug_inf}) needs to be done by excluding multiple known sequences.
+As described in Section~\ref{ssec:sr}, %this involves %we would want to maximize the loss-augmented objective function
+%$\max_{\bar\y} \left\{ \w^\top \Psi(\x^{(i)}, \bar\y) + \Delta(\y^{(ij)}, \bar{\y}) \right\}$
+%where the domain of candidate sequences excludes the known sequences for query $\x^{(i)}$, \ie $\bar{\y} \in \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}$.
+however,the Viterbi algorithm use back-tracking to find the best sequence,
+and cannot easily exclude known sequences.
 
-%Both the loss-augmented inference and prediction inference for structured SVM (Section~\ref{sec:ssvm}) cannot be done efficiently 
+%Both the loss-augmented inference and prediction inference for structured SVM (Section~\ref{sec:ssvm}) cannot be done efficiently
 %if the no duplicates constraints are required, moreover, we would like to recommend more than one trajectories given a query.
 
-The rest of this section describes two algorithms, each intuitively aimed to address one of the two requirements above. 
-Both can be applied in novel contexts of the SR model. 
-We will also describe practical choices about which algorithm to use when. 
+The rest of this section describes two algorithms, each intuitively aimed to address one of the two requirements above.
+Both can be applied in novel contexts of the SR model.
+We will also describe practical choices about which algorithm to use when.
 
 
 \subsubsection{Traversing points with integer linear programming}
 % ILP for subtour elimination
-Inference in the SR model requires finding the best path that traverses exactly $l$ of $L$ candidate points. 
-This is can be seen as a variant of the traveling salesman problem (TSP), or the best of $C_L^l$ TSPs.
-Such a point traversal problem can be solved by incorporating 
+Inference in the SR model requires finding the best path that traverses exactly $l$ of $m$ candidate points.
+This is can be seen as a variant of the traveling salesman problem (TSP), or the best of ${m \choose l}$ TSPs.
+Such a point traversal problem can be solved by incorporating
 sub-tour elimination constraints of the travelling salesman problem (TSP).
-In particular, the following integer linear program (ILP) formulation~\cite{ijcai15,cikm16paper} 
-will solve SR inference for trajectory $\y$ of length $l$. 
+In particular, the following integer linear program (ILP) formulation~\cite{ijcai15,cikm16paper}
+will solve SR inference for trajectory $\y$ of length $l$.
 \resizebox{.99\columnwidth}{!}{
   \begin{minipage}{\linewidth}
 \begin{alignat}{5}
-\max_{\bu,\bv} ~& \sum_{k=1}^L \w_k^\top \Psi_k(\x, y_k) \sum_{j=1}^L u_{jk} 
-+ \sum_{j,k=1}^L u_{jk} \w_{jk}^\top \Psi_{j, k}(\x, y_j, y_k) \nonumber\\
+\max_{\bu,\bv} ~& \sum_{k=1}^m \w_k^\top \Psi_k(\x, y_k) \sum_{j=1}^m u_{jk}
++ \sum_{j,k=1}^m u_{jk} \w_{jk}^\top \Psi_{j, k}(\x, y_j, y_k) \nonumber\\
   %              & + \sum_{j=1}^l \sum_{k=1}^l u_{jk} \w_{jk}^\top \Psi_{j, k}(\x, y_j, y_k) \\
-s.t. ~& u_{jk}, ~z_j \in \{0, 1\}, ~u_{jj}=0, ~z_1=0, ~v_j \in \mathbf{Z},~ \\
-  & y_j \in \{1,\dots,L\}, ~\forall j, k = 1,\cdots,L   \label{eq:cons1} \\
-  & \sum_{k=2}^L u_{1k} = 1, ~\sum_{j=2}^L u_{j1} = 0  \label{eq:cons2} \\
-  & \sum_{j=1}^L u_{ji} = z_i + \sum_{k=2}^L u_{ik} \le 1,  ~\forall i=2,\cdots,L                    \label{eq:cons3} \\
-  & \sum_{j=1}^M \sum_{k=1}^L u_{jk} = l-1,                                                           \label{eq:cons4} \\
-  & v_j - v_k + 1 \le (L-1) (1-u_{jk}),                     \forall j,k=2,\cdots,L                    \nonumber
+s.t. ~& u_{jk}, ~z_j \in \{0, 1\}, ~u_{jj}=0, ~z_1=0, ~v_j \in \mathbf{Z},~                          \label{eq:cons1} \\
+  & y_j \in \{1,\dots,m\}, ~\forall j, k = 1,\cdots,m                                                \nonumber \\
+  & \sum_{k=2}^m u_{1k} = 1, ~\sum_{j=2}^m u_{j1} = 0  \label{eq:cons2} \\
+  & \sum_{j=1}^m u_{ji} = z_i + \sum_{k=2}^m u_{ik} \le 1,  ~\forall i=2,\cdots,m                    \label{eq:cons3} \\
+  & \sum_{j=1}^m \sum_{k=1}^m u_{jk} = l-1,                                                          \label{eq:cons4} \\
+  & v_j - v_k + 1 \le (m-1) (1-u_{jk}),                     ~\forall j,k=2,\cdots,m                  \nonumber
 \end{alignat}
 \end{minipage}
 }
 Here $u_{jk}$ are binary decision variables that is true iff the transition from $y_j$ to $y_k$ is in the resulting trajectory,
 $z_j$ is a binary decision variable that is true iff $y_j$ is the last POI in trajectory.
-$L$ is the number of candidate POIs.
+$l$ is the number of candidate POIs.
 For brevity, we index the POIs such that $y_1 = 1$.
 Firstly, the desired trajectory should start from $y_1$ (Constraint~\ref{eq:cons2}).
 In addition, any POI could be visited at most once (Constraint~\ref{eq:cons3}).
-Moreover, only $l-1$ transitions between POIs are permitted 
+Moreover, only $l-1$ transitions between POIs are permitted
 since the trajectory length is $l$ (Constraint~\ref{eq:cons4}).
-The last constraint, where $v_i$ is an auxiliary variable,
+The last constraint, where $v_j$ is an auxiliary variable,
 enforces that only a single sequence of POIs without sub-tours is permitted in the trajectory.
-\TODO{LX: i do not understand the last contraint, $v_j$ did not seem to have been defined? are they binary or something else?}
+%\TODO{LX: i do not understand the last contraint, $v_j$ did not seem to have been defined? are they binary or something else?}
+% DW: v_j defined in the first constraint, which is a natural number
 
-TSPs are NP-hard, the ILP formulation will give the optimal solution when the solver finds the optimal. 
+TSPs are NP-hard, the ILP formulation will give the optimal solution when the solver finds the optimal.
 We note, however, that and ILP cannot be readily used for loss-augmented inference
-for the Hamming loss, the most common loss function for sequence prediction tasks. 
+for the Hamming loss, the most common loss function for sequence prediction tasks.
 This is because ILP requires the loss should be a linear function of $u_{jk}$,
-\eg, the number of mis-predicted POIs disregarding the order $\Delta(\y, \bar\y) = 1 - \sum_{j=1}^L \sum_{k=1}^L u_{j, y_k}$. 
+\eg, the number of mis-predicted POIs disregarding the order $\Delta(\y, \bar\y) = 1 - \sum_{j=1}^m \sum_{k=1}^m u_{j, y_k}$.
 But Hamming loss cannot be expressed as a linear function of $u_{jk}$.
 %if we define the loss as the number of mispredicted POIs,
 %where $\mathbf{y}$ is the ground truth and $\bar{\mathbf{y}}$ is the trajectory corresponding to the optimal solution of this ILP.
@@ -82,35 +83,35 @@ But Hamming loss cannot be expressed as a linear function of $u_{jk}$.
 \subsubsection{Finding $k$-best sequences}
 % 2 uses of list Viterbi: 1) multiple ground truths; 2) subtour elimination
 
-The algorithm that seem closest to loss-augmented inference with exclusions are several extensions 
-of the Viterbi algorithm that aims to find more than one high-scoring sequences. 
-The parallel listViterbi algorithm~\cite{seshadri1994list} finds the top $k$ sequences 
-by keeping $k$ backtrack pointers for each possible state in each position of the sequence. 
-This algorithm is computationally efficient 
--- a factor of $\log L$ more than the standard Viterbi for score sorting in each step, rather than simple maximization 
--- but it keeps many unnecessary pointers. It is also difficult to apply to the SR inference scenario, 
-since we do not know $k$ beforehand. This is because it is generally impossible to foresee 
-the rank (according to score) of the first path among all valid sequences (that may have repeats). 
+The algorithm that seem closest to loss-augmented inference with exclusions are several extensions
+of the Viterbi algorithm that aims to find more than one high-scoring sequences.
+The parallel listViterbi algorithm~\cite{seshadri1994list} finds the top $k$ sequences
+by keeping $k$ backtrack pointers for each possible state in each position of the sequence.
+This algorithm is computationally efficient
+-- a factor of $\log L$ more than the standard Viterbi for score sorting in each step, rather than simple maximization
+-- but it keeps many unnecessary pointers. It is also difficult to apply to the SR inference scenario,
+since we do not know $k$ beforehand. This is because it is generally impossible to foresee
+the rank (according to score) of the first path among all valid sequences (that may have repeats).
 
-We resort to the serial list Viterbi algorithm~\cite{seshadri1994list,nilsson2001sequentially}. 
-These algorithms sequentially find the $k$-th best sequence given the best, $2$nd best, \dots, $(k-1)$-th best sequences. 
+We resort to the serial list Viterbi algorithm~\cite{seshadri1994list,nilsson2001sequentially}.
+These algorithms sequentially find the $k$-th best sequence given the best, $2$nd best, \dots, $(k-1)$-th best sequences.
 The key insight here is that the 2nd best sequence deviates from the best sequence
-for one continuous segment, and then finally merges back to the best sequence without deviating again 
--- otherwise replacing one of the continuous segments with those from the best sequence will increase the score. 
-Subsequently, the $k$th best sequence can be the 2nd best sequence relative to the $k-1$th sequence 
-at the point of final merge, or the 2nd or 3rd best sequence to the $k-1$th sequence at the point of final merge, \ldots, and so on. 
-%The version of serial list Viterbi presented by~\cite{nilsson2001sequentially} accommodates 
-The serial list Viterbi allows exclusion of sequences with repeats, by checking whether or not the current $k$th best sequence has a repeat, if it does, discard and proceed to the $k+1$th. It also allows excluding an arbitrary number of known sequences, by additionally checking, when we get each of the $k$th best sequence, whether or not it's in the exclusion set. 
-%by partitioning the remaining space 
-%from each of the known sequence according to their points of deviation, 
-%finding the best trajectory within each partition and then identifying the best among different partitions. 
-Due to space limitations, the list Viterbi algorithm is fully detailed in the appendix\footnote{add link to appendix? \TODO{dawei?}}. 
+for one continuous segment, and then finally merges back to the best sequence without deviating again
+-- otherwise replacing one of the continuous segments with those from the best sequence will increase the score.
+Subsequently, the $k$th best sequence can be the 2nd best sequence relative to the $k-1$th sequence
+at the point of final merge, or the 2nd or 3rd best sequence to the $k-1$th sequence at the point of final merge, \ldots, and so on.
+%The version of serial list Viterbi presented by~\cite{nilsson2001sequentially} accommodates
+The serial list Viterbi allows exclusion of sequences with repeats, by checking whether or not the current $k$th best sequence has a repeat, if it does, discard and proceed to the $k+1$th. It also allows excluding an arbitrary number of known sequences, by additionally checking, when we get each of the $k$th best sequence, whether or not it's in the exclusion set.
+%by partitioning the remaining space
+%from each of the known sequence according to their points of deviation,
+%finding the best trajectory within each partition and then identifying the best among different partitions.
+Due to space limitations, the list Viterbi algorithm is fully detailed in the appendix\footnote{add link to appendix? \TODO{dawei?}}.
 
-For the structured recommendation problem, the serial list Viterbi algorithm can be used for inference 
-by recursively getting the next best sequence, until one or more paths are found. 
-This algorithm can also be used for loss-augmented inference with Hamming loss, 
-since it only require the loss function be decomposable with respect to the label elements. 
-%This list Viterbi algorithm performs a backward search for trajectories that merges into the existing candidates at any given point. 
+For the structured recommendation problem, the serial list Viterbi algorithm can be used for inference
+by recursively getting the next best sequence, until one or more paths are found.
+This algorithm can also be used for loss-augmented inference with Hamming loss,
+since it only require the loss function be decomposable with respect to the label elements.
+%This list Viterbi algorithm performs a backward search for trajectories that merges into the existing candidates at any given point.
 %as described in Algorithm~\ref{alg:listviterbi}.
 
 %\TODO{Briefly discuss which one to use, when}
