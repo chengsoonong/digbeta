@@ -97,8 +97,10 @@ In each iteration, a new constraint is formed by solving the loss-augmented infe
 which helps shrink the feasible region of the problem.
 
 
-\subsection{Multiset SSVM}
+\subsection{SSVM for recommendation}
 \label{sec:ssvm-ms}
+
+\TODO{talk about ranking objectives}
 
 If we observed more than one labels for a particular set of features, 
 the classic SSVM described in Section~\ref{sec:ssvm} can be generalised to capture the multiple ground truths setting,
@@ -117,9 +119,11 @@ where $N = \sum_i n_i$ and $\bar{\mathbf{y}} \in \mathcal{Y} \setminus \{\mathbf
 
 
 
-\subsection{Training Multiset SSVM}
+\subsection{Training SR}
 \label{sec:train-ssvm-ms}
 % list Viterbi for multiple ground truths
+
+\TODO{talk about training and what cutting plane does}
 
 Similar to the loss-augmented inference described in Section~\ref{sec:ssvm}, 
 we can rewrite the constraints in problem (\ref{eq:nslack_ml}) into
@@ -135,3 +139,8 @@ which can sometimes be solved efficiently, then we filtering out the optimal sol
 i.e., in $\{\mathbf{y}^{(ij)}\}_{j=1}^{n_i}$. 
 In addition to train multiset SSVM, this technique can be further used to deal with other constraints such as sub-tour elimination 
 as described in Section~\ref{sec:subtour}.
+
+\subsection{Inference for structured recommendation}
+\label{sec:train-ssvm-ms}
+
+\TODO{recommending lists: talk about listViterbi for inference}
