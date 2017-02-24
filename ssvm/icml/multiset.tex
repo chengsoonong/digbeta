@@ -225,29 +225,26 @@ same result if terminated and converged within a given time budget.
 List Viterbi algorithms are polynomial time given the list depth $k$,
 but in reality $k$ is unknown a priori and can be very large for long sequences
 We found that state-of-the-art ILP solvers converge to a solution faster if sequence length $l$ is large.
-In the experiments, we use list Viterbi for short sequences, and ILP for long ($l>10$) sequences. In prediction with the SR model (Section~\ref{sec:experiment}), we traverse down the best sequence list in order of descending scores with list Viterbi until we have a designated number of sequences without loops. 
+In the experiments, we use list Viterbi for short sequences, and ILP for long ($l>10$) sequences.
 
-For training the SR model \eqref{eq:nslack_ml}, we first 
-rewrite its constraints into a loss-augmented form, similar to the SSVM. 
-%in the SR problem \eqref{eq:nslack_ml} into
-\begin{equation*}\eqmoveup
+%\TODO{revise this para to describe listViterbi for lost-augmented inf, without loops, and with multiple examples.}
+Similar to the loss-augmented inference described in Section~\ref{ssec:ssvm},
+we can rewrite the constraints in problem (\ref{eq:nslack_ml}) into
+\begin{equation*}
 \resizebox{0.99\linewidth}{!}
 {$
 \w^\top \Psi(\x^{(i)}, \y^{(ij)}) + \xi_{ij} \ge
 \max_{\bar{\y}} \left( \Delta(\y^{(ij)}, \bar{\y}) + \w^\top \Psi(\x^{(i)}, \bar{\y}) \right),
-\, \forall j.
 $}\eqmoveup
 \end{equation*}
-Note that the maximisation at the right hand side inequality 
-become more difficult since 
-%cannot be solved efficiently due to the constraint that
-$\bar{\y}$ should not be in the set of observed labels $\{\y^{(ij)}\}_{j=1}^{n_i}$.
-We use the sequential list Viterbi algorithm for this purpose. 
-We solve for the next best sequence, and check if it is in the ground truth set (or has repeats). If it is, then discard and keep solve for another next best; if it is not in groud truth and is a valid path without repeats, then stop and add the corresponding constraint as a cutting plane. 
-%However, we can pretend that $\bar{\y}$ can be any label in $\mathcal{Y}$ and do the unconstrained optimisation,
-%which can sometimes be solved efficiently, then we filter out the optimal solution if it has been observed,
-%i.e., in $\{\y^{(ij)}\}_{j=1}^{n_i}$.
-%In addition to train multiset SSVM, this technique can be further used to deal with other constraints such as sub-tour elimination
+Normally, the maximisation at the right side of the above inequality cannot be solved efficiently due to the constraint that
+$\bar{\y}$ is in $\mathcal{Y}$,
+but should not be in the set of observed labels $\{\y^{(ij)}\}_{j=1}^{n_i}$.
+However, we can pretend that $\bar{\y}$ can be any label in $\mathcal{Y}$ and do the unconstrained optimisation,
+which can sometimes be solved efficiently, then we filter out the optimal solution if it has been observed,
+i.e., in $\{\y^{(ij)}\}_{j=1}^{n_i}$.
+In addition to train multiset SSVM, this technique can be further used to deal with other constraints such as sub-tour elimination
 %as described in Section~\ref{ssec:subtour}.
+as described in Section~\ref{ssec:subtour}.
 
 %\TODO{talk about multiple truths and what it means in prediction}

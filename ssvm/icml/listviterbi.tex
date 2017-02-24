@@ -4,8 +4,8 @@
 \subsection{Sequence decoding for the SR model}
 \label{ssec:subtour}
 
-The SR model require two algorithmic components for inference and learning that is missing from the SSVM algorithms.
-
+The SR model require two algorithmic components for inference and learning
+(missing from the SSVM algorithms).
 For inference, SR needs to predict a {\em path}, \ie a sequence whose elements are distinct from each other.
 As described in Section~\ref{sec:intro}, this is desirable since users traversing a sequence (of locations or music)
 would not want to see repeated entries.
@@ -22,16 +22,12 @@ As described in Section~\ref{ssec:sr}, %this involves %we would want to maximize
 %where the domain of candidate sequences excludes the known sequences for query $\x^{(i)}$, \ie $\bar{\y} \in \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}$.
 however,the Viterbi algorithm use back-tracking to find the best sequence,
 and cannot easily exclude known sequences.
-
-%Both the loss-augmented inference and prediction inference for structured SVM (Section~\ref{sec:ssvm}) cannot be done efficiently
-%if the no duplicates constraints are required, moreover, we would like to recommend more than one trajectories given a query.
-
 The rest of this section describes two algorithms, each intuitively aimed to address one of the two requirements above.
 Both can be applied in novel contexts of the SR model.
 We will also describe practical choices about which algorithm to use when.
 
 
-\subsubsection{Traversing points with integer linear programming}
+\subsubsection{Finding paths with integer programming}
 % ILP for subtour elimination
 Inference in the SR model requires finding the best path that traverses exactly $l$ of $m$ candidate points.
 This is can be seen as a variant of the traveling salesman problem (TSP), or the best of ${m \choose l}$ TSPs.
@@ -39,6 +35,21 @@ Such a point traversal problem can be solved by incorporating
 sub-tour elimination constraints of the travelling salesman problem (TSP).
 In particular, the following integer linear program (ILP) formulation~\cite{ijcai15,cikm16paper}
 will solve SR inference for trajectory $\y$ of length $l$.
+
+Consider $u_{jk}$ binary decision variables that are true if and only if
+the transition from $y_j$ to $y_k$ is in the resulting trajectory,
+$z_j$ is a binary decision variable that is true iff $y_j$ is the last POI in trajectory.
+$l$ is the number of candidate POIs.
+For brevity, we index the POIs such that $y_1 = 1$.
+Firstly, the desired trajectory should start from $y_1$ (Constraint~\ref{eq:cons2}).
+In addition, any POI could be visited at most once (Constraint~\ref{eq:cons3}).
+Moreover, only $l-1$ transitions between POIs are permitted
+since the trajectory length is $l$ (Constraint~\ref{eq:cons4}).
+The last constraint, where $v_j$ is an auxiliary variable,
+enforces that only a single sequence of POIs without sub-tours is permitted in the trajectory.
+%\TODO{LX: i do not understand the last contraint, $v_j$ did not seem to have been defined? are they binary or something else?}
+% DW: v_j defined in the first constraint, which is a natural number
+
 \resizebox{.99\columnwidth}{!}{
   \begin{minipage}{\linewidth}
 \begin{alignat}{5}
@@ -54,18 +65,6 @@ s.t. ~& u_{jk}, ~z_j \in \{0, 1\}, ~u_{jj}=0, ~z_1=0, ~v_j \in \mathbf{Z},~     
 \end{alignat}
 \end{minipage}
 }
-Here $u_{jk}$ are binary decision variables that is true iff the transition from $y_j$ to $y_k$ is in the resulting trajectory,
-$z_j$ is a binary decision variable that is true iff $y_j$ is the last POI in trajectory.
-$l$ is the number of candidate POIs.
-For brevity, we index the POIs such that $y_1 = 1$.
-Firstly, the desired trajectory should start from $y_1$ (Constraint~\ref{eq:cons2}).
-In addition, any POI could be visited at most once (Constraint~\ref{eq:cons3}).
-Moreover, only $l-1$ transitions between POIs are permitted
-since the trajectory length is $l$ (Constraint~\ref{eq:cons4}).
-The last constraint, where $v_j$ is an auxiliary variable,
-enforces that only a single sequence of POIs without sub-tours is permitted in the trajectory.
-%\TODO{LX: i do not understand the last contraint, $v_j$ did not seem to have been defined? are they binary or something else?}
-% DW: v_j defined in the first constraint, which is a natural number
 
 TSPs are NP-hard, the ILP formulation will give the optimal solution when the solver finds the optimal.
 We note, however, that and ILP cannot be readily used for loss-augmented inference
@@ -93,7 +92,7 @@ This algorithm is computationally efficient
 since we do not know $k$ beforehand. This is because it is generally impossible to foresee
 the rank (according to score) of the first path among all valid sequences (that may have repeats).
 
-We resort to the serial list Viterbi algorithm~\cite{seshadri1994list,nilsson2001sequentially}.
+We resort to the serial list Viterbi algorithm~\cite{nilsson2001sequentially}.
 These algorithms sequentially find the $k$-th best sequence given the best, $2$nd best, \dots, $(k-1)$-th best sequences.
 The key insight here is that the 2nd best sequence deviates from the best sequence
 for one continuous segment, and then finally merges back to the best sequence without deviating again
