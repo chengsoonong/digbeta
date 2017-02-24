@@ -4,7 +4,7 @@
 
 We consider the problem of given an input query $\x$ -- a user, a location, or some items of interest -- 
 recommend one or more sequences $\y$ according to a learned score function $f(\x,\y)$. 
-For this work we assume the output is a sequence of $l$ points, or $\y=y_{1:l}$. 
+For this work we assume the output $\y$ is a sequence of $l$ points, or $y_{1:l}$. 
 Having this assumption does not limit the generality of the approach, 
 as inferring $\y$ of other structure can be achieved by using the corresponding inference and loss-augmented inference algorithms~\cite{joachims2009predicting}.  %LX - this sentence can be cut or merged above
 There are two notable differences between the problem of interest -- recommending sequences, and what is being solved 
@@ -55,67 +55,80 @@ Then focus on trajectory
 \end{enumerate}
 }
 
-\subsection{Structured SVM}
+\subsection{Preliminary: Structured SVM}
 \label{ssec:ssvm}
 
-In structured prediction, the output of classifier given feature vector $\x$ is
-\begin{equation*}
-\y^* = \argmax_{\y \in \mathcal{Y}}~ f(\x, \y),
-\end{equation*}
+%In structured prediction, the output of classifier given feature vector $\x$ is
+%\begin{equation*}
+%\y^* = \argmax_{\y \in \mathcal{Y}}~ f(\x, \y),
+%\end{equation*}
 %where $\mathcal{Y}_\mathbf{x}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ and satisfying query $\mathbf{x}$,
-where $f(\mathbf{x}, \mathbf{y})$ is a function that scores the compatibility between features $\mathbf{x}$ and a specific label $\mathbf{y}$,
-in the case of structured SVM (SSVM), the compatibility function $f(\mathbf{x}, \mathbf{y})$ for structured SVM is this linear form,
+One well known model for structured prediction is the Structured Support Vector Machines (SSVM)~\cite{joachims2009predicting,tsochantaridis2005large}. 
+Here score function $f(\x, \y)$ take a linear form:
+%is a function that scores the compatibility between features $\mathbf{x}$ and a specific label $\mathbf{y}$,
+%in the case of structured SVM (SSVM), the compatibility function $f(\mathbf{x}, \mathbf{y})$ for structured SVM is this linear form,
 \begin{equation*}
-f(\mathbf{x}, \mathbf{y}) = \mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}),
+f(\x, \y) = \w^\top \Psi(\x, \y),
 \end{equation*}
-where $\Psi(\mathbf{x}, \mathbf{y})$ is a \emph{joint feature map} 
-that captures features extracted from both $\mathbf{x}$ and label $\mathbf{y}$.
+where $\w$ is a weight vector, and $\Psi(\mathbf{x}, \mathbf{y})$ is a \emph{joint feature map} 
+between the input $\x$ and label sequence $\y$.
 
-The design of joint feature $\Psi(\cdot,\cdot)$ is problem specific, 
-for many problems, we can assume the joint feature be decomposed into singleton and pairwise interactions, i.e.,
-\begin{equation*}
+The design of the feature map $\Psi(\cdot,\cdot)$ is problem specific. 
+For many problems, we can assume that it is a vector whose elements represent unary 
+ terms for each element in the label $y_{1:l}$ and pairwise interactions between the labels. 
+ For sequence data, in particular, we also assume that the pair-wise interactions are between 
+ adjacent elements, i.e. $y_j$ and $y_{j+1}$ for $j=1:l-1$. 
+ Subsequently, the score function $f(\x,\y)$ decomposes into a sum of 
+ each of these unary and pairwise features with the corresponding feature weight.  
+\begin{align}
 \label{eq:jointfeature}
-\mathbf{w}^\top \Psi(\mathbf{x}, \mathbf{y}) 
-= \sum_{j=2}^{| \mathbf{y} |} 
-  \left( \mathbf{w}_j^\top \Psi_j(\mathbf{x}, y_j) + 
-  \mathbf{w}_{j-1,j}^\top \Psi_{j-1, j}(\mathbf{x}, y_{j-1}, y_j) \right),
-\end{equation*}
-where $\Psi_j$ is a feature vector of singleton $y_j$ 
-and $\Psi_{j-1,j}$ is a pairwise feature vector that captures the interactions between $y_{j-1}$ and POI $y_j$.
+f(\x, \y) =  %\w^\top \Psi(\x,\y) 
+\sum_{j=1}^l \w_j^\top \Psi_j(\x, y_j)  
+  + \sum_{j=1}^{l-1} \w_{j,j+1}^\top \Psi_{j,j+1}(\x, y_{j}, y_{j+1}) %\nonumber
+\end{align}
+here $\Psi_j$ is a feature map between the input and one output label element $y_j$, with a corresponding weight vector $\w_j$
+and $\Psi_{j,j+1}$ is a pairwise feature vector that captures the interactions between consecutive labels $y_j$ $y_{j-1}$, 
+with a corresponding weight vector $\w_{j,j+1}$.
 
-To learn the parameters, we train the structured SVM by optimising a quadratic program (QP),
-\begin{equation}
-\label{eq:nslack}
-\begin{aligned}
-\min_{\mathbf{w}, \, \bm{\xi} \ge 0} ~& \frac{1}{2} \mathbf{w}^\top \mathbf{w} + \frac{C}{N} \sum_{i=1}^N \xi_i \\
-s.t.~ ~& \langle \mathbf{w}, \, \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) - \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) \rangle \ge 
-       \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}) - \xi_i, \, \forall i,
-\end{aligned}
-\end{equation}
-where $\bar{\mathbf{y}} \in \mathcal{Y}$ and $\Delta(\mathbf{y}, \bar{\mathbf{y}})$ is a discrepancy function that measures the loss 
-for predicting $\bar{\mathbf{y}}$ given ground truth $\mathbf{y}$, 
-and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th example~\cite{tsochantaridis2005large},
-\begin{equation*}
-\xi_i = \max \left( 0, \,
-        \max_{\bar{\mathbf{y}} \in \mathcal{Y}} 
-        \left\{ \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}^{(i)}) + \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) \right\} -
-        \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) \right).
-\end{equation*}
+%To learn the parameters, we train the structured SVM by optimising a quadratic program (QP),
+The learning for structured SVM solves the following optimisation problem.
+\begin{align}
+&\min_{\x, \, \bm{\xi} \ge 0} \frac{1}{2} \x^\top \x + \frac{C}{n} \sum_{i=1}^n \xi_i \label{eq:nslack}\\
+&s.t.~  \forall i, \nonumber\\
+&\w^\top \Psi(\x^{(i)}, \y^{(i)}) + \xi_i \ge
+          \max_{\bar{\y} \in \mathcal{Y}}
+          \left\{\w^\top \Psi(\x^{(i)}, \bar{\y}) + \Delta(\y^{(i)}, \bar{\y}) \right\} \nonumber
+%\langle \mathbf{w}, \, \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) - \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) \rangle \ge 
+%       \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}) - \xi_i, 
+\end{align}
+
+where $\bar\y$ is a candidate sequence,  % \in \mathcal{Y} -- LX: what is cal Y anyway?
+and $\Delta(\y, \bar\y)$ is the loss function between $\bar\y$ and the ground truth $\y$. 
+Here the right hand side is known as the \emph{loss-augmented inference}.
+%%LX: we don't need the def of \xi_i below?
+%and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th example~\cite{tsochantaridis2005large},
+%\begin{equation*}
+%\xi_i = \max \left( 0, \,
+%        \max_{\bar{\mathbf{y}} \in \mathcal{Y}} 
+%        \left\{ \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}^{(i)}) + \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) %\right\} -
+%        \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) \right).
+%\end{equation*}
 %This formulation is called "$n$-slack" as we have one slack variable for each example in training set.
 
-We can rewrite the constraint in problem (\ref{eq:nslack}) as
-\begin{equation}
-\label{eq:ssvminf}
-\mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) + \xi_i \ge
-          \max_{\bar{\mathbf{y}} \in \mathcal{Y}}
-          \left\{\mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) + \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}) \right\},
-\end{equation}
-where the right hand side is known as the \emph{loss-augmented inference}.
+%%LX: merge above, no need to write out the constraint twice
+% We can rewrite the constraint in problem (\ref{eq:nslack}) as
+% \begin{equation}
+% \label{eq:ssvminf}
+% \mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \mathbf{y}^{(i)}) + \xi_i \ge
+%           \max_{\bar{\mathbf{y}} \in \mathcal{Y}}
+%           \left\{\mathbf{w}^\top \Psi(\mathbf{x}^{(i)}, \bar{\mathbf{y}}) + \Delta(\mathbf{y}^{(i)}, \bar{\mathbf{y}}) \right\},
+% \end{equation}
+
 
 To solve problem (\ref{eq:nslack}), one option is simply enumerating all constraints, and feeding the problem into a standard QP solver.
 However, this approach is impractical as there is a constraint for every possible label $\bar{\mathbf{y}}$.
-Instead, we use a cutting-plane algorithm which repeatedly solves QP (\ref{eq:nslack}) 
-w.r.t. different set of constraints~\cite{joachims2009predicting}.
+Instead, we use a cutting-plane algorithm which repeatedly solves the quadratic program (\ref{eq:nslack}) 
+with a growing set of constraints~\cite{joachims2009predicting}.
 In each iteration, a new constraint is formed by solving the loss-augmented inference, 
 which helps shrink the feasible region of the problem.
 
@@ -143,7 +156,7 @@ where $N = \sum_i n_i$ and $\bar{\mathbf{y}} \in \mathcal{Y} \setminus \{\mathbf
 
 
 \subsection{Training SR}
-\label{sec:SRtrain}
+\label{ssec:SRtrain}
 % list Viterbi for multiple ground truths
 
 \TODO{talk about training and what cutting plane does}
@@ -166,6 +179,6 @@ as described in Section~\ref{sec:subtour}.
 \TODO{talk about multiple truths and what it means in prediction}
 
 \subsection{Inference for structured recommendation}
-\label{sec:SRinf}
+\label{ssec:SRinf}
 
 \TODO{recommending lists: talk about listViterbi for inference}
