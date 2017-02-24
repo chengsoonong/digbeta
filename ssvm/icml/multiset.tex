@@ -193,6 +193,22 @@ explicitly aggregates all the ground truth labels for each input when generating
 in this way, we do not have apparently contradictory constraints where
 two ground truth sequences are each required to have larger score than the other.
 
+one-slack formulation:
+\begin{equation}
+\label{eq:1slack_ml}
+\resizebox{0.99\linewidth}{!}{$
+\begin{aligned}
+\min_{\w, \, \xi \ge 0} ~& \frac{1}{2} \w^\top \w + C \xi \\
+s.t.~ ~& \frac{1}{N} \sum_{i,j} \langle \w, \, \Psi(\x^{(i)}, \y^{(ij)}) - \Psi(\x^{(i)}, \bar{\y}^{(i)}) \rangle \ge 
+         \frac{1}{N} \sum_{i,j} \Delta(\y^{(ij)}, \bar{\y}^{(i)}) - \xi, 
+\end{aligned}
+$}
+\end{equation}
+where $\bar{\y}^{(i)} \in \mathcal{Y} \setminus \{\y^{ij}\}_{j=1}^{N_i}$.
+
+
+
+
 % sub-tour elimination
 \subsection{Sub-tour Elimination}
 \label{ssec:subtour}
