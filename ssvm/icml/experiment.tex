@@ -1,13 +1,33 @@
-\section{Experiment}
+% !TEX root = ./main.tex
+
+\section{Experimental results}
 \label{sec:experiment}
 
-\subsection{Dataset and Features}
+We now present experiments assessing the viability of our structured prediction approach
+for the concrete sequential recommendation task of
+trajectory recommendation.
+We compare our methods to a number of non-structured baselines, over which we demonstrate significant improvements.
+
+
+%
+\subsection{Description of datasets}
 \label{sec:dataset}
 
 % experiment protocol: Nested cross-validation with Monte-Carlo cross-validation for the inner loop
-We experiment methods developed in Section~\ref{sec:trajrec} on trajectories extracted from Flickr photos~\cite{thomee2016yfcc100m}.
-The statistics of datasets are shown in Table~\ref{tab:data} and 
-the histograms of the number of ground truths for queries are shown in Figure~\ref{fig:hist}.
+We assess the recommendation performance %methods developed in Section~\ref{sec:trajrec}
+of various methods
+on trajectories extracted from Flickr photos
+for the cities of Glasgow and Osaka~\cite{thomee2016yfcc100m}.
+Each dataset comprises a
+list of trajectories, being a sequence of points of interest (POI), as visited by various Flickr users.
+The statistics of datasets are shown in Table~\ref{tab:data}.
+\TODO{these seem to include a lot of irrelevant stats}
+From this data, we consider the recommendation problem as posed in \S\ref{sec:trajrec}:
+given a query comprising start POI and a desired trip length, can we recommend a trajectory of POIs that a visitor will enjoy?
+
+A characteristic of these datasets is that many queries are associated with multiple trajectories, or ground truths.
+The histograms of the number of ground truths for queries are shown in Figure~\ref{fig:hist}.
+\TODO{only need two datasets}
 
 % dataset stats
 \begin{table}[t]
@@ -18,11 +38,11 @@ the histograms of the number of ground truths for queries are shown in Figure~\r
 \small
 \begin{tabular}{l*{5}{r}} \hline
 \textbf{Dataset} & \textbf{\#Photos} & \textbf{\#Visits} & \textbf{\#Traj.} & \textbf{\#Users} & \textbf{\#Queries} \\ \hline
-Edinburgh & 82,060 & 33,944 & 5,028 & 1,454 & 147 \\
+%Edinburgh & 82,060 & 33,944 & 5,028 & 1,454 & 147 \\
 Glasgow & 29,019 & 11,434 & 2,227 & 601 & 64 \\
-Melbourne & 94,142 & 23,995 & 5,106 & 1,000 & 280 \\
+%Melbourne & 94,142 & 23,995 & 5,106 & 1,000 & 280 \\
 Osaka & 392,420 & 7,747 & 1,115 & 450 & 47 \\
-Toronto & 157,505 & 39,419 & 6,057 & 1,395 & 99 \\
+%Toronto & 157,505 & 39,419 & 6,057 & 1,395 & 99 \\
 \hline
 \end{tabular}
 \end{table}
@@ -37,53 +57,82 @@ Toronto & 157,505 & 39,419 & 6,057 & 1,395 & 99 \\
 \end{figure*}
 
 
+%
+\subsection{Methods compared}
+
+We compare the performance of our methods to three baselines.
+The \textsc{Random} baseline simply keep recommending a POI sampled uniformly at random from the whole set of POIs (without replacement), until we get all the specified number of POIs.
+On the other hand, the stronger \textsc{Popularity} baseline considers the popularity of each POI, 
+and recommend the top-$k$ most popular places.
+\textsc{PoiRank}~\cite{cikm16paper} is a generalisation of \textsc{Popularity} which considers a number of POI features in addition to its popularity,
+and trains a RankSVM model to learn a score for each POI.
+
+
+
+%
+\subsection{Evaluation procedure}
+
 % leave-one-out evaluation (with query aggregation)
-As described in Section~\ref{sec:queryagg}, 
-we first group trajectories according to queries that they conform to,
-then evaluate the performance of each algorithm using leave-one-out cross validation,
-where we hold each query and its associated trajectories for test and all other trajectories for training.
+%As described in Section~\ref{sec:queryagg}, 
+To evaluate the performance of various methods on our datasets,
+we first group the trajectories according to queries that they conform to.
+We then evaluate the performance of each algorithm using leave-one-out cross validation,
+where in each iteration of this procedure,
+one query and its associated trajectories serves as a test point, with all other trajectories for training.
+(Note that without this query aggregation, there will be considerable overlap between the train and test set, and simple nearest neighbour methods will be hard to outperform.)
 % model selection (Monte Carlo CV) (with query aggregation): 90/10 random split for 5 times
 Furthermore, 
-the hyper-parameter (regularisation constant $C$) is tuned using the Monte Carlo cross validation~\cite{burman1989comparative} on training set.
+all relevant hyper-parameters (e.g.\ the regularisation constant $C$) are tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
 
 % evaluation metric: kendall's Tau (mention F1, pF1)
-To evaluate the performance of each algorithm variant, 
-we compute the Kendall's $\tau$ (version $b$)~\cite{kendall1945,agresti2010analysis} to measure the quality of recommendation.
+We use three performance measures to assess the test fold performance of each algorithm:
+point-F$_1$ score~\cite{ijcai15},
+pairs-F$_1$ score~\cite{cikm16paper},
+and
+Kendall's $\tau$ (version $b$)~\cite{kendall1945,agresti2010analysis}.
+
+Kendall's $\tau$
+essentially measures the fraction of pairs of POIs that are correctly ordered in the prediction and ground truth sequences,
+with adjustment for ties.
 In particular,
-we define the rank of POIs $\mathcal{P}$ given trajectory $\mathbf{y} = (y_1,\dots,y_K)$ as
+define the rank of POIs $\mathcal{P}$ in a trajectory $\mathbf{y} = (y_1,\dots,y_K)$ as
+the position of the POI within the trajectory,
 \begin{align*} 
 r_\mathbf{y} &= (r_1,\dots,r_j,\dots,r_{|\mathcal{P}|}), \\
 r_j &= \sum_{k=1}^K (| \mathcal{P} | - k + 1)  \llb p_j = y_k \rrb, ~ j = 1, \dots, | \mathcal{P} |.
 \end{align*}
-Unlike the F$_1$ sore on points~\cite{ijcai15} or the F$_1$ score on pairs~\cite{cikm16paper}, 
-which only cares about either the set of correctly recommended POIs or the set of correctly predicted POI pairs,
+The Kendall's $\tau$ score is then computed on $r_\mathbf{y}$ versus $r_\mathbf{\hat{y}}$.
+Unlike the F$_1$ scores on points and pairs, 
+which only care about the set of correctly recommended POIs or POI pairs,
 this metric taking both factors into account.
 
-In addition, we take the maximum of all pairs,
+As described previously, our methods are capable of recommending not merely a single trajectory,
+but rather a list of trajectories.
+While one can simply take the top recommended trajectory as the prediction,
+this ignores the fact that there are likely multiple plausible trajectories for any given query.
+Thus, for each performance measure,
+we take the maximum over all trajectories,
 i.e.,
 \begin{equation*}
-\tau_b^{(i)} = 
+%\tau_b^{(i)} = 
+\mathrm{perf}^{(i)}( \mathbf{y}, \hat{\mathbf{y}} ) =
 \max_{(\mathbf{y}, \hat{\mathbf{y}}) \in \{\mathbf{y}^{(ij)}\}_{j=1}^{N_i} \times \{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k} 
-\tau_b(r_\mathbf{y}, r_{\hat{\mathbf{y}}}),
+%\tau_b(r_\mathbf{y}, r_{\hat{\mathbf{y}}}),
+\mathrm{perf}(\mathbf{y}, {\hat{\mathbf{y}}}),
 \end{equation*}
 where $\{\mathbf{y}^{(ij)}\}_{j=1}^{N_i}$ are the ground truths for query $\mathbf{x}^{(i)}$ and
 $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 
 
 
-\subsection{Experimental Results}
+%
+\subsection{Results}
 \label{sec:result}
 
 \input{tab_experiment}
 
 % experimental results
 The performance of three baselines and four variants based on structured prediction on two datasets are shown in Table~\ref{tab:result}.
-The \textsc{Random} baseline simply keep recommending a POI sampled uniformly at random from the whole set of POIs (without replacement),
-until we get all the specified number of POIs.
-On the other hand, \textsc{Popularity} is slightly smarter which considers the popularity of each POI, 
-and recommend the top-$k$ most popular places.
-\textsc{PoiRank}~\cite{cikm16paper} is a generalisation of \textsc{Popularity} which consider a number of POI features in addition to its popularity.
-
 We can see from the empirical results that all variants of structured prediction achieve very good performance.
 In particular, \textsc{SR} always performs better than \textsc{SP}, 
 which suggests that explicitly modelling multiple ground truths helps recommendation.
