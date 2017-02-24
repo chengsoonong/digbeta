@@ -15,7 +15,7 @@ we are provided as input a training set
 %$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$,
 $\{ ( \x\pb{i}, \{ \y\pb{ij} \}_{j=1}^{n^i} ) \}_{i=1}^{n}$,
 comprising a collection of inputs $\x\pb{i}$ with an associated \emph{set} of output structures $\{ \y\pb{ij} \}$.
-As an example, this might represent a collection of users in a city, along with a set of trajectories that the user has visited.
+As an example, this might represent a collection of users in a city, along with a set of trajectories (sequences of places) that the user has visited.
 
 For this work, we assume the output $\y$ is a \emph{sequence} of $l$ points, denoted $y_{1:l}$
 where each $y_i$ belongs to some fixed set (e.g.\ places of interest in a city).
@@ -37,7 +37,7 @@ In a typical sequence recommendation problem, however, we expect that %learn fro
 for each input $\x\pb{i}$ (\eg users),
 there %is %have not one, but a set of
 are multiple associated outputs %$\{ y\pb{ij} \}_{j=1:n^i}$ (\eg movies).
-$\{ \y\pb{ij} \}_{j=1}^{n^i}$ (\eg trajectories they have visited).
+$\{ \y\pb{ij} \}_{j=1}^{n_i}$ (\eg trajectories they have visited).
 Indeed, the existence of multiple outputs is the basis on which even non-structured recommendation systems are built, as one looks to exploit signal embedded in the aggregate information.
 For model learning, structured prediction approaches do not have a standard way to take into account multiple output sequences %$\{ \y\pb{ij} \}_{j=1:n^i}$
 for each input %$\x\pb{i}$
@@ -153,7 +153,7 @@ and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i
 }
 %This formulation is called "$n$-slack" as we have one slack variable for each example in training set.
 Here the inner maximisation is known as the \emph{loss-augmented inference}.
-Loss-augmented inference can be efficiently done if loss function $\Delta(,)$ is also decomposable
+Loss-augmented inference can be efficiently done if loss function $\Delta(\cdot,\cdot)$ is also decomposable
 with respect to individual and pairs of label elements.
 % in a way similar to Equation~\eqref{eq:jointfeature}.
 
@@ -172,7 +172,7 @@ which helps shrink the feasible region of the problem.
 Recall that the structured recommendation problem
 involves observing \emph{multiple} ground truth output sequences for each input.
 %If we observed more than one labels for a particular set of features,
-The classic SSVM described in Section~\ref{ssec:ssvm} can be easily generalised to capture this setting:
+The classic SSVM described in Section~\ref{ssec:ssvm} can be generalised to capture this setting:
 given feature vector $\x^{(i)}$ and the corresponding set of ground truths $\{\y^{(ij)}\}_{j=1}^{n_i}$
 where $n_i$ is the number of labels for $\x^{(i)}$,
 we can train a \emph{structured recommendation} (\emph{SR}) model by optimising a quadratic program similar to (\ref{eq:nslack}),
