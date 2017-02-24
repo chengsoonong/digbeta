@@ -100,7 +100,7 @@
 
 % The \icmltitle you define below is probably too long as a header.
 % Therefore, a short form for the running title is supplied here:
-\icmltitlerunning{Structured Recommendation}
+\icmltitlerunning{Sequence Recommendation with Structured Prediction}
 
 \begin{document}
 
@@ -166,15 +166,7 @@
 %\footnotetext{hi}
 
 \begin{abstract}
-Content recommendation systems have seen considerable success, but have largely focussed on the case of static, unstructured content.
-In many recommendation scenarios, we would like to predict content that has some sequential structure,
-such as when recommending a playlist of songs, or a trajectory of points-of-interest in a city.
-In this paper, we present an approach to such sequential recommendation problems based on techniques from structured prediction.
-While the problem can be posed as a vanilla application of such models,
-we propose two important corrections that are necessary to ensure quality recommendations.
-First, we modify the training objective to take into account the existence of multiple ground truths.
-Second, we modify the training and inference procedures to avoid predicting loops in the sequence via an extension of the classic Viterbi algorithm.
-Experiments on two real-world trajectory recommendation datasets shows the benefits of our approach over existing, non-structured recommendation approaches.
+\input{abstract}
 \end{abstract}
 
 \input{introduction}
