@@ -184,8 +184,14 @@ $}
 \end{equation}
 where $N = \sum_i n_i$ and $\bar{\y}^{(i)} \in \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}$.
 Compared to (\ref{eq:nslack}), the key distinction is that the above
-explicitly aggregates all the ground truth labels for each input when generating the constraints;
-in this way, we do not have apparently contradictory constraints where
+explicitly aggregates all the ground truth labels for each input when generating the constraints,
+i.e., the loss-augmented inference becomes
+\begin{equation}
+\label{eq:loss_aug_inf}
+\max_{\bar{\y}^{(i)} \in \ \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}} 
+     \left( \w^\top \Psi(\x^{(i)}, \bar\y^{(i)}) + \Delta(\y^{(ij)}, \bar{\y}^{(i)}) \right).
+\end{equation}
+In this way, we do not have apparently contradictory constraints where
 two ground truth sequences are each required to have larger score than the other.
 Equation~\ref{eq:nslack_ml} is similar to a ranking objective, as the constraints enforce
 that the positively labeled sequences (the known items that the user likes) are scored
