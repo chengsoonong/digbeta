@@ -12,9 +12,9 @@ and then show how it may be viewed as a structured prediction problem.
 \subsection{Trajectory recommendation: standard view}
 
 Travel recommendation problems involve a set of points-of-interest (POIs) $\mathcal{P}$ in a city.
-The \emph{trajectory recommendation} problem is: given a \emph{trajectory query} $\mathbf{x} = (s, K)$,
-comprising a start POI $s \in \mathcal{P}$ and trip length\footnote{Instead of specifying the number of desired POIs, we can constrain the trajectory with a total time budget $T$. In this case, the number of POIs $K$ can be treated as a \emph{hidden} variable, with additional constraint $\sum_{k=1}^K t_k \le T$ where $t_k$ is the time spent at POI $y_k$.}
-$K > 1$ (including the start location $s$),
+The \emph{trajectory recommendation} problem is: given a \emph{trajectory query} $\mathbf{x} = (s, l)$,
+comprising a start POI $s \in \mathcal{P}$ and trip length\footnote{Instead of specifying the number of desired POIs, we can constrain the trajectory with a total time budget $T$. In this case, the number of POIs $l$ can be treated as a \emph{hidden} variable, with additional constraint $\sum_{k=1}^l t_k \le T$ where $t_k$ is the time spent at POI $y_k$.}
+$l > 1$ (including the start location $s$),
 we want to recommend a sequence of POIs (or \emph{trajectory}) $\mathbf{y}^*$ that maximises some notion of utility.
 To learn a suitable $f$ for trajectory recommendation,
 we are provided as input a training set

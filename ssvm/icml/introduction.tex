@@ -3,7 +3,7 @@
 \section{Introduction}
 \label{sec:intro}
 
-Content recommendation has been the subject of a rich body of literature~\citep{Goldberg:1992,Resnick:1994,Konstan:1997,Sarwar:2001,Koren:2010},
+Content recommendation has been the subject of a rich body of literature~\citep{Goldberg:1992,Sarwar:2001,Koren:2010},
 with established techniques seeing widespread adoption in large e-commerce companies~\citep{Linden:2003,Agarwal:2013,Amatriain:2015,Gomez-Uribe:2015}.
 The success of these methods is explained by both the explosion in availability of user's explicit and implicit preferences for content,
 as well as the design of methods that can suitably exploit these to make useful recommendations~\citep{Koren:2009}.
@@ -39,13 +39,14 @@ and by modifying the inference and prediction steps of the model using a variant
 
 Specifically, our contributions are follows:
 \begin{itemize}
-	\item We cast the problem of sequence recommendation as a structured prediction task, and show how this may be modelled using structured SVMs.
+	\item We cast the problem of sequence recommendation as a structured prediction task, and show how this may be modelled using structured SVMs (\S\ref{sec:recseq}).
 
-	\item We propose an important correction to the na\"{i}ve implementation of structured SVMs to the recommendation problem, so as to account for the existence of multiple ground truths for each input. Following \citet{joachims2009cutting} we propose both $n$-slack and 1-slack versions of the structured recommender. This new structured recommender can in principle be applied to any problem where loss augmented inference can be efficiently computed. We focus on sequence recommendation in this paper.
+	\item We propose an important correction to the na\"{i}ve implementation of structured SVMs to the recommendation problem, so as to account for the existence of multiple ground truths for each input (\S\ref{ssec:sr}). Following \citet{joachims2009cutting} we propose both $n$-slack and 1-slack versions of the structured recommender. This new structured recommender can in principle be applied to any problem where loss augmented inference can be efficiently computed. We focus on sequence recommendation in this paper.
 
-	\item We show how one can avoid recommending sequences with loops or repetitions via an extension of the classic Viterbi algorithm that returns a list of the highest scored sequences under some model; we show that this extension may be incorporated during both the training (via loss augmented inference) and prediction steps of our structured SVM.
+	\item We show how one can avoid recommending sequences with loops or repetitions via an extension of the classic Viterbi algorithm that returns a list of the highest scored sequences under some model; we show that this extension may be incorporated during both the training (via loss augmented inference) and prediction steps of our structured SVM (\S\ref{ssec:subtour}).
 
-	\item We present experiments on two real-world trajectory recommendation problems, and demonstrate our proposed structured prediction approaches to offer consistent benefits over existing non-structured baselines.
+	\item We explicate how trajectory recommendation can be seen as a sequential recommendation task (\S\ref{sec:trajrec}). We then present experiments on two real-world trajectory recommendation problems, and demonstrate our structured prediction approaches to offer consistent benefits over existing non-structured baselines (\S\ref{sec:experiment}).
 \end{itemize}
 
-We begin with an overview of related work, before presenting our model.
+%We begin with an overview of related work, before presenting our model.
+We begin with an overview of the sequence recommendation problem, before presenting our model.

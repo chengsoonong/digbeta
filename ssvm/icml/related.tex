@@ -11,7 +11,7 @@ We contrast the problem setting and approach of this paper to a number of sub-fi
 There is a rich body of work on recommender systems,
 with the 
 Netflix prize~\citep{Netflix} encapsulating the canonical problem that concerns most research in this field:
-the recommendation of \emph{static} content such as books or movies from some large database~\citep{Goldberg:1992,Resnick:1994,Konstan:1997,Sarwar:2001,Koren:2010}.
+the recommendation of \emph{static} content such as books or movies from some large database~\citep{Goldberg:1992,Sarwar:2001}.
 Matrix factorisation methods have proven particularly effective for such problems~\citep{Koren:2009}.
 The latter are a prototypical example of a \emph{collaborative filtering} approach to recommendation,
 wherein one exploits the ``wisdom of the crowd'' implicit in the preferences of several users.
@@ -19,7 +19,7 @@ wherein one exploits the ``wisdom of the crowd'' implicit in the preferences of 
 Standard matrix factorisation methods
 have been extended to tackle
 diverse problem settings such as
-time-varying preferences~\citep{Koren:2009b} and implicitly provided feedback~\citep{Hu:2008,Rendle:2009}.
+time-varying preferences~\citep{Koren:2009b} and implicitly provided feedback~\citep{Rendle:2009}.
 However,
 the setting of recommending \emph{structured content},
 such as trajectories as considered in this paper,
@@ -54,21 +54,21 @@ The third is prior work on travel route recommendation, which we survey in detai
 Recommendation problems involving travel routes have received considerable interest of late~\cite{bao2015recommendations,zheng2015trajectory,zheng2014urban}.
 There are, roughly, three problem settings that have been studied.
 The first setting is \emph{point of interest} (\emph{POI}) \emph{recommendation}.
-Here, one simply wishes to rank various POIs in a city in order of how ``interesting'' they are to a given visitor,
+Here, one wishes to rank various POIs in a city in order of how ``interesting'' they are to a given visitor,
 exploiting
 available metadata for each POI.
 Typically, this problem is tackled via 
-collaborative filtering on user-location affinity~\cite{shi2011personalized,lian2014geomf,liu2014exploiting,yuan2013timeaware,hsieh2014mining,gao2013temporal,yuan2014graph}.
+collaborative filtering on user-location affinity~\cite{shi2011personalized,lian2014geomf,hsieh2014mining,yuan2014graph}.
 
 The second setting is \emph{next location recommendation}.
 Here, given the sequence of a traveller's partial tour through a city,
 the goal is to recommend which POI the traveller should visit next.
 This can be understood as a variant of POI recommendation with strong contextual information provided.
 Typically, this problem is tackled via 
-incorporating Markov chains into collaborative filtering~\cite{fpmc10,ijcai13,zhang2015location},
+incorporating Markov chains into collaborative filtering~\cite{fpmc10,ijcai13,zhang2015location}.
 %quantifying tourist traffic flow between points-of-interest~\cite{zheng2012patterns},
 %formulating a binary decision or ranking problem~\cite{baraglia2013learnext}, and predicting the next location with
-or sequence models such as recurrent neural networks~\cite{aaai16}.
+%or sequence models such as recurrent neural networks~\cite{aaai16}.
 
 The third setting is trajectory recommendation,
 which is our focus in this paper.
@@ -84,8 +84,7 @@ by solving an optimisation problem that does not exploit historical data~\cite{g
 
 The sequence recommendation problem can be related at an abstract level to the label ranking problem~\citep{Dekel:2003},
 where the input comprises a query and a corresponding graph as a label.
-The goal in such problems is to learn a ranking over the nodes of the graph,
-which is similar to our setting;
+The goal in such problems is to similarly learn a ranking over the nodes of the graph;
 however, these are typically not learned using structured prediction models,
 but rather by computing a loss function over pairs.
 

@@ -74,6 +74,10 @@ This is because ILP requires the loss should be a linear function of $u_{jk}$,
 But Hamming loss cannot be expressed as a linear function of $u_{jk}$.
 %if we define the loss as the number of mispredicted POIs,
 %where $\mathbf{y}$ is the ground truth and $\bar{\mathbf{y}}$ is the trajectory corresponding to the optimal solution of this ILP.
+%=======
+%If we employ the above ILP to do loss-augmented inference, one restriction is that the loss should be a linear function of $u_{jk}$,
+%e.g., $\Delta(\y, \bar{\y}) = 1 - \sum_{j=1}^M \sum_{k=1}^M u_{j, y_k}$ if we define the loss as the number of mispredicted POIs,
+%where $\y$ is the ground truth and $\bar{\y}$ is the trajectory corresponding to the optimal solution of this ILP.
 
 \subsubsection{Finding $k$-best sequences}
 % 2 uses of list Viterbi: 1) multiple ground truths; 2) subtour elimination
