@@ -82,10 +82,33 @@ But Hamming loss cannot be expressed as a linear function of $u_{jk}$.
 \subsubsection{Finding $k$-best sequences}
 % 2 uses of list Viterbi: 1) multiple ground truths; 2) subtour elimination
 
-The algorithm that seem closest to loss-augmented inference with exclusions are several variants 
-of the Viterbi algorithm. 
-To achieve this, we resort to a variant of the list Viterbi algorithm~\cite{nilsson2001sequentially,seshadri1994list}
-which sequentially find the $k$-th best (scored) trajectory given the best, $2$nd best, \dots, $(k-1)$-th best (scored) trajectories,
-as described in Algorithm~\ref{alg:listviterbi}.
+The algorithm that seem closest to loss-augmented inference with exclusions are several extensions 
+of the Viterbi algorithm that aims to find more than one high-scoring sequences. 
+The parallel listViterbi algorithm~\cite{seshadri1994list} finds the top $k$ sequences 
+by keeping $k$ backtrack pointers for each possible state in each position of the sequence. 
+This algorithm is computationally efficient 
+-- a factor of $\log L$ more than the standard Viterbi for score sorting in each step, rather than simple maximization 
+-- but it keeps many unnecessary pointers. It is also difficult to apply to the SR inference scenario, 
+since we do not know $k$ beforehand. This is because it is generally impossible to foresee 
+the rank (according to score) of the first path among all valid sequences (that may have repeats). 
 
-\TODO{Briefly discuss which one to use, when}
+We resort to the serial list Viterbi algorithm~\cite{seshadri1994list}. 
+These algorithms sequentially find the $k$-th best sequence given the best, $2$nd best, \dots, $(k-1)$-th best sequences. 
+The key insight here is that the 2nd best sequence deviates from the best sequence
+for one continuous segment, and then finally merges back to the best sequence without deviating again 
+-- otherwise replacing one of the continuous segments with those from the best sequence will increase the score. 
+Subsequently, the $k$th best sequence can be the 2nd best sequence relative to the $k-1$th sequence 
+at the point of final merge, or the 2nd or 3rd best sequence to the $k-1$th sequence at the point of final merge, \ldots, and so on. 
+The version of serial list Viterbi presented by~\cite{nilsson2001sequentially} accommodates 
+exclusion from an arbitrary number of known sequences, by partitioning the remaining space 
+from each of the known sequence according to their points of deviation, 
+finding the best trajectory within each partition and then identifying the best among different partitions. 
+
+For the structured recommendation problem, the serial list Viterbi algorithm can be used for inference 
+by recursively getting the next best sequence, until one or more paths are found. 
+This algorithm can also be used for loss-augmented inference with Hamming loss, 
+since it only require the loss function be decomposable with respect to the label elements. 
+%This list Viterbi algorithm performs a backward search for trajectories that merges into the existing candidates at any given point. 
+%as described in Algorithm~\ref{alg:listviterbi}.
+
+%\TODO{Briefly discuss which one to use, when}
