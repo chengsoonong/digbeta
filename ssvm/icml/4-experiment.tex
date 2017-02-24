@@ -15,6 +15,7 @@ the histograms of the number of ground truths for queries are shown in Figure~\r
 \label{tab:data}
 \centering
 \setlength{\tabcolsep}{4pt} % tweak the space between columns
+\small
 \begin{tabular}{l*{5}{r}} \hline
 \textbf{Dataset} & \textbf{\#Photos} & \textbf{\#Visits} & \textbf{\#Traj.} & \textbf{\#Users} & \textbf{\#Queries} \\ \hline
 Edinburgh & 82,060 & 33,944 & 5,028 & 1,454 & 147 \\
@@ -73,26 +74,21 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 \subsection{Experimental Results}
 \label{sec:result}
 
-% algorithms
-We evaluate the recommender based on standard structured prediction (\textsc{SP}), 
-the structured recommender with query aggregation (\textsc{SR}) and 
-their variants with sub-tour elimination when training these recommender systems,
-i.e., \textsc{SPpath} and \textsc{SRpath}, respectively.
-In addition, we looked at three baselines including \textsc{Random} which simply recommend random POIs according to query.
-
-% experimental results
-The results of experiment on five trajectory datasets are shown in Table~\ref{tab:tau}.
-
 \input{tab_experiment}
 
-We can see from the empirical results that all variants of structured prediction recommender achieve very good performance.
-In particular, recommendations based on standard SSVM (\textsc{SP}) are comparable to those based on structured recommender (\textsc{SR}), 
-which means query aggregation does not hurt recommendation but also provide any significant benefit.
+% experimental results
+The performance of three baselines and four variants based on structured prediction on two datasets are shown in Table~\ref{tab:result}.
+The \textsc{Random} baseline simply keep recommending a POI sampled uniformly at random from the whole set of POIs (without replacement),
+until we get all the specified number of POIs.
+On the other hand, \textsc{Popularity} is slightly smarter which considers the popularity of each POI, 
+and recommend the top-$k$ most popular places.
+\textsc{PoiRank}~\cite{cikm16paper} is a generalisation of \textsc{Popularity} which consider a number of POI features in addition to its popularity.
 
-Another observation is that training a structured recommender with sub-tour elimination does not help the quality of recommendations,
-besides, sub-tour elimination make the training computationally expensive, which makes the evaluation on large datasets 
-(e.g., Edinburgh, Melbourne and Toronto) impractical.
+We can see from the empirical results that all variants of structured prediction achieve very good performance.
+In particular, \textsc{SR} always performs better than \textsc{SP}, 
+which suggests that explicitly modelling multiple ground truths helps recommendation.
 
-It is interesting to see that both the \textsc{Popularity} and \textsc{PoiRank} perform very well on both Edinburgh and Melbourne,
-in particular, \textsc{Popularity} is the best performer on Edinburgh, which indicates that most tourists travelling following the degree 
-of popular of each place.
+Furthermore, we observed that sub-tour elimination in training improves the ordering of recommended trajectories, 
+as indicated by the F$_1$ score on pairs, 
+however, this advantage will not take effect if the multiple ground truths is not modelled explicitly,
+which further enforces its importance.
