@@ -3,30 +3,43 @@
 \section{Experimental results}
 \label{sec:experiment}
 
-We now present experiments assessing the viability of our structured prediction approach
-for the concrete sequential recommendation task of
-trajectory recommendation.
-We compare our methods to a number of non-structured baselines, over which we demonstrate significant improvements.
+We now present evaluations assessing the viability of our structured prediction approach
+for the sequential recommendation task discussed in Section~\ref{sec:trajrec}. 
+%of trajectory recommendation.
+On two real-world dataset of photo tours, our methods is shown to significantly outperform 
+a number of non-structured baselines or those that do not take into account the recommendation setting. 
+%, over which we demonstrate significant improvements.
 
 
 %
-\subsection{Description of datasets}
+\subsection{Photo trajectory datasets}
 \label{sec:dataset}
 
 % experiment protocol: Nested cross-validation with Monte-Carlo cross-validation for the inner loop
 We assess the recommendation performance %methods developed in Section~\ref{sec:trajrec}
 of various methods
 on trajectories extracted from Flickr photos
-for the cities of Glasgow and Osaka~\cite{thomee2016yfcc100m}.
-Each dataset comprises a
-list of trajectories, being a sequence of points of interest (POI), as visited by various Flickr users.
-The statistics of datasets are shown in Table~\ref{tab:data}.
-\TODO{these seem to include a lot of irrelevant stats}
-From this data, we consider the recommendation problem as posed in \S\ref{sec:trajrec}:
-given a query comprising start POI and a desired trip length, can we recommend a trajectory of POIs that a visitor will enjoy?
+for the cities of Glasgow and Osaka~\cite{thomee2016yfcc100m,ijcai15}.
+Each dataset comprises of a
+list of trajectories, being a sequence of points of interest (POI), as visited by various Flickr users 
+and recorded by the geotags in photos. Photos that are nearby in time and space are grouped, 
+visits that only include a single POI are excluded. 
+The statistics of datasets are shown in Table~\ref{tab:data}. 
+Both datasets are sparse in user activity, 
+i.e. each user has on average less than two trajectories. 
+This makes user-specific recommendation impractical because of
+data availability, and also undesirable because of the domain being urban locations 
+-- a user would want different recommendations 
+given different starting location, and not a static recommendation no matter where she/he is. 
+From Table~\ref{tab:data} and Figure~\ref{fig:hist}, 
+each distinct query, comprising of start POI and a desired trip length, 
+has an average of 4-6, and a maximum of 20-30 trajectories.
+Here, evaluation is carried out on the problem of recommending trajectories given a query. 
+%as posed in \S\ref{sec:trajrec}:
+%given a query , can we recommend a trajectory of POIs that a visitor will enjoy?
 
-A characteristic of these datasets is that many queries are associated with multiple trajectories, or ground truths.
-The histograms of the number of ground truths for queries are shown in Figure~\ref{fig:hist}.
+%A characteristic of these datasets is that many queries are associated with multiple trajectories, or ground truths.
+%recommendationThe histograms of the number of ground truths for queries are shown in Figure~\ref{fig:hist}.
 
 % dataset stats
 \begin{table}[t]
@@ -45,12 +58,12 @@ Glasgow          & 351              & 25              & 219              & 64   
 
 
 % histogram of #ground truth
-\begin{figure*}[t]
+\begin{figure}[t]
 	\centering
 	\includegraphics[width=\columnwidth]{hist.pdf}
-	\caption{Histogram of the number of ground truths per query on our datasets.}
+	\caption{Histograms of the number of trajectories per query.}
 	\label{fig:hist}
-\end{figure*}
+\end{figure}
 
 
 %
