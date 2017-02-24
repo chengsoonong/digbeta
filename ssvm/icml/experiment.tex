@@ -6,10 +6,10 @@
 \textmoveup
 
 We now present evaluations assessing the viability of our structured prediction approach
-for the sequential recommendation task discussed in Section~\ref{sec:trajrec}. 
+for the sequential recommendation task discussed in Section~\ref{sec:trajrec}.
 %of trajectory recommendation.
-On two real-world dataset of photo tours, our methods is shown to significantly outperform 
-a number of non-structured baselines or those that do not take into account the recommendation setting. 
+On two real-world dataset of photo tours, our methods is shown to significantly outperform
+a number of non-structured baselines or those that do not take into account the recommendation setting.
 %, over which we demonstrate significant improvements.
 
 
@@ -24,18 +24,18 @@ of various methods
 on trajectories extracted from Flickr photos
 for the cities of Glasgow and Osaka~\cite{thomee2016yfcc100m,ijcai15}.
 Each dataset comprises of a
-list of trajectories, being a sequence of points of interest (POI), as visited by various Flickr users 
-and recorded by the geotags in photos. Photos that are nearby in time and space are grouped and then segmented by eight hours of time gap, visits that only include a single POI are excluded. 
-The statistics of datasets are shown in Table~\ref{tab:data}. 
-Both datasets are sparse in user activity, 
-i.e. each user has on average less than two trajectories. 
+list of trajectories, being a sequence of points of interest (POI), as visited by various Flickr users
+and recorded by the geotags in photos. Photos that are nearby in time and space are grouped and then segmented by eight hours of time gap, visits that only include a single POI are excluded.
+The statistics of datasets are shown in Table~\ref{tab:data}.
+Both datasets are sparse in user activity,
+i.e. each user has on average less than two trajectories.
 This makes user-specific recommendation impractical because of
-data availability, and also undesirable because of the domain being urban locations 
--- a user would want different recommendations given different starting locations, and not a static recommendation no matter where she/he is. 
-From Table~\ref{tab:data} and Figure~\ref{fig:hist}, 
-each distinct query, comprising of start POI and a desired trip length, 
+data availability, and also undesirable because of the domain being urban locations
+-- a user would want different recommendations given different starting locations, and not a static recommendation no matter where she/he is.
+From Table~\ref{tab:data} and Figure~\ref{fig:hist},
+each distinct query, comprising of start POI and a desired trip length,
 has an average of 4-6, and a maximum of 20-30 trajectories.
-Therefore, evaluation is carried out on the problem of recommending trajectories given a query. 
+Therefore, evaluation is carried out on the problem of recommending trajectories given a query.
 %as posed in \S\ref{sec:trajrec}:
 %given a query , can we recommend a trajectory of POIs that a visitor will enjoy?
 
@@ -75,22 +75,22 @@ We compare the performance of our methods to the following three baselines:
 \begin{itemize}[leftmargin=0.125in]\itemmoveup
 \parskip -.05em
 	\item The \textsc{Random} baseline simply recommends a sequence of POIs by sampling uniformly at random from the whole set of POIs (without replacement).
-	
+
 	\item The stronger \textsc{Popularity} baseline recommends the top-$k$ most popular POIs i.e. the POIs that have been visited the most in the training set.
 
 	\item \textsc{PoiRank}~\cite{cikm16paper} is a generalisation of \textsc{Popularity} which considers a number of POI features in addition to the popularity,
 and trains a RankSVM model to learn a score for each POI. The top-$k$ scoring POIs are then used to construct a trajectory.
 \end{itemize}\itemmoveup
 
-To assess the viability of our structured prediction approach, and the necessity of our two extensions (normalising the loss per query and disallowing loops), we implemented the following versions of our structured prediction methods. 
+To assess the viability of our structured prediction approach, and the necessity of our two extensions (normalising the loss per query and disallowing loops), we implemented the following versions of our structured prediction methods.
 All variants predicts with the list Viterbi algorithm (Section~\ref{ssec:subtour}) to generate a path.
 \begin{itemize}[leftmargin=0.125in]\itemmoveup
 \parskip -.05em
-	\item The structured prediction ({\sc SP}) method employs the vanilla structured SVM framework in order to learn a score for trajectories given a query.  
+	\item The structured prediction ({\sc SP}) method employs the vanilla structured SVM framework in order to learn a score for trajectories given a query.
 
-	\item The structured recommendation ({\sc SR}) method extends the {\sc SP} method by additionally incorporating multiple ground truths into 
-	forming the constraints and adding them in cutting-plane algorithm, 
-	described in Section~\ref{ssec:sr} and \ref{ssec:SRinf}. 
+	\item The structured recommendation ({\sc SR}) method extends the {\sc SP} method by additionally incorporating multiple ground truths into
+	forming the constraints and adding them in cutting-plane algorithm,
+	described in Section~\ref{ssec:sr} and \ref{ssec:SRinf}.
 	%performing normalisation of the loss function per query,
 	%so that we do not attempt to distinguish between multiple ground truths for the same query.
 
@@ -103,21 +103,21 @@ All variants predicts with the list Viterbi algorithm (Section~\ref{ssec:subtour
 \textmoveup
 
 % leave-one-out evaluation (with query aggregation)
-%As described in Section~\ref{sec:queryagg}, 
+%As described in Section~\ref{sec:queryagg},
 %To evaluate the performance of the various methods under comparison,
 %we first group the trajectories  %according to queries that they conform to.
-We then evaluate the performance of each algorithm using leave-one-query-out cross validation. That is, holding out each query $\x\pb{i}$, and also all of its relevant trajectories $\{\y\pb{ij}\}_{j=1}^{n^i}$ in each round. 
+We then evaluate the performance of each algorithm using leave-one-query-out cross validation. That is, holding out each query $\x\pb{i}$, and also all of its relevant trajectories $\{\y\pb{ij}\}_{j=1}^{n^i}$ in each round.
 where in each iteration of this procedure,
 %one query and its associated trajectories serves as a test point, with all other trajectories for training.
 %(Note that without this query aggregation, there will be considerable overlap between the train and test set, and simple nearest neighbour methods will be hard to outperform.)
 % model selection (Monte Carlo CV) (with query aggregation): 90/10 random split for 5 times
 Relevant hyper-parameters (e.g.\ the regularisation constant $C$) are tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
 
-We use three different measures to compare algorithm performances. 
-The {\bf F$_1$ score on points}~\cite{ijcai15} computes F$_1$ on the predicted versus seen points 
-without considering their relative order. 
-The {\bf F$_1$ score on pairs}~\cite{cikm16paper} is proposed to mitigate this by computing F$_1$ on all ordered pairs in the predicted versus groundtruth sequence. It is 1 iff both sequences agree completely. 
-The well-known rank correlation {\bf Kendall's $\tau$} (version $b$)~\cite{agresti2010analysis} computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all ($\frac{1}{2}l(l-1)$) pairs, ignoring ties. 
+We use three different measures to compare algorithm performances.
+The {\bf F$_1$ score on points}~\cite{ijcai15} computes F$_1$ on the predicted versus seen points
+without considering their relative order.
+The {\bf F$_1$ score on pairs}~\cite{cikm16paper} is proposed to mitigate this by computing F$_1$ on all ordered pairs in the predicted versus groundtruth sequence. It is 1 iff both sequences agree completely.
+The well-known rank correlation {\bf Kendall's $\tau$} (version $b$)~\cite{agresti2010analysis} computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all ($\frac{1}{2}l(l-1)$) pairs.
 \eat{
 % evaluation metric: kendall's Tau (mention F1, pF1)
 We use three performance measures to assess the test fold performance of each algorithm:
@@ -133,18 +133,18 @@ with adjustment for ties.
 In particular,
 define the rank of POIs $\mathcal{P}$ in a trajectory $\mathbf{y} = (y_1,\dots,y_K)$ as
 the position of the POI within the trajectory,
-\begin{align*} 
+\begin{align*}
 r_\mathbf{y} &= (r_1,\dots,r_j,\dots,r_{|\mathcal{P}|}), \\
 r_j &= \sum_{k=1}^K (| \mathcal{P} | - k + 1)  \llb p_j = y_k \rrb, ~ j = 1, \dots, | \mathcal{P} |.
 \end{align*}
 The Kendall's $\tau$ score is then computed on $r_\mathbf{y}$ versus $r_\mathbf{\hat{y}}$.
-Unlike the F$_1$ scores on points and pairs, 
+Unlike the F$_1$ scores on points and pairs,
 which only care about the set of correctly recommended POIs or POI pairs,
 this metric taking both factors into account.
 }
 
-Structured recommendation problems aims to perform ranking on a very large $m^l$ labelset. 
-We adopt the practice of {\em best of top 10}~\cite{russakovsky2015imagenet} for reporting results. Or, predict top 10 trajectories and then report the best match of any in the top 10 to any trajectory in the ground truth set. 
+Structured recommendation problems aims to perform ranking on a very large $m^l$ labelset.
+We adopt the practice of {\em best of top 10}~\cite{russakovsky2015imagenet} for reporting results. Or, predict top 10 trajectories and then report the best match of any in the top 10 to any trajectory in the ground truth set.
 \eat{
 As described previously, our methods are capable of recommending not merely a single trajectory,
 but rather a list of trajectories.
@@ -154,9 +154,9 @@ Thus, for each performance measure $\mathrm{perf}$,
 we take the maximum over all trajectories,
 i.e.,
 \begin{equation*}
-%\tau_b^{(i)} = 
+%\tau_b^{(i)} =
 \mathrm{perf}^{(i)}( \mathbf{y}, \hat{\mathbf{y}} ) =
-\max_{(\mathbf{y}, \hat{\mathbf{y}}) \in \{\mathbf{y}^{(ij)}\}_{j=1}^{N_i} \times \{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k} 
+\max_{(\mathbf{y}, \hat{\mathbf{y}}) \in \{\mathbf{y}^{(ij)}\}_{j=1}^{N_i} \times \{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k}
 %\tau_b(r_\mathbf{y}, r_{\hat{\mathbf{y}}}),
 \mathrm{perf}(\mathbf{y}, {\hat{\mathbf{y}}}),
 \end{equation*}
@@ -181,7 +181,7 @@ This indicates that the basis of our approach -- reducing sequence recommendatio
 
 \textbf{Accounting for multiple ground truths helps}.
 We find that \textsc{SR} always performs better than \textsc{SP},
-and similarly for the {\sc path} variants of both methods. 
+and similarly for the {\sc path} variants of both methods.
 This indicates that our first extension -- explicitly modelling multiple ground truths helps recommendation -- is important to achieve good performance.
 (We note that even without this correction, our structured methods outperform baselines.)
 
@@ -193,8 +193,8 @@ Interestingly,
 this advantage does \emph{not} take effect if the multiple ground truths are not modelled explicitly,
 with the performance of the {\sc SP} method largely unaffected.
 
-\textbf{An illustrative example}. Figure~\ref{fig:example} consist of an example that illustrates the difference among the different algorithm variants. The query requires the trajectory to start from the middle point and be of length 2. 
-\textsc{PoiRank} regards points at the lower right and upper left be of the highest rank, but did not consider their compatibility (\ie pairwise features). {\sc SP} and {\sc SR} hits one edge out of the two the groundtruth (green edge), while {\sc SRpath} hits both edges for two valid trajectories after taking all factors into account. 
+\textbf{An illustrative example}. Figure~\ref{fig:example} consist of an example that illustrates the difference among the different algorithm variants. The query requires the trajectory to start from the middle point and be of length 2.
+\textsc{PoiRank} regards points at the lower right and upper left be of the highest rank, but did not consider their compatibility (\ie pairwise features). {\sc SP} and {\sc SR} hits one edge out of the two the groundtruth (green edge), while {\sc SRpath} hits both edges for two valid trajectories after taking all factors into account.
 
 Overall, these results indicate that our structured prediction approach to the problem has
 benefits over non-structured approaches,
@@ -205,12 +205,10 @@ and that our extensions to the vanilla structured approach are important to furt
 
 \begin{figure*}[t]
 	\centering
-	\includegraphics[width=0.99\textwidth]{example.pdf}
-	\caption{Example of structured recommender versus baseline on a query with two ground truths as shown in Figure (c). 
-             (a) \textsc{PoiRank} cannot make a recommendation related to any of the ground truths; 
+	\includegraphics[width=0.9\textwidth]{example.pdf}
+	\caption{Example of structured recommender versus baseline on a query with two ground truths as shown in Figure (c).
+             (a) \textsc{PoiRank} cannot make a recommendation related to any of the ground truths;
              (b) \textsc{SP} and \textsc{SR} recommend a better trajectory than \textsc{PoiRank}, but not fully consistent with the ground truths;
              (c) \textsc{SRpath} hit both ground truths at rank 3 and 5 respectively.}
 	\label{fig:example}
 \end{figure*}
-
-

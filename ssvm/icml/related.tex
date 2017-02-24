@@ -12,7 +12,7 @@ We contrast the problem setting and approach of this paper to a number of sub-fi
 \textmoveup
 
 There is a rich body of work on recommender systems,
-with the 
+with the
 Netflix prize~\citep{Netflix} encapsulating the canonical problem that concerns most research in this field:
 the recommendation of \emph{static} content such as books or movies from some large database~\citep{Goldberg:1992,Sarwar:2001}.
 Matrix factorisation methods have proven particularly effective for such problems~\citep{Koren:2009}.
@@ -44,7 +44,7 @@ The canonical approach here is to apply the matrix factorisation idea to the Mar
 The success of this method relies on the fact that one is only interested in predicting sequences one element at a time, so that latent embeddings for each item may be found.
 
 The second is work on recommending song playlists to users, given a query song~\citep{McFee:2011,chen2012playlist}.
-The canonical approach here is to 
+The canonical approach here is to
 learn a latent representation of songs from historical playlist data,
 and exploit a Markovian assumption on the song transitions.
 While a reasonable first order approximation, this assumption limits the modelling power of such approaches.
@@ -62,22 +62,21 @@ The first setting is \emph{point of interest} (\emph{POI}) \emph{recommendation}
 Here, one wishes to rank various POIs in a city in order of how ``interesting'' they are to a given visitor,
 exploiting
 available metadata for each POI.
-Typically, this problem is tackled via 
+Typically, this problem is tackled via
 collaborative filtering on user-location affinity~\cite{shi2011personalized,lian2014geomf,hsieh2014mining,yuan2014graph}.
 
 The second setting is \emph{next location recommendation}.
 Here, given the sequence of a traveller's partial tour through a city,
 the goal is to recommend which POI the traveller should visit next.
 This can be understood as a variant of POI recommendation with strong contextual information provided.
-Typically, this problem is tackled via 
+Typically, this problem is tackled via
 incorporating Markov chains into collaborative filtering~\cite{fpmc10,ijcai13,zhang2015location}.
 %quantifying tourist traffic flow between points-of-interest~\cite{zheng2012patterns},
 %formulating a binary decision or ranking problem~\cite{baraglia2013learnext}, and predicting the next location with
 %or sequence models such as recurrent neural networks~\cite{aaai16}.
-
 The third setting is trajectory recommendation,
 which is our focus in this paper.
-Typically, this problem is tackled via 
+Typically, this problem is tackled via
 a heuristic combination of locations and routes~\cite{lu2010photo2trip,ijcai15,lu2012personalized}, or
 by solving an optimisation problem that does not exploit historical data~\cite{gioniswsdm14,chen2015tripplanner}.
 
