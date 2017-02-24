@@ -40,10 +40,10 @@ Existing approaches treat the problem as one of determining a score for the intr
 based on implicit preference data in the training set.
 Perhaps the simplest such approach is based on learning a model to predict whether a particular POI occurs, or not, in the trajectory corresponding to a query.
 Formally, from the given set of trajectories
-we derive a training set $\{ ( \x^{(i)}, p^{(i)}, y^{(i)} ) \}_{i = 1}^N$,
+we derive a training set $\{ ( \x^{(i)}, p^{(i)}, y^{(i)} ) \}_{i = 1}^n$,
 where each POI $p^{(i)}$ is augmented with a label $y^{(i)} \in \{ \pm 1 \}$ denoting whether or not it appeared in a trajectory corresponding to the query $\x^{(i)}$. 
 Formally, the objective used for training is
-$$ \min_{\w} \frac{1}{2} \w^T \w + C \cdot \sum_{i = 1}^N \ell\left( y^{(i)} \cdot ( \w^T \Phi( \x^{(i)}, p^{(i)} ) ) \right) $$
+$$ \min_{\w} \frac{1}{2} \w^T \w + C \cdot \sum_{i = 1}^n \ell\left( y^{(i)} \cdot ( \w^T \Phi( \x^{(i)}, p^{(i)} ) ) \right) $$
 where
 $\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
 $C > 0$ is some regularisation strength,
@@ -78,7 +78,7 @@ For example, as argued in the Introduction,
 we might find three restaurants to be the highest scoring POIs in a city;
 however, this it is unlikely that these three POIs form a trajectory that most travellers will enjoy.
 
-This motivates an approach that attempts to directly ensure such global cohesion.
+This motivates an approach that directly ensures such global cohesion.
 To do this, we show how the problem can be cast as one of sequential recommendation, 
 thus allowing us to leverage the tools developed in the previous section.
 
