@@ -27,7 +27,6 @@ given a query comprising start POI and a desired trip length, can we recommend a
 
 A characteristic of these datasets is that many queries are associated with multiple trajectories, or ground truths.
 The histograms of the number of ground truths for queries are shown in Figure~\ref{fig:hist}.
-\TODO{only need two datasets}
 
 % dataset stats
 \begin{table}[t]
@@ -51,8 +50,8 @@ Osaka & 392,420 & 7,747 & 1,115 & 450 & 47 \\
 % histogram of #ground truth
 \begin{figure*}[t]
 	\centering
-	\includegraphics[width=\textwidth]{hist.pdf}
-	\caption{Histogram of the number of ground truth}
+	\includegraphics[width=\columnwidth]{hist.pdf}
+	\caption{Histogram of the number of ground truths per query on our datasets.}
 	\label{fig:hist}
 \end{figure*}
 
@@ -60,13 +59,25 @@ Osaka & 392,420 & 7,747 & 1,115 & 450 & 47 \\
 %
 \subsection{Methods compared}
 
-We compare the performance of our methods to three baselines.
-The \textsc{Random} baseline simply keep recommending a POI sampled uniformly at random from the whole set of POIs (without replacement), until we get all the specified number of POIs.
-On the other hand, the stronger \textsc{Popularity} baseline considers the popularity of each POI, 
-and recommend the top-$k$ most popular places.
-\textsc{PoiRank}~\cite{cikm16paper} is a generalisation of \textsc{Popularity} which considers a number of POI features in addition to its popularity,
-and trains a RankSVM model to learn a score for each POI.
+We compare the performance of our methods to the following three baselines:
+\begin{itemize}[leftmargin=0.125in]
+	\item The \textsc{Random} baseline simply recommends a sequence of POIs by sampling uniformly at random from the whole set of POIs (without replacement).
+	
+	\item The stronger \textsc{Popularity} baseline recommends the top-$k$ most popular POIs i.e. the POIs that have been visited the most in the training set.
 
+	\item \textsc{PoiRank}~\cite{cikm16paper} is a generalisation of \textsc{Popularity} which considers a number of POI features in addition to the popularity,
+and trains a RankSVM model to learn a score for each POI. The top-$k$ scoring POIs are then used to construct a trajectory.
+\end{itemize}
+
+To assess the viability of our structured prediction approach, and the necessity of our two extensions (normalising the loss per query and disallowing loops), we implemented the following versions of our structured prediction methods:
+\begin{itemize}[leftmargin=0.125in]
+	\item The structured prediction ({\sc SP}) method employs the vanilla structured SVM framework in order to learn a score for trajectories given a query.
+
+	\item The structured recommendation ({\sc SR}) method extends the {\sc SP} method by additionally performing normalisation of the loss function per query,
+	so that we do not attempt to distinguish between multiple ground truths for the same query.
+
+	\item The variants {\sc SPpath} and {\sc SRpath} extend the above methods by enforcing the constraint during training that sequences with loops are disallowed.
+\end{itemize}
 
 
 %
@@ -74,7 +85,7 @@ and trains a RankSVM model to learn a score for each POI.
 
 % leave-one-out evaluation (with query aggregation)
 %As described in Section~\ref{sec:queryagg}, 
-To evaluate the performance of various methods on our datasets,
+To evaluate the performance of the various methods under comparison,
 we first group the trajectories according to queries that they conform to.
 We then evaluate the performance of each algorithm using leave-one-out cross validation,
 where in each iteration of this procedure,
@@ -90,6 +101,7 @@ point-F$_1$ score~\cite{ijcai15},
 pairs-F$_1$ score~\cite{cikm16paper},
 and
 Kendall's $\tau$ (version $b$)~\cite{kendall1945,agresti2010analysis}.
+\TODO{explain point and pairs}
 
 Kendall's $\tau$
 essentially measures the fraction of pairs of POIs that are correctly ordered in the prediction and ground truth sequences,
@@ -110,7 +122,7 @@ As described previously, our methods are capable of recommending not merely a si
 but rather a list of trajectories.
 While one can simply take the top recommended trajectory as the prediction,
 this ignores the fact that there are likely multiple plausible trajectories for any given query.
-Thus, for each performance measure,
+Thus, for each performance measure $\mathrm{perf}$,
 we take the maximum over all trajectories,
 i.e.,
 \begin{equation*}
@@ -126,18 +138,33 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 
 
 %
-\subsection{Results}
+\subsection{Results and discussion}
 \label{sec:result}
 
 \input{tab_experiment}
 
 % experimental results
 The performance of three baselines and four variants based on structured prediction on two datasets are shown in Table~\ref{tab:result}.
-We can see from the empirical results that all variants of structured prediction achieve very good performance.
-In particular, \textsc{SR} always performs better than \textsc{SP}, 
-which suggests that explicitly modelling multiple ground truths helps recommendation.
+From these results, we can make the following key inferences that validate our contributions.
 
-Furthermore, we observed that sub-tour elimination in training improves the ordering of recommended trajectories, 
-as indicated by the F$_1$ score on pairs, 
-however, this advantage will not take effect if the multiple ground truths is not modelled explicitly,
-which further enforces its importance.
+\textbf{Exploiting the structure of sequences helps}.
+We find that all variants of our structured prediction methods achieve better performance than existing baselines.
+This indicates that the basis of our approach -- reducing sequence recommendation to a structured prediction problem -- is sensible, and has empirical benefit.
+
+\textbf{Accounting for multiple ground truths helps}.
+We find that \textsc{SR} always performs better than \textsc{SP},
+and similarly for the {\sc path} variants of both methods. 
+This indicates that our first extension -- explicitly modelling multiple ground truths helps recommendation -- is important to achieve good performance.
+(We note that even without this correction, our structured methods outperform baselines.)
+
+\textbf{Eliminating loops during training helps}.
+We find that {\sc SRpath} improves performance further of the {\sc SR} method,
+as indicated by the F$_1$ score on pairs.
+This indicates that our second extension -- explicitly performing sub-tour elimination in training -- is important to further improve performance.
+Interestingly,
+this advantage does \emph{not} take effect if the multiple ground truths are not modelled explicitly,
+with the performance of the {\sc SP} method largely unaffected.
+
+Overall, these results indicate that our structured prediction approach to the problem has
+benefits over non-structured approaches,
+and that our extensions to the vanilla structured approach are important to further improve performance.
