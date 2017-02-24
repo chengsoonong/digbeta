@@ -1,11 +1,26 @@
+%!TEX root = main.tex
+
 \section{Introduction}
 \label{sec:intro}
 
-Contributions
+structured prediction problems;
+recsys problems and methods. 
+gap: 
+people need recommendation for sequences and sets (e.g. \cite{chen2012playlist}, google tour)
+
+what we did:
+define sequence recommendation problems in ML; 
+novel solutions in the following aspects:
+1. use structured prediction (ssvm) for recsys
+2. making the recsys ranking objective work for ssvm 
+3. no loops/repetitions in the recommended sequence
+4. learning and inference 
+
+
+Bullet list of contributions
 \begin{itemize}
-  \item multiset SSVM
+  \item structured recommendation 
   \item two uses of list Viterbi
-  \item apply to trajectory recommendation
-  \item better than CIKM2016
+  \item apply to trajectory recommendation, better than CIKM2016
   \item framework to understand related work
 \end{itemize}
