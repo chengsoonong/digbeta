@@ -104,14 +104,14 @@ For many problems, we can assume that it is a vector whose elements represent un
  each of these unary and pairwise features with the corresponding feature weight:
 \begin{equation}
 \label{eq:jointfeature}
-\resizebox{0.99\linewidth}{!}{$\displaystyle
+\resizebox{0.9\linewidth}{!}{$\displaystyle
 f(\x, \y) =  %\w^\top \Psi(\x,\y)
 \sum_{j=1}^l \w_j^\top \Psi_j(\x, y_j)
   + \sum_{j=1}^{l-1} \w_{j,j+1}^\top \Psi_{j,j+1}(\x, y_{j}, y_{j+1}). %\nonumber
   $}
 \end{equation}
 Here, $\Psi_j$ is a feature map between the input and one output label element $y_j$, with a corresponding weight vector $\w_j$
-and $\Psi_{j,j+1}$ is a pairwise feature vector that captures the interactions between consecutive labels $y_j$ $y_{j-1}$,
+and $\Psi_{j,j+1}$ is a pairwise feature vector that captures the interactions between consecutive labels $y_j$ and $y_{j+1}$,
 with a corresponding weight vector $\w_{j,j+1}$.
 
 %To learn the parameters, we train the structured SVM by optimising a quadratic program (QP),
@@ -119,51 +119,42 @@ with a corresponding weight vector $\w_{j,j+1}$.
 To learn a suitable set of weights $\w$, SSVMs solve the following optimisation problem during training:
 
 \begin{equation}
-\resizebox{0.99\linewidth}{!}{$\displaystyle
+\label{eq:nslack}
+\resizebox{0.9\linewidth}{!}{$\displaystyle
 \begin{aligned}
-&\min_{\w, \, \bm{\xi} \ge 0} \frac{1}{2} \w^\top \w + \frac{C}{n} \sum_{i=1}^n \xi_i \label{eq:nslack}\\
-&s.t.~  \forall i, \nonumber\\
+&\min_{\w, \, \bm{\xi} \ge 0} ~\frac{1}{2} \w^\top \w + \frac{C}{n} \sum_{i=1}^n \xi_i \\
+&s.t.~~  \forall i, \\
 %&\w^\top \Psi(\x^{(i)}, \y^{(i)}) + \xi_i \ge
 %          \max_{\bar{\y} \in \mathcal{Y}}
 %          \left\{\w^\top \Psi(\x^{(i)}, \bar{\y}) + \Delta(\y^{(i)}, \bar{\y}) \right\}. \nonumber
 & \w^\top \Psi(\x^{(i)}, \y^{(i)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}) \ge
-  \Delta(\y^{(i)}, \bar{\y}) - \xi_i \nonumber
+  \Delta(\y^{(i)}, \bar{\y}) - \xi_i.
 \end{aligned}
 $}
 \end{equation}
 
-Here, $\bar\y$ is a candidate sequence,  % \in \mathcal{Y} -- LX: what is cal Y anyway?
-and $\Delta(\y, \bar\y)$ is the loss function between $\bar\y$ and the ground truth $\y$.
-Here the right hand side is known as the \emph{loss-augmented inference}.
-Loss-augmented inference can be efficiently done if loss function $\Delta(,)$ is also decomposable
-with respect to individual and pairs of label elements in a way similar to Equation~\eqref{eq:jointfeature}.
+Here, $\bar\y$ is an arbitrary candidate sequence,  % \in \mathcal{Y} -- LX: what is cal Y anyway?
+and $\Delta(\y, \bar\y)$ is the loss function between $\bar\y$ and the ground truth $\y$,
 %%LX: we don't need the def of \xi_i below?
 and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th example~\cite{tsochantaridis2005large},
 \resizebox{.99\linewidth}{!}{
-  \begin{minipage}{\linewidth}
-\begin{equation*}
-\xi_i = \max \left( 0, \,
-       \max_{\bar{\y} \in \mathcal{Y}}
-       \left\{ \Delta(\y^{(i)}, \bar{\y}^{(i)}) + \w^\top \Psi(\x^{(i)}, \bar{\y}^{(i)}) \right\} -
-       \w^\top \Psi(\x^{(i)}, \y^{(i)}) \right).
-\end{equation*}
+\begin{minipage}{\linewidth}
+\begin{align*}
+\xi_i = \max \left( 0, \, \right.
+        & \max_{\bar{\y} \in \mathcal{Y}}
+          \left\{ \Delta(\y^{(i)}, \bar{\y}^{(i)}) + \w^\top \Psi(\x^{(i)}, \bar{\y}^{(i)}) \right\} \\
+        & \left. - \w^\top \Psi(\x^{(i)}, \y^{(i)}) \right).
+\end{align*}
 \end{minipage}
 }
 %This formulation is called "$n$-slack" as we have one slack variable for each example in training set.
-
-%%LX: merge above, no need to write out the constraint twice
-We can rewrite the constraint in problem (\ref{eq:nslack}) as
-\begin{equation}
-\label{eq:ssvminf}
-\w^\top \Psi(\x^{(i)}, \y^{(i)}) + \xi_i \ge
-          \max_{\bar{\y} \in \mathcal{Y}}
-          \left\{\w^\top \Psi(\x^{(i)}, \bar{\y}) + \Delta(\y^{(i)}, \bar{\y}) \right\},
-\end{equation}
-
+Here the inner maximisation is known as the \emph{loss-augmented inference}.
+Loss-augmented inference can be efficiently done if loss function $\Delta(,)$ is also decomposable
+with respect to individual and pairs of label elements in a way similar to Equation~\eqref{eq:jointfeature}.
 
 To solve problem (\ref{eq:nslack}), one option is to simply enumerate all constraints, and feed the problem into a standard solver.
 However, this approach is impractical as there is a constraint for every possible label $\bar{\y}$.
-Instead, we use a cutting-plane algorithm which repeatedly solves the quadratic program (\ref{eq:nslack})
+Instead, we can resort to a cutting-plane algorithm which repeatedly solves the quadratic program (\ref{eq:nslack})
 with a growing set of constraints~\cite{joachims2009predicting}.
 In each iteration, a new constraint is formed by solving the loss-augmented inference,
 which helps shrink the feasible region of the problem.
@@ -181,36 +172,38 @@ where $n_i$ is the number of labels for $\x^{(i)}$,
 we can train a \emph{structured recommendation} (\emph{SR}) model by optimising a quadratic program similar to (\ref{eq:nslack}),
 \begin{equation}
 \label{eq:nslack_ml}
-\resizebox{0.99\linewidth}{!}{$
+\resizebox{0.9\linewidth}{!}{$
 \begin{aligned}
-\min_{\w, \, \bm{\xi} \ge 0} ~& \frac{1}{2} \w^\top \w + \frac{C}{N} \sum_{i,j} \xi_{ij} \\
-s.t.~ ~& \w^\top \Psi(\x^{(i)}, \y^{(ij)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}) \rangle \ge
-         \Delta(\y^{(ij)}, \bar{\y}) - \xi_{ij}, \, \forall j, \, \forall i.
+&\min_{\w, \, \bm{\xi} \ge 0} ~ \frac{1}{2} \w^\top \w + \frac{C}{N} \sum_{i=1}^n \sum_{j=1}^{n_i} \xi_{ij} \\
+&s.t.~~ \forall i, \, \forall j, \\
+& \w^\top \Psi(\x^{(i)}, \y^{(ij)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}^{(i)}) \ge
+  \Delta(\y^{(ij)}, \bar{\y}^{(i)}) - \xi_{ij}.
 \end{aligned}
 $}
 \end{equation}
-where $N = \sum_i n_i$ and $\bar{\y} \in \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}$.
+where $N = \sum_i n_i$ and $\bar{\y}^{(i)} \in \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}$.
 Compared to (\ref{eq:nslack}), the key distinction is that the above
 explicitly aggregates all the ground truth labels for each input when generating the constraints;
 in this way, we do not have apparently contradictory constraints where
 two ground truth sequences are each required to have larger score than the other.
 
 Instead of using $N$ slack variables as that in (\ref{eq:nslack_ml}),
-we can one variable to represent the sum of the $N$ hinge losses,
+we can use one slack variable to represent the sum of the $N$ hinge losses in (\ref{eq:nslack_ml}),
 which leads to this one-slack formulation,
 \begin{equation}
 \label{eq:1slack_ml}
-\resizebox{0.99\linewidth}{!}{$
+\resizebox{0.9\linewidth}{!}{$
 \begin{aligned}
-\min_{\w, \, \xi \ge 0} ~& \frac{1}{2} \w^\top \w + C \xi \\
-s.t.~ ~& \frac{1}{N} \sum_{i,j} \w^\top \Psi(\x^{(i)}, \y^{(ij)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}^{(i)}) \ge
-         \frac{1}{N} \sum_{i,j} \Delta(\y^{(ij)}, \bar{\y}^{(i)}) - \xi,
+& \min_{\w, \, \xi \ge 0} ~\frac{1}{2} \w^\top \w + C \xi \\
+& s.t.~~ \frac{1}{N} \left( \sum_{i,j} \w^\top \Psi(\x^{(i)}, \y^{(ij)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}^{(i)}) \right) \\
+& \hspace{2em} \ge \frac{1}{N} \sum_{i,j} \Delta(\y^{(ij)}, \bar{\y}^{(i)}) - \xi.
 \end{aligned}
 $}
 \end{equation}
-where $\bar{\y}^{(i)} \in \mathcal{Y} \setminus \{\y^{ij}\}_{j=1}^{N_i}$.
-This one-slack formulation can be trained more efficiently and is the one employed in this work.
+This one-slack formulation can be trained more efficiently than the $N$-slack formulation (\ref{eq:nslack_ml}) and is employed in this work.
 
+
+\TODO{maybe - talk about this actually being a ranking objective for positive-only training sequences re: recommendations }
 
 \input{listviterbi}
 
