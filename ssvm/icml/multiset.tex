@@ -217,18 +217,17 @@ This one-slack formulation can be trained more efficiently and is the one employ
 
 \input{listviterbi}
 
-\subsection{Inference for structured recommendation}
+\subsection{Inference and learning for SR}
 \label{ssec:SRinf}
 
-\TODO{recommending lists: talk about listViterbi for inference}
+For inference in SR model, both ILP and list Viterbi algorithms can be used, and they will generate the 
+same result if terminated and converged within a given time budget. 
+List Viterbi algorithms are polynomial time given the list depth $k$, 
+but in reality $k$ is unknown a priori and can be very large for long sequences 
+We found that state-of-the-art ILP solvers converge to a solution faster if sequence length $l$ is large.
+In the experiments, we use list Viterbi for short sequences, and ILP for long ($l>10$) sequences. 
 
-
-\subsection{Training the SR model}
-\label{ssec:SRtrain}
-% list Viterbi for multiple ground truths
-
-\TODO{talk about training and what cutting plane does}
-
+\TODO{revise this para to describe listViterbi for lost-augmented inf, without loops, and with multiple examples.}
 Similar to the loss-augmented inference described in Section~\ref{ssec:ssvm}, 
 we can rewrite the constraints in problem (\ref{eq:nslack_ml}) into
 \begin{equation*}
@@ -248,7 +247,7 @@ i.e., in $\{\y^{(ij)}\}_{j=1}^{n_i}$.
 In addition to train multiset SSVM, this technique can be further used to deal with other constraints such as sub-tour elimination 
 as described in Section~\ref{sec:subtour}.
 
-\TODO{talk about multiple truths and what it means in prediction}
+%\TODO{talk about multiple truths and what it means in prediction}
 
 
 
