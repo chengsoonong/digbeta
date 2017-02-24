@@ -69,10 +69,13 @@ s.t. ~& u_{jk}, ~z_j \in \{0, 1\}, ~u_{jj}=0, ~z_1=0, ~v_j \in \mathbf{Z},~     
 }
 
 TSPs are NP-hard,
-and the ILP formulation will give the optimal solution when the solver finds the optimal.
+and so the ILP solver may not find a solution in reasonable time;
+however, when the ILP solver finds a solution,
+it will be optimal.
+%and so the ILP formulation will give the optimal solution when the solver finds the optimal.
 We note, however, that an ILP cannot be readily used for loss-augmented inference
 for the Hamming loss, the most common loss function for sequence prediction tasks.
-This is because ILP requires the loss should be a linear function of $u_{jk}$,
+This is because ILP requires the loss to be a linear function of $u_{jk}$,
 \eg, the number of mis-predicted POIs disregarding the order $\Delta(\y, \bar\y) = 1 - \sum_{j=1}^m \sum_{k=1}^m u_{j, y_k}$,
 while Hamming loss cannot be expressed as a linear function of $u_{jk}$.
 %if we define the loss as the number of mispredicted POIs,
