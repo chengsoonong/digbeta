@@ -1,16 +1,39 @@
 %!TEX root = main.tex
 \section{Recommending sequences}
-\label{sec:multiset}
+\label{sec:recseq}
 
-We consider the problem of supervised learning with multiple ground truths. In many practical
-problems we may observe more than one label for the same set of features, which violates
-the implicit assumptions of many learning algorithms. In this work we explicitly consider
-all observed labels of a particular example to be useful for training, that is we use
-the multiset of ground truths in training.
-In particular we focus on the structured prediction case,
-where the output of the classifier is from a large set $\mathcal{Y}$ with internal structure.
-An example of this is when $y\in\mathcal{Y}$ is a sequence of binary values.
-Given an example $x_i$ there may be multiple label sequences $y_{ij}$, where $j=1,...,J$.
+We consider the problem of given an input query $\x$ -- a user, a location, or some items of interest -- 
+recommend one or more sequences $\y$ according to a learned score function $f(\x,\y)$. 
+For this work we assume the output is a sequence of $l$ points, or $\y=y_{1:l}$. 
+Having this assumption does not limit the generality of the approach, 
+as inferring $\y$ of other structure can be achieved by using the corresponding inference and loss-augmented inference algorithms~\cite{joachims2009predicting}.  %LX - this sentence can be cut or merged above
+There are two notable differences between the problem of interest -- recommending sequences, and what is being solved 
+in structured prediction and recommender systems. 
+
+In structured recommendation, the goal is to learn from 
+$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$, or a set of output sequences for each input $\x\pb{i}$. 
+This setting generalises from structured prediction and recommendation problems in the following ways. 
+In a typical structured prediction setting, the goal is to learn from a collection of $n$
+input vector and output sequence tuples $(\x\pb{i}, \y\pb{i})$, $i=1:n$. Here, 
+for each distinct input $\x\pb{i}$ there is usually one unique output sequence $\y\pb{i}$. 
+In a typical recommender systems, however, the typical setting is to learn from 
+tuples $(\x\pb{i}, \{ y\pb{ij} \}_{j=1:n^i})$, $i=1:n$. That is to say, for each input $\x\pb{i}$ (\eg users)
+have not one, but a set of correct output values $\{ y\pb{ij} \}_{j=1:n^i}$ (\eg movies). 
+
+Such a setting brings unique challenges for both inference and learning. 
+For recommender systems, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$, whereas for structured prediction problems $\argmax_\y f(\x,\y)$ is harder since it is impossible to efficiently enumerate $\y$. For model learning, structured prediction approaches do not have a standard way to take into account multiple output sequences $\{ \y\pb{ij} \}_{j=1:n^i}$ for each input $\x\pb{i}$ yet. 
+
+In the rest of this section, we will first review the background of structured prediction problems (Sec~\ref{ssec:ssvm}), then present a model for structured recommendation (Sec~\ref{ssec:sr}), followed by algorithms for its learning (Sec~\ref{ssec:SRtrain}) and inference (Sec~\ref{ssec:SRinf}).
+
+% In many practical
+% problems we may observe more than one label for the same set of features, which violates
+% the implicit assumptions of many learning algorithms. In this work we explicitly consider
+% all observed labels of a particular example to be useful for training, that is we use
+% the multiset of ground truths in training.
+% In particular we focus on the structured prediction case,
+% where the output of the classifier is from a large set $\mathcal{Y}$ with internal structure.
+% An example of this is when $y\in\mathcal{Y}$ is a sequence of binary values.
+% Given an example $x_i$ there may be multiple label sequences $y_{ij}$, where $j=1,...,J$.
 
 \eat{
 Suggested order:
@@ -33,11 +56,11 @@ Then focus on trajectory
 }
 
 \subsection{Structured SVM}
-\label{sec:ssvm}
+\label{ssec:ssvm}
 
-In structured prediction, the output of classifier given feature vector $\mathbf{x}$ is
+In structured prediction, the output of classifier given feature vector $\x$ is
 \begin{equation*}
-\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~ f(\mathbf{x}, \mathbf{y}),
+\y^* = \argmax_{\y \in \mathcal{Y}}~ f(\x, \y),
 \end{equation*}
 %where $\mathcal{Y}_\mathbf{x}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ and satisfying query $\mathbf{x}$,
 where $f(\mathbf{x}, \mathbf{y})$ is a function that scores the compatibility between features $\mathbf{x}$ and a specific label $\mathbf{y}$,
@@ -98,7 +121,7 @@ which helps shrink the feasible region of the problem.
 
 
 \subsection{SSVM for recommendation}
-\label{sec:ssvm-ms}
+\label{ssec:sr}
 
 \TODO{talk about ranking objectives}
 
@@ -120,7 +143,7 @@ where $N = \sum_i n_i$ and $\bar{\mathbf{y}} \in \mathcal{Y} \setminus \{\mathbf
 
 
 \subsection{Training SR}
-\label{sec:train-ssvm-ms}
+\label{sec:SRtrain}
 % list Viterbi for multiple ground truths
 
 \TODO{talk about training and what cutting plane does}
@@ -140,7 +163,9 @@ i.e., in $\{\mathbf{y}^{(ij)}\}_{j=1}^{n_i}$.
 In addition to train multiset SSVM, this technique can be further used to deal with other constraints such as sub-tour elimination 
 as described in Section~\ref{sec:subtour}.
 
+\TODO{talk about multiple truths and what it means in prediction}
+
 \subsection{Inference for structured recommendation}
-\label{sec:train-ssvm-ms}
+\label{sec:SRinf}
 
 \TODO{recommending lists: talk about listViterbi for inference}
