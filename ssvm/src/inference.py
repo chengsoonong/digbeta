@@ -4,7 +4,8 @@ import heapq as hq
 import itertools
 import pulp
 
-USE_GUROBI = True
+USE_GUROBI = False
+N_JOBS = 6
 
 
 class HeapTerm:  # an item in heapq (min-heap)
@@ -174,8 +175,16 @@ def do_inference_viterbi(ps, L, M, unary_params, pw_params, unary_features, pw_f
     return np.asarray(y_hat)
 
 
+def do_inference_ILP_topk(ps, L, M, unary_params, pw_params, unary_features, pw_features, top=10):
+    results = []
+    for k in range(top):
+        predicted = results if len(results) > 0 else None
+        y_hat = do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_features, predicted_list=predicted)
+        results.append(y_hat)
+    return results
+    
 
-def do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_features, y_true=None, y_true_list=None):
+def do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_features, y_true=None, y_true_list=None, predicted_list=None):
     """
     Inference using integer linear programming (ILP), could be:
     - Train/prediction inference for single-label SSVM (NOTE: NOT Hamming loss)
@@ -188,6 +197,9 @@ def do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_featu
     if y_true is not None:
         assert(y_true_list is not None and type(y_true_list) == list)
         assert(len(y_true_list) == 1)
+        assert(predicted_list is None)
+    if predicted_list is not None:
+        assert(y_true is None and y_true_list is None)
 
     p0 = str(ps)
     pois = [str(p) for p in range(M)] # create a string list for each POI
@@ -233,6 +245,13 @@ def do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_featu
         for pj in [y for y in pois if y != p0]:
             pb += dummy_vars[pi] - dummy_vars[pj] + 1 <= (M - 1) * (1 - visit_vars[pi][pj]), \
                   'SubTourElimination_' + pi + '_' + pj
+
+    # additional constraints/cuts to filtering out specified sequences
+    if predicted_list is not None:
+        for j in range(len(predicted_list)):
+            y = predicted_list[j]
+            pb += pulp.lpSum([visit_vars[str(y[k])][str(y[k+1])] for k in range(len(y)-1)]) <= (len(y)-2), 'exclude_%dth'%j
+    
     #pb.writeLP("traj_tmp.lp")
     
     # solve problem: solver should be available in PATH
