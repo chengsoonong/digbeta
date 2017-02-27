@@ -50,7 +50,7 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
                                 np.ndarray[dtype=np.float64_t, ndim=3] pw_params, 
                                 np.ndarray[dtype=np.float64_t, ndim=2] unary_features, 
                                 np.ndarray[dtype=np.float64_t, ndim=3] pw_features, 
-                                y_true=None, y_true_list=None, top=5):
+                                y_true=None, y_true_list=None, int top=10, path4train=False):
     """ 
     Inference using the list Viterbi algorithm, could be:
     - Train/prediction inference for single-label SSVM
@@ -129,23 +129,25 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
         (k_best, k_partition_index, k_exclude_set) = hitem.task
         k += 1; y_last = k_best
         
-        # allow trajectory with sub-tours for training
-        if y_true is None: 
+        # allow sub-tours for training
+        if path4train == False:
+            if y_true is None: 
+                if len(set(k_best)) == L:
+                    #print(-k_priority)
+                    results.append(k_best); top -= 1
+                    if top == 0: return results
+            else: # return k_best if it is NOT one of the ground truth labels
+                if not np.any([np.all(np.asarray(k_best) == np.asarray(yj)) for yj in y_true_list]): return k_best
+        
+        # disallow sub-tours for training
+        else:
             if len(set(k_best)) == L:
-                #print(-k_priority)
-                results.append(k_best); top -= 1
-                if top == 0: return results
-        else: # return k_best if it is NOT one of the ground truth labels
-            if not np.any([np.all(np.asarray(k_best) == np.asarray(yj)) for yj in y_true_list]): return k_best
-
-        # Do NOT allow trajectory with sub-tours for training
-        #if len(set(k_best)) == L:
-        #    if y_true is None: 
-        #        #print(-k_priority); 
-        #        results.append(k_best); top -= 1
-        #        if top == 0: return results
-        #    else: # return k_best if it is NOT one of the ground truth labels
-        #        if not np.any([np.all(np.asarray(k_best) == np.asarray(yj)) for yj in y_true_list]): return k_best
+                if y_true is None: 
+                    #print(-k_priority); 
+                    results.append(k_best); top -= 1
+                    if top == 0: return results
+                else: # return k_best if it is NOT one of the ground truth labels
+                    if not np.any([np.all(np.asarray(k_best) == np.asarray(yj)) for yj in y_true_list]): return k_best
 
         # identify the (k+1)-th best path/walk given the 1st, 2nd, ..., k-th best: adapted from the IJCAI01 paper
         partition_index_start = 1
