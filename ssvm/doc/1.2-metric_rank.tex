@@ -73,7 +73,7 @@ where POIs not in $\mathbf{y}$ will have a rank of $0$ in $r$ and similarly in $
 Then we have
 \begin{align*}
 C &= \frac{1}{2} \sum_{i,j} \left(\llb r_i < r_j \rrb  \llb \hat{r}_i < \hat{r}_j \rrb +
-     \llb r_i > r_j \rrb  \llb \hat{r}_i > \hat{r}_j \rrb \right), \\
+     \llb r_i > r_j \rrb  \llb \hat{r}_i > \hat{r}_j \rrb \right), ~i,j = 1, \dots, | \mathcal{P} | \\
 D &= \frac{1}{2} \sum_{i,j} \left(\llb r_i < r_j \rrb  \llb \hat{r}_i > \hat{r}_j \rrb +
      \llb r_i > r_j \rrb  \llb \hat{r}_i < \hat{r}_j \rrb \right), \\
 T_{\mathbf{y}} &= \frac{1}{2} \sum_{i \ne j} \llb r_i = r_j \rrb 
@@ -93,6 +93,29 @@ Kendall's $\tau$ is
 \tau_b = \frac{C - D}{\sqrt{(C + D + T) (C + D + U)}},
 \end{equation*}
 where $T = T_{\mathbf{y}} - T_{\mathbf{y},\hat{\mathbf{y}}}$ and $U = T_{\hat{\mathbf{y}}} - T_{\mathbf{y},\hat{\mathbf{y}}}$.
+As $T_{\y} = T_{\hat\y}$, the denominator of $\tau_b$ is 
+\begin{align*}
+&\sqrt{(C + D + T)(C + D + U)} \\
+&= \sqrt{(C + D + T_{\y} - T_{\y,\hat\y})(C + D + T_{\hat\y} - T_{\y,\hat\y})} \\
+&= C + D + T_{\y} - T_{\y,\hat\y} \\
+&= \frac{1}{2} \sum_{i,j} \left( \llb r_i < r_j \rrb \llb \hat{r}_i < \hat{r}_j \rrb + \llb r_i > r_j \rrb \llb \hat{r}_i > \hat{r}_j \rrb +
+                                 \llb r_i < r_j \rrb \llb \hat{r}_i > \hat{r}_j \rrb + \llb r_i > r_j \rrb \llb \hat{r}_i < \hat{r}_j \rrb \right) +
+   T_{\y} - T_{\y,\hat\y} \\
+&= \frac{1}{2} \sum_{i,j} \left( \llb r_i < r_j \rrb + \llb r_i > r_j \rrb \right) 
+                          \left( \llb \hat{r}_i < \hat{r}_j \rrb + \llb \hat{r}_i > \hat{r}_j \rrb \right) + T_{\y} - T_{\y,\hat\y} \\
+&= \frac{1}{2} \sum_{i \ne j} \left( 1 - \llb r_i = r_j \rrb \right) \left( 1 - \llb \hat{r}_i = \hat{r}_j \rrb \right) + T_{\y} - T_{\y,\hat\y} \\
+&= \frac{1}{2} \sum_{i \ne j} \left( 1 - \llb r_i = r_j \rrb - \llb \hat{r}_i = \hat{r}_j \rrb + 
+                                         \llb r_i = r_j \rrb \llb \hat{r}_i = \hat{r}_j \rrb \right) + 
+   \frac{1}{2} \sum_{i \ne j} \llb r_i = r_j \rrb - \frac{1}{2} \sum_{i \ne j} \llb r_i = r_j \rrb \llb \hat{r}_i = \hat{r}_j \rrb \\
+&= \frac{1}{2} \sum_{i \ne j} 1 - \frac{1}{2} \sum_{i \ne j} \llb \hat{r}_i = \hat{r}_j \rrb \\
+&= \frac{1}{2} |\mathcal{P}|(|\mathcal{P}| - 1) - \frac{1}{2} (|\mathcal{P}| - K) (|\mathcal{P}| - K - 1) \\
+&= K|\mathcal{P}| - \frac{K(K + 1)}{2}
+\end{align*}
+So
+\begin{equation*}
+\tau_b = \frac{C - D}{K|\mathcal{P}| - K(K + 1)/2}
+\end{equation*}
+
 F$_1$ score on points is
 \begin{equation*}
 F_1 = \frac{1}{K} \sum_i \llb r_i > 0 \rrb  \llb \hat{r}_i > 0 \rrb,
