@@ -13,7 +13,7 @@ we wish to recommend one or more \emph{structured outputs} $\y \in \mathcal{Y}$ 
 To learn a suitable $f$,
 we are provided as input a training set
 %$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$,
-$\{ ( \x\pb{i}, \{ \y\pb{ij} \}_{j=1}^{n^i} ) \}_{i=1}^{n}$,
+$\{ ( \x\pb{i}, \{ \y\pb{ij} \}_{j=1}^{n_i} ) \}_{i=1}^{n}$,
 comprising a collection of inputs $\x\pb{i}$ with an associated \emph{set} of output structures $\{ \y\pb{ij} \}$.
 As an example, this might represent a collection of users in a city, along with a set of trajectories (sequences of places) that the user has visited.
 
@@ -193,14 +193,16 @@ explicitly aggregates all the ground truth labels for each input when generating
 i.e., the loss-augmented inference becomes
 \begin{equation}
 \label{eq:loss_aug_inf}
+\resizebox{0.9\linewidth}{!}{$
 \max_{\bar{\y}^{(i)} \in \ \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}}
-     \left( \w^\top \Psi(\x^{(i)}, \bar\y^{(i)}) + \Delta(\y^{(ij)}, \bar{\y}^{(i)}) \right).
+     \left( \Delta(\y^{(ij)}, \bar{\y}^{(i)}) + \w^\top \Psi(\x^{(i)}, \bar\y^{(i)}) \right).
+$}
 \end{equation}
 In this way, we do not have apparently contradictory constraints where
 two ground truth sequences are each required to have larger score than the other.
 Instead of using $N$ slack variables as that in (\ref{eq:nslack_ml}),
 we can use one slack variable to represent the sum of the $N$ hinge losses in (\ref{eq:nslack_ml}),
-which leads to this one-slack formulation,
+which leads to this $1$-slack formulation,
 \begin{equation}
 \label{eq:1slack_ml}
 \resizebox{0.9\linewidth}{!}{$
@@ -211,8 +213,8 @@ which leads to this one-slack formulation,
 \end{aligned}
 $}
 \end{equation}
-This one-slack formulation can be trained more efficiently than the $N$-slack formulation (\ref{eq:nslack_ml}) and we use it here.
-Equation~\ref{eq:nslack_ml} is similar to a ranking objective, as the constraints enforce
+This $1$-slack formulation can be trained more efficiently than the $N$-slack formulation (\ref{eq:nslack_ml}) and we use it here.
+The objective in (\ref{eq:nslack_ml}) is similar to a ranking objective, as the constraints enforce
 that the positively labeled sequences (the known items that the user likes) are scored
 higher than all other unseen sequences.
 Such objectives have proven useful in classic unstructured recommendation~\cite{bpr09}.
@@ -230,12 +232,15 @@ Such objectives have proven useful in classic unstructured recommendation~\cite{
 
 For inference in SR model, both ILP and list Viterbi algorithms can be used, and they will generate the
 same result if terminated and converged within a given time budget.
-List Viterbi algorithms are polynomial time given the list depth $k$,
-but in reality $k$ is unknown a priori and can be very large for long sequences
+List Viterbi algorithms are polynomial time given the list depth $k$~\cite{nilsson2001sequentially},
+but in reality $k$ is unknown a priori and can be very large for long sequences.
 We found that state-of-the-art ILP solvers converge to a solution faster if the sequence length $l$ is large.
 In the experiments, we use list Viterbi for short sequences, and ILP for long ($l>10$) sequences.
 
 %\TODO{revise this para to describe listViterbi for lost-augmented inf, without loops, and with multiple examples.}
+%\TODO{DW: describe top-k prediction using ILP and list Viterbi}
+
+\eat{
 Similar to the loss-augmented inference described in Section~\ref{ssec:ssvm},
 we can rewrite the constraints in problem (\ref{eq:nslack_ml}) into
 \begin{equation*}
@@ -254,5 +259,5 @@ i.e., in $\{\y^{(ij)}\}_{j=1}^{n_i}$.
 In addition to train multiset SSVM, this technique can be further used to deal with other constraints such as sub-tour elimination
 %as described in Section~\ref{ssec:subtour}.
 as described in Section~\ref{ssec:subtour}.
-
+}
 %\TODO{talk about multiple truths and what it means in prediction}

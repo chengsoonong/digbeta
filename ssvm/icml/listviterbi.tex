@@ -41,7 +41,7 @@ the transition from $y_j$ to $y_k$ is in the resulting trajectory,
 and
 binary decision variables
 $z_j$ that are true iff $y_j$ is the last POI in trajectory.
-Suppose that $l$ is the number of candidate POIs.
+%Suppose that $l$ is the number of candidate POIs.
 For brevity, we index the POIs such that $y_1 = 1$.
 Firstly, the desired trajectory should start from $y_1$ (Constraint~\ref{eq:cons2}).
 In addition, any POI could be visited at most once (Constraint~\ref{eq:cons3}).
@@ -88,7 +88,7 @@ while Hamming loss cannot be expressed as a linear function of $u_{jk}$.
 \subsubsection{Finding $k$-best sequences}
 % 2 uses of list Viterbi: 1) multiple ground truths; 2) subtour elimination
 
-The algorithm that seem closest to loss-augmented inference with exclusions are several extensions
+The algorithms that seem closest to loss-augmented inference with exclusions are several extensions
 of the Viterbi algorithm that aim to find more than one high-scoring sequences.
 The \emph{parallel list Viterbi} algorithm~\cite{seshadri1994list} finds the top $k$ sequences
 by keeping $k$ backtrack pointers for each possible state in each position of the sequence.
@@ -113,7 +113,7 @@ The serial list Viterbi allows exclusion of sequences with repeats, by checking 
 Due to space limitations, the list Viterbi algorithm is fully detailed in the supplement.
 
 For the structured recommendation problem, the serial list Viterbi algorithm can be used for inference
-by recursively getting the next best sequence, until one or more paths are found.
+by sequentially getting the next best sequence, until one or more paths are found.
 This algorithm can also be used for loss-augmented inference with Hamming loss,
 since it only require the loss function be decomposable with respect to the label elements.
 %This list Viterbi algorithm performs a backward search for trajectories that merges into the existing candidates at any given point.

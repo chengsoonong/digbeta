@@ -15,9 +15,13 @@ and then show how it may be viewed as a structured prediction problem.
 
 Travel recommendation problems involve a set of points-of-interest (POIs) $\mathcal{P}$ in a city.
 The \emph{trajectory recommendation} problem is: given a \emph{trajectory query} $\mathbf{x} = (s, l)$,
-comprising a start POI $s \in \mathcal{P}$ and trip length\footnote{Instead of specifying the number of desired POIs, we can constrain the trajectory with a total time budget $T$. In this case, the number of POIs $l$ can be treated as a \emph{hidden} variable, with additional constraint $\sum_{k=1}^l t_k \le T$ where $t_k$ is the time spent at POI $y_k$.}
+comprising a start POI $s \in \mathcal{P}$ and trip length
+\footnote{Instead of specifying the number of desired POIs, 
+we can constrain the trajectory with a total time budget $T$. 
+In this case, the number of POIs $l$ can be treated as a \emph{hidden} variable, 
+with additional constraint $\sum_{k=1}^l t_k \le T$ where $t_k$ is the time spent at POI $y_k$.}
 $l > 1$ (including the start location $s$),
-we want to recommend a sequence of POIs (or \emph{trajectory}) $\mathbf{y}^*$ that maximises some notion of utility.
+we want to recommend one or more sequences of POIs (or \emph{trajectory}) $\mathbf{y}^*$ that maximises some notion of utility.
 To learn a suitable $f$ for trajectory recommendation,
 we are provided as input a training set
 %$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$,
@@ -42,16 +46,16 @@ Existing approaches treat the problem as one of determining a score for the intr
 based on implicit preference data in the training set.
 Perhaps the simplest such approach is based on learning a model to predict whether a particular POI occurs, or not, in the trajectory corresponding to a query.
 Formally, from the given set of trajectories
-we derive a training set $\{ ( \x^{(i)}, p^{(i)}, y^{(i)} ) \}_{i = 1}^n$,
-where each POI $p^{(i)}$ is augmented with a label $y^{(i)} \in \{ \pm 1 \}$ denoting whether or not it appeared in a trajectory corresponding to the query $\x^{(i)}$. 
+we derive a training set $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
+where each POI $p$ is augmented with a label $y^{(i)} \in \{ \pm 1 \}$ denoting whether or not it appeared in a trajectory corresponding to the query $\x^{(i)}$. 
 Formally, the objective used for training is
-$$ \min_{\w} \frac{1}{2} \w^T \w + C \cdot \sum_{i = 1}^n \ell\left( y^{(i)} \cdot ( \w^T \Phi( \x^{(i)}, p^{(i)} ) ) \right) $$
+$$ \min_{\w} \frac{1}{2} \w^T \w + C \cdot \sum_{i = 1}^n \sum_{p \in \mathcal{P}} \ell\left( y^{(i)} \cdot ( \w^T \Phi( \x^{(i)}, p ) ) \right) $$
 where
 $\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
 $C > 0$ is some regularisation strength,
 and $\ell( v )$ is any suitable margin loss, such as the logistic loss $\ell( v ) = \log( 1 + e^{-v} )$.
-One can use the resulting model to produce a score for any POI $p$ given a new query $\x$;
-one can pick the top-$K$ scoring POIs to produce a trajectory.
+One can use the resulting model to produce a score for any POI $p$ given a new query $\x$,
+and then pick the top-$l$ scoring POIs to produce a trajectory.
 
 As another example, \citet{cikm16paper} proposed the use of the RankSVM model,
 which %is fed as input %pairs $(p_i, p_j)$ of POIs such that $p_i$ appears ahead of $p_j$ in some trajectory.
@@ -60,7 +64,8 @@ Formally, the objective used for training is
 %$$ \min_{\w} \frac{1}{2} \w^T \w + C \cdot \sum_{\mathbf{x} \in \mathcal{Q}} \sum_{p_i \succeq_{\mathbf{x}} p_j} \max\left( 0, 1 - \w^T ( \Phi( \x, p_i ), \Phi( \x, p_j ) ) \right)^2 $$
 
 \resizebox{0.99\linewidth}{!}{
-$\displaystyle \min_{\w} \frac{1}{2} \w^T \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathcal{R}( \x^{(i)} )} \ell\left( \w^T ( \Phi( \x^{(i)}, p ) - \Phi( \x, p' ) ) \right), $
+$\displaystyle \min_{\w} \frac{1}{2} \w^T \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathcal{R}( \x^{(i)} )} 
+\ell\left( \w^T ( \Phi( \x^{(i)}, p ) - \Phi( \x^{(i)}, p' ) ) \right), $
 }
 
 where $\Phi, C$ are as before,
@@ -70,13 +75,14 @@ and
 $\mathcal{R}( \x )$
 denotes all pairs of POIs $(p, p')$ such that
 POI $p$ is ranked above the POI $p'$ in the trajectories associated with $\x$ according to some notion.
-For example, this may be computed \eg by counting the number of times a POI appears in the trajectories associated with a query, and using this to determine which of two POIs is more suitable for a query.
+For example, this may be computed by counting the number of times a POI appears in the trajectories associated with a query, 
+and using this to determine which of two POIs is more suitable for a query.
 
 While such approaches can certainly learn to recommend useful trajectories,
 we observe that their modelling power is inherently limited:
 they are not capable of ensuring the \emph{global} cohesion of a trajectory,
 as they inherently rely on either pointwise or pairwise preferences for POIs.
-For example, as argued in the Introduction,
+For example, as argued in Section~\ref{sec:intro},
 we might find three restaurants to be the highest scoring POIs in a city;
 however, this it is unlikely that these three POIs form a trajectory that most travellers will enjoy.
 
@@ -95,12 +101,12 @@ given some $\x$, and suitable function $f(\cdot,\cdot)$, we wish to find
 \end{equation*}
 where $\mathcal{Y}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ that conform to the constraints imposed by the query $\mathbf{x}$.
 In particular,
-$\mathbf{y} = (y_1 = s,~ y_2, \dots, y_K)$ is a trajectory with $K$ POIs, which has no sub-tours i.e. $y_j \ne y_k$ if $j \ne k$.
+$\mathbf{y} = (y_1 = s,~ y_2, \dots, y_l)$ is a trajectory with $l$ POIs, which has no sub-tours i.e. $y_j \ne y_k$ if $j \ne k$.
 
 Now, our training set of historical trajectories may be written as
-$\{ ( \x\pb{i}, \{ \y\pb{ij} \}_{j=1}^{n^i} ) \}_{i=1}^{n}$,
+$\{ ( \x\pb{i}, \{ \y\pb{ij} \}_{j=1}^{n_i} ) \}_{i=1}^{n}$,
 where each $\x\pb{i}$ is a distinct query,
-while the corresponding $\{ \y\pb{ij} \}_{j=1}^{n^i}$ is the set of trajectories observed for that query.
+while the corresponding $\{ \y\pb{ij} \}_{j=1}^{n_i}$ is the set of trajectories observed for that query.
 Note that we expect most queries to have several distinct trajectories;
 minimally,
 for example,
@@ -133,9 +139,3 @@ as well as the extensions proposed to account for multiple ground truths and eli
 % \label{sec:trajrec-ssvm}
 
 % We can learn to recommend trajectories by training a multiset SSVM described in Section~\ref{sec:ssvm-ms}
-
-% multiset SSVM
-
-% multiset SSVM: training, prediction
-
-
