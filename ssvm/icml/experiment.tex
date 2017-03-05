@@ -122,31 +122,8 @@ The {\bf F$_1$ score on points}~\cite{ijcai15} computes F$_1$ on the predicted v
 without considering their relative order.
 The {\bf F$_1$ score on pairs}~\cite{cikm16paper} is proposed to mitigate this by computing F$_1$ on all ordered pairs in the predicted versus groundtruth sequence. It is 1 iff both sequences agree completely.
 The well-known rank correlation {\bf Kendall's $\tau$} (version $b$)~\cite{agresti2010analysis} 
-computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all ($\frac{1}{2}l(l-1)$) pairs (taking care of ties).
-\eat{
-% evaluation metric: kendall's Tau (mention F1, pF1)
-We use three performance measures to assess the test fold performance of each algorithm:
-point-F$_1$ score~\cite{ijcai15},
-pairs-F$_1$ score~\cite{cikm16paper},
-and
-Kendall's $\tau$ (version $b$)~\cite{kendall1945,agresti2010analysis}.
-\TODO{explain point and pairs}
-
-Kendall's $\tau$
-essentially measures the fraction of pairs of POIs that are correctly ordered in the prediction and ground truth sequences,
-with adjustment for ties.
-In particular,
-define the rank of POIs $\mathcal{P}$ in a trajectory $\mathbf{y} = (y_1,\dots,y_K)$ as
-the position of the POI within the trajectory,
-\begin{align*}
-r_\mathbf{y} &= (r_1,\dots,r_j,\dots,r_{|\mathcal{P}|}), \\
-r_j &= \sum_{k=1}^K (| \mathcal{P} | - k + 1)  \llb p_j = y_k \rrb, ~ j = 1, \dots, | \mathcal{P} |.
-\end{align*}
-The Kendall's $\tau$ score is then computed on $r_\mathbf{y}$ versus $r_\mathbf{\hat{y}}$.
-Unlike the F$_1$ scores on points and pairs,
-which only care about the set of correctly recommended POIs or POI pairs,
-this metric taking both factors into account.
-}
+computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all possible pairs after taking care of ties.
+%$\frac{1}{2}l(l-1)$) pairs  %DW: this is not correct
 
 Structured recommendation problems aims to perform ranking on a very large $m^l$ labelset.
 We adopt the practice of {\em best of top 10}~\cite{russakovsky2015imagenet} for reporting results. Or, predict top 10 trajectories and then report the best match of any in the top 10 to any trajectory in the ground truth set.
