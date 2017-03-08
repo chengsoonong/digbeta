@@ -1,0 +1,58 @@
+\section{Music playlist recommendation}
+\label{sec:playlist}
+
+There is a rich collection of literature on music recommendation~\cite{recsysbook2015}, 
+conference and workshop dedicated to music information retrieval including
+\begin{itemize}
+\item International society for music information retrieval conference (ISMIR, in New York last year)
+\item ACM workshop on Audio and music computing multimedia (in ACM international conference on multimedia)
+\end{itemize}
+
+We are interested in music playlist recommendation, 
+i.e., given some seed (\eg, songs, artists, genre etc.), 
+we recommend one or more (potentially personalised) playlists (\ie, sequences of songs).
+
+% difference between playlist recommendation and music/movie rating prediction
+
+\subsection{Playlist recommendation approaches}
+
+Existing approaches to generate playlist summarised in~\cite{recsysbook2015} including:
+
+\paragraph{Constraint programming} which encodes user's query using a set of constraints, 
+the generated playlist should satisfy all constraints.
+\begin{description}
+\item Pros: data that can be used to define constraints such as music metadata is abundant.
+\item Cons: feasible solutions of constraint programming are not necessarily optimal, in addition, 
+            generating constraints can be challenging for users.
+\end{description}
+
+\paragraph{Ranking} which ranks available songs by similarity (w.r.t. popularity, acoustic content features, semantic annotations etc.) 
+to the seed song(s) using specified song-level similarity metric.
+Variants of this approach including construct a graph where nodes are songs and edges are relations of songs,
+then employ path-finding algorithms such as shortest path, network flow and TSP.
+\begin{description}
+\item Pros: 
+\item Cons: 
+\end{description}
+
+\paragraph{Classification} which trains a classifier using features such as co-occurrence of songs/artists, tags, 
+ordered pairs of songs, bigrams and acoustic features. The output of classifier can then be used to induce a ranking over songs in a library.
+\begin{description}
+\item Pros: 
+\item Cons: have to synthesize negative examples from \eg, random samples.
+\end{description}
+
+
+\paragraph{Generative models} which treated playlists as sequences sampled from a probability distribution. 
+Model parameters are learning from training examples (\ie, a set of observed playlists).
+Example of this approach including Markov chain mixtures, latent topic models, and co-embedding of songs and users etc.
+\begin{description}
+\item Pros: 
+\item Cons: 
+\end{description}
+
+
+\subsection{Playlist evaluation}
+
+
+\subsection{Playlist dataset}
