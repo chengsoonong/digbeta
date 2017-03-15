@@ -1,0 +1,98 @@
+\section{List Viterbi algorithm}
+\label{sec:lva}
+
+There are many variants of generalising the Viterbi algorithm (VA) to find the 
+$1$st, $2$nd, $\dots$, $k$-th best sequences~\cite{seshadri1994list,nilsson2001sequentially},
+here we call them the list Viterbi algorithm (LVA).
+
+We compare three typical variants of the LVA, mainly their time/space complexity.
+Firstly, we define notations that will be used in this section, we denote:
+\begin{itemize}
+\item $n$: the (maximum) number of states of (all) random variables in the HMM.
+\item $l$: the length of sequence, \ie, the number of random variables in the chain.
+\item $k$: the total number of best sequences that are going to be identified.
+\end{itemize}
+We will also use $i$ to index the possible states of random variables, \ie, $i \in \{1, \dots, n\}$,
+and use $t$ to index the locations/(time instants) in the chain/sequence, \ie, $t \in \{1, \dots, l\}$.
+
+\subsection{Parallel LVA}
+\label{sec:plva}
+
+The parallel LVA finds the $k$ best sequences simultaneously by computing the $k$ best sequences in each state at each time instant.
+The basic idea of parallel LVA is storing all the $k$ best scores instead of the $1$st best score in VA at each time instant,
+which means we need to find the $k$ best scores among the $n\cdot k$ accumulated scores at each state and time instant 
+(Eq. (6) in~\cite{seshadri1994list}).
+
+The time complexity for this step (Eq. (6) in~\cite{seshadri1994list})
+is $O \left( nk\cdot \log(nk) \right)$ if the $k$ best scores are found by sorting the $n\cdot k$ accumulated scores,
+or $O \left( k \cdot nk \right)$ if the $k$ best scores are found by order statistics algorithms~\cite{clrs2009}, which is more expensive,
+so for this analysis, we assume this step is implemented by sorting.
+As we are doing this step at each state and time instant, the total time complexity is $O \left( n \cdot l \cdot nk \cdot \log(nk) \right)$.
+The space complexity is $O \left( k \cdot nl + n^2 \right)$.
+
+
+\subsection{Serial LVA}
+\label{sec:slva}
+
+In practice, we usually do not know the value of $k$ beforehand, this is where the serial LVA comes into play.
+The serial LVA finds the $k$ best sequences one at a time, which is more flexible than the parallel LVA described in Section~\ref{sec:plva}.
+This algorithm makes use of the observation that the globally $2$nd best sequence diverges from the globally $1$st best sequence 
+at some time instant, and it merges with the globally $1$ best sequence at a later time instant and never diverges again, 
+since any subsequent divergence will result in a higher cost (lower priority) sequence.
+Similarly, the $3$rd globally best sequence can be identified from the locally $2$nd best sequences w.r.t. the globally $1$ best sequence 
+(except the globally $2$ best sequence) or the locally $2$nd best sequences w.r.t. the globally $2$nd best sequence.
+This reasoning can be generalised to find the $k$-th best sequence given the $1$st, $2$nd, \dots, $(k-1)$-th best sequences.
+
+The time complexity of the serial LVA is composed of three parts:
+\begin{itemize}
+\item using the Viterbi algorithm to find the globally best sequence: $O(n^2 l)$ as the $n$-by-$l$ table stores scores and 
+      computing each cell is upper bounded by $O(n)$.
+\item computing locally $2$nd best sequences after identifying the globally $j$-th $(j=1,\dots,k-1)$ best sequence, 
+      which requires $n$ additions and comparisons (Eq. (9) in~\cite{seshadri1994list}) at each time instant, 
+      which is upper bounded by $O(nl)$. Thus, for all $k$ best sequences, the time complexity is $O (k \cdot nl)$.
+\item additional cost related to insert each candidate sequence and its score into data structure (\eg, heap), 
+      and extract the best scored sequence among all candidates, upper bounded by $O \left( kl \log (kl) \right)$ 
+      (the total number of sequences in heap is $kl$ at most, each insertion requires $\log (N)$ operations, 
+       where $N$ is the number of elements in heap, 
+       this bound is not tight\footnote{A tighter bound is 
+       $O \left( \sum_{j=1}^k \log(j\cdot l) \right) = O( \log(l) + \log(k\,!) )$, 
+       which can be further simplified by using Stirling's formula~\cite{stirling}.\label{foot:bound}}).
+\end{itemize}
+Adding up these terms, the time complexity of serial LVA is $O \left( n^2 l + k \cdot nl + kl \log (kl) \right)$.
+The space complexity is $\Omega(nl + kl)$.
+
+
+\subsection{Nilsson and Goldberger algorithm}
+\label{sec:nglva}
+
+Another approach to find all the $k$ best sequences in a sequential manner was proposed by Nilsson and Goldberger~\cite{nilsson2001sequentially},
+which makes use of results computed by the forward-backward algorithm~\cite{rabiner1989tutorial}.
+The space of possible sequences is first cleverly partitioned into subsets, 
+then the best sequence in each subset is computed and identified using the forward-backward results,
+the procedure is repeated until all $k$ best sequences have been found.
+
+The time complexity of this algorithm is composed of three parts:
+\begin{itemize}
+\item forward-backward procedure: $O(n^2 l)$.
+\item partitioning and computing the scores of the best sequence in each subset/partition: $O(k \cdot nl)$.
+\item insertion (and extraction) sequences into (and from) data structure (\eg, heap etc): $O(kl \log (kl))$\footref{foot:bound}.
+\end{itemize}
+Adding up and the time complexity of this algorithm: $O \left( n^2 l + k \cdot nl + kl \log (kl) \right)$.
+
+The space complexity of this algorithm is $O (kl \cdot (1 + l + 1 + n) ) = O(kl^2 + kln)$.
+
+We summarise the time/space complexity of the three variants in Table~\ref{tab:variants}.
+
+\begin{table}[ht]
+\caption{Time and space complexities of three variants of the list Viterbi algorithm}
+\label{tab:variants}
+\centering
+%\setlength{\tabcolsep}{28pt} % tweak the space between columns
+\begin{tabular}{|l|l|l|} \hline
+\textbf{Algorithm variants}  & \textbf{Time complexity} & \textbf{Space complexity} \\ \hline
+Parallel LVA~\cite{seshadri1994list} & $O \left( n \cdot l \cdot nk \cdot \log(nk) \right)$ & $O \left( k \cdot nl + n^2 \right)$ \\ \hline
+Serial LVA~\cite{seshadri1994list}   & $O \left( n^2 l + k \cdot nl + kl \log (kl) \right)$ & $\Omega(nl + kl)$ \\ \hline
+Nilsson and Goldberger~\cite{nilsson2001sequentially} 
+& $O \left( n^2 l + k \cdot nl + kl \log (kl) \right)$ & $O (kl \cdot (1 + l + 1 + n) ) = O(kl^2 + kln)$ \\ \hline
+\end{tabular}
+\end{table}

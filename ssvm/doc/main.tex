@@ -3,6 +3,7 @@
 %\documentclass[twocolumn,a4wide,9pt]{extarticle}
 \documentclass[9pt]{extarticle}
 \usepackage[a4paper,top=0.79in,left=0.79in,bottom=0.79in,right=0.79in]{geometry} % A4 paper margins in LibreOffice
+%\usepackage[a4paper,top=0.5in,left=0.6in,bottom=0.79in,right=0.79in]{geometry} % A4 paper margins in LibreOffice
 \usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{amsfonts}
@@ -16,6 +17,7 @@
 \usepackage[sc]{mathpazo}
 \linespread{1.05}         % Palladio needs more leading (space between lines)
 \usepackage[T1]{fontenc}
+\usepackage{footmisc}   % \footref, refer the same footnote at different places
 \usepackage{subcaption}  % sub-figures
 \usepackage{graphicx}
 \graphicspath{{fig/}} % Location of the graphics files
@@ -54,6 +56,7 @@
 \input{3-methods}
 \input{4-experiment}
 \input{playlist}
+\input{list_viterbi}
 
 
 

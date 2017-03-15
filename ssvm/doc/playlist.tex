@@ -21,7 +21,8 @@ Existing approaches to generate playlist summarised in~\cite{recsysbook2015} inc
 \paragraph{Constraint programming} which encodes user's query using a set of constraints, 
 the generated playlist should satisfy all constraints.
 \begin{description}
-\item Pros: data that can be used to define constraints such as music metadata is abundant.
+\item Pros: data that can be used to define constraints such as music metadata is abundant. 
+            Recommendations should conform to certain regulations and laws.
 \item Cons: feasible solutions of constraint programming are not necessarily optimal, in addition, 
             generating constraints can be challenging for users.
 \end{description}
@@ -31,28 +32,34 @@ to the seed song(s) using specified song-level similarity metric.
 Variants of this approach including construct a graph where nodes are songs and edges are relations of songs,
 then employ path-finding algorithms such as shortest path, network flow and TSP.
 \begin{description}
-\item Pros: 
-\item Cons: 
+\item Pros: make use of metadata or content features, highly efficient.
+\item Cons: similarity metric is fixed a priori.
 \end{description}
 
 \paragraph{Classification} which trains a classifier using features such as co-occurrence of songs/artists, tags, 
 ordered pairs of songs, bigrams and acoustic features. The output of classifier can then be used to induce a ranking over songs in a library.
 \begin{description}
-\item Pros: 
+\item Pros: similarity metrics are learned from data.
 \item Cons: have to synthesize negative examples from \eg, random samples.
 \end{description}
 
 
 \paragraph{Generative models} which treated playlists as sequences sampled from a probability distribution. 
 Model parameters are learning from training examples (\ie, a set of observed playlists).
-Example of this approach including Markov chain mixtures, latent topic models, and co-embedding of songs and users etc.
-\begin{description}
-\item Pros: 
-\item Cons: 
-\end{description}
+Example of this approach including Markov chain~\cite{chen2012playlist}, latent topic models, Bayesian hierarchical model~\cite{bengroove2017} 
+and co-embedding of songs and users etc.
+%\begin{description}
+%\item Pros: 
+%\item Cons: 
+%\end{description}
 
 
 \subsection{Playlist evaluation}
-
+Evaluation approaches including user study, some notion of cohesion overs songs in playlist (\eg, the fraction of songs by the same artist), 
+ranking based metrics and generative likelihood~\cite{mcfee2011natural}.
 
 \subsection{Playlist dataset}
+\begin{itemize}
+\item AotM-2011 dataset~\cite{mcfee2012hypergraph}
+\item 30Music dataset~\cite{turrin201530music}
+\end{itemize}
