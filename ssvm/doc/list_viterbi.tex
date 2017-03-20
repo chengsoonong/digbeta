@@ -28,6 +28,8 @@ is $O \left( nk\cdot \log(nk) \right)$ if the $k$ best scores are found by sorti
 or $O \left( k \cdot nk \right)$ if the $k$ best scores are found by order statistics algorithms~\cite{clrs2009}, which is more expensive,
 so for this analysis, we assume this step is implemented by sorting.
 As we are doing this step at each state and time instant, the total time complexity is $O \left( n \cdot l \cdot nk \cdot \log(nk) \right)$.
+Intuitively, we are computing elements in a cube $n \times l \times k$, 
+the third dimension needs a sorting to get the $k$ best elements in $nk$ elements.
 The space complexity is $O \left( k \cdot nl + n^2 \right)$.
 
 
@@ -48,25 +50,37 @@ The time complexity of the serial LVA is composed of three parts:
 \item using the Viterbi algorithm to find the globally best sequence: $O(n^2 l)$ as the $n$-by-$l$ table stores scores and 
       computing each cell is upper bounded by $O(n)$.
 \item computing locally $2$nd best sequences after identifying the globally $j$-th $(j=1,\dots,k-1)$ best sequence, 
-      which requires $n$ additions and comparisons (Eq. (9) in~\cite{seshadri1994list}) at each time instant, 
+      which requires $n$ additions and comparisons (Eq. (9) in~\cite{seshadri1994list}) at each time instant $t \in \{1, \dots, l\}$, 
       which is upper bounded by $O(nl)$. Thus, for all $k$ best sequences, the time complexity is $O (k \cdot nl)$.
-\item additional cost related to insert each candidate sequence and its score into data structure (\eg, heap), 
+\item additional cost related to insert each candidate sequence and its score into data structure (\eg, priority queue), 
       and extract the best scored sequence among all candidates, upper bounded by $O \left( kl \log (kl) \right)$ 
-      (the total number of sequences in heap is $kl$ at most, each insertion requires $\log (N)$ operations, 
-       where $N$ is the number of elements in heap, 
+      (the total number of sequences in priority queue is $kl$ at most, each insertion/extraction requires $\log (N)$ operations, 
+       where $N$ is the number of elements in priority queue, 
        this bound is not tight\footnote{A tighter bound is 
-       $O \left( \sum_{j=1}^k \log(j\cdot l) \right) = O( \log(l) + \log(k\,!) )$, 
+       $O \left( \sum_{j=1}^k \log(j\cdot l) \right) = O( k\log(l) + \log(k\,!) )$, 
        which can be further simplified by using Stirling's formula~\cite{stirling}.\label{foot:bound}}).
+      However, if we create a priority queue to store the $2$nd locally best sequence for each globally $j$-th $(j=1,\dots,k-1)$ best sequence,
+      and use an additional priority queue to store the best sequence in all the $k-1$ priority queues, 
+      we have another bound:
+      \begin{itemize}
+      \item insertion: $(k-1) \cdot \left( \log(1) + \log(2) + \cdots + \log(l) \right) = (k-1)\log(l\,!) \le kl\log(l)$
+      \item extracting best: $\log(l) + 2\log(l) + \cdot + (k-1)\log(l) = \frac{k(k-1)}{2}\log(l) \le k^2 \log(l)$
+      \item find the $j$-th $(j=2,\dots,k)$ globally best: $\log(2) + \log(3) + \cdots + \log(k) = \log(k\,!) \le k\log(k)$
+      \end{itemize}
+      which results in $O \left( kl\log(l) + k^2\log(l) + k\log(k) \right) = O ( k(k+l)\log(l) + k\log(k) ) $
+      time complexity for insertions/extractions operations. If $k \gg l$, $O(kl \log(kl))$ is a better bound.
 \end{itemize}
-Adding up these terms, the time complexity of serial LVA is $O \left( n^2 l + k \cdot nl + kl \log (kl) \right)$.
-The space complexity is $\Omega(nl + kl)$.
+Adding up these terms, the time complexity of serial LVA is $O \left( n^2 l + nlk + kl\log(kl) \right)$.
+The space complexity is $\Omega(nl + kl + nlk)$ (Eq. (9), path matrix and the "merge" count array in~\cite{seshadri1994list}).
 
 
 \subsection{Nilsson and Goldberger algorithm}
 \label{sec:nglva}
 
 Another approach to find all the $k$ best sequences in a sequential manner was proposed by Nilsson and Goldberger~\cite{nilsson2001sequentially},
-which makes use of results computed by the forward-backward algorithm~\cite{rabiner1989tutorial}.
+instead of focusing on when the $2$nd locally best sequence \textit{merges} with globally best sequence (Section~\ref{sec:slva}),
+this algorithm focuses on when the $2$nd locally best sequence \textit{diverges}.
+The algorithm makes use of results computed by the forward-backward algorithm~\cite{rabiner1989tutorial}.
 The space of possible sequences is first cleverly partitioned into subsets, 
 then the best sequence in each subset is computed and identified using the forward-backward results,
 the procedure is repeated until all $k$ best sequences have been found.
@@ -75,12 +89,14 @@ The time complexity of this algorithm is composed of three parts:
 \begin{itemize}
 \item forward-backward procedure: $O(n^2 l)$.
 \item partitioning and computing the scores of the best sequence in each subset/partition: $O(k \cdot nl)$.
-\item insertion (and extraction) sequences into (and from) data structure (\eg, heap etc): $O(kl \log (kl))$\footref{foot:bound}.
+\item insertion (and extraction) sequences into (and from) data structure (\eg, priority queue etc): $O(kl \log (kl))$\footref{foot:bound},
+      we can also use the trick described in Section~\ref{sec:slva}, but here we care about the setting $k \gg l$.
 \end{itemize}
-Adding up and the time complexity of this algorithm: $O \left( n^2 l + k \cdot nl + kl \log (kl) \right)$.
+Adding up and the time complexity of this algorithm: $O \left( n^2 l + nlk + kl\log(kl) \right)$.
+The space complexity of this algorithm is $O (nl + kl \cdot (1 + l + 1 + n) ) = O(nl + kl^2 + nlk)$.
 
-The space complexity of this algorithm is $O (kl \cdot (1 + l + 1 + n) ) = O(kl^2 + kln)$.
 
+\subsection{Summary}
 We summarise the time/space complexity of the three variants in Table~\ref{tab:variants}.
 
 \begin{table}[ht]
@@ -90,9 +106,8 @@ We summarise the time/space complexity of the three variants in Table~\ref{tab:v
 %\setlength{\tabcolsep}{28pt} % tweak the space between columns
 \begin{tabular}{|l|l|l|} \hline
 \textbf{Algorithm variants}  & \textbf{Time complexity} & \textbf{Space complexity} \\ \hline
-Parallel LVA~\cite{seshadri1994list} & $O \left( n \cdot l \cdot nk \cdot \log(nk) \right)$ & $O \left( k \cdot nl + n^2 \right)$ \\ \hline
-Serial LVA~\cite{seshadri1994list}   & $O \left( n^2 l + k \cdot nl + kl \log (kl) \right)$ & $\Omega(nl + kl)$ \\ \hline
-Nilsson and Goldberger~\cite{nilsson2001sequentially} 
-& $O \left( n^2 l + k \cdot nl + kl \log (kl) \right)$ & $O (kl \cdot (1 + l + 1 + n) ) = O(kl^2 + kln)$ \\ \hline
+Parallel LVA~\cite{seshadri1994list} & $O \left( n^2 lk \log(nk) \right)$ & $O \left( n^2 + nlk \right)$ \\ \hline
+Serial LVA~\cite{seshadri1994list}   & $O \left( n^2 l + nlk + kl\log(kl) \right)$ & $\Omega(nl + kl + nlk)$ \\ \hline
+Nilsson and Goldberger~\cite{nilsson2001sequentially} & $O \left( n^2 l + nlk + kl\log(kl) \right)$ & $O(nl + kl^2 + nlk)$ \\ \hline
 \end{tabular}
 \end{table}
