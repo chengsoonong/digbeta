@@ -24,3 +24,7 @@ install:
 # command to run tests
 script:
   - flake8 --max-line-length=100
+
+notifications:
+  email: false
+  slack: machlearn:4bsIJqghcxMDEgyfxzi0EIa1
