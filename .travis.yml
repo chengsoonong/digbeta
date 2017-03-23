@@ -23,7 +23,7 @@ install:
 
 # command to run tests
 script:
-  - flake8 --max-line-length=100
+  - flake8 --max-line-length=150 --ignore=E402,F401
 
 notifications:
   email: false

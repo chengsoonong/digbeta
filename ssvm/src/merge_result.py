@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 import numpy as np
 import pickle as pkl
 
@@ -23,13 +24,13 @@ if 'mean_F1' in recdicts[0][key0]:
         if len(dict_) > 0:
             assert(len(dict_) == 1)
             key = list(dict_.keys())[0]
-            if key in metric_dict: 
+            if key in metric_dict:
                 metric_dict[key]['F1_list'].append(dict_[key]['mean_F1'])
                 metric_dict[key]['pF1_list'].append(dict_[key]['mean_pF1'])
                 metric_dict[key]['Tau_list'].append(dict_[key]['mean_Tau'])
                 metric_dict[key]['Index'].append(i)
             else:
-                metric_dict[key] = {'F1_list': [dict_[key]['mean_F1']], 'pF1_list': [dict_[key]['mean_pF1']], 
+                metric_dict[key] = {'F1_list': [dict_[key]['mean_F1']], 'pF1_list': [dict_[key]['mean_pF1']],
                                     'Tau_list': [dict_[key]['mean_Tau']], 'Index': [i]}
     print('#queries: %d' % len(metric_dict))
     for key in sorted(metric_dict.keys()):
