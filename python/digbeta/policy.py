@@ -82,8 +82,8 @@ def clopper_pearson(k, n, alpha=0.95):
     alpha confidence intervals for a binomial distribution of k expected successes on n trials
     Clopper Pearson intervals are a conservative estimate.
     """
-    lo = scipy.stats.beta.ppf(alpha/2, k, n-k+1)
-    hi = scipy.stats.beta.ppf(1 - alpha/2, k+1, n-k)
+    lo = scipy.stats.beta.ppf(alpha / 2, k, n - k + 1)
+    hi = scipy.stats.beta.ppf(1 - alpha / 2, k + 1, n - k)
     return lo, hi
 
 
@@ -101,5 +101,5 @@ class CPUCB(Policy):
             return float('+infinity')
         else:
             lcb, ucb = clopper_pearson(self.cum_reward[arm], self.num_draws[arm],
-                                       1./(self.t**self.c))
+                                       1. / (self.t**self.c))
             return ucb
