@@ -21,4 +21,4 @@ install:
 
 # command to run tests
 script:
-  - python python/digbeta/demo.py
+  - flake8 --max-line-length=100
