@@ -5,6 +5,7 @@ from math import log
 import scipy.stats
 import kullback
 
+
 class Policy:
     """Class that implements a generic index policy class."""
 
@@ -19,7 +20,7 @@ class Policy:
     @property
     def name(self):
         return self.__class__.__name__
-    
+
     def start_game(self):
         self.t = 1
         for arm in range(self.num_arms):
@@ -43,6 +44,7 @@ class Policy:
     def compute_index(self, arm):
         raise NotImplementedError
 
+
 class klUCB(Policy):
     """The generic kl-UCB policy for one-parameter exponential distributions.
       """
@@ -59,14 +61,15 @@ class klUCB(Policy):
             return self.klucb(self.cum_reward[arm] / self.num_draws[arm],
                               self.c * log(self.t) / self.num_draws[arm], 1e-4)
 
+
 class UCB(klUCB):
     """The Upper Confidence Bound (UCB) index.
 
     The UCB policy for bounded bandits
     Reference: [Auer, Cesa-Bianchi & Fisher - Machine Learning, 2002], with constant
     set (optimally) to 1/2 rather than 2.
-  
-    Note that UCB is implemented as a special case of klUCB for the divergence 
+
+    Note that UCB is implemented as a special case of klUCB for the divergence
     corresponding to the Gaussian distributions, see [Garivier & Cappé - COLT, 2011].
     """
     def __init__(self, num_arms):
@@ -83,6 +86,7 @@ def clopper_pearson(k, n, alpha=0.95):
     hi = scipy.stats.beta.ppf(1 - alpha/2, k+1, n-k)
     return lo, hi
 
+
 class CPUCB(Policy):
     """Clopper-Pearson UCB
     [Garivier & Cappé, COLT 2011]
@@ -91,11 +95,11 @@ class CPUCB(Policy):
         """c is the parameter of the UCB"""
         Policy.__init__(self, num_arms)
         self.c = c
-        
+
     def compute_index(self, arm):
         if self.num_draws[arm] == 0:
             return float('+infinity')
         else:
-            lcb, ucb = clopper_pearson(self.cum_reward[arm], self.num_draws[arm], 1./(self.t**self.c))
+            lcb, ucb = clopper_pearson(self.cum_reward[arm], self.num_draws[arm],
+                                       1./(self.t**self.c))
             return ucb
-

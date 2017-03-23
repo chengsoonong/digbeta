@@ -1,7 +1,6 @@
 """ Heuristics used to query the most uncertain candidate out of the unlabelled pool. """
 
 import numpy as np
-import copy
 from joblib import Parallel, delayed
 from numpy.random import permutation
 from sklearn.preprocessing import LabelBinarizer
@@ -24,7 +23,6 @@ def random_h(candidate_mask, n_candidates, **kwargs):
         best_candidates : int
             The indices of the best candidates (here it is random).
     """
-    
     candidate_index = np.where(candidate_mask)[0]
     random_index = np.random.choice(candidate_index, n_candidates, replace=False)
     return random_index
@@ -54,10 +52,10 @@ def entropy_h(X, candidate_mask, classifier, n_candidates, **kwargs):
             The indices of the best candidates.
 
     """
-    
+
     # predict probabilities
     probs = classifier.predict_proba(X[candidate_mask])
-    
+
     # comptue Shannon entropy
     candidate_shannon = -np.sum(probs * np.log(probs), axis=1)
 
@@ -65,7 +63,7 @@ def entropy_h(X, candidate_mask, classifier, n_candidates, **kwargs):
     shannon = np.empty(len(candidate_mask))
     shannon[:] = -np.inf
     shannon[candidate_mask] = candidate_shannon
-    
+
     # pick the candidate with the greatest Shannon entropy
     best_candidates = np.argsort(-shannon)[:n_candidates]
     return best_candidates
@@ -73,7 +71,7 @@ def entropy_h(X, candidate_mask, classifier, n_candidates, **kwargs):
 
 def margin_h(X, candidate_mask, classifier, n_candidates, **kwargs):
     """ Return the candidate with the smallest margin.
-    
+
         The margin is defined as the difference between the two largest values
         in the prediction vector.
 
@@ -97,21 +95,21 @@ def margin_h(X, candidate_mask, classifier, n_candidates, **kwargs):
         best_candidates : int
             The indices of the best candidates.
     """
-    
+
     # predict probabilities
     probs = classifier.predict_proba(X[candidate_mask])
-    
+
     # sort the probabilities from smallest to largest
     probs = np.sort(probs, axis=1)
-    
+
     # compute the margin (difference between two largest values)
-    candidate_margin = np.abs(probs[:,-1] - probs[:,-2])
+    candidate_margin = np.abs(probs[:, -1] - probs[:, -2])
 
     # index the results properly
     margin = np.empty(len(candidate_mask))
     margin[:] = +np.inf
     margin[candidate_mask] = candidate_margin
-    
+
     # pick the candidate with the smallest margin
     best_candidates = np.argsort(margin)[:n_candidates]
     return best_candidates
@@ -120,7 +118,7 @@ def margin_h(X, candidate_mask, classifier, n_candidates, **kwargs):
 def qbb_margin_h(X, y, candidate_mask, train_mask, n_candidates, committee,
                  committee_samples, **kwargs):
     """ Return the candidate with the smallest average margin.
-    
+
         We first use bagging to train k classifiers. The margin is then defined as
         the average difference between the two largest values in the prediction vector.
 
@@ -149,7 +147,7 @@ def qbb_margin_h(X, y, candidate_mask, train_mask, n_candidates, committee,
         best_candidates : int
             The indices of the best candidates.
     """
-    
+
     # check that the max bagging sample is not too big
     committee.max_samples = min(committee_samples, len(y[train_mask]))
 
@@ -160,7 +158,7 @@ def qbb_margin_h(X, y, candidate_mask, train_mask, n_candidates, committee,
     n_samples = len(X[candidate_mask])
     n_classes = len(committee.classes_)
     probs = np.zeros((n_samples, n_classes))
-    
+
     for member in committee.estimators_:
         memeber_prob = member.predict_proba(X[candidate_mask])
 
@@ -172,18 +170,18 @@ def qbb_margin_h(X, y, candidate_mask, train_mask, n_candidates, committee,
 
     # average out the probabilities
     probs /= len(committee.estimators_)
-    
+
     # sort the probabilities from smallest to largest
     probs = np.sort(probs, axis=1)
-    
+
     # compute the margin (difference between two largest values)
-    candidate_margin = np.abs(probs[:,-1] - probs[:,-2])
+    candidate_margin = np.abs(probs[:, -1] - probs[:, -2])
 
     # index the results properly
     margin = np.empty(len(candidate_mask))
     margin[:] = +np.inf
     margin[candidate_mask] = candidate_margin
-    
+
     # pick the candidate with the smallest margin
     best_candidates = np.argsort(margin)[:n_candidates]
     return best_candidates
@@ -192,7 +190,7 @@ def qbb_margin_h(X, y, candidate_mask, train_mask, n_candidates, committee,
 def qbb_kl_h(X, y, candidate_mask, train_mask, n_candidates, committee, committee_samples,
              **kwargs):
     """ Return the candidate with the largest average KL divergence from the mean.
-    
+
         We first use bagging to train k classifiers. We then choose the candidate
         that has the largest Kullback–Leibler divergence from the average.
 
@@ -233,7 +231,7 @@ def qbb_kl_h(X, y, candidate_mask, train_mask, n_candidates, committee, committe
     n_classes = len(committee.classes_)
     avg_probs = np.zeros((n_samples, n_classes))
     prob_list = []
-    
+
     for member in committee.estimators_:
         member_prob = member.predict_proba(X[candidate_mask])
 
@@ -252,12 +250,12 @@ def qbb_kl_h(X, y, candidate_mask, train_mask, n_candidates, committee, committe
 
     # compute the KL divergence
     avg_kl = np.zeros(avg_probs.shape[0])
-    
+
     for p in prob_list:
         inner = np.nan_to_num(p * np.log(p / avg_probs))
         member_kl = np.sum(inner, axis=1)
         avg_kl += member_kl
-        
+
     # average out the KL divergence
     avg_kl /= len(committee)
 
@@ -265,7 +263,7 @@ def qbb_kl_h(X, y, candidate_mask, train_mask, n_candidates, committee, committe
     kl = np.empty(len(candidate_mask))
     kl[:] = -np.inf
     kl[candidate_mask] = avg_kl
-    
+
     # pick the candidate with the smallest margin
     best_candidates = np.argsort(-kl)[:n_candidates]
     return best_candidates
@@ -290,28 +288,28 @@ def _compute_A(X, pi, classes):
         A : array
             The A matrix as part of the variance calcucation.
     """
-    
+
     n_classes = len(classes)
     n_features = X.shape[1]
     n_samples = X.shape[0]
     width = n_classes * n_features
     one_in_k = LabelBinarizer(pos_label=1, neg_label=0).fit_transform(classes)
-    
+
     I_same = one_in_k.repeat(n_features, axis=0)
     I_same = np.tile(I_same, n_samples)
-    
+
     I_diff = 1 - I_same
-    
+
     A = np.tile(pi.flatten(), (width, 1))
     B = 1 - A
     C = -A
     D = pi.transpose().repeat(n_features, axis=0).repeat(n_classes, axis=1)
     E = X.transpose().repeat(n_classes, axis=1)
     E = np.tile(E, (n_classes, 1))
-    G = A * B * I_same  + C * D * I_diff
+    G = A * B * I_same + C * D * I_diff
     G = E * G
     outer = np.dot(G, G.transpose())
-    
+
     return outer
 
 
@@ -337,14 +335,14 @@ def _compute_F(X, pi, classes, C=1):
         F : array
             The F matrix as part of the variance calcucation.
     """
-    
+
     n_classes = len(classes)
     n_features = X.shape[1]
     n_samples = X.shape[0]
     width = n_classes * n_features
-    
+
     I_diag = np.eye(width)
-    
+
     mini_off_diag = 1 - np.eye(n_features)
     mini_zeros = np.zeros((n_features, n_features * n_classes))
     I_mini_off_diag = np.hstack((mini_off_diag, mini_zeros))
@@ -352,19 +350,19 @@ def _compute_F(X, pi, classes, C=1):
     I_mini_off_diag = np.hstack((I_mini_off_diag, mini_off_diag))
     I_mini_off_diag = np.hsplit(I_mini_off_diag, n_classes)
     I_mini_off_diag = np.vstack(I_mini_off_diag)
-    
+
     I_main_off_diag = 1 - I_diag - I_mini_off_diag
-    
+
     M = np.tile(X.transpose(), (n_classes, 1))
     N = pi.transpose().repeat(n_features, axis=0)
-    
+
     F_1 = np.dot(M * N * (1 - N), M.transpose()) + C
     F_2 = np.dot(M * N * (1 - N), M.transpose())
     F_3 = np.dot(M * N, M.transpose() * N.transpose())
-    
+
     F = F_1 * I_diag + F_2 * I_mini_off_diag + F_3 * I_main_off_diag
     F = F / n_samples
-    
+
     return F
 
 
@@ -397,7 +395,7 @@ def compute_pool_variance(X, pi, classes, C=1):
 
 
 def pool_variance_h(X, y, candidate_mask, train_mask, classifier, n_candidates,
-                   pool_n, C, n_jobs=-1, **kwargs):
+                    pool_n, C, n_jobs=-1, **kwargs):
     """ Return the candidate that will minimise the expected variance of the predictions.
 
         Parameters
@@ -419,11 +417,9 @@ def pool_variance_h(X, y, candidate_mask, train_mask, classifier, n_candidates,
         best_candidate : int
             The index of the best candidate.
     """
-    
-    classes = classifier.classes_ # sorted lexicographically
+
+    classes = classifier.classes_  # sorted lexicographically
     n_classes = len(classes)
-    candidate_size = np.sum(train_mask)
-    n_features = X.shape[1]
     variance = np.empty(len(candidate_mask))
     variance[:] = np.inf
 
@@ -458,7 +454,7 @@ def pool_variance_h(X, y, candidate_mask, train_mask, classifier, n_candidates,
 
 
 def _parallel_variance_estimate(X, y, train_mask, pool_mask, classifier,
-    classes, n_classes, probs, i, index, C):
+                                classes, n_classes, probs, i, index, C):
     """ Helper function. """
 
     # assume a label and compute entropy
@@ -474,7 +470,6 @@ def _parallel_variance_estimate(X, y, train_mask, pool_mask, classifier,
     expected = np.dot(probs[i], potential_variance)
 
     return index, expected
-
 
 
 def compute_pool_entropy(pi):
@@ -517,11 +512,9 @@ def pool_entropy_h(X, y, candidate_mask, train_mask, classifier, n_candidates,
         best_candidate : int
             The index of the best candidate.
     """
-    
-    classes = classifier.classes_ # sorted lexicographically
+
+    classes = classifier.classes_  # sorted lexicographically
     n_classes = len(classes)
-    candidate_size = np.sum(train_mask)
-    n_features = X.shape[1]
     entropy = np.empty(len(candidate_mask))
     entropy[:] = np.inf
 
@@ -557,7 +550,7 @@ def pool_entropy_h(X, y, candidate_mask, train_mask, classifier, n_candidates,
 
 
 def _parallel_entropy_estimate(X, y, train_mask, pool_mask, classifier,
-    classes, n_classes, probs, i, index):
+                               classes, n_classes, probs, i, index):
     """ Helper function. """
 
     # assume a label and compute entropy
