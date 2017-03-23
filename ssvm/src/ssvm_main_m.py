@@ -1,4 +1,6 @@
-import sys, os, pickle
+import sys
+import os
+import pickle
 import numpy as np
 import random
 import cvxopt
@@ -15,10 +17,10 @@ data_dir = os.path.join(work_dir, 'data')
 src_dir = os.path.join(work_dir, 'src')
 sys.path.append(src_dir)
 
-from shared import TrajData, evaluate
+from shared import TrajData
 from ssvm import SSVM
-#import pyximport
-#pyximport.install(setup_args={'include_dirs': np.get_include()}, reload_support=True)
+# import pyximport
+# pyximport.install(setup_args={'include_dirs': np.get_include()}, reload_support=True)
 from inference_lv import do_inference_list_viterbi
 
 random.seed(1234554321)
@@ -49,12 +51,12 @@ if (ps, L) not in bestC:
     sys.stderr.write('start POI of query %s does not exist in training set.\n' % str(keys[i]))
     sys.exit(0)
 
-# use all training+validation set to compute POI features, 
+# use all training+validation set to compute POI features,
 # make sure features do NOT change for training and validation
 trajid_set_i = set(dat_obj.trajid_set_all) - dat_obj.TRAJID_GROUP_DICT[keys[i]]
 poi_info_i = dat_obj.calc_poi_info(list(trajid_set_i))
 poi_set_i = {p for tid in trajid_set_i for p in dat_obj.traj_dict[tid] if len(dat_obj.traj_dict[tid]) >= 2}
-if ps not in poi_set_i: 
+if ps not in poi_set_i:
     sys.stderr.write('start POI of query %s does not exist in training set.\n' % str(keys[i]))
     sys.exit(0)
 
@@ -62,9 +64,9 @@ best_C = bestC[(ps, L)]
 print('\n--------------- Query: (%d, %d), Best_C: %f ---------------\n' % (ps, L, best_C))
 
 # train model using all examples in training set and measure performance on test set
-ssvm = SSVM(inference_train=inference_method, inference_pred=inference_method, dat_obj=dat_obj, 
+ssvm = SSVM(inference_train=inference_method, inference_pred=inference_method, dat_obj=dat_obj,
             share_params=SSVM_SHARE_PARAMS, multi_label=SSVM_MULTI_LABEL, C=best_C, poi_info=poi_info_i)
-if ssvm.train(sorted(trajid_set_i), n_jobs=N_JOBS) == True:
+if ssvm.train(sorted(trajid_set_i), n_jobs=N_JOBS) is True:
     y_hat_list = ssvm.predict(ps, L)
     print(y_hat_list)
     if y_hat_list is not None:
@@ -72,4 +74,3 @@ if ssvm.train(sorted(trajid_set_i), n_jobs=N_JOBS) == True:
 
 fssvm = os.path.join(data_dir, 'ssvm-' + SSVM_VARIANT + '-' + dat_obj.dat_suffix[dat_ix] + '-%d.pkl' % (qix))
 pickle.dump(recdict_ssvm, open(fssvm, 'bw'))
-
