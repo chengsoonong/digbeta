@@ -14,7 +14,7 @@ def scenario0(num_rep=10, horizon=2000):
     world = MAB([Bernoulli(p) for p in probs])
     policies = [CPUCB(world.num_arms), UCB(world.num_arms), klUCB(world.num_arms)]
 
-    t_save = np.linspace(100, horizon-1, 200, dtype=int)
+    t_save = np.linspace(100, horizon - 1, 200, dtype=int)
     for pol in policies:
         print('Evaluation of %s' % pol.name)
         w = Evaluation(world, pol, num_rep, horizon, t_save)

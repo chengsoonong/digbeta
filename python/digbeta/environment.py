@@ -52,4 +52,4 @@ class Result:
             return num_pulls
 
     def get_regret(self, best_expectation):
-        return np.cumsum(best_expectation-self.rewards)
+        return np.cumsum(best_expectation - self.rewards)
