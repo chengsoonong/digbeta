@@ -3,4 +3,4 @@
 # E402: module level import not at top of file
 # F401: 'inference_lv' imported but unused
 ignore = E402,F401
-max-line-length = 150
+max-line-length = 120
