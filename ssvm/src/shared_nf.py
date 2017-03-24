@@ -55,7 +55,8 @@ FEATURES = ['category', 'neighbourhood', 'popularity', 'nVisit',
             'durationTotal', 'durationMean', 'durationP10', 'durationP50', 'durationP90',
             'trajLen', 'sameCategory', 'sameNeighbourhood', 'diffPopularity', 'diffNVisit',
             'diffNPhotoTotal', 'diffNPhotoMean', 'diffNPhotoP10', 'diffNPhotoP50', 'diffNPhotoP90',
-            'diffDurationTotal', 'diffDurationMean', 'diffDurationP10', 'diffDurationP50', 'diffDurationP90', 'distance']
+            'diffDurationTotal', 'diffDurationMean', 'diffDurationP10', 'diffDurationP50', 'diffDurationP90',
+            'distance']
 
 
 class TrajData:
@@ -81,7 +82,7 @@ class TrajData:
             print('#user:', num_user)
             print('#poi:', num_poi)
             print('#traj:', num_traj)
-            print('#traj/user:', num_traj/num_user)
+            print('#traj/user:', num_traj / num_user)
             print('#traj (length >= 2):', self.traj_all[self.traj_all['trajLen'] >= 2]['trajID'].unique().shape[0])
             print('#traj length max:', self.traj_all['trajLen'].max())
             print('#query tuple:', len(self.QUERY_ID_DICT))
@@ -114,7 +115,7 @@ class TrajData:
         poi_info['nPhotoP10'] = photo_gb.quantile(0.1).loc[poi_info.index, '#photo']
         poi_info['nPhotoP50'] = photo_gb.quantile(0.5).loc[poi_info.index, '#photo']
         poi_info['nPhotoP90'] = photo_gb.quantile(0.9).loc[poi_info.index, '#photo']
-        poi_info['durationTotal'] = duration_gb.sum().loc[poi_info.index,  'poiDuration']
+        poi_info['durationTotal'] = duration_gb.sum().loc[poi_info.index, 'poiDuration']
         poi_info['durationMean'] = duration_gb.mean().loc[poi_info.index, 'poiDuration']
         poi_info['durationP10'] = duration_gb.quantile(0.1).loc[poi_info.index, 'poiDuration']
         poi_info['durationP50'] = duration_gb.quantile(0.5).loc[poi_info.index, 'poiDuration']
@@ -222,9 +223,9 @@ class TrajData:
         for tid in trajid_list:
             t = self.traj_dict[tid]
             if len(t) >= 2:
-                for pi in range(len(t)-1):
+                for pi in range(len(t) - 1):
                     p1 = t[pi]
-                    p2 = t[pi+1]
+                    p2 = t[pi + 1]
                     assert(p1 in poi_info.index and p2 in poi_info.index)
                     cat1 = poi_info.loc[p1, 'poiCat']
                     cat2 = poi_info.loc[p2, 'poiCat']
@@ -235,13 +236,13 @@ class TrajData:
         """Compute Transition Matrix between POI Popularity Classes"""
         nbins = len(self.LOGBINS_POP) - 1
         transmat_pop_cnt = pd.DataFrame(data=np.zeros((nbins, nbins), dtype=np.float),
-                                        columns=np.arange(1, nbins+1), index=np.arange(1, nbins+1))
+                                        columns=np.arange(1, nbins + 1), index=np.arange(1, nbins + 1))
         for tid in trajid_list:
             t = self.traj_dict[tid]
             if len(t) > 1:
-                for pi in range(len(t)-1):
+                for pi in range(len(t) - 1):
                     p1 = t[pi]
-                    p2 = t[pi+1]
+                    p2 = t[pi + 1]
                     assert(p1 in poi_info.index and p2 in poi_info.index)
                     pop1 = poi_info.loc[p1, 'popularity']
                     pop2 = poi_info.loc[p2, 'popularity']
@@ -253,13 +254,13 @@ class TrajData:
         """Compute Transition Matrix between the Number of POI Visit Classes"""
         nbins = len(self.LOGBINS_VISIT) - 1
         transmat_visit_cnt = pd.DataFrame(data=np.zeros((nbins, nbins), dtype=np.float),
-                                          columns=np.arange(1, nbins+1), index=np.arange(1, nbins+1))
+                                          columns=np.arange(1, nbins + 1), index=np.arange(1, nbins + 1))
         for tid in trajid_list:
             t = self.traj_dict[tid]
             if len(t) > 1:
-                for pi in range(len(t)-1):
+                for pi in range(len(t) - 1):
                     p1 = t[pi]
-                    p2 = t[pi+1]
+                    p2 = t[pi + 1]
                     assert(p1 in poi_info.index and p2 in poi_info.index)
                     visit1 = poi_info.loc[p1, 'nVisit']
                     visit2 = poi_info.loc[p2, 'nVisit']
@@ -271,13 +272,13 @@ class TrajData:
         """Compute Transition Matrix between POI Average Visit Duration Classes"""
         nbins = len(self.LOGBINS_DURATION) - 1
         transmat_duration_cnt = pd.DataFrame(data=np.zeros((nbins, nbins), dtype=np.float),
-                                             columns=np.arange(1, nbins+1), index=np.arange(1, nbins+1))
+                                             columns=np.arange(1, nbins + 1), index=np.arange(1, nbins + 1))
         for tid in trajid_list:
             t = self.traj_dict[tid]
             if len(t) > 1:
-                for pi in range(len(t)-1):
+                for pi in range(len(t) - 1):
                     p1 = t[pi]
-                    p2 = t[pi+1]
+                    p2 = t[pi + 1]
                     assert(p1 in poi_info.index and p2 in poi_info.index)
                     d1 = poi_info.loc[p1, 'durationMean']
                     d2 = poi_info.loc[p2, 'durationMean']
@@ -293,9 +294,9 @@ class TrajData:
         for tid in trajid_list:
             t = self.traj_dict[tid]
             if len(t) > 1:
-                for pi in range(len(t)-1):
+                for pi in range(len(t) - 1):
                     p1 = t[pi]
-                    p2 = t[pi+1]
+                    p2 = t[pi + 1]
                     assert(p1 in poi_info.index and p2 in poi_info.index)
                     c1 = self.POI_CLUSTERS.loc[p1, 'clusterID']
                     c2 = self.POI_CLUSTERS.loc[p2, 'clusterID']
@@ -346,8 +347,8 @@ def calc_dist_vec(longitudes1, latitudes1, longitudes2, latitudes2):
         # The haversine formula, en.wikipedia.org/wiki/Great-circle_distance
         dlng = np.fabs(lng1 - lng2)
         dlat = np.fabs(lat1 - lat2)
-        dist = 2 * radius * np.arcsin(np.sqrt(
-                    (np.sin(0.5*dlat))**2 + np.cos(lat1) * np.cos(lat2) * (np.sin(0.5*dlng))**2))
+        dist = 2 * radius * np.arcsin(
+            np.sqrt((np.sin(0.5 * dlat))**2 + np.cos(lat1) * np.cos(lat2) * (np.sin(0.5 * dlng))**2))
         return dist
 
 
@@ -414,7 +415,7 @@ def calc_pairsF1(y, y_hat):
     nc = 0
     for i in range(len(y_hat)):
         poi1 = y_hat[i]
-        for j in range(i+1, len(y_hat)):
+        for j in range(i + 1, len(y_hat)):
             poi2 = y_hat[j]
             if poi1 in order_dict and poi2 in order_dict and poi1 != poi2:
                 if order_dict[poi1] < order_dict[poi2]:
@@ -524,10 +525,10 @@ def do_evaluation(dat_obj, recdict):
         F1_list.append(F1)
         pF1_list.append(pF1)
         Tau_list.append(tau)
-    nF1 = np.sum([True if np.abs(x-1.0) < 1e-6 else False for x in F1_list])
-    npF1 = np.sum([True if np.abs(x-1.0) < 1e-6 else False for x in pF1_list])
+    nF1 = np.sum([True if np.abs(x - 1.0) < 1e-6 else False for x in F1_list])
+    npF1 = np.sum([True if np.abs(x - 1.0) < 1e-6 else False for x in pF1_list])
 
     print('F1 (%.3f, %.3f), pairsF1 (%.3f, %.3f), Tau (%.3f, %.3f), perfectF1: %d/%d, perfectPairsF1: %d/%d' %
-          (np.mean(F1_list), np.std(F1_list)/np.sqrt(len(F1_list)),
-           np.mean(pF1_list), np.std(pF1_list)/np.sqrt(len(pF1_list)),
-           np.mean(Tau_list), np.std(Tau_list)/np.sqrt(len(Tau_list)), nF1, len(F1_list), npF1, len(pF1_list)))
+          (np.mean(F1_list), np.std(F1_list) / np.sqrt(len(F1_list)),
+           np.mean(pF1_list), np.std(pF1_list) / np.sqrt(len(pF1_list)),
+           np.mean(Tau_list), np.std(Tau_list) / np.sqrt(len(Tau_list)), nF1, len(F1_list), npF1, len(pF1_list)))

@@ -51,7 +51,7 @@ def do_inference_brute_force(ps, L, M, unary_params, pw_params, unary_features, 
             Cp[pi, pj] = -np.inf if (pj == ps or pi == pj) else np.dot(pw_params[pi, pj, :], pw_features[pi, pj, :])
 
     Q = []
-    for x in itertools.permutations([p for p in range(M) if p != ps], int(L-1)):
+    for x in itertools.permutations([p for p in range(M) if p != ps], int(L - 1)):
         y = [ps] + list(x)
         score = 0
 
@@ -59,7 +59,7 @@ def do_inference_brute_force(ps, L, M, unary_params, pw_params, unary_features, 
             continue
 
         for j in range(1, L):
-            score += Cp[y[j-1], y[j]] + Cu[y[j]]
+            score += Cp[y[j - 1], y[j]] + Cu[y[j]]
         if y_true is not None:
             score += np.sum(np.asarray(y) != np.asarray(y_true))
 
@@ -116,9 +116,10 @@ def do_inference_greedy(ps, L, M, unary_params, pw_params, unary_features, pw_fe
         p = y_hat[-1]
         # maxix = np.argmax([Cp[p, p1] + Cu[p1] + float(p1 != y_true[t]) if y_true is not None else \
         #                    Cp[p, p1] + Cu[p1] for p1 in candidate_points])
-        scores = [Cp[p, p1] + Cu[p1] + float(p1 != y_true[t]) if y_true is not None else Cp[p, p1] + Cu[p1] for p1 in candidate_points]
+        scores = [Cp[p, p1] + Cu[p1] + float(p1 != y_true[t]) if y_true is not None
+                  else Cp[p, p1] + Cu[p1] for p1 in candidate_points]
         indices = list(np.argsort(-np.asarray(scores)))
-        if t < L-1 or y_true is None:
+        if t < L - 1 or y_true is None:
             y_hat.append(candidate_points[indices[0]])
         else:
             for j in range(len(candidate_points)):
@@ -155,8 +156,8 @@ def do_inference_viterbi(ps, L, M, unary_params, pw_params, unary_features, pw_f
         for pj in range(M):
             Cp[pi, pj] = -np.inf if (pj == ps or pi == pj) else np.dot(pw_params[pi, pj, :], pw_features[pi, pj, :])
 
-    A = np.zeros((L-1, M), dtype=np.float)      # scores matrix
-    B = np.ones((L-1, M), dtype=np.int) * (-1)  # backtracking pointers
+    A = np.zeros((L - 1, M), dtype=np.float)      # scores matrix
+    B = np.ones((L - 1, M), dtype=np.int) * (-1)  # backtracking pointers
 
     for p in range(M):  # ps--p
         A[0, p] = Cp[ps, p] + Cu[p]
@@ -165,21 +166,21 @@ def do_inference_viterbi(ps, L, M, unary_params, pw_params, unary_features, pw_f
             A[0, p] += float(p != y_true[1])
         B[0, p] = ps
 
-    for t in range(0, L-2):
+    for t in range(0, L - 2):
         for p in range(M):
             # loss = float(p != y_true[l+2])/L if y_true is not None else 0  # loss term: normlised
-            loss = float(p != y_true[t+2]) if y_true is not None else 0
+            loss = float(p != y_true[t + 2]) if y_true is not None else 0
             scores = [A[t, p1] + Cp[p1, p] + Cu[p] for p1 in range(M)]  # ps~~p1--p
             maxix = np.argmax(scores)
-            A[t+1, p] = scores[maxix] + loss
+            A[t + 1, p] = scores[maxix] + loss
             # B[l+1, p] = np.array(range(N))[maxix]
-            B[t+1, p] = maxix
+            B[t + 1, p] = maxix
 
-    y_hat = [np.argmax(A[L-2, :])]
-    p, t = y_hat[-1], L-2
+    y_hat = [np.argmax(A[L - 2, :])]
+    p, t = y_hat[-1], L - 2
     while t >= 0:
         y_hat.append(B[t, p])
-        p, t = y_hat[-1], t-1
+        p, t = y_hat[-1], t - 1
     y_hat.reverse()
 
     return np.asarray(y_hat)
@@ -189,12 +190,14 @@ def do_inference_ILP_topk(ps, L, M, unary_params, pw_params, unary_features, pw_
     results = []
     for k in range(top):
         predicted = results if len(results) > 0 else None
-        y_hat = do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_features, predicted_list=predicted)
+        y_hat = do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_features,
+                                 predicted_list=predicted)
         results.append(y_hat)
     return results
 
 
-def do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_features, y_true=None, y_true_list=None, predicted_list=None):
+def do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_features, y_true=None,
+                     y_true_list=None, predicted_list=None):
     """
     Inference using integer linear programming (ILP), could be:
     - Train/prediction inference for single-label SSVM (NOTE: NOT Hamming loss)
@@ -241,34 +244,36 @@ def do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_featu
     pb += pulp.lpSum([visit_vars[pi][pi] for pi in pois]) == 0, 'NoSelfLoops'
     pb += pulp.lpSum([visit_vars[p0][pj] for pj in pois]) == 1, 'StartAt_p0'
     pb += pulp.lpSum([visit_vars[pi][p0] for pi in pois]) == 0, 'NoIncoming_p0'
-    pb += pulp.lpSum([visit_vars[pi][pj] for pi in pois for pj in pois]) == L-1, 'Length'
+    pb += pulp.lpSum([visit_vars[pi][pj] for pi in pois for pj in pois]) == L - 1, 'Length'
     pb += pulp.lpSum([isend_vars[pi] for pi in pois]) == 1, 'OneEnd'
     pb += isend_vars[p0] == 0, 'StartNotEnd'
 
     for pk in [x for x in pois if x != p0]:
         pb += pulp.lpSum([visit_vars[pi][pk] for pi in pois]) == isend_vars[pk] + \
-              pulp.lpSum([visit_vars[pk][pj] for pj in pois if pj != p0]), 'ConnectedAt_' + pk
+            pulp.lpSum([visit_vars[pk][pj] for pj in pois if pj != p0]), 'ConnectedAt_' + pk
         pb += pulp.lpSum([visit_vars[pi][pk] for pi in pois]) <= 1, 'Enter_' + pk + '_AtMostOnce'
-        pb += pulp.lpSum([visit_vars[pk][pj] for pj in pois if pj != p0]) + isend_vars[pk] <= 1, 'Leave_' + pk + '_AtMostOnce'
+        pb += pulp.lpSum([visit_vars[pk][pj] for pj in pois if pj != p0]) + isend_vars[pk] <= 1, \
+            'Leave_' + pk + '_AtMostOnce'
     for pi in [x for x in pois if x != p0]:
         for pj in [y for y in pois if y != p0]:
             pb += dummy_vars[pi] - dummy_vars[pj] + 1 <= (M - 1) * (1 - visit_vars[pi][pj]), \
-                  'SubTourElimination_' + pi + '_' + pj
+                'SubTourElimination_' + pi + '_' + pj
 
     # additional constraints/cuts to filtering out specified sequences
     if predicted_list is not None:
         for j in range(len(predicted_list)):
             y = predicted_list[j]
-            pb += pulp.lpSum([visit_vars[str(y[k])][str(y[k+1])] for k in range(len(y)-1)]) <= (len(y)-2), 'exclude_%dth' % j
+            pb += pulp.lpSum([visit_vars[str(y[k])][str(y[k + 1])] for k in range(len(y) - 1)]) <= (len(y) - 2), \
+                'exclude_%dth' % j
 
     # pb.writeLP("traj_tmp.lp")
 
-    # solve problem: solver should be available in PATH
+    # solve problem: solver should be available in PATH, default solver is CBC
     if USE_GUROBI is True:
         gurobi_options = [('TimeLimit', '7200'), ('Threads', str(N_JOBS)), ('NodefileStart', '0.2'), ('Cuts', '2')]
         pb.solve(pulp.GUROBI_CMD(path='gurobi_cl', options=gurobi_options))  # GUROBI
     else:
-        pb.solve(pulp.COIN_CMD(path='cbc', options=['-threads', str(N_JOBS), '-strategy', '1', '-maxIt', '2000000']))  # CBC
+        pb.solve(pulp.COIN_CMD(path='cbc', options=['-threads', str(N_JOBS), '-strategy', '1', '-maxIt', '2000000']))
     visit_mat = pd.DataFrame(data=np.zeros((len(pois), len(pois)), dtype=np.float), index=pois, columns=pois)
     isend_vec = pd.Series(data=np.zeros(len(pois), dtype=np.float), index=pois)
     for pi in pois:

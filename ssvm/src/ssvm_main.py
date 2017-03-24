@@ -47,7 +47,7 @@ ps, L = keys[i]
 best_C = 1
 # best_F1 = 0; best_pF1 = 0
 best_Tau = 0
-keys_cv = keys[:i] + keys[i+1:]
+keys_cv = keys[:i] + keys[i + 1:]
 
 # use all training+validation set to compute POI features,
 # make sure features do NOT change for training and validation
@@ -73,12 +73,13 @@ for ssvm_C in C_SET:
         while True:  # make sure the start POI in test set are also in training set
             rand_ix = np.arange(len(keys_cv))
             np.random.shuffle(rand_ix)
-            test_ix = rand_ix[:int(MC_PORTION*len(rand_ix))]
+            test_ix = rand_ix[:int(MC_PORTION * len(rand_ix))]
             assert(len(test_ix) > 0)
             trajid_set_train = set(dat_obj.trajid_set_all) - dat_obj.TRAJID_GROUP_DICT[keys[i]]
             for j in test_ix:
                 trajid_set_train = trajid_set_train - dat_obj.TRAJID_GROUP_DICT[keys_cv[j]]
-            poi_set = {p for tid in sorted(trajid_set_train) for p in dat_obj.traj_dict[tid] if len(dat_obj.traj_dict[tid]) >= 2}
+            poi_set = {p for tid in sorted(trajid_set_train) for p in dat_obj.traj_dict[tid]
+                       if len(dat_obj.traj_dict[tid]) >= 2}
             good_partition = True
             for j in test_ix:
                 if keys_cv[j][0] not in poi_set:

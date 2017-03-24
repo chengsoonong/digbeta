@@ -38,7 +38,8 @@ class SSVM:
 
         # build POI_ID <--> POI__INDEX mapping for POIs used to train CRF
         # which means only POIs in traj such that len(traj) >= 2 are included
-        poi_set = {p for tid in trajid_list for p in self.dat_obj.traj_dict[tid] if len(self.dat_obj.traj_dict[tid]) >= 2}
+        poi_set = {p for tid in trajid_list for p in self.dat_obj.traj_dict[tid]
+                   if len(self.dat_obj.traj_dict[tid]) >= 2}
         self.poi_list = sorted(poi_set)
         self.poi_id_dict, self.poi_id_rdict = dict(), dict()
         for idx, poi in enumerate(self.poi_list):
@@ -47,8 +48,8 @@ class SSVM:
 
         # generate training data
         train_traj_list = [self.dat_obj.traj_dict[k] for k in trajid_list if len(self.dat_obj.traj_dict[k]) >= 2]
-        node_features_list = Parallel(n_jobs=n_jobs)(
-                             delayed(calc_node_features)(tr[0], len(tr), self.poi_list, self.poi_info, self.dat_obj) for tr in train_traj_list)
+        node_features_list = Parallel(n_jobs=n_jobs)(delayed(calc_node_features)(
+            tr[0], len(tr), self.poi_list, self.poi_info, self.dat_obj) for tr in train_traj_list)
         edge_features = calc_edge_features(trajid_list, self.poi_list, self.poi_info, self.dat_obj)
 
         # feature scaling: node features
@@ -60,7 +61,7 @@ class SSVM:
 
         # feature scaling: edge features
         fdim_edge = edge_features.shape
-        edge_features = self.scaler_edge.fit_transform(edge_features.reshape(fdim_edge[0]*fdim_edge[1], -1))
+        edge_features = self.scaler_edge.fit_transform(edge_features.reshape(fdim_edge[0] * fdim_edge[1], -1))
         self.edge_features = edge_features.reshape(fdim_edge)
 
         assert(len(train_traj_list) == X_node_all.shape[0])
@@ -133,7 +134,7 @@ class MyModel(StructuredModel):
                 self.size_joint_feature = self.n_features + self.n_edge_features
             else:
                 self.size_joint_feature = self.n_states * self.n_features + \
-                                          self.n_states * self.n_states * self.n_edge_features
+                    self.n_states * self.n_states * self.n_edge_features
 
     def loss(self, y, y_hat):
         # return np.mean(np.asarray(y) != np.asarray(y_hat))     # hamming loss (normalised)
@@ -166,7 +167,8 @@ class MyModel(StructuredModel):
         for i in range(len(X)):
             query = X[i][2]
             if query in self.traj_group_dict:
-                if not np.any([np.all(np.asarray(Y[i]) == np.asarray(yj)) for yj in self.traj_group_dict[query]]):  # NO duplication
+                # NO duplication
+                if not np.any([np.all(np.asarray(Y[i]) == np.asarray(yj)) for yj in self.traj_group_dict[query]]):
                     self.traj_group_dict[query].append(Y[i])
             else:
                 self.traj_group_dict[query] = [Y[i]]
@@ -193,16 +195,16 @@ class MyModel(StructuredModel):
             node_features = np.zeros((self.n_features), dtype=np.float)
             edge_features = np.zeros((self.n_edge_features), dtype=np.float)
             node_features = unary_features[y[0], :]
-            for j in range(len(y)-1):
-                ss, tt = y[j], y[j+1]
+            for j in range(len(y) - 1):
+                ss, tt = y[j], y[j + 1]
                 node_features = node_features + unary_features[tt, :]
                 edge_features = edge_features + pw_features[ss, tt, :]
         else:
             node_features = np.zeros((self.n_states, self.n_features), dtype=np.float)
             edge_features = np.zeros((self.n_states, self.n_states, self.n_edge_features), dtype=np.float)
             node_features[y[0], :] = unary_features[y[0], :]
-            for j in range(len(y)-1):
-                ss, tt = y[j], y[j+1]
+            for j in range(len(y) - 1):
+                ss, tt = y[j], y[j + 1]
                 node_features[tt, :] = unary_features[tt, :]
                 edge_features[ss, tt, :] = pw_features[ss, tt, :]
 
@@ -240,7 +242,8 @@ class MyModel(StructuredModel):
             pw_params = np.tile(pw_params, (self.n_states, self.n_states, 1))
         else:
             unary_params = w[:self.n_states * self.n_features].reshape((self.n_states, self.n_features))
-            pw_params = w[self.n_states * self.n_features:].reshape((self.n_states, self.n_states, self.n_edge_features))
+            pw_params = w[self.n_states * self.n_features:].reshape(
+                (self.n_states, self.n_states, self.n_edge_features))
 
         if self.multi_label is True:
             y_true_list = self.traj_group_dict[query]
@@ -280,7 +283,8 @@ class MyModel(StructuredModel):
             pw_params = np.tile(pw_params, (self.n_states, self.n_states, 1))
         else:
             unary_params = w[:self.n_states * self.n_features].reshape((self.n_states, self.n_features))
-            pw_params = w[self.n_states * self.n_features:].reshape((self.n_states, self.n_states, self.n_edge_features))
+            pw_params = w[self.n_states * self.n_features:].reshape(
+                (self.n_states, self.n_states, self.n_edge_features))
 
         y_pred = self.inference_pred(ps, L, M, unary_params, pw_params, unary_features, pw_features)
 
@@ -310,7 +314,8 @@ def calc_node_features(startPOI, nPOI, poi_list, poi_info, dat_obj):
         duration = poi_info.loc[poi, 'avgDuration']
         idx = poi
         df_.set_value(idx, 'category', tuple((cat == np.array(dat_obj.POI_CAT_LIST)).astype(np.int) * 2 - 1))
-        df_.set_value(idx, 'neighbourhood', tuple((cluster == np.array(dat_obj.POI_CLUSTER_LIST)).astype(np.int) * 2 - 1))
+        df_.set_value(idx, 'neighbourhood',
+                      tuple((cluster == np.array(dat_obj.POI_CLUSTER_LIST)).astype(np.int) * 2 - 1))
         df_.loc[idx, 'popularity'] = LOG_SMALL if pop < 1 else np.log10(pop)
         df_.loc[idx, 'nVisit'] = LOG_SMALL if nvisit < 1 else np.log10(nvisit)
         df_.loc[idx, 'avgDuration'] = LOG_SMALL if duration < 1 else np.log10(duration)
@@ -354,7 +359,8 @@ def calc_edge_features(trajid_list, poi_list, poi_info, dat_obj, log_transition=
     transmat_duration = dat_obj.gen_transmat_duration(trajid_list, poi_info)
     transmat_neighbor = dat_obj.gen_transmat_neighbor(trajid_list, poi_info)
 
-    poi_features = pd.DataFrame(data=np.zeros((len(poi_list), len(feature_names))), columns=feature_names, index=poi_list)
+    poi_features = pd.DataFrame(data=np.zeros((len(poi_list), len(feature_names))),
+                                columns=feature_names, index=poi_list)
     poi_features.index.name = 'poiID'
     poi_features['poiCat'] = poi_info.loc[poi_list, 'poiCat']
     poi_features['popularity'] = np.digitize(poi_info.loc[poi_list, 'popularity'], dat_obj.LOGBINS_POP)
@@ -372,12 +378,12 @@ def calc_edge_features(trajid_list, poi_list, poi_info, dat_obj, log_transition=
 
         for k in range(len(poi_list)):  # NOTE: POI order
             pk = poi_list[k]
-            edge_features[j, k, :] = np.array(
-                    [transmat_cat.loc[cat, poi_features.loc[pk, 'poiCat']],
-                     transmat_pop.loc[pop, poi_features.loc[pk, 'popularity']],
-                     transmat_visit.loc[visit, poi_features.loc[pk, 'nVisit']],
-                     transmat_duration.loc[duration, poi_features.loc[pk, 'avgDuration']],
-                     transmat_neighbor.loc[cluster, poi_features.loc[pk, 'clusterID']]])
+            edge_features[j, k, :] = np.array([
+                                              transmat_cat.loc[cat, poi_features.loc[pk, 'poiCat']],
+                                              transmat_pop.loc[pop, poi_features.loc[pk, 'popularity']],
+                                              transmat_visit.loc[visit, poi_features.loc[pk, 'nVisit']],
+                                              transmat_duration.loc[duration, poi_features.loc[pk, 'avgDuration']],
+                                              transmat_neighbor.loc[cluster, poi_features.loc[pk, 'clusterID']]])
 
     if log_transition is True:
         return np.log10(edge_features)

@@ -38,14 +38,15 @@ SSVM_MULTI_LABEL = True  # use multi-label SSVM
 SSVM_VARIANT = 'D'
 
 inference_method = do_inference_list_viterbi
-bestC = pickle.load(open(os.path.join(data_dir, 'bestC-' + SSVM_VARIANT + '-' + dat_obj.dat_suffix[dat_ix] + '.pkl'), 'rb'))
+bestC = pickle.load(open(os.path.join(data_dir, 'bestC-' + SSVM_VARIANT + '-' +
+                         dat_obj.dat_suffix[dat_ix] + '.pkl'), 'rb'))
 
 recdict_ssvm = dict()
 keys = sorted(dat_obj.TRAJID_GROUP_DICT.keys())
 
 i = qix
 ps, L = keys[i]
-keys_cv = keys[:i] + keys[i+1:]
+keys_cv = keys[:i] + keys[i + 1:]
 
 if (ps, L) not in bestC:
     sys.stderr.write('start POI of query %s does not exist in training set.\n' % str(keys[i]))
