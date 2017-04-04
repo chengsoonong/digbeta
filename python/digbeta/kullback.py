@@ -28,7 +28,7 @@ def klucb(x, d, div, upperbound, lowerbound=-float('inf'), precision=1e-6):
     l = max(x, lowerbound)
     u = upperbound
     while u - l > precision:
-        m = (l + u)/2
+        m = (l + u) / 2
         if div(x, m) > d:
             u = m
         else:
