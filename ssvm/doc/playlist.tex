@@ -58,8 +58,119 @@ and co-embedding of songs and users etc.
 Evaluation approaches including user study, some notion of cohesion overs songs in playlist (\eg, the fraction of songs by the same artist), 
 ranking based metrics and generative likelihood~\cite{mcfee2011natural}.
 
-\subsection{Playlist dataset}
+\paragraph{User study}
+The ultimate goal of playlist generation is to produce quality playlists to satisfy users, which justifies user study as an evaluation metric.
+Unfortunately, large-scale user studies are time consuming and expensive, 
+and the results are difficult to reproduce~\cite{mcfee2011natural,recsysbook2015,bonnin2015automated}.
+
+\paragraph{Discriminative learning approach}
+Measures commonly used in the domain of IR such as \emph{hit rates/recall, precision}~\cite{recsysbook2015,bonnin2015automated},
+as well as area under an ROC curve (AUC)~\cite{bengroove2017} are used to evaluate playlist generator.
+In particular, playlist generation is formulated as a classification problem~\cite{bengroove2017}, specifically, 
+given dataset $\mathcal{D} = \{(\x_i, r_i)\}$ where $\x_i \in \mathbb{R}^d$ is a feature vector representing 
+the context (\ie, previous tracks in playlist, a seed artist and user) of recommending track $i$,
+$r_i \in \{0, 1\}$ is a binary variable representing positive/negative labels.
+The dataset was randomly partitioned into a 70/30 train/test split, 
+a Bayesian hierarchical model was trained on the training set and then evaluated on test set using AUC as the metric.
+
+\paragraph{Generative approach}
+McFee and Lanckriet advocate to use generative approach, in particular, the \emph{likelihood} of samples, 
+to evaluated playlist generator~\cite{mcfee2011natural}.
+Given dataset $\mathcal{D}$ with a set of playlists $s=(x_1, \dots, x_k) \in \mathcal{D}$ and model parameter $\mathbf{\theta}$, 
+variants of likelihood including:
 \begin{itemize}
-\item AotM-2011 dataset~\cite{mcfee2012hypergraph}
-\item 30Music dataset~\cite{turrin201530music}
+\item average log-likelihood with Markov assumption~\cite{mcfee2011natural,chen2012playlist}:
+      \begin{equation*}
+      \mathcal{L}(\mathcal{D}_\text{test} | \bm{\theta}) 
+      = \frac{1}{N_\text{test}} \sum_{s \in \mathcal{D}_\text{test}} \log Pr(s | \bm{\theta})
+      = \frac{1}{N_\text{test}} \sum_{(x_1,\dots,x_{|s|}) \in \mathcal{D}_\text{test}} 
+        \log \left( Pr(x_1 |\bm{\theta}) \prod_{t=1}^{|s|-1} Pr(x_{t+1} | x_t) \right).
+      \end{equation*}
+      There is further assumption that $Pr(x_1 |\mathbf{\theta})$ is a constant for every playlist $s$.
+      Due to the Markov assumption, we can simply view the dataset of playlists as a collection of pairs of songs (bi-grams),
+      which makes the evaluation protocol important, as the meaning of $N_\text{test}$ is dependent on the protocol used.
+      For example, in~\cite{mcfee2011natural}, 
+      the dataset $\mathcal{D}$ is randomly partitioned 10 times into 10/90 train/test splits (over \emph{bi-grams}, \ie, \emph{transitions}),
+      and the partitioning is performed over \emph{bigrams} so that all bigrams $(x_i, \cdot)$ ($x_i$ is a song) belong to either training or test set.
+      In this protocol, $N_\text{test}$ is the \emph{number of playlists} in test set.
+      Another protocol is used in~\cite{chen2012playlist}, 
+      where dataset $\mathcal{D}$ is also partitioned into (approximately) 10/90 split (over \emph{transitions}) 
+      so that each song appears at least once in training set,
+      and here $N_\text{test}$ is \emph{number of transitions} in test set.      
+\item length-normalised average log-likelihood with Markov assumption~\cite{mcfee2012hypergraph}:
+      \begin{equation*}
+      \mathcal{L}(\mathcal{D}_\text{test} | \bm{\theta}) 
+      = \frac{1}{N_\text{test}} \sum_{s \in \mathcal{D}_\text{test}} \frac{1}{|s|} \log Pr(s | \bm{\theta})
+      = \frac{1}{N_\text{test}} \sum_{(x_1,\dots,x_{|s|}) \in \mathcal{D}_\text{test}} 
+        \frac{1}{|s|} \log \left( Pr(x_1 |\bm{\theta}) \prod_{t=1}^{|s|-1} Pr(x_{t+1} | x_t) \right).
+      \end{equation*}
+      The evaluation protocol is randomly partitioning dataset into 75/25 train/test splits (over categories of songs) 10 times,
+      and $N_\text{test}$ is the number of playlists in test set.
 \end{itemize}
+
+\paragraph{Other metrics and protocols}
+One example is to define a score for each recommended / produced playlist, 
+and use a weighted sum of scores of all recommended playlists to represent the performance of the model~\cite{platt2002learning}.
+
+\paragraph{Discriminative learning approach vs. Generative approach}
+There are arguments on why one approach is used instead the other, for example, in~\cite{mcfee2011natural}, the authors wrote:
+\begin{center}
+\begin{minipage}[c]{.9\textwidth}
+\it
+The IR approach -- and more generally, any discriminative learning approach -- is only applicable when one can obtain negative examples, 
+\ie, bad playlists. In reality, negative examples are difficult to define, let alone obtain, as users typically only share playlists that they like.
+\end{minipage}
+\end{center}
+
+\noindent
+On the other hand, in~\cite{bonnin2015automated}, the authors wrote:
+\begin{center}
+\begin{minipage}[c]{.9\textwidth}
+\it
+$\dots$, using the $\mathcal{ALL}$ measure exhibits major limitations.
+First, it can only be used to compare algorithms, and it does not tell us if the generated playlists are actually good. 
+Second, the measure requires model smoothing to avoid zero probabilities. 
+This in turn can result in generally lower values of the estimated quality, 
+which can finally lead to very small differences between different algorithms, at least when a linear normalization is used.
+\end{minipage}
+\end{center}
+where $\mathcal{ALL}$ denotes average log-likelihood.
+
+
+\subsection{Playlist dataset}
+\paragraph{AotM-2011 dataset~\cite{mcfee2012hypergraph}}
+\paragraph{30Music dataset~\cite{turrin201530music}}
+
+\begin{table}
+\begin{minipage}[c]{.5\textwidth}
+\caption{Statistics of the 30Music dataset}
+\label{tab:30music_stats}
+\centering
+%\setlength{\tabcolsep}{28pt} % tweak the space between columns
+\begin{tabular}{l|l} \hline
+\textbf{\#albums}            & 217,337   \\
+\textbf{\#artists}           & 560,927   \\
+\textbf{\#users}             & 45,167    \\
+\textbf{\#tags}              & 276,618   \\
+\textbf{\#tracks/songs}      & 4,519,105 \\
+\textbf{\#likes/preferences} & 4,106,341 \\
+\textbf{\#playlist}          & 56,388    \\ \hline
+\end{tabular}
+\end{minipage}
+\hfill
+\begin{minipage}[c]{.5\textwidth}
+\caption{Statistics of playlist length}
+\label{tab:30music_playlist}
+\centering
+\begin{tabular}{l|l} \hline
+\textbf{max}    & 200   \\
+\textbf{min}    & 1     \\
+\textbf{median} & 14    \\
+\textbf{mean}   & 31.4  \\
+\textbf{std}    & 42.9  \\
+\textbf{25\%}   & 5     \\
+\textbf{50\%}   & 14    \\
+\textbf{75\%}   & 37    \\ \hline
+\end{tabular}
+\end{minipage}
+\end{table}
