@@ -7,7 +7,7 @@ from pystruct.models import StructuredModel
 from pystruct.learners import OneSlackSSVM
 
 sys.path.append('.')
-from shared import LOG_SMALL, LOG_TRANSITION, FEATURES
+from shared import LOG_SMALL, LOG_TRANSITION, FEATURES  # noqa: E402
 
 
 class SSVM:

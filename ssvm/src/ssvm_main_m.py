@@ -17,11 +17,11 @@ data_dir = os.path.join(work_dir, 'data')
 src_dir = os.path.join(work_dir, 'src')
 sys.path.append(src_dir)
 
-from shared import TrajData
-from ssvm import SSVM
-# import pyximport
+from shared import TrajData  # noqa: E402
+from ssvm import SSVM  # noqa: E402
+# import pyximport  # noqa: E402
 # pyximport.install(setup_args={'include_dirs': np.get_include()}, reload_support=True)
-from inference_lv import do_inference_list_viterbi
+from inference_lv import do_inference_list_viterbi  # noqa: E402
 
 random.seed(1234554321)
 np.random.seed(123456789)
