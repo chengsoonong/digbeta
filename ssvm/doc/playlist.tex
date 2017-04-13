@@ -76,7 +76,7 @@ a Bayesian hierarchical model was trained on the training set and then evaluated
 \paragraph{Generative approach}
 McFee and Lanckriet advocate to use generative approach, in particular, the \emph{likelihood} of samples, 
 to evaluated playlist generator~\cite{mcfee2011natural}.
-Given dataset $\mathcal{D}$ with a set of playlists $s=(x_1, \dots, x_k) \in \mathcal{D}$ and model parameter $\mathbf{\theta}$, 
+Given dataset $\mathcal{D}$ with a set of playlists $s=(x_1, \dots, x_k) \in \mathcal{D}$ and model parameter $\bm{\theta}$, 
 variants of likelihood including:
 \begin{itemize}
 \item average log-likelihood with Markov assumption~\cite{mcfee2011natural,chen2012playlist}:
@@ -86,14 +86,14 @@ variants of likelihood including:
       = \frac{1}{N_\text{test}} \sum_{(x_1,\dots,x_{|s|}) \in \mathcal{D}_\text{test}} 
         \log \left( Pr(x_1 |\bm{\theta}) \prod_{t=1}^{|s|-1} Pr(x_{t+1} | x_t) \right).
       \end{equation*}
-      There is further assumption that $Pr(x_1 |\mathbf{\theta})$ is a constant for every playlist $s$.
+      There is further assumption that $Pr(x_1 |\bm{\theta})$ is a constant for every playlist $s$.
       Due to the Markov assumption, we can simply view the dataset of playlists as a collection of pairs of songs (bi-grams),
       which makes the evaluation protocol important, as the meaning of $N_\text{test}$ is dependent on the protocol used.
       For example, in~\cite{mcfee2011natural}, 
       the dataset $\mathcal{D}$ is randomly partitioned 10 times into 10/90 train/test splits (over \emph{bi-grams}, \ie, \emph{transitions}),
       and the partitioning is performed over \emph{bigrams} so that all bigrams $(x_i, \cdot)$ ($x_i$ is a song) belong to either training or test set.
       In this protocol, $N_\text{test}$ is the \emph{number of playlists} in test set.
-      Another protocol is used in~\cite{chen2012playlist}, 
+      Another slightly different protocol is used in~\cite{chen2012playlist}, 
       where dataset $\mathcal{D}$ is also partitioned into (approximately) 10/90 split (over \emph{transitions}) 
       so that each song appears at least once in training set,
       and here $N_\text{test}$ is \emph{number of transitions} in test set.      
@@ -113,7 +113,7 @@ One example is to define a score for each recommended / produced playlist,
 and use a weighted sum of scores of all recommended playlists to represent the performance of the model~\cite{platt2002learning}.
 
 \paragraph{Discriminative learning approach vs. Generative approach}
-There are arguments on why one approach is used instead the other, for example, in~\cite{mcfee2011natural}, the authors wrote:
+There are arguments on why one approach is used instead of the other, for example, in~\cite{mcfee2011natural}, the authors wrote:
 \begin{center}
 \begin{minipage}[c]{.9\textwidth}
 \it
@@ -151,10 +151,12 @@ where $\mathcal{ALL}$ denotes average log-likelihood.
 \textbf{\#albums}            & 217,337   \\
 \textbf{\#artists}           & 560,927   \\
 \textbf{\#users}             & 45,167    \\
+\textbf{\#users w. playlist} & 15,102    \\
 \textbf{\#tags}              & 276,618   \\
 \textbf{\#tracks/songs}      & 4,519,105 \\
 \textbf{\#likes/preferences} & 4,106,341 \\
-\textbf{\#playlist}          & 56,388    \\ \hline
+\textbf{\#playlist}          & 48,422    \\
+\textbf{\#playlist per user} & 3.2       \\ \hline
 \end{tabular}
 \end{minipage}
 \hfill
@@ -165,12 +167,12 @@ where $\mathcal{ALL}$ denotes average log-likelihood.
 \begin{tabular}{l|l} \hline
 \textbf{max}    & 200   \\
 \textbf{min}    & 1     \\
-\textbf{median} & 14    \\
-\textbf{mean}   & 31.4  \\
-\textbf{std}    & 42.9  \\
-\textbf{25\%}   & 5     \\
-\textbf{50\%}   & 14    \\
-\textbf{75\%}   & 37    \\ \hline
+\textbf{median} & 15    \\
+\textbf{mean}   & 33.1  \\
+\textbf{std}    & 43.7  \\
+\textbf{25\%}   & 6     \\
+\textbf{50\%}   & 15    \\
+\textbf{75\%}   & 40    \\ \hline
 \end{tabular}
 \end{minipage}
 \end{table}
