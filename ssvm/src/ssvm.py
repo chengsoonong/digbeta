@@ -1,4 +1,4 @@
-import sys
+import sys, time
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
@@ -33,6 +33,9 @@ class SSVM:
         self.scaler_edge = MinMaxScaler(feature_range=(-1, 1), copy=False)
 
     def train(self, trajid_list, n_jobs=4):
+        t0 = time.time()
+        if self.debug is True: 
+            n_jobs = 1  # use one thread in debugging mode
         if self.poi_info is None:
             self.poi_info = self.dat_obj.calc_poi_info(trajid_list)
 
@@ -74,7 +77,7 @@ class SSVM:
 
         # train
         sm = MyModel(inference_train=self.inference_train, inference_pred=self.inference_pred,
-                     share_params=self.share_params, multi_label=self.multi_label)
+                     share_params=self.share_params, multi_label=self.multi_label, debug=self.debug)
         if self.debug is True:
             print('C:', self.C)
         verbose = 1 if self.debug is True else 0
@@ -82,6 +85,11 @@ class SSVM:
         try:
             self.osssvm.fit(X_train, y_train, initialize=True)
             self.trained = True
+            if self.debug is True:
+                inftime = np.sum(sm.inftime)
+                totaltime = time.time() - t0
+                print('Number of loss-augmented inference: %d' % sm.ninf)
+                print('Ratio of inference time in training: %.1f (sec) / %.1f (sec), %.1f%%' % (inftime, totaltime, 100 * inftime / totaltime))
             print('SSVM training finished.')
         # except ValueError:
         except:
@@ -112,7 +120,7 @@ class SSVM:
 class MyModel(StructuredModel):
     """A Sequence model"""
     def __init__(self, inference_train, inference_pred, share_params, multi_label,
-                 n_states=None, n_features=None, n_edge_features=None):
+                 n_states=None, n_features=None, n_edge_features=None, debug=False):
         assert(type(share_params) == bool)
         assert(type(multi_label) == bool)
         self.inference_method = 'customized'
@@ -125,8 +133,12 @@ class MyModel(StructuredModel):
         self.n_edge_features = n_edge_features
         self.share_params = share_params
         self.multi_label = multi_label
+        self.debug = debug
         self._set_size_joint_feature()
         self._set_class_weight()
+        if self.debug is True:
+            self.ninf = 0
+            self.inftime = []
 
     def _set_size_joint_feature(self):
         if None not in [self.n_states, self.n_features, self.n_edge_features]:
@@ -212,6 +224,7 @@ class MyModel(StructuredModel):
         return joint_feature_vector
 
     def loss_augmented_inference(self, x, y, w, relaxed=None):
+        t0 = time.time()
         # inference procedure for training: (x, y) from training set (with features already scaled)
         #
         # argmax_y_hat np.dot(w, joint_feature(x, y_hat)) + loss(y, y_hat)
@@ -252,6 +265,9 @@ class MyModel(StructuredModel):
 
         y_hat = self.inference_train(ps, L, M, unary_params, pw_params, unary_features, pw_features,
                                      y_true=y, y_true_list=y_true_list)
+        if self.debug is True:
+            self.ninf += 1
+            self.inftime.append(time.time() - t0)
         return y_hat
 
     def inference(self, x, w, relaxed=False, return_energy=False):
