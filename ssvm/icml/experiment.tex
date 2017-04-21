@@ -8,7 +8,7 @@
 We now present evaluations assessing the viability of our structured prediction approach
 for the sequential recommendation task discussed in Section~\ref{sec:trajrec}.
 %of trajectory recommendation.
-On two real-world dataset of photo tours, our methods is shown to significantly outperform
+On two real-world dataset of photo tours, our methods are shown to significantly outperform
 a number of non-structured baselines or those that do not take into account the recommendation setting.
 %, over which we demonstrate significant improvements.
 
@@ -110,12 +110,12 @@ All variants predicts with the list Viterbi algorithm (Section~\ref{ssec:subtour
 %To evaluate the performance of the various methods under comparison,
 %we first group the trajectories  %according to queries that they conform to.
 We then evaluate the performance of each algorithm using leave-one-query-out cross validation. 
-That is, holding out each query $\x\pb{i}$, and also all of its relevant trajectories $\{\y\pb{ij}\}_{j=1}^{n_i}$ in each round.
+That is, holding out each query $\x\pb{i}$, and also all of its relevant trajectories $\{\y\pb{ij}\}_{j=1}^{n_i}$ in each round,
 where in each iteration of this procedure,
 %one query and its associated trajectories serves as a test point, with all other trajectories for training.
 %(Note that without this query aggregation, there will be considerable overlap between the train and test set, and simple nearest neighbour methods will be hard to outperform.)
 % model selection (Monte Carlo CV) (with query aggregation): 90/10 random split for 5 times
-Relevant hyper-parameters (e.g.\ the regularisation constant $C$) are tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
+relevant hyper-parameters (\eg the regularisation constant $C$) are tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
 
 We use three different measures to compare algorithm performances.
 The {\bf F$_1$ score on points}~\cite{ijcai15} computes F$_1$ on the predicted versus seen points

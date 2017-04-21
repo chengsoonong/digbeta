@@ -20,7 +20,7 @@ For learning an SR model, loss-augmented inference (\ref{eq:loss_aug_inf}) needs
 As described in Section~\ref{ssec:sr}, %this involves %we would want to maximize the loss-augmented objective function
 %$\max_{\bar\y} \left\{ \w^\top \Psi(\x^{(i)}, \bar\y) + \Delta(\y^{(ij)}, \bar{\y}) \right\}$
 %where the domain of candidate sequences excludes the known sequences for query $\x^{(i)}$, \ie $\bar{\y} \in \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}$.
-however, the Viterbi algorithm use back-tracking to find the best sequence,
+however, the Viterbi algorithm uses back-tracking to find the best sequence,
 and cannot easily exclude known sequences.
 The rest of this section describes two algorithms, each intuitively aimed to address one of the two requirements above.
 Both can be applied in novel contexts of the SR model.
@@ -88,7 +88,7 @@ while Hamming loss cannot be expressed as a linear function of $u_{jk}$.
 \subsubsection{Finding $k$-best sequences}
 % 2 uses of list Viterbi: 1) multiple ground truths; 2) subtour elimination
 
-The algorithms that seem closest to loss-augmented inference with exclusions are several extensions
+The algorithm that seems closest to loss-augmented inference with exclusions are several extensions
 of the Viterbi algorithm that aim to find more than one high-scoring sequences.
 The \emph{parallel list Viterbi} algorithm~\cite{seshadri1994list} finds the top $k$ sequences
 by keeping $k$ backtrack pointers for each possible state in each position of the sequence.
@@ -115,7 +115,7 @@ Due to space limitations, the list Viterbi algorithm is fully detailed in the su
 For the structured recommendation problem, the serial list Viterbi algorithm can be used for inference
 by sequentially getting the next best sequence, until one or more paths are found.
 This algorithm can also be used for loss-augmented inference with Hamming loss,
-since it only require the loss function be decomposable with respect to the label elements.
+since it only requires the loss function be decomposable with respect to the label elements.
 %This list Viterbi algorithm performs a backward search for trajectories that merges into the existing candidates at any given point.
 %as described in Algorithm~\ref{alg:listviterbi}.
 

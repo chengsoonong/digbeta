@@ -132,22 +132,23 @@ To learn a suitable set of weights $\w$, SSVMs solve the following optimisation 
 %          \max_{\bar{\y} \in \mathcal{Y}}
 %          \left\{\w^\top \Psi(\x^{(i)}, \bar{\y}) + \Delta(\y^{(i)}, \bar{\y}) \right\}. \nonumber
 & \w^\top \Psi(\x^{(i)}, \y^{(i)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}) \ge
-  \Delta(\y^{(i)}, \bar{\y}) - \xi_i.
+  \Delta(\y^{(i)}, \bar{\y}) - \xi_i, \, \forall \bar\y \in \mathcal{Y}.
 \end{aligned}
 $}
 \end{equation}
 
-Here, $\bar\y$ is an arbitrary candidate sequence,  % \in \mathcal{Y} -- LX: what is cal Y anyway?
+Here, 
+%$\bar\y$ is an arbitrary candidate sequence,  % \in \mathcal{Y} -- LX: what is cal Y anyway?
+$\mathcal{Y}$ is the set of all possible sequences
 and $\Delta(\y, \bar\y)$ is the loss function between $\bar\y$ and the ground truth $\y$,
 %%LX: we don't need the def of \xi_i below?
 and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th example~\cite{tsochantaridis2005large},
-\resizebox{.99\linewidth}{!}{
+\resizebox{1.1\linewidth}{!}{
 \begin{minipage}{\linewidth}
 \begin{align*}
-\xi_i = \max \left( 0, \, \right.
-        & \max_{\bar{\y} \in \mathcal{Y}}
-          \left\{ \Delta(\y^{(i)}, \bar{\y}^{(i)}) + \w^\top \Psi(\x^{(i)}, \bar{\y}^{(i)}) \right\} \\
-        & \left. - \w^\top \Psi(\x^{(i)}, \y^{(i)}) \right).
+\xi_i = \max \left( 0, \, 
+        \max_{\bar{\y} \in \mathcal{Y}}
+        \left\{ \Delta(\y^{(i)}, \bar{\y}) + \w^\top \Psi(\x^{(i)}, \bar{\y}) \right\} - \w^\top \Psi(\x^{(i)}, \y^{(i)}) \right).
 \end{align*}
 \end{minipage}
 }
@@ -214,6 +215,7 @@ which leads to this $1$-slack formulation,
 $}
 \end{equation}
 This $1$-slack formulation can be trained more efficiently than the $N$-slack formulation (\ref{eq:nslack_ml}) and we use it here.
+
 The objective in (\ref{eq:nslack_ml}) is similar to a ranking objective, as the constraints enforce
 that the positively labeled sequences (the known items that the user likes) are scored
 higher than all other unseen sequences.
