@@ -1,4 +1,5 @@
-import sys, time
+import sys
+import time
 import numpy as np
 import pandas as pd
 from joblib import Parallel, delayed
@@ -34,7 +35,7 @@ class SSVM:
 
     def train(self, trajid_list, n_jobs=4):
         t0 = time.time()
-        if self.debug is True: 
+        if self.debug is True:
             n_jobs = 1  # use one thread in debugging mode
         if self.poi_info is None:
             self.poi_info = self.dat_obj.calc_poi_info(trajid_list)
@@ -89,7 +90,8 @@ class SSVM:
                 inftime = np.sum(sm.inftime)
                 totaltime = time.time() - t0
                 print('Number of loss-augmented inference: %d' % sm.ninf)
-                print('Ratio of inference time in training: %.1f (sec) / %.1f (sec), %.1f%%' % (inftime, totaltime, 100 * inftime / totaltime))
+                print('Ratio of inference time in training: %.1f (sec) / %.1f (sec), %.1f%%' %
+                      (inftime, totaltime, 100 * inftime / totaltime))
             print('SSVM training finished.')
         # except ValueError:
         except:
