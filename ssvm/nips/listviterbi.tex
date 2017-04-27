@@ -52,8 +52,8 @@ enforces that only a single sequence of POIs without sub-tours is permitted in t
 %\TODO{LX: i do not understand the last contraint, $v_j$ did not seem to have been defined? are they binary or something else?}
 % DW: v_j defined in the first constraint, which is a natural number
 
-\resizebox{.99\columnwidth}{!}{
-  \begin{minipage}{\linewidth}
+%%\resizebox{.99\columnwidth}{!}{
+%%  \begin{minipage}{\linewidth}
 \begin{alignat}{5}
 \max_{\bu,\bv} ~& \sum_{k=1}^m \w_k^\top \Psi_k(\x, y_k) \sum_{j=1}^m u_{jk}
 + \sum_{j,k=1}^m u_{jk} \w_{jk}^\top \Psi_{j, k}(\x, y_j, y_k) \nonumber\\
@@ -65,8 +65,8 @@ s.t. ~& u_{jk}, ~z_j \in \{0, 1\}, ~u_{jj}=0, ~z_1=0, ~v_j \in \mathbf{Z},~     
   & \sum_{j=1}^m \sum_{k=1}^m u_{jk} = l-1,                                                          \label{eq:cons4} \\
   & v_j - v_k + 1 \le (m-1) (1-u_{jk}),                     ~\forall j,k=2,\cdots,m                  \nonumber
 \end{alignat}
-\end{minipage}
-}
+%%\end{minipage}
+%%}
 
 TSPs are NP-hard,
 and so the ILP solver may not find a solution in reasonable time;
