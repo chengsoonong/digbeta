@@ -20,7 +20,7 @@ careful book keeping of the best $k-1$ paths through the trellis found so far an
 We choose the latter approach as it is more memory efficient.
 
 The list Viterbi approach~\cite{nilsson2001sequentially,seshadri1994list} maintains
-a heap (priority queue) of potential solutions, which are then checked for the desired property (for example
+a heap (\ie priority queue) of potential solutions, which are then checked for the desired property (for example
 whether there are subtours). Once the requisite number of trajectories with the desired
 property are found, the algorithm terminates (for example once one trajectory without subtours
 is found). The heap is initialised by running forward-backward
@@ -267,3 +267,31 @@ and F$_1$ score on pairs can be written as
          \sum_{i,j} \llb r_i > r_j \rrb  \llb r_j > 0 \rrb \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j > 0 \rrb}
         {l(l-1)}
 \end{align*}
+
+
+% topk evaluation table
+\input{tab_topk}
+
+
+% histogram of #ground truth
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=\columnwidth]{hist_query.pdf}
+	\caption{Histograms of the number of trajectories per query.}
+	\label{fig:hist}
+\end{figure}
+
+
+% histogram of trajectory length
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=\columnwidth]{hist_length.pdf}
+	\caption{Histograms of the length of trajectories.}
+	\label{fig:hist}
+\end{figure}
+
+\clearpage
+
+% topk evaluation plots
+%\includepdf[pages={1-},scale=0.75]{plots.pdf}
+\includepdf[pages={1-}]{plot_topk.pdf}
