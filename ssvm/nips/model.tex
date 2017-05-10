@@ -39,7 +39,8 @@ there %is %have not one, but a set of
 are multiple associated outputs %$\{ y\pb{ij} \}_{j=1:n^i}$ (\eg movies).
 $\{ \y\pb{ij} \}_{j=1}^{n_i}$ (\eg trajectories they have visited).
 Indeed, the existence of multiple outputs is the basis on which even non-structured recommendation systems are built, as one looks to exploit signal embedded in the aggregate information.
-For model learning, structured prediction approaches do not have a standard way to take into account multiple output sequences %$\{ \y\pb{ij} \}_{j=1:n^i}$
+For model learning, structured prediction approaches do not have a standard way to take into account multiple output sequences 
+%$\{ \y\pb{ij} \}_{j=1:n^i}$
 for each input %$\x\pb{i}$
 yet.
 
@@ -49,75 +50,40 @@ For structured recommendation problems, computing $\argmax_\y f(\x,\y)$ is harde
 
 In the rest of this section, we will first review the background of structured prediction problems (Sec~\ref{ssec:ssvm}), then present a model for structured recommendation (Sec~\ref{ssec:sr}), followed by algorithms for its learning (Sec~\ref{ssec:subtour}) and inference (Sec~\ref{ssec:SRinf}).
 
-% In many practical
-% problems we may observe more than one label for the same set of features, which violates
-% the implicit assumptions of many learning algorithms. In this work we explicitly consider
-% all observed labels of a particular example to be useful for training, that is we use
-% the multiset of ground truths in training.
-% In particular we focus on the structured prediction case,
-% where the output of the classifier is from a large set $\mathcal{Y}$ with internal structure.
-% An example of this is when $y\in\mathcal{Y}$ is a sequence of binary values.
-% Given an example $x_i$ there may be multiple label sequences $y_{ij}$, where $j=1,...,J$.
-
-\eat{
-Suggested order:
-\begin{enumerate}
-  \item structured SVM
-  \item multiset SSVM
-  \item list Viterbi for multiple ground truths
-\end{enumerate}
-
-Then focus on trajectory
-\begin{enumerate}
-  \item Trajectory recommendation
-  \item ILP for subtour elimination
-  \item 2 uses of list Viterbi
-  \begin{itemize}
-    \item multiple ground truths
-    \item subtour elimination
-  \end{itemize}
-\end{enumerate}
-}
 
 \secmoveup
 \subsection{Preliminaries: structured SVMs}
 \label{ssec:ssvm}
 \textmoveup
 
-%In structured prediction, the output of classifier given feature vector $\x$ is
-%\begin{equation*}
-%\y^* = \argmax_{\y \in \mathcal{Y}}~ f(\x, \y),
-%\end{equation*}
-%where $\mathcal{Y}_\mathbf{x}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ and satisfying query $\mathbf{x}$,
 One well known model for structured prediction is the Structured Support Vector Machines (SSVM)~\cite{joachims2009predicting,tsochantaridis2005large}.
 This comprises three essential ingredients.
 
-\emph{Score function}. In SSVMs, we specify that the score function $f(\x, \y)$ takes a linear form:
+\emph{Score function}. In SSVMs, we specify that the score function $f(\x, \y)$ takes a linear form, \ie 
 %is a function that scores the compatibility between features $\mathbf{x}$ and a specific label $\mathbf{y}$,
 %in the case of structured SVM (SSVM), the compatibility function $f(\mathbf{x}, \mathbf{y})$ for structured SVM is this linear form,
-\begin{equation*}
-f(\x, \y) = \w^\top \Psi(\x, \y),
-\end{equation*}
+%\begin{equation*}
+$f(\x, \y) = \w^\top \Psi(\x, \y)$,
+%\end{equation*}
 where $\w$ is a weight vector, and $\Psi(\x, \y)$ is a \emph{joint feature map}
 between the input $\x$ and label sequence $\y$.
 The design of the feature map $\Psi(\cdot,\cdot)$ is problem specific.
-%For many problems, we can assume that it is a vector whose elements represent unary
-%terms for each element in the label $y_{1:l}$, and pairwise interactions between the labels.
-%For sequence data, in particular, we also assume that the pair-wise interactions are between
-%adjacent elements, i.e. $y_j$ and $y_{j+1}$ for $j=1:l-1$.
-%Subsequently, the score function $f(\x,\y)$ decomposes into a sum of
-%each of these unary and pairwise features with the corresponding feature weight:
-%\begin{equation}
-%\label{eq:jointfeature}
+
+For many problems, we can assume that it is a vector whose elements represent unary
+terms for each element in the label $y_{1:l}$, and pairwise interactions between the labels.
+For sequence data, in particular, we also assume that the pair-wise interactions are between
+adjacent elements, i.e. $y_j$ and $y_{j+1}$ for $j=1:l-1$.
+Subsequently, the score function $f(\x,\y)$ decomposes into a sum of
+each of these unary and pairwise features with the corresponding feature weight:
+\begin{equation}
+\label{eq:jointfeature}
 %\resizebox{0.9\linewidth}{!}{$\displaystyle
-%f(\x, \y) =  %\w^\top \Psi(\x,\y)
-%\sum_{j=1}^l \w_j^\top \Psi_j(\x, y_j)
-%  + \sum_{j=1}^{l-1} \w_{j,j+1}^\top \Psi_{j,j+1}(\x, y_{j}, y_{j+1}). %\nonumber
-%  $}
-%\end{equation}
-%Here, $\Psi_j$ is a feature map between the input and one output label element $y_j$, with a corresponding weight vector $\w_j$
-%and $\Psi_{j,j+1}$ is a pairwise feature vector that captures the interactions between consecutive labels $y_j$ and $y_{j+1}$,
-%with a corresponding weight vector $\w_{j,j+1}$.
+f(\x, \y) =  \sum_{j=1}^l \w_j^\top \Psi_j(\x, y_j) + \sum_{j=1}^{l-1} \w_{j,j+1}^\top \Psi_{j,j+1}(\x, y_{j}, y_{j+1}).
+%$}
+\end{equation}
+Here, $\Psi_j$ is a feature map between the input and one output label element $y_j$, with a corresponding weight vector $\w_j$,
+and $\Psi_{j,j+1}$ is a pairwise feature vector that captures the interactions between consecutive labels $y_j$ and $y_{j+1}$,
+with a corresponding weight vector $\w_{j,j+1}$.
 
 %To learn the parameters, we train the structured SVM by optimising a quadratic program (QP),
 \emph{Objective function}.
@@ -137,30 +103,41 @@ To learn a suitable set of weights $\w$, SSVMs solve the following optimisation 
 Here, 
 %$\bar\y$ is an arbitrary candidate sequence,  % \in \mathcal{Y} -- LX: what is cal Y anyway?
 $\mathcal{Y}$ is the set of all possible sequences
-and $\Delta(\y, \bar\y)$ is the loss function between $\bar\y$ and the ground truth $\y$,
+and $\Delta(\yii, \bar\y)$ is the loss function between $\bar\y$ and the ground truth $\yii$,
 %%LX: we don't need the def of \xi_i below?
 and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th example~\cite{tsochantaridis2005large},
+\begin{equation}
+\label{eq:hingeloss}
 %%\resizebox{1.1\linewidth}{!}{
 %%\begin{minipage}{\linewidth}
-\begin{align*}
+%\begin{align*}
 \xi_i = \max \left( 0, \, 
         \max_{\bar{\y} \in \mathcal{Y}}
         \left\{ \Delta(\y^{(i)}, \bar{\y}) + \w^\top \Psi(\x^{(i)}, \bar{\y}) \right\} - \w^\top \Psi(\x^{(i)}, \y^{(i)}) \right).
-\end{align*}
+%\end{align*}
 %%\end{minipage}
 %%}
+\end{equation}
+
+\emph{Loss-augmented inference}, \ie the inner maximisation in Eq.~(\ref{eq:hingeloss}).
 %This formulation is called "$n$-slack" as we have one slack variable for each example in training set.
-Here the inner maximisation is known as the \emph{loss-augmented inference}.
-Loss-augmented inference can be efficiently done if loss function $\Delta(\cdot,\cdot)$ is also decomposable
+%Here the inner maximisation is known as the \emph{loss-augmented inference}.
+When the underlying graph of SSVM is a tree, which is the case for sequence recommendation, 
+loss-augmented inference can be efficiently done if loss function $\Delta(\cdot,\cdot)$ is decomposable
 with respect to individual and pairs of label elements.
 % in a way similar to Equation~\eqref{eq:jointfeature}.
 
 To solve problem (\ref{eq:nslack}), one option is to simply enumerate all constraints, and feed the problem into a standard solver.
 However, this approach is impractical as there is a constraint for every possible label $\bar{\y}$.
-Instead, we can resort to a cutting-plane algorithm which repeatedly solves the quadratic program (\ref{eq:nslack})
-with a growing set of constraints~\cite{joachims2009predicting}.
-In each iteration, a new constraint is formed by solving the loss-augmented inference,
-which helps shrink the feasible region of the problem.
+Recently developed learning schemes such as 
+cutting-plane algorithms~\cite{joachims2009predicting}, % cutting-plane
+gradient-based algorithms~\cite{ratliff2006subgradient} % sub-gradient
+and conditional gradient methods~\cite{lacoste2013block} % Frank-Wolfe
+can efficiently optimise the objective and are widely used in practice~\cite{muller2014methods}.
+%Instead, we can resort to a cutting-plane algorithm which repeatedly solves the quadratic program (\ref{eq:nslack})
+%with a growing set of constraints~\cite{joachims2009predicting}.
+%In each iteration, a new constraint is formed by solving the loss-augmented inference,
+%which helps shrink the feasible region of the problem.
 
 \secmoveup
 \subsection{SSVM for recommendation: the SR model}
@@ -168,12 +145,20 @@ which helps shrink the feasible region of the problem.
 \textmoveup
 
 Recall that the structured recommendation problem
-involves observing \emph{multiple} ground truth output sequences for each input.
+involves observing \emph{multiple} ground truth output sequences for each input, \ie
 %If we observed more than one labels for a particular set of features,
-The classic SSVM described in Section~\ref{ssec:ssvm} can be generalised to capture this setting:
+%The classic SSVM described in Section~\ref{ssec:ssvm} can be generalised to capture this setting:
 given feature vector $\x^{(i)}$ and the corresponding set of ground truths $\{\y^{(ij)}\}_{j=1}^{n_i}$
-where $n_i$ is the number of labels for $\x^{(i)}$,
-we can train a \emph{structured recommendation} (\emph{SR}) model by optimising a quadratic program similar to (\ref{eq:nslack}),
+where $n_i$ is the number of labels for $\x^{(i)}$.
+% describe duplicating examples
+One naive approach for the classic SSVM described in Section~\ref{ssec:ssvm} to capture this setting is simply creating 
+$n_i$ examples $\{(\xii, \yij)\}_{j=1}^{n_i}$. 
+The problem with this approach is in the result of loss-augmented inference, 
+\ie the result of inference on $(\xii, \yij)$ could be any label $\yik \in \{\yij\}_{j=1}^{n_i} \setminus \{\yij\}$,
+but then we are incorrectly penalising predicting $\yik$ for $\xii$. 
+
+We propose a \emph{structured recommendation} (\emph{SR}) model that generalises the classic SSVM by explicitly incorporating the multiple ground truths for each example.
+We can learn an \emph{SR} model by optimising a quadratic program similar to (\ref{eq:nslack}),
 \begin{equation}
 \label{eq:nslack_ml}
 %%\resizebox{0.9\linewidth}{!}{$
@@ -211,9 +196,9 @@ which leads to this $1$-slack formulation,
 \end{aligned}
 %%$}
 \end{equation}
-This $1$-slack formulation can be trained more efficiently than the $N$-slack formulation (\ref{eq:nslack_ml}) and we use it here.
+This $1$-slack formulation can be learned more efficiently than the $N$-slack formulation (\ref{eq:nslack_ml}) if training using cutting-plane algorithm.
 
-The objective in (\ref{eq:nslack_ml}) is similar to a ranking objective, as the constraints enforce
+Intuitively, the objective in (\ref{eq:nslack_ml}) is similar to a ranking objective, as the constraints enforce
 that the positively labeled sequences (the known items that the user likes) are scored
 higher than all other unseen sequences.
 Such objectives have proven useful in classic unstructured recommendation~\cite{bpr09}.
@@ -227,11 +212,12 @@ Such objectives have proven useful in classic unstructured recommendation~\cite{
 
 The SR model require two algorithmic components for inference and learning
 (missing from the SSVM algorithms).
-For inference, SR needs to predict a {\em path}, \ie a sequence whose elements are distinct from each other.
+For inference, SR needs to predict a {\em path}, \ie a sequence whose elements are distinct from each other,
+that maximises the score function (Eq.~\ref{eq:jointfeature}).
 As described in Section~\ref{sec:intro}, this is desirable since users traversing a sequence (of locations or music)
 would not want to see repeated entries.
 Given desired sequence length $l$ among $m$ possible points, the Viterbi algorithm~\cite{tsochantaridis2005large}
-will generate the length-$l$ sequence with the best score, i.e. $\y^* = \argmax_\y f(\x,\y)$.
+will generate the length-$l$ sequence $\y^*$ with the best score. %i.e. $\y^* = \argmax_\y f(\x,\y)$.
 One may then use the well-known
 Christofides algorithm~\cite{christofides1976} on $\y^*$ to eliminate loops in the sequence.
 %is known to generate a solutions within a factor of 3/2 of the optimal solution for traveling salesman problems.
@@ -243,141 +229,131 @@ As described in Section~\ref{ssec:sr}, %this involves %we would want to maximize
 %where the domain of candidate sequences excludes the known sequences for query $\x^{(i)}$, \ie $\bar{\y} \in \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}$.
 however, the Viterbi algorithm uses back-tracking to find the best sequence,
 and cannot easily exclude known sequences.
-The rest of this section describes two algorithms, each intuitively aimed to address one of the two requirements above.
-Both can be applied in novel contexts of the SR model.
-We will also describe practical choices about which algorithm to use when.
+The rest of this section describes two algorithms, each intuitively aimed to address %one of 
+the two requirements above, both can be applied in novel contexts of the SR model.
+%We will also describe practical choices about which algorithm to use when.
 
 
 \subsubsection{Finding paths with integer programming}
-% ILP for subtour elimination
-Inference in the SR model requires finding the best path that traverses exactly $l$ of $m$ candidate points.
+% ILP for subtour elimination: (prediction) inference
+%Inference in the SR model requires finding the best path that traverses exactly $l$ of $m$ candidate points.
+For inference in the SR model, 
+we consider the setting of finding the best path $\y^*$ that starts from a specific point $y_1^*$ and traverses exactly $l$ of $m$ candidate points.
 This can be seen as a variant of the travelling salesman problem (TSP), or the best of ${m \choose l}$ TSPs.
 Such a point traversal problem can be solved by incorporating
-sub-tour elimination constraints of the TSP.
-In particular, the following integer linear program (ILP) formulation~\cite{ijcai15,cikm16paper}
-will solve SR inference for trajectory $\y$ of length $l$.
+sub-tour elimination constraints of the TSP~\cite{ijcai15,cikm16paper}.
+In particular, the integer linear program (ILP) formulation (Eq.~\ref{eq:obj} to \ref{eq:cons5})
+will solve SR inference for path $\y^*$ of length $l$ by decoding an optimal solution.
 
-Consider $u_{jk}$ binary decision variables that are true if and only if
-the transition from $y_j$ to $y_k$ is in the resulting trajectory,
-and
-binary decision variables
-$z_j$ that are true iff $y_j$ is the last POI in trajectory.
+Given a set of points $\{p_j\}_{j=1}^m$, 
+consider binary decision variables $u_{jk}$ that are true if and only if
+the transition from $p_j$ to $p_k$ is in the resulting path,
+and binary decision variables $z_j$ that are true iff $p_j$ is the last point in $\y^*$.
 %Suppose that $l$ is the number of candidate POIs.
-For brevity, we index the POIs such that $y_1 = 1$.
-Firstly, the desired trajectory should start from $y_1$ (Constraint~\ref{eq:cons2}).
-In addition, any POI could be visited at most once (Constraint~\ref{eq:cons3}).
-Moreover, only $l-1$ transitions between POIs are permitted
-since the trajectory length is $l$ (Constraint~\ref{eq:cons4}).
+For brevity, we index the points such that $y_1^* = p_1$.
+Firstly, the desired path should start from $y_1^*$ (Constraint~\ref{eq:cons2}).
+In addition, any point could be visited at most once (Constraint~\ref{eq:cons3}).
+Moreover, only $l-1$ transitions between points are permitted
+since the path length is $l$ (Constraint~\ref{eq:cons4}).
 The last constraint, where $v_j$ is an auxiliary variable,
-enforces that only a single sequence of POIs without sub-tours is permitted in the trajectory.
+enforces that only a single sequence of points without sub-tours is permitted in $\y^*$.
 %\TODO{LX: i do not understand the last contraint, $v_j$ did not seem to have been defined? are they binary or something else?}
 % DW: v_j defined in the first constraint, which is a natural number
+Note that we rewrite Eq.~(\ref{eq:jointfeature}) into a linear function of decision variables $u_{jk}$
+(dropping the unary term corresponding to $y_1^*$ as it has been observed), which results in the objective~(\ref{eq:obj}).
 
 %%\resizebox{.99\columnwidth}{!}{
 %%  \begin{minipage}{\linewidth}
 \begin{alignat}{5}
-\max_{\bu,\bv} ~& \sum_{k=1}^m \w_k^\top \Psi_k(\x, y_k) \sum_{j=1}^m u_{jk}
-+ \sum_{j,k=1}^m u_{jk} \w_{jk}^\top \Psi_{j, k}(\x, y_j, y_k) \nonumber\\
-  %              & + \sum_{j=1}^l \sum_{k=1}^l u_{jk} \w_{jk}^\top \Psi_{j, k}(\x, y_j, y_k) \\
-s.t. ~& u_{jk}, ~z_j \in \{0, 1\}, ~u_{jj}=0, ~z_1=0, ~v_j \in \mathbf{Z},~                          \label{eq:cons1} \\
-  & y_j \in \{1,\dots,m\}, ~\forall j, k = 1,\cdots,m                                                \nonumber \\
-  & \sum_{k=2}^m u_{1k} = 1, ~\sum_{j=2}^m u_{j1} = 0  \label{eq:cons2} \\
-  & \sum_{j=1}^m u_{ji} = z_i + \sum_{k=2}^m u_{ik} \le 1,  ~\forall i=2,\cdots,m                    \label{eq:cons3} \\
-  & \sum_{j=1}^m \sum_{k=1}^m u_{jk} = l-1,                                                          \label{eq:cons4} \\
-  & v_j - v_k + 1 \le (m-1) (1-u_{jk}),                     ~\forall j,k=2,\cdots,m                  \nonumber
+\max_{\bu} ~& \sum_{k=1}^m \w_k^\top \Psi_k(\x, p_k) \sum_{j=1}^m u_{jk}
++ \sum_{j,k=1}^m u_{jk} \w_{jk}^\top \Psi_{j, k}(\x, p_j, p_k)                                  \label{eq:obj} \\
+s.t. ~~& u_{jk}, ~z_j \in \{0, 1\}, ~u_{jj} = z_1 = 0, ~v_j \in \mathbf{Z}, ~j,k = 1,\cdots,m   \label{eq:cons1} \\
+%  & y_j \in \{1,\dots,m\}, ~\forall j, k = 1,\cdots,m                                           \nonumber \\
+  & \sum_{k=2}^m u_{1k} = 1, ~\sum_{j=2}^m u_{j1} = 0                                           \label{eq:cons2} \\
+  & \sum_{j=1}^m u_{ji} = z_i + \sum_{k=2}^m u_{ik} \le 1, ~i = 2,\cdots,m                      \label{eq:cons3} \\
+  & \sum_{j=1}^m \sum_{k=1}^m u_{jk} = l-1,                                                     \label{eq:cons4} \\
+  & v_j - v_k + 1 \le (m-1) (1-u_{jk}), ~j,k = 2,\cdots,m                                       \label{eq:cons5}
 \end{alignat}
 %%\end{minipage}
 %%}
 
-TSPs are NP-hard,
-and so the ILP solver may not find a solution in reasonable time;
-however, when the ILP solver finds a solution,
-it will be optimal.
+% ILP for top-k prediction/inference
+We can use the above formulation to find the top-$K$ scored paths in a sequential manner. 
+In particular, given the $K\!-\!1$ top scored paths $\{\y^{(k)}\}_{k=1}^{K-1}$, 
+the $K\!$-th best scored path can be found by solving the above ILP with additional constraints:
+\begin{equation}
+\label{eq:topk_ILP}
+\sum_{j=1}^{l-1} u_{y_j, y_{j+1}} \le l-2, ~\forall \y \in \{\y^{(k)}\}_{k=1}^{K-1}.
+\end{equation}
+
+% ILP for learning (loss-augmented inference)
+To learn an SR model, we can solve the loss-augmented inference~(\ref{eq:loss_aug_inf}) 
+using ILP constraints~(\ref{eq:cons1})-(\ref{eq:cons5}),
+with additional ones similar to~(\ref{eq:topk_ILP}) to exclude observed labels,
+as long as the loss $\Delta(\y,\bar\y)$ can be represented as a linear function of $u_{jk}$,
+\eg the number of mis-predicted POIs disregarding the order $\Delta(\y, \bar\y) = \sum_{j=2}^l (1 - \sum_{k=1}^m u_{k, y_j})$.
+However, we note that Hamming loss, the most common loss function for sequence prediction tasks,
+cannot be used here, as $\Delta(\y,\bar\y) = \sum_{j=1}^l (1 - \llb y_j = \bar y_j \rrb)$
+cannot be expressed as a linear function of $u_{jk}$.
+
+%In addition, the ILP solver may not find an optimal solution in reasonable time as TSPs are NP-hard.
+
+%however, when the ILP solver finds a solution, it will be optimal.
 %and so the ILP formulation will give the optimal solution when the solver finds the optimal.
-We note, however, that an ILP cannot be readily used for loss-augmented inference
-for the Hamming loss, the most common loss function for sequence prediction tasks.
-This is because ILP requires the loss to be a linear function of $u_{jk}$,
-\eg, the number of mis-predicted POIs disregarding the order $\Delta(\y, \bar\y) = 1 - \sum_{j=1}^m \sum_{k=1}^m u_{j, y_k}$,
-while Hamming loss cannot be expressed as a linear function of $u_{jk}$.
-%if we define the loss as the number of mispredicted POIs,
-%where $\mathbf{y}$ is the ground truth and $\bar{\mathbf{y}}$ is the trajectory corresponding to the optimal solution of this ILP.
-%=======
-%If we employ the above ILP to do loss-augmented inference, one restriction is that the loss should be a linear function of $u_{jk}$,
-%e.g., $\Delta(\y, \bar{\y}) = 1 - \sum_{j=1}^M \sum_{k=1}^M u_{j, y_k}$ if we define the loss as the number of mispredicted POIs,
-%where $\y$ is the ground truth and $\bar{\y}$ is the trajectory corresponding to the optimal solution of this ILP.
+%We note, however, that an ILP cannot be readily used for loss-augmented inference
+%for the Hamming loss, the most common loss function for sequence prediction tasks.
+%This is because ILP requires the loss to be a linear function of $u_{jk}$,
+%\eg, the number of mis-predicted POIs disregarding the order $\Delta(\y, \bar\y) = 1 - \sum_{j=1}^m \sum_{k=1}^m u_{j, y_k}$,
+%while Hamming loss cannot be expressed as a linear function of $u_{jk}$.
 
 \subsubsection{Finding $k$-best sequences}
-% 2 uses of list Viterbi: 1) multiple ground truths; 2) subtour elimination
+% 1) list Viterbi for top-k inference (sub-tour elimination in prediction)
+% 2) list Viterbi for learning (multiple ground truths in loss-augmented inference)
 
-The algorithm that seems closest to loss-augmented inference with exclusions are several extensions
-of the Viterbi algorithm that aim to find more than one high-scoring sequences.
+An alternative approach to solve the inference and learning of the SR model is making use of 
+%The algorithm that seems closest to loss-augmented inference with exclusions are 
+several extensions of the Viterbi algorithm that aim to find more than one high-scoring sequences.
 The \emph{parallel list Viterbi} algorithm~\cite{seshadri1994list} finds the top $k$ sequences
 by keeping $k$ backtrack pointers for each possible state in each position of the sequence.
 This algorithm is computationally efficient
--- a factor of $\log L$ more than the standard Viterbi for score sorting in each step, rather than simple maximization
+-- a factor of $k\log mk$ %$\log L$ 
+more than the standard Viterbi for score sorting in each step, rather than simple maximization
 -- but it keeps many unnecessary pointers. It is also difficult to apply to the SR inference scenario,
 since we do not know $k$ beforehand. This is because it is generally impossible to foresee
-the rank (according to the score) of the first path among all valid sequences (that may have repeats).
+the rank (according to the score) of the first path among all valid sequences (that may have repeated points).
 
-We resort to the \emph{serial list Viterbi} algorithm~\cite{nilsson2001sequentially}.
-These algorithms sequentially find the $k$-th best sequence given the best, $2$nd best, \dots, $(k-1)$-th best sequences.
+We resort to the \emph{serial list Viterbi} algorithm~\cite{seshadri1994list,nilsson2001sequentially}.
+These algorithms sequentially find the $k$-th best sequence given the best, 2nd best, \dots, $(k \!-\! 1)$-th best sequences.
 The key insight here is that the 2nd best sequence deviates from the best sequence
 for one continuous segment, and then finally merges back to the best sequence without deviating again
 -- otherwise replacing one of the continuous segments with those from the best sequence will increase the score.
-Subsequently, the $k$th best sequence can be the 2nd best sequence relative to the $k-1$th sequence
-at the point of final merge, or the 2nd or 3rd best sequence to the $k-1$th sequence at the point of final merge, \ldots, and so on.
+Subsequently, the $k$th best sequence can be the 2nd best sequence relative to the $(k \!-\! 1)$-th sequence
+at the point of final merge, or the 2nd or 3rd best sequence to the $(k \!-\! 2)$-th sequence at the point of final merge, \ldots, and so on.
 %The version of serial list Viterbi presented by~\cite{nilsson2001sequentially} accommodates
-The serial list Viterbi allows exclusion of sequences with repeats, by checking whether or not the current $k$th best sequence has a repeat, if it does, discard and proceed to the $k+1$th. It also allows excluding an arbitrary number of known sequences, by additionally checking, when we get each of the $k$th best sequence, whether or not it is in the exclusion set.
+The serial list Viterbi allows exclusion of sequences with repeats, by checking whether or not the current $k$th best sequence has a repeat, if it does, discard and proceed to the $(k \!+\! 1)$-th. It also allows excluding an arbitrary number of known sequences, by additionally checking, when we get each of the $k$th best sequence, whether or not it is in the exclusion set.
 %by partitioning the remaining space
 %from each of the known sequence according to their points of deviation,
 %finding the best trajectory within each partition and then identifying the best among different partitions.
 Due to space limitations, the list Viterbi algorithm is fully detailed in the supplement.
 
-For the structured recommendation problem, the serial list Viterbi algorithm can be used for inference
-by sequentially getting the next best sequence, until one or more paths are found.
+The serial list Viterbi algorithm is particularly versatile, 
+for the structured recommendation problem, %the serial list Viterbi algorithm 
+it can be used for inference by sequentially getting the next best sequence, until the required number of %one or more 
+paths are found.
 This algorithm can also be used for loss-augmented inference with Hamming loss,
 since it only requires the loss function be decomposable with respect to the label elements.
 %This list Viterbi algorithm performs a backward search for trajectories that merges into the existing candidates at any given point.
 %as described in Algorithm~\ref{alg:listviterbi}.
 
-%\TODO{Briefly discuss which one to use, when}
 
-
-
-\secmoveup
-\subsection{Inference and learning for SR}
-\label{ssec:SRinf}
-\textmoveup
-
-For inference in SR model, both ILP and list Viterbi algorithms can be used, and they will generate the
-same result if terminated and converged within a given time budget.
+%\secmoveup
+%\subsection{Inference and learning for SR}
+%\label{ssec:SRinf}
+%\textmoveup
+%
+%For inference in SR model, both ILP and list Viterbi algorithms can be used, and they will generate the
+%same result if terminated and converged within a given time budget.
 List Viterbi algorithms are polynomial time given the list depth $k$~\cite{nilsson2001sequentially},
 but in reality $k$ is unknown a priori and can be very large for long sequences.
-We found that state-of-the-art ILP solvers converge to a solution faster if the sequence length $l$ is large.
-In the experiments, we use list Viterbi for short sequences, and ILP for long ($l>10$) sequences.
-
-%\TODO{revise this para to describe listViterbi for lost-augmented inf, without loops, and with multiple examples.}
-%\TODO{DW: describe top-k prediction using ILP and list Viterbi}
-
-\eat{
-Similar to the loss-augmented inference described in Section~\ref{ssec:ssvm},
-we can rewrite the constraints in problem (\ref{eq:nslack_ml}) into
-\begin{equation*}
-%%\resizebox{0.99\linewidth}{!}
-%%{$
-\w^\top \Psi(\x^{(i)}, \y^{(ij)}) + \xi_{ij} \ge
-\max_{\bar{\y}} \left( \Delta(\y^{(ij)}, \bar{\y}) + \w^\top \Psi(\x^{(i)}, \bar{\y}) \right),
-%%$}
-\eqmoveup
-\end{equation*}
-Normally, the maximisation at the right side of the above inequality cannot be solved efficiently due to the constraint that
-$\bar{\y}$ is in $\mathcal{Y}$,
-but should not be in the set of observed labels $\{\y^{(ij)}\}_{j=1}^{n_i}$.
-However, we can pretend that $\bar{\y}$ can be any label in $\mathcal{Y}$ and do the unconstrained optimisation,
-which can sometimes be solved efficiently, then we filter out the optimal solution if it has been observed,
-i.e., in $\{\y^{(ij)}\}_{j=1}^{n_i}$.
-In addition to train multiset SSVM, this technique can be further used to deal with other constraints such as sub-tour elimination
-%as described in Section~\ref{ssec:subtour}.
-as described in Section~\ref{ssec:subtour}.
-}
-%\TODO{talk about multiple truths and what it means in prediction}
+%We found that state-of-the-art ILP solvers converge to a solution faster if the sequence length $l$ is large.
+%In the experiments, we use list Viterbi for short sequences, and ILP for long ($l>10$) sequences.

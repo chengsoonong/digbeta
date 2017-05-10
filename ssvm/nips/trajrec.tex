@@ -21,7 +21,8 @@ we can constrain the trajectory with a total time budget $T$.
 In this case, the number of POIs $l$ can be treated as a \emph{hidden} variable, 
 with additional constraint $\sum_{k=1}^l t_k \le T$ where $t_k$ is the time spent at POI $y_k$.}
 $l > 1$ (including the start location $s$),
-we want to recommend one or more sequences of POIs (or \emph{trajectory}) $\mathbf{y}^*$ that maximises some notion of utility.
+we want to recommend one or more sequences of POIs (or \emph{trajectories}) %$\mathbf{y}^*$ 
+that maximise some notion of utility.
 To learn a suitable $f$ for trajectory recommendation,
 we are provided as input a training set
 %$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$,
@@ -49,7 +50,7 @@ Formally, from the given set of trajectories
 we derive a training set $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
 where each POI $p$ is augmented with a label $y^{(i)} \in \{ \pm 1 \}$ denoting whether or not it appeared in a trajectory corresponding to the query $\x^{(i)}$. 
 Formally, the objective used for training is
-$$ \min_{\w} \frac{1}{2} \w^T \w + C \cdot \sum_{i = 1}^n \sum_{p \in \mathcal{P}} \ell\left( y^{(i)} \cdot ( \w^T \Phi( \x^{(i)}, p ) ) \right) $$
+$$ \min_{\w} \frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{p \in \mathcal{P}} \ell\left( y^{(i)} \cdot ( \w^\top \Phi( \x^{(i)}, p ) ) \right) $$
 where
 $\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
 $C > 0$ is some regularisation strength,
@@ -61,11 +62,10 @@ As another example, \citet{cikm16paper} proposed the use of the RankSVM model,
 which %is fed as input %pairs $(p_i, p_j)$ of POIs such that $p_i$ appears ahead of $p_j$ in some trajectory.
 learns a model to predict whether a POI is likely to appear ahead of another POI in a trajectory corresponding to some query.
 Formally, the objective used for training is
-
 %%\resizebox{0.99\linewidth}{!}{
 \begin{equation*}
-\displaystyle \min_{\w} \frac{1}{2} \w^T \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathcal{R}( \x^{(i)} )} 
-\ell\left( \w^T ( \Phi( \x^{(i)}, p ) - \Phi( \x^{(i)}, p' ) ) \right),
+\displaystyle \min_{\w} \frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathcal{R}( \x^{(i)} )} 
+\ell\left( \w^\top ( \Phi( \x^{(i)}, p ) - \Phi( \x^{(i)}, p' ) ) \right),
 \end{equation*}
 %%}
 where $\Phi, C$ are as before,
@@ -110,7 +110,7 @@ while the corresponding $\{ \y\pb{ij} \}_{j=1}^{n_i}$ is the set of trajectories
 Note that we expect most queries to have several distinct trajectories;
 minimally,
 for example,
-there may two nearby POIs that are visited in interchangeable order by different travellers.
+there may be two nearby POIs that are visited in interchangeable order by different travellers.
 
 Comparing the above to the discussion in the previous section, it is clear that
 we can cast trajectory recommendation as a special case of the structured recommendation problem.
