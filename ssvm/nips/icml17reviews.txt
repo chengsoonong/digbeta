@@ -1,0 +1,208 @@
+Reviews For Paper
+Paper ID: 727
+Title: Sequence Recommendation with Structured Prediction
+
+Masked Reviewer ID: Assigned_Reviewer_1
+
+=====================
+Summary of the paper
+=====================
+The authors propose several extensions to the vanilla structured SVM (SSVM) formulation for the problem of recommendation of ordered sequence of items (e.g., points of interests for tourists in a city).
+
+The main differences with traditional SSVM is that:
+1) instances can have multiple ground truths (i.e., you might observe different tourists taking different paths in the same city.);
+2) the predicted sequences must not contain loops.
+
+The authors adapt both learning and inference formulations to model these two aspects.
+
+The authors show that their formulations outperform several baselines on two datasets. The baselines don't seem particular strong but I think this further highlights the novelty of this paper. 
+
+=====================
+Clarity 
+=====================
+Above Average 
+
+The paper is fairly well written and I believe could be relatively well understood even for people that are not fluent with SSVM (this may be useful to experts in recommender systems for example). 
+
+=====================
+Significance 
+=====================
+Above Average 
+
+Overall, I found this to be a good paper. The idea of extending recommender systems research to structured outputs makes a lot of sense and as a first step SSVMs seem to be a very good choice. The authors' modeling extensions are reasonable and seem general. 
+
+=====================
+Correctness 
+=====================
+Paper is technically correct 
+
+I read the paper and as far as I can tell it is correct. 
+
+=====================
+Overall Rating
+=====================
+Weak reject 
+
+=====================
+Reviewer confidence
+=====================
+Reviewer is knowledgeable 
+
+=====================
+Detailed comments
+=====================
+A few more detailed comments:
+
+- One thing is that I tend to believe that the concept of "recommendations" is better suited for settings where there is personalization involved. Recommendations without personalization is more akin to a more general prediction tasks.
+
+- In your data the average trajectory length is quite short (between 2 and 3 for both datasets). Could you say a few words about how indicative your results are? In particular, would you expect that your method continues to outperform other baselines for longer trajectory length?
+
+- In Section 4.3 you mention that you use the ``best of top 10'' strategy. It seems like this only applies to your model. If that's the case, doesn't this give an unfair advantage to your model? I.e., at test time you wouldn't have this information.
+
+- Are your methods the only ones to have access to the starting POI? If so, it would be good to compare against a popularity method that also has access to starting POI (i.e., the method would only predict POIs that have been reached starting from that start point).
+
+- There is recent work about playlist generation using recurrent neural network (and in general modeling ordered sequences). While these models probably require a lot more data than what is available to your model it may be worth briefly surveying in related work.
+
+Session-based Recommendations with Recurrent Neural Networks
+Balázs Hidasi, Alexandros Karatzoglou, Linas Baltrunas, Domonkos Tikk
+https://arxiv.org/abs/1511.06939
+
+Towards Playlist Generation Algorithms Using RNNs Trained on Within-Track Transitions
+Keunwoo Choi, George Fazekas, Mark Sandler
+https://arxiv.org/abs/1606.02096
+
+Other minor comments:
+
+- Line 212: It's not clear what \bar{y}^{(i)} is, should it be \bar{y} or do you use this to mean \bar{y} related to the inference problem of slack variable i.
+- Line 293: uses
+- Line 357: algorithms
+
+
+
+
+
+Masked Reviewer ID: Assigned_Reviewer_2
+
+=====================
+Summary of the paper
+=====================
+This paper presents a structured SVM approach to sequence recommendation. This may be of some interest from the point of view of recommender systems, but has limited novelty from a structured prediction perspective. See detailed comments below. 
+
+=====================
+Clarity 
+=====================
+Excellent (Easy to follow) 
+
+The paper is easy to follow and written clearly. I had only one structural comment on Section 3.2 -- see details below. 
+
+=====================
+Significance 
+=====================
+Below Average 
+
+The contributions for structured prediction formulations are overstated as far as I can tell -- see detailed comments below. 
+
+=====================
+Correctness 
+=====================
+Paper is technically correct 
+
+I did not find significant technical flaws, but see some subtle points below. 
+
+=====================
+Overall Rating
+=====================
+Weak reject 
+
+=====================
+Reviewer confidence
+=====================
+Reviewer is knowledgeable 
+
+=====================
+Detailed comments
+=====================
+- For the multiple ground truths, why not just duplicate the examples as (x^(1),y^(11)) and (x^(1),y^(12))? It should be straightforward to compare this approach and the proposed one empirically.
+Also, the existence of multiple ground truths (or multiple outputs consistent with a single ground truth) has been addressed previously in various contexts. For example, in machine translation see “Hope and Fear for Discriminative Training of Statistical Translation Models”, Chiang, 2012. This also happens in ranking problems for several combinations of performance measures and forms of supervision (e.g., “Surrogate Functions for Maximizing Precision at the Top”, Kar et al., 2015).
+
+- “Loss-augmented inference can be efficiently done if loss function is also decomposable with respect to individual and pairs of label elements”: this is not true, loss-augmented inference remains hard despite the decomposition (in general).
+
+- Lines 220-228: it is worth mentioning that cutting plane is not the only optimization scheme suggested for problem (1). Gradient-based algorithms (“Subgradient methods for maximum margin structured learning”, Ratliff, Bagnell, Zinkevich, 2006) and conditional gradient methods (“Block-Coordinate Frank-Wolfe Optimization for Structural SVMs”, Lacoste-Julien, Jaggi, Schmidt, Pletscher, 2013) are also very popular, enjoy better convergence rate guarantees, and are often more efficient in practice.
+
+- The assumption on the form of the score function (line 330) as singletons and pairwise terms should be made clear much earlier (i.e., right after the score function in line 194). Otherwise the reader remains confused for a while about the nature of the inference problem.
+
+- What do we lose if we represent the outputs in the u space (edge indicators) instead of y space (points along the path)? Will it not be simpler and save some of the complications -- see for example the discussion in lines 345-354? It seems to me like the features (Psi) can be expressed in that space, but I could be missing something.
+
+- The restriction that \bar{y} is not in the observed labels (line 421) is not necessary. See for example the papers on structured SVMs optimization mentioned above.
+
+- For hard instances of the ILP, have you considered LP relaxation + some rounding heuristic?
+
+- Section 3.2 doesn’t add much over Section 2, and should probably be discarded.
+
+Minors / typos:
+============
+- Better say “for all \bar{y}” than “\bar{y} is an arbitrary candidate sequence”.
+- Some references are duplicated (e.g., both Rendle et al. 2009 and 2010).
+- Line 294: use => uses
+- Line 357: seem => seems
+- Line 398: require => requires
+- Line 542: “our methods is shown”
+
+
+
+
+
+Masked Reviewer ID: Assigned_Reviewer_4
+
+=====================
+Summary of the paper
+=====================
+This paper proposes a novel way of learning an optimal sequence of items to recommend, given a particular “seed" item. The authors extend the conventional structured SVM by incorporating multiple ground truth output sequences for each input, corresponding to the fact that there may be many appropriate sequences, given a particular seed item. 
+
+=====================
+Clarity 
+=====================
+Below Average 
+
+- The explanation of the structured SVMs (and the extensions) is clear and understandable. However, I was very confused by section 2.3. It was not clear what the relationship is between Viterbi and the output/predictions from the structured SVM. In fact, it is not very clear what is outputted by the structured SVMs in the context of structured recommendations.
+
+- There were also several grammatical errors/typos: Lines 627, 268 have some weird capitalization with some parts of the sentence seeming to be cut off?
+
+- The experimental setup and results is lacking a lot of clarity. More details on that below. 
+
+=====================
+Significance 
+=====================
+Below Average 
+
+- The extension of the structured SVM in order to incorporate multiple, non-competing ground truths is interesting and novel as far as I know. However, due to the lack of clarity and evidence in the results and experiments, it’s difficult to say whether or not this method indeed does better than existing methods. 
+
+=====================
+Correctness 
+=====================
+Paper is technically correct 
+
+No big issues aside from the clarity concerns. 
+
+=====================
+Overall Rating
+=====================
+Weak reject 
+
+=====================
+Reviewer confidence
+=====================
+Reviewer is knowledgeable 
+
+=====================
+Detailed comments
+=====================
+- There is little discussion on how the feature mapping is done in the experiments. I imagine this to be an important part of the outcome, and yet it is not discussed. Furthermore, similar features should be used in the proposed method, as well as the baselines, and this is glossed over as well. Thus, it is not clear whether or not the baseline is fair or not.
+
+- In general, I’d like to see more details about the experimental setup. This includes: more details about the RankSVM model (which is, in my opinion, the only interesting/comparable baseline), as well as more details about how the training and testing sets were constructed (i.e. expanding on lines 624 - 630).
+
+- Table 2: What is k for these results? Why not show results on different values of k?
+
+- For baselines, I’m surprised the authors didn’t include some sort of markov chain model which seems to be a common/baseline method for any sort of sequence prediction problem.
+
+- The datasets used are, in my opinion, too few and too small. I would like to see this on datasets that are either much larger in scale (i.e. travel itineraries from travel websites such as TripAdvisor?) or at least a benchmark on a dataset that is more widely known. It is hard to be confident of these results when the dataset is so small.
