@@ -1,0 +1,87 @@
+1	Author Feedback	Many thanks for the feedback and questions.
+
+Meta review:
+(1) novelty
+The key novelty of this work is formulating sequence recommendation as a structured prediction problem, and adapting tools from the latter to deal with the specific constraints arising in the former.
+
+In detail, we use the term “recommendation” since each query has multiple ground truths, akin to a user having multiple preferred items. To deal with multiple ground truths, and the fact that we must predict sequences without loops, we propose a novel adoption of the Viterbi algorithm during both the training and prediction steps of a SSVM (to perform loss-augmented inference and ensure outputs are loop-free respectively).
+
+(2) more direct approaches
+Duplicating examples per R2 comment is exactly the “SP” model in Sec 4.2 and Table 2. It is outperformed by the proposed “SR” model in both datasets. The problem with this approach is in the result of loss augmented inference. e.g., suppose x has two ground truths (y^(1), y^(2)). Then, the result of inference on (x, y^(1)) could be y^(2): but then we would penalise predicting y^(2) for x, which is not correct! By contrast, the “SR” model explicitly prohibits the result of loss augmented inference from being any of the observed sequences (lines 244-250).
+
+Inference using Markov Chains (MC) suggested by R4 has been done in both (Chen et al. 2016) using transition probabilities (where it was shown to be outperformed by RankSVM), and in this paper as “SP” model (as its underlying structure is MC).
+
+(3) experiments
+Acquiring a new dataset and setting it up for trajectory recommendation is a highly non-trivial undertaking. The two datasets used here were benchmarks in current state of the art approaches in trajectory recommendation (Lim et al. 2015) and (Chen et al. 2016), and are derived from a large public photo repository (YFCC100M).
+
+We will add results for different k, and separate evaluations for longer trajectories.
+
+
+R1:
+> Recommendations without personalization?
+See 1) above. Further, personalised recommendation is in fact not possible on the benchmark datasets employed in our and prior work, as each user is associated with only a few trajectories. Non-personalised recommendation problems aren’t uncommon, e.g. recommending articles to an anonymous news site visitor.
+
+> Are your methods the only ones to have access to the starting POI?
+All methods shown in Table 2 have access to the starting POI; we will clarify this.
+
+> performance for longer trajectories
+We will break down the evaluation results according to trajectory length.
+
+> top10 trajectories in evaluation for both proposed models and baselines
+We will add results of top-k (k=3,5,10) for baselines. Note, this is actually non-trivial: e.g. RankSVM only provides scores for each of the POIs, and there is no unique procedure to convert these to a list of predictions.
+
+> playlist generation using RNN references
+We'll add the citations. As you noted, these models generally require much more training data than available in our problem.
+
+We will fix typos.
+
+
+R2:
+> novelty from a structured prediction perspective
+See 1) above.
+
+> duplicate the examples as (x^(1),y^(11)) and (x^(1),y^(12))
+See 2) above.
+
+> loss-augmented inference remains hard despite the decomposition (in general).
+We will revise the statement to say that efficient loss-augmented inference is possible since the underlying graph is a tree.
+
+> cutting plane is not the only optimization scheme
+We will mention the possibility of sub-gradient and Frank-Wolfe methods for training. We emphasise a couple of points, however. First, the proposed algorithm for loss augmented inference is *not* restricted to cutting plane methods, and is equally applicable in subgradient and Frank-Wolfe (where such inference is still necessary). Second, cutting plane methods with suitable tweaks have been shown to perform comparably to Frank-Wolfe and sub-gradient in Chapter 5 of
+
+Methods for Learning Structured Prediction in Semantic Segmentation of Natural Images. Andreas C. Müller, PhD Thesis.
+
+> have you considered LP relaxation + some rounding heuristic?
+We can solve all our hard instances in reasonable time using a state-of-art ILP solver.
+
+> represent the outputs in the u space (edge indicators) instead of y space (points along the path)?
+There aren’t any computational savings by working in u-space, since the line graph of a chain is still a chain.
+
+> assumption on the form of the score function as singletons and pairwise terms should be made clear much earlier
+Thanks for the suggestion; we'll clarify.
+
+
+R4:
+> relationship between Viterbi and the output/predictions from the SSVM
+See 1) and 2).
+
+> little discussion on how the feature mapping is done in the experiments
+We described the features in the Appendix (Table 1 and Table 2 in Sec A.2.). "Random" doesn't use any features, "PoiPopularity" uses only the popularity of POIs, and "PoiRank" uses all features except the pairwise features (i.e. it only uses features in Table 1.). We'll draw more attention to this in the body.
+
+> more details about RankSVM
+The details of RankSVM is in Sec 3.1 and cited reference (Chen et al., 2016).
+
+> more details about how the training and testing sets were constructed
+As stated in line 624-630, trajectories are first grouped by query; we then perform leave-one-out cross validation over these groups, i.e., we hold all trajectories that satisfy a specific query for testing, and use all other trajectories for training.
+
+> markov chain baseline
+See the 2nd paragraph of 2).
+
+> Table 2: What is k for these results?
+k is 10 in Table 2 as described in Sec 4.3.
+
+> Why not show results on different values of k?
+We will add results for k=3, 5, 10
+
+> TripAdvisor/well known datasets
+See 3) above.
