@@ -58,7 +58,7 @@ and $\ell( v )$ is any suitable margin loss, such as the logistic loss $\ell( v 
 One can use the resulting model to produce a score for any POI $p$ given a new query $\x$,
 and then pick the top-$l$ scoring POIs to produce a trajectory.
 
-As another example, \citet{cikm16paper} proposed the use of the RankSVM model,
+As another example, \citep{cikm16paper} proposed the use of the RankSVM model,
 which %is fed as input %pairs $(p_i, p_j)$ of POIs such that $p_i$ appears ahead of $p_j$ in some trajectory.
 learns a model to predict whether a POI is likely to appear ahead of another POI in a trajectory corresponding to some query.
 Formally, the objective used for training is

@@ -7,17 +7,18 @@
 
 We contrast the problem setting and approach of this paper to a number of sub-fields in the recommender systems and machine learning literature.
 
-\secmoveup
-\subsection{Recommender systems}
-\textmoveup
+% \secmoveup
+% \subsection{Recommender systems}
+% \textmoveup
 
+\textbf{Recommender systems}.
 There is a rich body of work on recommender systems,
 with the
 Netflix prize~\citep{Netflix} encapsulating the canonical problem that concerns most research in this field:
 the recommendation of \emph{static} content such as books or movies from some large database~\citep{Goldberg:1992,Sarwar:2001}.
 Matrix factorisation methods have proven particularly effective for such problems~\citep{Koren:2009}.
-The latter are a prototypical example of a \emph{collaborative filtering} approach to recommendation,
-wherein one exploits the ``wisdom of the crowd'' implicit in the preferences of several users.
+%The latter are a prototypical example of a \emph{collaborative filtering} approach to recommendation,
+%wherein one exploits the ``wisdom of the crowd'' implicit in the preferences of several users.
 
 Standard matrix factorisation methods
 have been extended to tackle
@@ -33,10 +34,11 @@ Second, even if one had access to multiple trajectories per user, it is unclear 
 as there are exponentially many possible values for the latter.
 
 
-\secmoveup
-\subsection{Structured content recommendation}
-\textmoveup
+% \secmoveup
+% \subsection{Structured content recommendation}
+% \textmoveup
 
+\textbf{Structured content recommendation}.
 The recommendation of structured content has
 been studied in three distinct subfields.
 The first is work on recommending the next item a user might like to purchase, given the sequence of their shopping basket purchases~\citep{Rendle:2010,Wang:2015}.
@@ -52,10 +54,11 @@ While a reasonable first order approximation, this assumption limits the modelli
 The third is prior work on travel route recommendation, which we survey in detail.
 
 
-\secmoveup
-\subsection{Travel route recommendation}
-\textmoveup
+% \secmoveup
+% \subsection{Travel route recommendation}
+% \textmoveup
 
+\textbf{Travel route recommendation}.
 Recommendation problems involving travel routes have received considerable interest of late~\cite{bao2015recommendations,zheng2015trajectory,zheng2014urban}.
 There are, roughly, three problem settings that have been studied.
 The first setting is \emph{point of interest} (\emph{POI}) \emph{recommendation}.
@@ -81,16 +84,17 @@ a heuristic combination of locations and routes~\cite{lu2010photo2trip,ijcai15,l
 by solving an optimisation problem that does not exploit historical data~\cite{gioniswsdm14,chen2015tripplanner}.
 
 
-\secmoveup
-\subsection{Learning to rank}
-\textmoveup
+% \secmoveup
+% \subsection{Learning to rank}
+% \textmoveup
 % AKM: probably can omit this stuff as I dunno how to frame it properly
 
-The sequence recommendation problem can be related at an abstract level to the label ranking problem~\citep{Dekel:2003},
-where the input comprises a query and a corresponding graph as a label.
-The goal in such problems is to similarly learn a ranking over the nodes of the graph;
-however, these are typically not learned using structured prediction models,
-but rather by computing a loss function over pairs.
+% \textbf{Learning to rank}.
+% The sequence recommendation problem can be related at an abstract level to the label ranking problem~\citep{Dekel:2003},
+% where the input comprises a query and a corresponding graph as a label.
+% The goal in such problems is to similarly learn a ranking over the nodes of the graph;
+% however, these are typically not learned using structured prediction models,
+% but rather by computing a loss function over pairs.
 
 % Our problem can also be related to the listwise ranking approach in information retrieval~\citep{Cao:2007},
 % which attempts to learn a good set of results for a query by exploiting structure embedded in the entire set of results.

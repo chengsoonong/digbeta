@@ -44,27 +44,55 @@ Therefore, evaluation is carried out on the problem of recommending trajectories
 
 % dataset stats
 \begin{table}[t]
-\caption{Statistics of trajectory dataset}
-\label{tab:data}
-\centering
-\setlength{\tabcolsep}{4pt} % tweak the space between columns
-\small
-\begin{tabular}{l*{5}{c}} \hline
-\textbf{Dataset} & \textbf{\#Traj.} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#Queries} & \textbf{AvgLenth} \\ \hline
-Osaka            & 186              & 26              & 130              & 47                 & 2.4 \\
-Glasgow          & 351              & 25              & 219              & 64                 & 2.5 \\
-\hline
-\end{tabular}
+	\begin{minipage}[t]{0.45\linewidth}
+		\resizebox{0.9\linewidth}{!}{
+		\setlength{\tabcolsep}{4pt} % tweak the space between columns
+		\small
+		\begin{tabular}{l*{5}{c}} \hline
+		\textbf{Dataset} & \textbf{\#Traj.} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#Queries} & \textbf{AvgLenth} \\ \hline
+		Osaka            & 186              & 26              & 130              & 47                 & 2.4 \\
+		Glasgow          & 351              & 25              & 219              & 64                 & 2.5 \\
+		\hline
+		\end{tabular}%
+		}
+		\captionof{table}{Statistics of trajectory dataset.}	
+		\label{tab:data}
+	\end{minipage}%
+	\quad
+	\begin{minipage}[t]{0.45\linewidth}
+		\includegraphics[scale=0.35]{hist.pdf}
+	    \captionof{figure}{\# of trajectories per query.}
+	    \label{fig:image}
+  \end{minipage}
 \end{table}
 
+%\newsavebox\tmpbox
 
-% histogram of #ground truth
-\begin{figure}[t]
-	\centering
-	\includegraphics[width=\columnwidth]{hist.pdf}
-	\caption{Histograms of the number of trajectories per query.}
-	\label{fig:hist}
-\end{figure}
+% % dataset stats
+% \begin{table}[t]
+% 	\sbox\tmpbox{%
+% 		\resizebox{0.4\linewidth}{!}{
+% 		\setlength{\tabcolsep}{4pt} % tweak the space between columns
+% 		\small
+% 		\begin{tabular}{l*{5}{c}} \hline
+% 		\textbf{Dataset} & \textbf{\#Traj.} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#Queries} & \textbf{AvgLenth} \\ \hline
+% 		Osaka            & 186              & 26              & 130              & 47                 & 2.4 \\
+% 		Glasgow          & 351              & 25              & 219              & 64                 & 2.5 \\
+% 		\hline
+% 		\end{tabular}%
+% 		}
+% 	}%
+%   \renewcommand*{\arraystretch}{0}
+%   \begin{tabular*}{\linewidth}{@{\extracolsep\fill}p{\wd\tmpbox}p{40mm}@{}}
+%     \usebox\tmpbox &
+%     \includegraphics[scale=0.4]{hist.pdf} \\
+%     \caption{Statistics of trajectory dataset.}
+%     \label{tab:data}
+%     &
+%     \captionof{figure}{Histograms of the number of trajectories per query.}
+%     \label{fig:image}
+%   \end{tabular*}
+% \end{table}
 
 
 \secmoveup
@@ -154,29 +182,30 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 \input{tab_experiment}
 
 % experimental results
-The performance of three baselines and four variants based on structured prediction on two datasets are shown in Table~\ref{tab:result}.
-From these results, we can make the following key inferences that validate our contributions.
+%The performance of %three baselines and four variants based on structured prediction on two datasets
+%all methods are shown in Table~\ref{tab:result}.
+From the results in Table~\ref{tab:result}, we make the following observations that validate our contributions:
 
 \textbf{Exploiting the structure of sequences helps}.
-We find that all variants of our structured prediction methods achieve better performance than existing baselines.
+All variants of our structured prediction methods achieve better performance than existing baselines.
 This indicates that the basis of our approach -- reducing sequence recommendation to a structured prediction problem -- is sensible, and has empirical benefit.
 
 \textbf{Accounting for multiple ground truths helps}.
-We find that \textsc{SR} always performs better than \textsc{SP},
+\textsc{SR} always performs better than \textsc{SP},
 and similarly for the {\sc path} variants of both methods.
 This indicates that our first extension -- explicitly modelling multiple ground truths helps recommendation -- is important to achieve good performance.
 (We note that even without this correction, our structured methods outperform baselines.)
 
 \textbf{Eliminating loops during training helps}.
-We find that {\sc SRpath} improves performance further of the {\sc SR} method,
+{\sc SRpath} improves performance further of the {\sc SR} method,
 as indicated by the F$_1$ score on pairs.
 This indicates that our second extension -- explicitly performing sub-tour elimination in training -- is important to further improve performance.
 Interestingly,
 this advantage does \emph{not} take effect if the multiple ground truths are not modelled explicitly,
 with the performance of the {\sc SP} method largely unaffected.
 
-\textbf{An illustrative example}. Figure~\ref{fig:example} consist of an example that illustrates the difference among the different algorithm variants. The query requires the trajectory to start from the middle point and be of length 3.
-\textsc{PoiRank} regards points at the lower right and upper left be of the highest rank, but did not consider their compatibility (\ie pairwise features). {\sc SP} and {\sc SR} hits one edge (green edge) out of the two ground truths, while {\sc SRpath} hits both edges for two valid trajectories after taking all factors into account.
+\textbf{An illustrative example}. Figure~\ref{fig:example} presents an example illustrating the differences among three algorithms. The query requires the trajectory to start from the middle point and be of length 3.
+\textsc{PoiRank} regards points at the lower right and upper left be of the highest rank, but did not consider their compatibility (\ie pairwise features). {\sc SP} and {\sc SR} hits one edge (green edge) out of the two ground truths, while {\sc SRpath} hits both edges for two valid trajectories by exploiting all factors.
 
 Overall, these results indicate that our structured prediction approach to the problem has
 benefits over non-structured approaches,
@@ -187,8 +216,8 @@ and that our extensions to the vanilla structured approach are important to furt
 
 \begin{figure*}[t]
 	\centering
-	\includegraphics[width=0.9\textwidth]{example.pdf}
-	\caption{Example of structured recommender versus baseline on a query with two ground truths as shown in Figure (c).
+	\includegraphics[scale=0.6]{example.pdf}
+	\caption{Example of structured recommender versus baseline on a query with two ground truths. %as shown in Figure (c).
              (a) \textsc{PoiRank} cannot make a recommendation related to any of the ground truths;
              (b) \textsc{SP} and \textsc{SR} recommend a better trajectory than \textsc{PoiRank}, but not fully consistent with the ground truths;
              (c) \textsc{SRpath} hits both ground truths at rank 3 (green edges) and 5 (red edges) respectively.}
