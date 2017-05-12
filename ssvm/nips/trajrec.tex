@@ -1,18 +1,18 @@
 % !TEX root = ./main.tex
 
-\secmoveup
-\section{Trajectory Recommendation as a Structured Prediction Problem}
-\label{sec:trajrec}
-\textmoveup
+% \secmoveup
+% \section{Trajectory Recommendation as a Structured Prediction Problem}
+% \label{sec:trajrec}
+% \textmoveup
 
 We present the trajectory recommendation problem,
 which shall serve as our canonical application of sequential recommendation.
 We first review the problem as it is typically treated in the literature,
 and then show how it may be viewed as a structured prediction problem.
 
-\secmoveup
-\subsection{Trajectory recommendation: standard view}
-
+% \secmoveup
+% \subsection{Trajectory recommendation: standard view}
+\textbf{Trajectory recommendation: standard view}.
 Travel recommendation problems involve a set of points-of-interest (POIs) $\mathcal{P}$ in a city.
 The \emph{trajectory recommendation} problem is: given a \emph{trajectory query} $\mathbf{x} = (s, l)$,
 comprising a start POI $s \in \mathcal{P}$ and trip length
@@ -45,30 +45,36 @@ of trajectories visited by travellers in the city.
 
 Existing approaches treat the problem as one of determining a score for the intrinsic appeal of each POI,
 based on implicit preference data in the training set.
-Perhaps the simplest such approach is based on learning a model to predict whether a particular POI occurs, or not, in the trajectory corresponding to a query.
-Formally, from the given set of trajectories
+% Perhaps the simplest such approach is based on learning a model to predict whether a particular POI occurs, or not, in the trajectory corresponding to a query.
+% Formally, from the given set of trajectories
+% we derive a training set $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
+% where each POI $p$ is augmented with a label $y^{(i)} \in \{ \pm 1 \}$ denoting whether or not it appeared in a trajectory corresponding to the query $\x^{(i)}$. 
+% Formally, the objective used for training is
+% $$ \min_{\w} \frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{p \in \mathcal{P}} \ell\left( y^{(i)} \cdot ( \w^\top \Phi( \x^{(i)}, p ) ) \right) $$
+% where
+% $\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
+% $C > 0$ is some regularisation strength,
+% and $\ell( v )$ is any suitable margin loss, such as the logistic loss $\ell( v ) = \log( 1 + e^{-v} )$.
+% One can use the resulting model to produce a score for any POI $p$ given a new query $\x$,
+% and then pick the top-$l$ scoring POIs to produce a trajectory.
+For example, \citep{cikm16paper} proposed a RankSVM model,
+which %is fed as input %pairs $(p_i, p_j)$ of POIs such that $p_i$ appears ahead of $p_j$ in some trajectory.
+learns to predict whether a POI is likely to appear ahead of another POI in a trajectory corresponding to some query.
+Formally,
+from the given set of trajectories
 we derive a training set $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
 where each POI $p$ is augmented with a label $y^{(i)} \in \{ \pm 1 \}$ denoting whether or not it appeared in a trajectory corresponding to the query $\x^{(i)}$. 
-Formally, the objective used for training is
-$$ \min_{\w} \frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{p \in \mathcal{P}} \ell\left( y^{(i)} \cdot ( \w^\top \Phi( \x^{(i)}, p ) ) \right) $$
-where
-$\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
-$C > 0$ is some regularisation strength,
-and $\ell( v )$ is any suitable margin loss, such as the logistic loss $\ell( v ) = \log( 1 + e^{-v} )$.
-One can use the resulting model to produce a score for any POI $p$ given a new query $\x$,
-and then pick the top-$l$ scoring POIs to produce a trajectory.
-
-As another example, \citep{cikm16paper} proposed the use of the RankSVM model,
-which %is fed as input %pairs $(p_i, p_j)$ of POIs such that $p_i$ appears ahead of $p_j$ in some trajectory.
-learns a model to predict whether a POI is likely to appear ahead of another POI in a trajectory corresponding to some query.
-Formally, the objective used for training is
+The objective used for training is then
 %%\resizebox{0.99\linewidth}{!}{
 \begin{equation*}
 \displaystyle \min_{\w} \frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathcal{R}( \x^{(i)} )} 
 \ell\left( \w^\top ( \Phi( \x^{(i)}, p ) - \Phi( \x^{(i)}, p' ) ) \right),
 \end{equation*}
 %%}
-where $\Phi, C$ are as before,
+%where $\Phi, C$ are as before,
+where
+$\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
+$C > 0$ is some regularisation strength,
 $\ell( v ) = \max( 0, 1 - v )^2$ is the squared hinge loss,
 and
 %$p \succeq_{\mathbf{x}} p'$ is denoted to mean that the
@@ -92,8 +98,8 @@ thus allowing us to leverage the tools developed in the previous section.
 
 
 %
-\subsection{Trajectory recommendation: structured view}
-
+%\subsection{Trajectory recommendation: structured view}
+\textbf{Trajectory recommendation: structured view}.
 More abstractly, we can cast trajectory recommendation as the following problem:
 given some $\x$, and suitable function $f(\cdot,\cdot)$, we wish to find
 \begin{equation*}

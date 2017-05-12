@@ -1,0 +1,56 @@
+%!TEX root = main.tex
+
+%\section{Recommending sequences}
+\secmoveup
+\section{The sequence recommendation problem}
+\label{sec:recseq}
+\textmoveup
+
+%We begin with an overview of the sequence recommendation problem, before presenting our model.
+Consider first the following abstract
+\emph{structured recommendation} problem:
+given an input query $\x \in \mathcal{X}$ -- representing for example a user, a location, or some ``seed'' item --
+we wish to recommend one or more \emph{structured outputs} $\y \in \mathcal{Y}$ according to a learned \emph{score function} $f(\x,\y)$.
+To learn a suitable $f$,
+we are provided as input a training set
+%$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$,
+$\{ ( \x\pb{i}, \{ \y\pb{ij} \}_{j=1}^{n_i} ) \}_{i=1}^{n}$,
+comprising a collection of inputs $\x\pb{i}$ with an associated \emph{set} of output structures $\{ \y\pb{ij} \}$.
+For example, this might represent a collection of users in a city, along with a set of trajectories (sequences of places) they have visited.
+
+For this work, we assume the output $\y$ is a \emph{sequence} of $l$ points, denoted $y_{1:l}$
+where each $y_i$ belongs to some fixed set (e.g.\ places of interest in a city).
+We call the resulting specialisation the \emph{sequence recommendation} problem,
+and this shall be our primary interest in this paper.
+The assumption that $\y$ is a sequence does not limit the generality of our approach,
+as inferring $\y$ of other structure can be achieved using corresponding inference and loss-augmented inference algorithms~\cite{joachims2009predicting}.  %LX - this sentence can be cut or merged above
+
+There are notable differences between the sequence recommendation problem and %what is being solved in
+the standard problems considered in structured prediction and recommender systems.
+%This setting generalises from structured prediction and recommendation problems in the following ways.
+These differences bring unique challenges for both inference and learning.
+In a typical structured prediction setting, the goal is to learn from a collection of $n$
+input vector and output sequence tuples %$(\x\pb{i}, \y\pb{i})$, $i=1:n$.
+$\{ (\x\pb{i}, \y\pb{i}) \}_{i = 1}^n$. Here,
+for each distinct input $\x\pb{i}$ there is usually one \emph{unique} output sequence $\y\pb{i}$.
+In a typical sequence recommendation problem, however, we expect that %learn from
+%tuples $(\x\pb{i}, \{ y\pb{ij} \}_{j=1:n^i})$, $i=1:n$. That is to say,
+for each input $\x\pb{i}$ (\eg users),
+there %is %have not one, but a set of
+are multiple associated outputs %$\{ y\pb{ij} \}_{j=1:n^i}$ (\eg movies).
+$\{ \y\pb{ij} \}_{j=1}^{n_i}$ (\eg trajectories they have visited).
+%Indeed, the existence of multiple outputs is the basis on which even non-structured recommendation systems are built, as one looks to exploit signal embedded in the aggregate information.
+For model learning, structured prediction approaches do not have a standard way to take into account such multiple output sequences.
+%$\{ \y\pb{ij} \}_{j=1:n^i}$
+%for each input %$\x\pb{i}$
+%yet.
+
+On the other hand, for typical recommender systems problems, one assumes that the outputs are non-structured (\eg real-valued ratings for movies).
+Thus, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$.
+For structured recommendation problems, computing $\argmax_\y f(\x,\y)$ is harder since it is often impossible to efficiently enumerate $\y$ (\eg all possible trajectories in a city).
+
+
+%
+\subsection{Trajectory recommendation as a sequence recommendation problem}
+
+\input{trajrec}
