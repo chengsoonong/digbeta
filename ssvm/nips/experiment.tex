@@ -28,12 +28,11 @@ list of trajectories, being a sequence of points of interest (POI), as visited b
 and recorded by the geotags in photos. Photos that are nearby in time and space are grouped and then segmented by eight hours of time gap, and visits that only include a single POI are excluded.
 The statistics of datasets are shown in Table~\ref{tab:data}.
 Both datasets are sparse in user activity,
-\ie, each user has on average less than two trajectories.
-This makes user-specific recommendation impractical because of
-data availability, and also undesirable because of the domain being urban locations
--- a user would want different recommendations given different starting locations, and not a static recommendation no matter where she/he is.
+i.e., each user has on average less than two trajectories.
+This makes user-specific recommendation impractical, and also undesirable because of the domain being urban locations
+(a user would want different recommendations given different starting locations, and not a static recommendation no matter where she is).
 From Table~\ref{tab:data} and Figure~\ref{fig:hist},
-each distinct query, comprising of start POI and a desired trip length,
+each distinct query %, %comprising of start POI and a desired trip length,
 has an average of 4-6, and a maximum of 20-30 trajectories.
 Therefore, evaluation is carried out on the problem of recommending trajectories given a query.
 %as posed in \S\ref{sec:trajrec}:
@@ -43,7 +42,7 @@ Therefore, evaluation is carried out on the problem of recommending trajectories
 %recommendationThe histograms of the number of ground truths for queries are shown in Figure~\ref{fig:hist}.
 
 % dataset stats
-\begin{table}[t]
+\begin{table}[!h]
 	\begin{minipage}[t]{0.45\linewidth}
 		\resizebox{0.9\linewidth}{!}{
 		\setlength{\tabcolsep}{4pt} % tweak the space between columns
@@ -112,8 +111,7 @@ We compare the performance of our methods to the following three baselines:
       and trains a RankSVM model to learn a score for each POI. The top-$k$ scored POIs are then used to construct a trajectory.
 \end{itemize}\itemmoveup
 
-To assess the viability of our structured prediction approach, and the necessity of our two extensions (normalising the loss per query and disallowing loops), we implemented the following versions of our structured prediction methods.
-All variants predicts with the list Viterbi algorithm (Section~\ref{ssec:subtour}) to generate a path.
+To assess the viability of our structured prediction approach, and the necessity of our two extensions (normalising the loss per query and disallowing loops), we consider the following structured methods: %the following versions of our structured prediction methods:
 \begin{itemize}[leftmargin=0.125in]\itemmoveup
 \parskip -.05em
 \item The structured prediction ({\sc SP}) method employs the vanilla structured SVM framework in order to learn a score for trajectories given a query.
@@ -127,7 +125,7 @@ All variants predicts with the list Viterbi algorithm (Section~\ref{ssec:subtour
 \item The variants {\sc SPpath} and {\sc SRpath} extend the above methods by enforcing the constraint during training 
       that sequences with loops are disallowed.
 \end{itemize}\itemmoveup
-
+All above variants predict with the list Viterbi algorithm (Section~\ref{ssec:subtour}) to generate a path.
 
 \secmoveup
 \subsection{Evaluation procedure}
@@ -154,7 +152,8 @@ computes the ratio of concordant (correctly ranked) pairs minus discordant pairs
 %$\frac{1}{2}l(l-1)$) pairs  %DW: this is not correct
 
 Structured recommendation problems aims to perform ranking on a very large $m^l$ labelset.
-We adopt the practice of {\em best of top 10}~\cite{russakovsky2015imagenet} for reporting results. Or, predict top 10 trajectories and then report the best match of any in the top 10 to any trajectory in the ground truth set.
+We adopt the practice of {\em best of top 10}~\cite{russakovsky2015imagenet} for reporting results:
+that is, we predict the top 10 trajectories, and then report the best match of any in the top 10 to any trajectory in the ground truth set.
 \eat{
 As described previously, our methods are capable of recommending not merely a single trajectory,
 but rather a list of trajectories.
@@ -216,7 +215,7 @@ and that our extensions to the vanilla structured approach are important to furt
 
 \begin{figure*}[t]
 	\centering
-	\includegraphics[scale=0.6]{example.pdf}
+	\includegraphics[scale=0.5]{example.pdf}
 	\caption{Example of structured recommender versus baseline on a query with two ground truths. %as shown in Figure (c).
              (a) \textsc{PoiRank} cannot make a recommendation related to any of the ground truths;
              (b) \textsc{SP} and \textsc{SR} recommend a better trajectory than \textsc{PoiRank}, but not fully consistent with the ground truths;

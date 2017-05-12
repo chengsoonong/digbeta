@@ -1,19 +1,23 @@
 %!TEX root = main.tex
 \secmoveup
-\section{Structured prediction for sequence recommendation}
+\section{A structured prediction approach to sequence recommendation}
 \label{sec:recseq}
 \textmoveup
 
-In the rest of this section, we will first review the background of structured prediction problems (Sec~\ref{ssec:ssvm}), then present a model for structured recommendation (Sec~\ref{ssec:sr}), followed by algorithms for its learning (Sec~\ref{ssec:subtour}) and inference (Sec~\ref{ssec:SRinf}).
+We now show how to solve sequence recommendation problems using structured prediction.
+We first provide background on structured prediction problems (Sec~\ref{ssec:ssvm}),
+then present a model for structured recommendation (Sec~\ref{ssec:sr}),
+followed by algorithms for its learning (Sec~\ref{ssec:subtour}) and inference (Sec~\ref{ssec:SRinf}).
 
 
 \secmoveup
-\subsection{Preliminaries: structured SVMs}
+\subsection{Structured SVM (SSVM) for structured prediction}
 \label{ssec:ssvm}
 \textmoveup
 
-One well known model for structured prediction is the Structured Support Vector Machines (SSVM)~\cite{joachims2009predicting,tsochantaridis2005large}.
-This comprises three essential ingredients.
+A structured prediction task involves predicting some structured label $\y \in \mathcal{Y}$ for an input $\x \in \mathcal{X}$,
+typically via a score function $f(\x,\y)$ that determines the affinity of an (input, label) pair.
+A popular model is the Structured Support Vector Machine (SSVM)~\cite{joachims2009predicting,tsochantaridis2005large}, comprising three core ingredients.
 
 \emph{Score function}. In SSVMs, we specify that the score function $f(\x, \y)$ takes a linear form, \ie 
 %is a function that scores the compatibility between features $\mathbf{x}$ and a specific label $\mathbf{y}$,
@@ -21,16 +25,16 @@ This comprises three essential ingredients.
 %\begin{equation*}
 $f(\x, \y) = \w^\top \Psi(\x, \y)$,
 %\end{equation*}
-where $\w$ is a weight vector, and $\Psi(\x, \y)$ is a \emph{joint feature map}
-between the input $\x$ and label sequence $\y$.
-The design of the feature map $\Psi(\cdot,\cdot)$ is problem specific.
+where $\w$ is a weight vector, and $\Psi(\x, \y)$ is a \emph{joint feature map}.
+%between the input $\x$ and label sequence $\y$.
 
+The design of the feature map $\Psi(\cdot,\cdot)$ is problem specific.
 For many problems, we can assume that it is a vector whose elements represent unary
 terms for each element in the label $y_{1:l}$, and pairwise interactions between the labels.
 For sequence data, in particular, we also assume that the pair-wise interactions are between
 adjacent elements, i.e. $y_j$ and $y_{j+1}$ for $j=1:l-1$.
-Subsequently, the score function $f(\x,\y)$ decomposes into a sum of
-each of these unary and pairwise features with the corresponding feature weight:
+Subsequently, the score function $f(\x,\y)$ decomposes into a weighted sum of
+each of these unary and pairwise features: %with the corresponding feature weight:
 \begin{equation}
 \label{eq:jointfeature}
 %\resizebox{0.9\linewidth}{!}{$\displaystyle
@@ -73,6 +77,20 @@ and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i
 %%\end{minipage}
 %%}
 \end{equation}
+To solve problem (\ref{eq:nslack}),
+% one option is to simply enumerate all constraints, and feed the problem into a standard solver.
+% However, this approach is impractical as there is a constraint for every possible label $\bar{\y}$.
+recently developed learning schemes such as 
+cutting-plane algorithms~\cite{joachims2009predicting}, % cutting-plane
+gradient-based algorithms~\cite{ratliff2006subgradient} % sub-gradient
+and conditional gradient methods~\cite{lacoste2013block} % Frank-Wolfe
+%can efficiently optimise the objective and
+are widely used in practice~\cite{muller2014methods}.
+%Instead, we can resort to a cutting-plane algorithm which repeatedly solves the quadratic program (\ref{eq:nslack})
+%with a growing set of constraints~\cite{joachims2009predicting}.
+%In each iteration, a new constraint is formed by solving the loss-augmented inference,
+%which helps shrink the feasible region of the problem.
+
 
 \emph{Loss-augmented inference} refers to the inner maximisation in Eq.~(\ref{eq:hingeloss}).
 %This formulation is called "$n$-slack" as we have one slack variable for each example in training set.
@@ -82,20 +100,8 @@ this may be done efficiently if the loss function $\Delta(\cdot,\cdot)$ is decom
 with respect to individual and pairs of label elements.
 % in a way similar to Equation~\eqref{eq:jointfeature}.
 
-To solve problem (\ref{eq:nslack}), one option is to simply enumerate all constraints, and feed the problem into a standard solver.
-However, this approach is impractical as there is a constraint for every possible label $\bar{\y}$.
-Recently developed learning schemes such as 
-cutting-plane algorithms~\cite{joachims2009predicting}, % cutting-plane
-gradient-based algorithms~\cite{ratliff2006subgradient} % sub-gradient
-and conditional gradient methods~\cite{lacoste2013block} % Frank-Wolfe
-can efficiently optimise the objective and are widely used in practice~\cite{muller2014methods}.
-%Instead, we can resort to a cutting-plane algorithm which repeatedly solves the quadratic program (\ref{eq:nslack})
-%with a growing set of constraints~\cite{joachims2009predicting}.
-%In each iteration, a new constraint is formed by solving the loss-augmented inference,
-%which helps shrink the feasible region of the problem.
-
 \secmoveup
-\subsection{SSVM for recommendation: the SR model}
+\subsection{SSVM for structured recommendation: the SR model}
 \label{ssec:sr}
 \textmoveup
 
@@ -158,12 +164,15 @@ which leads to %this $1$-slack formulation,
 \end{aligned}
 $}
 \end{equation}
-This $1$-slack formulation can be learned more efficiently than the $N$-slack formulation (\ref{eq:nslack_ml}) if training using cutting-plane algorithm.
+%This $1$-slack formulation can be learned more efficiently than the $N$-slack formulation (\ref{eq:nslack_ml}) if training using cutting-plane algorithm.
+If training using cutting-plane algorithm, the above can be learned more efficiently than (\ref{eq:nslack_ml}).
 
 
 
-\subsection{Sequence decoding for the SR model}
+%\subsection{Sequence decoding for the SR model}
+\subsection{SSVM for sequence recommendation: sequence decoding}
 \label{ssec:subtour}
+\label{ssec:SRinf}
 
 The SR model require two algorithmic components for inference and learning
 (missing from the SSVM algorithms).
@@ -185,7 +194,7 @@ As described in Section~\ref{ssec:sr}, %this involves %we would want to maximize
 however, the Viterbi algorithm uses back-tracking to find the best sequence,
 and cannot easily exclude known sequences.
 The rest of this section describes two algorithms, each intuitively aimed to address %one of 
-the two requirements above, both can be applied in novel contexts of the SR model.
+the two requirements above, which can be applied in novel contexts of the SR model.
 %We will also describe practical choices about which algorithm to use when.
 
 
@@ -218,7 +227,7 @@ enforces that only a single sequence of points without sub-tours is permitted in
 We rewrite Eq.~(\ref{eq:jointfeature}) into a linear function of decision variables $u_{jk}$
 (dropping the unary term corresponding to $y_1^*$ as it has been observed), which results in ~(\ref{eq:obj}):
 
-%%\resizebox{.99\columnwidth}{!}{
+%\resizebox{.99\columnwidth}{!}{$\displaystyle
 %%  \begin{minipage}{\linewidth}
 \begin{alignat}{5}
 \max_{\bu} ~& \sum_{k=1}^m \w_k^\top \Psi_k(\x, p_k) \sum_{j=1}^m u_{jk}
@@ -231,7 +240,7 @@ s.t. ~~& u_{jk}, ~z_j \in \{0, 1\}, ~u_{jj} = z_1 = 0, ~v_j \in \mathbf{Z}, ~j,k
   & v_j - v_k + 1 \le (m-1) (1-u_{jk}), ~j,k = 2,\cdots,m                                       \label{eq:cons5}
 \end{alignat}
 %%\end{minipage}
-%%}
+%$}
 
 % ILP for top-k prediction/inference
 We can use the above formulation to find the top-$K$ scored paths in a sequential manner. 
@@ -271,11 +280,13 @@ An alternative approach to solve the inference and learning of the SR model is m
 several extensions of the Viterbi algorithm that aim to find more than one high-scoring sequences.
 The \emph{parallel list Viterbi} algorithm~\cite{seshadri1994list} finds the top $k$ sequences
 by keeping $k$ backtrack pointers for each possible state in each position of the sequence.
-This algorithm is computationally efficient
--- a factor of $k\log mk$ %$\log L$ 
-more than the standard Viterbi for score sorting in each step, rather than simple maximization
--- but it keeps many unnecessary pointers. It is also difficult to apply to the SR inference scenario,
-since we do not know $k$ beforehand. This is because it is generally impossible to foresee
+% This algorithm is computationally efficient
+% -- a factor of $k\log mk$ %$\log L$ 
+% more than the standard Viterbi for score sorting in each step, rather than simple maximization
+% -- but it keeps many unnecessary pointers.
+However, it is difficult to apply to the SR inference scenario,
+since we do not know $k$ beforehand.
+This is because it is generally impossible to foresee
 the rank (according to the score) of the first path among all valid sequences (that may have repeated points).
 
 We resort to the \emph{serial list Viterbi} algorithm~\cite{seshadri1994list,nilsson2001sequentially}.
@@ -286,17 +297,19 @@ for one continuous segment, and then finally merges back to the best sequence wi
 Subsequently, the $k$th best sequence can be the 2nd best sequence relative to the $(k \!-\! 1)$-th sequence
 at the point of final merge, or the 2nd or 3rd best sequence to the $(k \!-\! 2)$-th sequence at the point of final merge, \ldots, and so on.
 %The version of serial list Viterbi presented by~\cite{nilsson2001sequentially} accommodates
-The serial list Viterbi allows exclusion of sequences with repeats, by checking whether or not the current $k$th best sequence has a repeat, if it does, discard and proceed to the $(k \!+\! 1)$-th. It also allows excluding an arbitrary number of known sequences, by additionally checking, when we get each of the $k$th best sequence, whether or not it is in the exclusion set.
+The serial list Viterbi allows exclusion of sequences with repeats, %by checking whether or not the current $k$th best sequence has a repeat, if it does, discard and proceed to the $(k \!+\! 1)$-th.
+and also allows excluding an arbitrary number of known sequences. %by additionally checking, when we get each of the $k$th best sequence, whether or not it is in the exclusion set.
 %by partitioning the remaining space
 %from each of the known sequence according to their points of deviation,
 %finding the best trajectory within each partition and then identifying the best among different partitions.
-Due to space limitations, the list Viterbi algorithm is fully detailed in the supplement.
+%Due to space limitations,
+The list Viterbi algorithm is fully detailed in the supplement.
 
-The serial list Viterbi algorithm is particularly versatile, 
-for the structured recommendation problem, %the serial list Viterbi algorithm 
+The serial list Viterbi algorithm is particularly versatile
+for the structured recommendation problem: %the serial list Viterbi algorithm 
 it can be used for inference by sequentially getting the next best sequence, until the required number of %one or more 
-paths are found.
-This algorithm can also be used for loss-augmented inference with Hamming loss,
+paths are found;
+it can also be used for loss-augmented inference with Hamming loss,
 since it only requires the loss function be decomposable with respect to the label elements.
 %This list Viterbi algorithm performs a backward search for trajectories that merges into the existing candidates at any given point.
 %as described in Algorithm~\ref{alg:listviterbi}.

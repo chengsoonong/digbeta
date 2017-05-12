@@ -6,8 +6,22 @@
 \label{sec:recseq}
 \textmoveup
 
-%We begin with an overview of the sequence recommendation problem, before presenting our model.
-Consider first the following abstract
+We introduce the sequence recommendation problem that is the focus of this paper.
+%To do so, we first
+We then provide some motivating examples, in particular the problem of trajectory recommendation.
+%and show how it may be viewed as a kind of structured prediction problem.
+
+
+%
+%\subsection{Trajectory recommendation as a structured prediction problem}
+%\input{trajrec}
+
+%
+%\subsection{From trajectory to sequence recommendation}
+\subsection{Structured and sequence recommendation}
+
+%We now generalise the previous discussion to cover a broad class of problems.
+Consider the following abstract
 \emph{structured recommendation} problem:
 given an input query $\x \in \mathcal{X}$ -- representing for example a user, a location, or some ``seed'' item --
 we wish to recommend one or more \emph{structured outputs} $\y \in \mathcal{Y}$ according to a learned \emph{score function} $f(\x,\y)$.
@@ -25,32 +39,47 @@ and this shall be our primary interest in this paper.
 The assumption that $\y$ is a sequence does not limit the generality of our approach,
 as inferring $\y$ of other structure can be achieved using corresponding inference and loss-augmented inference algorithms~\cite{joachims2009predicting}.  %LX - this sentence can be cut or merged above
 
-There are notable differences between the sequence recommendation problem and %what is being solved in
-the standard problems considered in structured prediction and recommender systems.
+
+%
+\subsection{Sequence recommendation versus existing problems}
+
+There are key differences between sequence recommendation and %what is being solved in
+standard problems in structured prediction and recommender systems;
 %This setting generalises from structured prediction and recommendation problems in the following ways.
-These differences bring unique challenges for both inference and learning.
-In a typical structured prediction setting, the goal is to learn from a collection of $n$
+this brings unique challenges for both inference and learning.
+
+In a structured prediction problem, the goal is to learn from a set of
 input vector and output sequence tuples %$(\x\pb{i}, \y\pb{i})$, $i=1:n$.
 $\{ (\x\pb{i}, \y\pb{i}) \}_{i = 1}^n$. Here,
-for each distinct input $\x\pb{i}$ there is usually one \emph{unique} output sequence $\y\pb{i}$.
-In a typical sequence recommendation problem, however, we expect that %learn from
+for each input $\x\pb{i}$ there is usually one \emph{unique} output sequence $\y\pb{i}$.
+In a sequence recommendation problem, however, we expect that %learn from
 %tuples $(\x\pb{i}, \{ y\pb{ij} \}_{j=1:n^i})$, $i=1:n$. That is to say,
 for each input $\x\pb{i}$ (\eg users),
 there %is %have not one, but a set of
 are multiple associated outputs %$\{ y\pb{ij} \}_{j=1:n^i}$ (\eg movies).
 $\{ \y\pb{ij} \}_{j=1}^{n_i}$ (\eg trajectories they have visited).
 %Indeed, the existence of multiple outputs is the basis on which even non-structured recommendation systems are built, as one looks to exploit signal embedded in the aggregate information.
-For model learning, structured prediction approaches do not have a standard way to take into account such multiple output sequences.
+For learning, structured prediction approaches do not have a standard way to handle such multiple output sequences.
 %$\{ \y\pb{ij} \}_{j=1:n^i}$
 %for each input %$\x\pb{i}$
 %yet.
 
-On the other hand, for typical recommender systems problems, one assumes that the outputs are non-structured (\eg real-valued ratings for movies).
+On the other hand, in a typical recommender systems problem, the outputs are non-structured; canonically, one works with {static} content such as books or movies~\citep{Goldberg:1992,Sarwar:2001,Netflix}.
 Thus, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$.
-For structured recommendation problems, computing $\argmax_\y f(\x,\y)$ is harder since it is often impossible to efficiently enumerate $\y$ (\eg all possible trajectories in a city).
+For structured recommendation, computing $\argmax_\y f(\x,\y)$ is harder since it is often impossible to efficiently enumerate $\y$ (\eg all possible trajectories in a city).
+This inability to enumerate $\y$ also poses a challenge in designing
+a suitable $f(\x,\y)$;
+the standard matrix factorisation approach to recommender systems,~\citep{Koren:2009}
+requires associating a latent feature with each $\y$, which will be infeasible.
 
 
 %
-\subsection{Trajectory recommendation as a sequence recommendation problem}
+\subsection{Examples of sequence recommendation}
+\label{sec:trajrec}
+
+To make the sequence recommendation problem more concrete,
+we provide three concrete examples,
+with particular focus on the problem of trajectory recommendation.
+%we explicate how a recently studied problem may be viewed as a special case.
 
 \input{trajrec}

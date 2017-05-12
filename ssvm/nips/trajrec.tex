@@ -5,25 +5,40 @@
 % \label{sec:trajrec}
 % \textmoveup
 
-We present the trajectory recommendation problem,
-which shall serve as our canonical application of sequential recommendation.
-We first review the problem as it is typically treated in the literature,
-and then show how it may be viewed as a structured prediction problem.
+% We present the trajectory recommendation problem,
+% which shall serve as our canonical application of sequential recommendation.
+% We first review the problem as it is typically treated in the literature,
+% and then show how it may be viewed as a structured prediction problem.
 
 % \secmoveup
 % \subsection{Trajectory recommendation: standard view}
-\textbf{Trajectory recommendation: standard view}.
-Travel recommendation problems involve a set of points-of-interest (POIs) $\mathcal{P}$ in a city.
+% \textbf{Trajectory recommendation: standard view}.
+% \subsection{The trajectory recommendation problem}
+\textbf{Trajectory recommendation}.
+Travel recommendation problems involve a set of points-of-interest (POIs) $\mathcal{P}$ in a city~\cite{bao2015recommendations,zheng2015trajectory,zheng2014urban}.
+% There are, roughly, three problem settings that have been studied.
+% The first setting is \emph{point of interest} (\emph{POI}) \emph{recommendation};
+% Here, one wishes to rank various POIs in a city in order of how ``interesting'' they are to a given visitor,
+% exploiting
+% available metadata for each POI~\cite{shi2011personalized,lian2014geomf,hsieh2014mining,yuan2014graph}.
+% The second setting is \emph{next location recommendation};
+% here, given the sequence of a traveller's partial tour through a city,
+% the goal is to recommend which POI the traveller should visit next~\cite{fpmc10,ijcai13,zhang2015location}.
+%quantifying tourist traffic flow between points-of-interest~\cite{zheng2012patterns},
+%formulating a binary decision or ranking problem~\cite{baraglia2013learnext}, and predicting the next location with
+%or sequence models such as recurrent neural networks~\cite{aaai16}.
+%The third setting is \emph{trajectory recommendation},
+%which is our interest in this paper.
 The \emph{trajectory recommendation} problem is: given a \emph{trajectory query} $\mathbf{x} = (s, l)$,
 comprising a start POI $s \in \mathcal{P}$ and trip length
-\footnote{Instead of specifying the number of desired POIs, 
-we can constrain the trajectory with a total time budget $T$. 
-In this case, the number of POIs $l$ can be treated as a \emph{hidden} variable, 
-with additional constraint $\sum_{k=1}^l t_k \le T$ where $t_k$ is the time spent at POI $y_k$.}
-$l > 1$ (including the start location $s$),
-we want to recommend one or more sequences of POIs (or \emph{trajectories}) %$\mathbf{y}^*$ 
+%\footnote{Instead of specifying the number of desired POIs, 
+%we can constrain the trajectory with a total time budget $T$. 
+%In this case, the number of POIs $l$ can be treated as a \emph{hidden} variable, 
+%with additional constraint $\sum_{k=1}^l t_k \le T$ where $t_k$ is the time spent at POI $y_k$.}
+$l > 1$ (including the start POI $s$),
+recommend one or more sequences of POIs (or \emph{trajectories}) %$\mathbf{y}^*$ 
 that maximise some notion of utility.
-To learn a suitable $f$ for trajectory recommendation,
+To learn a suitable $f$,
 we are provided as input a training set
 %$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$,
 %comprising pairs of queries and corresponding
@@ -42,6 +57,11 @@ of trajectories visited by travellers in the city.
 % \end{equation*}
 
 % Another similar problem is choosing a small set of photos from a large photo library and compiling them into a slideshow or movie.
+
+%
+%\subsection{Trajectory recommendation: structured view}
+%\textbf{Trajectory recommendation: structured view}.
+%\subsection{Trajectory recommendation as a structured prediction problem}
 
 Existing approaches treat the problem as one of determining a score for the intrinsic appeal of each POI,
 based on implicit preference data in the training set.
@@ -65,12 +85,12 @@ from the given set of trajectories
 we derive a training set $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
 where each POI $p$ is augmented with a label $y^{(i)} \in \{ \pm 1 \}$ denoting whether or not it appeared in a trajectory corresponding to the query $\x^{(i)}$. 
 The objective used for training is then
-%%\resizebox{0.99\linewidth}{!}{
 \begin{equation*}
+\resizebox{0.7\linewidth}{!}{$\displaystyle
 \displaystyle \min_{\w} \frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathcal{R}( \x^{(i)} )} 
 \ell\left( \w^\top ( \Phi( \x^{(i)}, p ) - \Phi( \x^{(i)}, p' ) ) \right),
+$}
 \end{equation*}
-%%}
 %where $\Phi, C$ are as before,
 where
 $\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
@@ -80,48 +100,63 @@ and
 %$p \succeq_{\mathbf{x}} p'$ is denoted to mean that the
 $\mathcal{R}( \x )$
 denotes all pairs of POIs $(p, p')$ such that
-POI $p$ is ranked above the POI $p'$ in the trajectories associated with $\x$ according to some notion.
-For example, this may be computed by counting the number of times a POI appears in the trajectories associated with a query, 
-and using this to determine which of two POIs is more suitable for a query.
+POI $p$ is ranked above the POI $p'$ in the trajectories associated with $\x$, %according to some notion.
+\eg based on the counts of the number of times a POI appears in the trajectories associated with a query.
+%For example, this may be computed by counting the number of times a POI appears in the trajectories associated with a query, 
+%and using this to determine which of two POIs is more suitable for a query.
 
 While such approaches can certainly learn to recommend useful trajectories,
 we observe that their modelling power is inherently limited:
-they are not capable of ensuring the \emph{global} cohesion of a trajectory,
-as they inherently rely on either pointwise or pairwise preferences for POIs.
+they are not capable of ensuring the \emph{global} cohesion of a trajectory.
+%as they inherently rely on either pointwise or pairwise preferences for POIs.
 For example, as argued in Section~\ref{sec:intro},
 we might find three restaurants to be the highest scoring POIs in a city;
 however, this it is unlikely that these three POIs form a trajectory that most travellers will enjoy.
-
 This motivates an approach that directly ensures such global cohesion.
-To do this, we show how the problem can be cast as one of sequential recommendation, 
-thus allowing us to leverage the tools developed in the previous section.
 
-
-%
-%\subsection{Trajectory recommendation: structured view}
-\textbf{Trajectory recommendation: structured view}.
-More abstractly, we can cast trajectory recommendation as the following problem:
+More abstractly, we can view trajectory recommendation as a kind of sequence recommendation follows:
 given some $\x$, and suitable function $f(\cdot,\cdot)$, we wish to find
-\begin{equation*}
-\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~f(\mathbf{x}, \mathbf{y}),
-\end{equation*}
+$\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~f(\mathbf{x}, \mathbf{y}),$
 where $\mathcal{Y}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ that conform to the constraints imposed by the query $\mathbf{x}$.
 In particular,
-$\mathbf{y} = (y_1 = s,~ y_2, \dots, y_l)$ is a trajectory with $l$ POIs, which has no sub-tours i.e. $y_j \ne y_k$ if $j \ne k$.
+$\mathbf{y} = (s,~ y_2, \dots, y_l)$ is a trajectory with $l$ distinct POIs. %, which has no sub-tours. %i.e. $y_j \ne y_k$ if $j \ne k$.
 
 Now, our training set of historical trajectories may be written as
 $\{ ( \x\pb{i}, \{ \y\pb{ij} \}_{j=1}^{n_i} ) \}_{i=1}^{n}$,
 where each $\x\pb{i}$ is a distinct query,
-while the corresponding $\{ \y\pb{ij} \}_{j=1}^{n_i}$ is the set of trajectories observed for that query.
+while the corresponding $\{ \y\pb{ij} \}_{j=1}^{n_i}$ is the \emph{set} of trajectories observed for that query.
 Note that we expect most queries to have several distinct trajectories;
 minimally,
 for example,
 there may be two nearby POIs that are visited in interchangeable order by different travellers.
 
-Comparing the above to the discussion in the previous section, it is clear that
-we can cast trajectory recommendation as a special case of the structured recommendation problem.
-Consequently, we may approach it using structured prediction methods such as the SSVM,
-as well as the extensions proposed to account for multiple ground truths and eliminate loops during training.
+
+%
+\textbf{Playlist generation}.
+Another example of sequential recommendation is the problem of recommending song playlists to users, given a query song~\citep{McFee:2011,chen2012playlist}.
+The canonical approach here is to
+learn a latent representation of songs from historical playlist data,
+and exploit a Markovian assumption on the song transitions.
+While a reasonable first order approximation, this assumption limits the modelling power of such approaches.
+
+
+%
+\textbf{Shopping basket prediction}.
+One more example of sequential recommendation is the problem of recommending the next item a user might like to purchase, given the sequence of their shopping basket purchases~\citep{Rendle:2010,Wang:2015}.
+The canonical approach here is to apply matrix factorisation to the Markov chain of transitions between items.
+This method is feasible because one is only interested in predicting sequences one element at a time, so that latent embeddings for each item may be found.
+
+
+
+% To do this, we show how the problem can be cast as one of sequential recommendation, 
+% thus allowing us to leverage the tools developed in the previous section.
+
+
+
+% Comparing the above to the discussion in the previous section, it is clear that
+% we can cast trajectory recommendation as a special case of the structured recommendation problem.
+% Consequently, we may approach it using structured prediction methods such as the SSVM,
+% as well as the extensions proposed to account for multiple ground truths and eliminate loops during training.
 
 % AKM: repetitive
 %
