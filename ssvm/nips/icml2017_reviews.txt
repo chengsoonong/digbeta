@@ -206,3 +206,21 @@ Detailed comments
 - For baselines, I’m surprised the authors didn’t include some sort of markov chain model which seems to be a common/baseline method for any sort of sequence prediction problem.
 
 - The datasets used are, in my opinion, too few and too small. I would like to see this on datasets that are either much larger in scale (i.e. travel itineraries from travel websites such as TripAdvisor?) or at least a benchmark on a dataset that is more widely known. It is hard to be confident of these results when the dataset is so small.
+
+
+
+
+
+Masked Meta-Reviewer ID:    Meta_Reviewer_4
+
+=====================
+Overall Rating  
+=====================
+Reject
+
+=====================
+Detailed Comments  
+=====================
+The paper adapts structured SVMs for sequential recommendation, with the main novelty due to allowing multiple ground truth paths. There were mixed feelings about how novel this idea really is, and whether more direct approaches might work just as well. There were also concerns that the experiments are too limited.
+
+The reviewers read and discussed the author feedback. In the end, the consensus was that the current results have limited significance and need a more convincing empirical evaluation. 
