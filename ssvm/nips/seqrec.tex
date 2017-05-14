@@ -67,9 +67,8 @@ For learning, structured prediction approaches do not have a standard way to han
 On the other hand, in a typical recommender systems problem, the outputs are non-structured; canonically, one works with {static} content such as books or movies~\citep{Goldberg:1992,Sarwar:2001,Netflix}.
 Thus, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$.
 For structured recommendation, computing $\argmax_\y f(\x,\y)$ is harder since it is often impossible to efficiently enumerate $\y$ (\eg all possible trajectories in a city).
-This inability to enumerate $\y$ also poses a challenge in designing
-a suitable $f(\x,\y)$;
-the standard matrix factorisation approach to recommender systems,~\citep{Koren:2009}
+This inability to enumerate $\y$ also poses a challenge in designing a suitable $f(\x,\y)$, \eg
+the standard matrix factorisation approach to recommender systems~\citep{Koren:2009}
 requires associating a latent feature with each $\y$, which will be infeasible.
 
 

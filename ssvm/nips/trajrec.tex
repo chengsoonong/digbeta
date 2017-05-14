@@ -29,17 +29,20 @@ Travel recommendation problems involve a set of points-of-interest (POIs) $\math
 %or sequence models such as recurrent neural networks~\cite{aaai16}.
 %The third setting is \emph{trajectory recommendation},
 %which is our interest in this paper.
-The \emph{trajectory recommendation} problem is: given a \emph{trajectory query} $\mathbf{x} = (s, l)$,
+%The \emph{trajectory recommendation} problem is: 
+Given a \emph{trajectory query} $\mathbf{x} = (s, l)$,
 comprising a start POI $s \in \mathcal{P}$ and trip length
 %\footnote{Instead of specifying the number of desired POIs, 
 %we can constrain the trajectory with a total time budget $T$. 
 %In this case, the number of POIs $l$ can be treated as a \emph{hidden} variable, 
 %with additional constraint $\sum_{k=1}^l t_k \le T$ where $t_k$ is the time spent at POI $y_k$.}
-$l > 1$ (including the start POI $s$),
+$l \!>\! 1$ (\ie the desired number of POIs, including $s$),
+the \emph{trajectory recommendation} problem is to
 recommend one or more sequences of POIs (or \emph{trajectories}) %$\mathbf{y}^*$ 
-that maximise some notion of utility.
-To learn a suitable $f$,
-we are provided as input a training set
+that maximise some notion of utility
+%To learn a suitable $f$,
+%we are 
+provided as input a training set
 %$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$,
 %comprising pairs of queries and corresponding
 of trajectories visited by travellers in the city.
@@ -83,7 +86,10 @@ learns to predict whether a POI is likely to appear ahead of another POI in a tr
 Formally,
 from the given set of trajectories
 we derive a training set $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
-where each POI $p$ is augmented with a label $y^{(i)} \in \{ \pm 1 \}$ denoting whether or not it appeared in a trajectory corresponding to the query $\x^{(i)}$. 
+where each POI $p$ is augmented with a label 
+%$y^{(i)} \in \{ \pm 1 \}$ denoting whether or not
+$y^{(i)}$ denoting how many times
+it appeared in a trajectory corresponding to the query $\x^{(i)}$. 
 The objective used for training is then
 \begin{equation*}
 \resizebox{0.7\linewidth}{!}{$\displaystyle
@@ -114,9 +120,10 @@ we might find three restaurants to be the highest scoring POIs in a city;
 however, this it is unlikely that these three POIs form a trajectory that most travellers will enjoy.
 This motivates an approach that directly ensures such global cohesion.
 
-More abstractly, we can view trajectory recommendation as a kind of sequence recommendation follows:
-given some $\x$, and suitable function $f(\cdot,\cdot)$, we wish to find
-$\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~f(\mathbf{x}, \mathbf{y}),$
+More abstractly, we can view trajectory recommendation as a kind of sequence recommendation as follows:
+given some $\x$, and a suitable function $f(\cdot,\cdot)$, we wish to find
+$\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~f(\mathbf{x}, \mathbf{y}),$ 
+%%DW: use top-k prediction formulation or not?
 where $\mathcal{Y}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ that conform to the constraints imposed by the query $\mathbf{x}$.
 In particular,
 $\mathbf{y} = (s,~ y_2, \dots, y_l)$ is a trajectory with $l$ distinct POIs. %, which has no sub-tours. %i.e. $y_j \ne y_k$ if $j \ne k$.
@@ -142,7 +149,7 @@ While a reasonable first order approximation, this assumption limits the modelli
 
 %
 \textbf{Shopping basket prediction}.
-One more example of sequential recommendation is the problem of recommending the next item a user might like to purchase, given the sequence of their shopping basket purchases~\citep{Rendle:2010,Wang:2015}.
+One more example of sequential recommendation is the problem of recommending the next items a user might like to purchase, given the sequence of their shopping basket purchases~\citep{Rendle:2010,Wang:2015}.
 The canonical approach here is to apply matrix factorisation to the Markov chain of transitions between items.
 This method is feasible because one is only interested in predicting sequences one element at a time, so that latent embeddings for each item may be found.
 
