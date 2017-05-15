@@ -51,6 +51,7 @@ Therefore, evaluation is carried out on the problem of recommending trajectories
 		\textbf{Dataset} & \textbf{\#Traj.} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#Queries} & \textbf{AvgLenth} \\ \hline
 		Osaka            & 186              & 26              & 130              & 47                 & 2.4 \\
 		Glasgow          & 351              & 25              & 219              & 64                 & 2.5 \\
+        Toronto          & 977              & 27              & 454              & 99                 & 2.6 \\
 		\hline
 		\end{tabular}%
 		}
@@ -59,7 +60,7 @@ Therefore, evaluation is carried out on the problem of recommending trajectories
 	\end{minipage}%
 	\quad
 	\begin{minipage}[t]{0.45\linewidth}
-		\includegraphics[scale=0.35]{hist.pdf}
+		\includegraphics[scale=0.35]{hist_query.pdf}
 	    \captionof{figure}{\# of trajectories per query.}
 	    \label{fig:image}
   \end{minipage}
@@ -180,10 +181,17 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 
 \input{tab_experiment}
 
+
+\begin{minipage}[t]{0.8\linewidth}
+		\includegraphics[scale=0.5]{tau_topk.pdf}
+	    \captionof{figure}{Average $\tau$ on short/long trajectories w.r.t. top-k recommendation.}
+	    \label{fig:topk}
+\end{minipage}
+
 % experimental results
 %The performance of %three baselines and four variants based on structured prediction on two datasets
 %all methods are shown in Table~\ref{tab:result}.
-From the results in Table~\ref{tab:result}, we make the following observations that validate our contributions:
+From the results in Table~\ref{tab:result} and Figure~\ref{fig:topk}, we make the following observations that validate our contributions:
 
 \textbf{Exploiting the structure of sequences helps}.
 All variants of our structured prediction methods achieve better performance than existing baselines.

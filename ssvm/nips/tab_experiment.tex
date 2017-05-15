@@ -5,38 +5,59 @@
      Higher scores are better.}
      \label{tab:result}
      \centering
-     %\setlength{\tabcolsep}{3pt} % tweak the space between columns
-     \small
+%%     \setlength{\tabcolsep}{3pt} % tweak the space between columns
+%%     \small
      \resizebox{\linewidth}{!}{
-     \begin{tabular}{l|cc|cc|cc} \hline
-                         & \multicolumn{2}{|c}{\textbf{Kendall's $\tau$}}
-                         & \multicolumn{2}{|c}{\textbf{F$_1$ score on points}}
-                         & \multicolumn{2}{|c}{\textbf{F$_1$ score on pairs}} \\ \cline{2-7}
-                         & Osaka & Glasgow 
-                         & Osaka & Glasgow  
-                         & Osaka & Glasgow \\ \hline
-     \textsc{Random}     & $0.685\pm0.035$ & $0.703\pm0.029$
-                         & $0.703\pm0.032$ & $0.731\pm0.026$
-                         & $0.451\pm0.057$ & $0.495\pm0.046$ \\
-     \textsc{Popularity} & $0.768\pm0.038$ & $0.748\pm0.036$
-                         & $0.786\pm0.034$ & $0.771\pm0.033$
-                         & $0.626\pm0.055$ & $0.623\pm0.051$ \\
-     \textsc{PoiRank}    & $0.787\pm0.037$ & $0.830\pm0.029$
-                         & $0.804\pm0.034$ & $0.847\pm0.025$
-                         & $0.661\pm0.056$ & $0.726\pm0.043$ \\
-     \midrule
-     \textsc{SP}         & $0.749\pm0.043$ & $0.790\pm0.030$
-                         & $0.770\pm0.039$ & $0.810\pm0.027$
-                         & $0.620\pm0.061$ & $0.658\pm0.046$ \\
-     \textsc{SPpath}     & $\mathit{0.791\pm0.036}$ & $0.787\pm0.029$
-                         & $\mathit{0.809\pm0.033}$ & $0.807\pm0.026$
-                         & $\mathit{0.664\pm0.055}$ & $0.648\pm0.045$ \\
-     \textsc{SR}         & $0.777\pm0.036$ & $\mathbf{0.868\pm0.026}$
-                         & $0.793\pm0.033$ & $\mathbf{0.883\pm0.023}$
-                         & $0.637\pm0.055$ & $\mathbf{0.770\pm0.039}$ \\
-     \textsc{SRpath}     & $\mathbf{0.803\pm0.034}$ & $\mathit{0.853\pm0.026}$
-                         & $\mathbf{0.820\pm0.031}$ & $\mathit{0.868\pm0.023}$
-                         & $\mathbf{0.671\pm0.053}$ & $\mathit{0.746\pm0.041}$ \\ \hline
-     \end{tabular}
+%%     \begin{tabular}{l|cc|cc|cc} \hline
+%%                         & \multicolumn{2}{|c}{\textbf{Kendall's $\tau$}}
+%%                         & \multicolumn{2}{|c}{\textbf{F$_1$ score on points}}
+%%                         & \multicolumn{2}{|c}{\textbf{F$_1$ score on pairs}} \\ \cline{2-7}
+%%                         & Osaka & Glasgow 
+%%                         & Osaka & Glasgow  
+%%                         & Osaka & Glasgow \\ \hline
+%%     \textsc{Random}     & $0.685\pm0.035$ & $0.703\pm0.029$
+%%                         & $0.703\pm0.032$ & $0.731\pm0.026$
+%%                         & $0.451\pm0.057$ & $0.495\pm0.046$ \\
+%%     \textsc{Popularity} & $0.768\pm0.038$ & $0.748\pm0.036$
+%%                         & $0.786\pm0.034$ & $0.771\pm0.033$
+%%                         & $0.626\pm0.055$ & $0.623\pm0.051$ \\
+%%     \textsc{PoiRank}    & $0.787\pm0.037$ & $0.830\pm0.029$
+%%                         & $0.804\pm0.034$ & $0.847\pm0.025$
+%%                         & $0.661\pm0.056$ & $0.726\pm0.043$ \\
+%%     \midrule
+%%     \textsc{SP}         & $0.749\pm0.043$ & $0.790\pm0.030$
+%%                         & $0.770\pm0.039$ & $0.810\pm0.027$
+%%                         & $0.620\pm0.061$ & $0.658\pm0.046$ \\
+%%     \textsc{SPpath}     & $\mathit{0.791\pm0.036}$ & $0.787\pm0.029$
+%%                         & $\mathit{0.809\pm0.033}$ & $0.807\pm0.026$
+%%                         & $\mathit{0.664\pm0.055}$ & $0.648\pm0.045$ \\
+%%     \textsc{SR}         & $0.777\pm0.036$ & $\mathbf{0.868\pm0.026}$
+%%                         & $0.793\pm0.033$ & $\mathbf{0.883\pm0.023}$
+%%                         & $0.637\pm0.055$ & $\mathbf{0.770\pm0.039}$ \\
+%%     \textsc{SRpath}     & $\mathbf{0.803\pm0.034}$ & $\mathit{0.853\pm0.026}$
+%%                         & $\mathbf{0.820\pm0.031}$ & $\mathit{0.868\pm0.023}$
+%%                         & $\mathbf{0.671\pm0.053}$ & $\mathit{0.746\pm0.041}$ \\ \hline
+%%     \end{tabular}
+\begin{tabular}{l|ccc|cccc} \hline
+& \multicolumn{7}{c}{\bf Kendall's $\tau$} \\
+\hline
+ & \textsc{Random} & \textsc{Popularity} & \textsc{PoiRank} & \textsc{SP} & \textsc{SPpath} & \textsc{SR} & \textsc{SRpath} \\ \hline
+Osaka & $0.685\pm0.035$ & $0.768\pm0.038$ & $0.787\pm0.037$ & $0.749\pm0.043$ & $\mathit{0.791\pm0.036}$ & $0.777\pm0.036$ & $\mathbf{0.803\pm0.034}$ \\
+Glasgow & $0.703\pm0.029$ & $0.748\pm0.036$ & $0.830\pm0.029$ & $0.790\pm0.030$ & $0.787\pm0.029$ & $\mathbf{0.868\pm0.026}$ & $\mathit{0.853\pm0.026}$ \\
+Toronto & $0.652\pm0.024$ & $0.719\pm0.024$ & $\mathit{0.784\pm0.023}$ & $0.697\pm0.027$ & $-$ & $\mathbf{0.802\pm0.022}$ & $-$ \\
+\hline
+& \multicolumn{7}{c}{\bf F$_1$ score on points} \\ 
+\hline
+Osaka & $0.703\pm0.032$ & $0.786\pm0.034$ & $0.804\pm0.034$ & $0.770\pm0.039$ & $\mathit{0.809\pm0.033}$ & $0.793\pm0.033$ & $\mathbf{0.820\pm0.031}$ \\
+Glasgow & $0.731\pm0.026$ & $0.771\pm0.033$ & $0.847\pm0.025$ & $0.810\pm0.027$ & $0.807\pm0.026$ & $\mathbf{0.883\pm0.023}$ & $\mathit{0.868\pm0.023}$ \\
+Toronto & $0.696\pm0.021$ & $0.746\pm0.022$ & $\mathit{0.807\pm0.020}$ & $0.733\pm0.023$ & $-$ & $\mathbf{0.828\pm0.019}$ & $-$ \\
+\hline
+& \multicolumn{7}{c}{\bf F$_1$ score on pairs} \\ 
+\hline
+Osaka & $0.451\pm0.057$ & $0.626\pm0.055$ & $0.661\pm0.056$ & $0.620\pm0.061$ & $\mathit{0.664\pm0.055}$ & $0.637\pm0.055$ & $\mathbf{0.671\pm0.053}$ \\
+Glasgow & $0.495\pm0.046$ & $0.623\pm0.051$ & $0.726\pm0.043$ & $0.658\pm0.046$ & $0.648\pm0.045$ & $\mathbf{0.770\pm0.039}$ & $\mathit{0.746\pm0.041}$ \\
+Toronto & $0.438\pm0.034$ & $0.550\pm0.035$ & $\mathit{0.649\pm0.033}$ & $0.530\pm0.037$ & $-$ & $\mathbf{0.660\pm0.033}$ & $-$ \\
+\hline
+\end{tabular}
      }
 \end{table*}
