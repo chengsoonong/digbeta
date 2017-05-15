@@ -53,7 +53,7 @@ with a corresponding weight vector $\w_{j,j+1}$.
 To learn a suitable set of weights $\w$, SSVMs solve: %the following optimisation problem:
 \begin{equation}
 \label{eq:nslack}
-\resizebox{0.9\linewidth}{!}{$\displaystyle
+\resizebox{0.93\linewidth}{!}{$\displaystyle
 \begin{aligned}
 \min_{\w, \, \bm{\xi} \ge 0} ~\frac{1}{2} \w^\top \w + \frac{C}{n} \sum_{i=1}^n \xi_i,  ~~s.t.~  \forall i, 
   \w^\top \Psi(\x^{(i)}, \y^{(i)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}) \ge
@@ -63,23 +63,9 @@ $}
 \end{equation}
 
 Here, 
-%$\bar\y$ is an arbitrary candidate sequence,  % \in \mathcal{Y} -- LX: what is cal Y anyway?
 $\mathcal{Y}$ is the set of all possible sequences
-and $\Delta(\yii, \bar\y)$ is the loss function between $\bar\y$ and the ground truth $\yii$,
-%%LX: we don't need the def of \xi_i below?
-and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th example~\cite{tsochantaridis2005large},
-\begin{equation}
-\label{eq:hingeloss}
-%%\resizebox{1.1\linewidth}{!}{
-%%\begin{minipage}{\linewidth}
-%\begin{align*}
-\xi_i = \max \left( 0, \, 
-        \max_{\bar{\y} \in \mathcal{Y}}
-        \left\{ \Delta(\y^{(i)}, \bar{\y}) + \w^\top \Psi(\x^{(i)}, \bar{\y}) \right\} - \w^\top \Psi(\x^{(i)}, \y^{(i)}) \right).
-%\end{align*}
-%%\end{minipage}
-%%}
-\end{equation}
+and $\Delta(\y\pb{i}, \bar\y)$ is the loss function between $\bar\y$ and the ground truth $\y\pb{i}$,
+and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th example~\cite{tsochantaridis2005large}.
 To solve problem (\ref{eq:nslack}),
 % one option is to simply enumerate all constraints, and feed the problem into a standard solver.
 % However, this approach is impractical as there is a constraint for every possible label $\bar{\y}$.
@@ -95,7 +81,12 @@ are widely used in practice~\cite{muller2014methods}.
 %which helps shrink the feasible region of the problem.
 
 
-\emph{Loss-augmented inference} refers to the inner maximisation in Eq.~(\ref{eq:hingeloss}).
+\emph{Loss-augmented inference}.
+We can rewrite the constraints in (\ref{eq:nslack}) as 
+$\w^\top \Psi(\x\pb{i}, \y\pb{i}) + \xi_i \ge 
+\max_{\bar\y \in \mathcal{Y}} \left\{ \Delta(\y\pb{i}, \bar\y) + \w^\top \Psi(\x\pb{i}, \bar\y) \right\}$,
+and the maximisation at the right side is known as the loss-augmented inference.
+%refers to the inner maximisation in Eq.~(\ref{eq:hingeloss}).
 %This formulation is called "$n$-slack" as we have one slack variable for each example in training set.
 %Here the inner maximisation is known as the \emph{loss-augmented inference}.
 When the underlying graph of SSVM is a tree (which is the case for sequence recommendation),
@@ -127,7 +118,7 @@ We propose a \emph{structured recommendation} (\emph{SR}) model that generalises
 We can learn an \emph{SR} model by optimising %a quadratic program similar to (\ref{eq:nslack}),
 \begin{equation}
 \label{eq:nslack_ml}
-\resizebox{0.9\linewidth}{!}{$
+\resizebox{0.93\linewidth}{!}{$
 \begin{aligned}
 \min_{\w, \, \bm{\xi} \ge 0} ~ \frac{1}{2} \w^\top \w + \frac{C}{N} \sum_{i=1}^n \sum_{j=1}^{n_i} \xi_{ij}, ~~s.t.~ \forall i, \, \forall j, 
   \w^\top \Psi(\x^{(i)}, \y^{(ij)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}^{(i)}) \ge
@@ -156,20 +147,11 @@ i.e., the loss-augmented inference becomes
 In this way, we do not have apparently contradictory constraints where
 two ground truth sequences are each required to have larger score than the other.
 Instead of using $N$ slack variables as that in (\ref{eq:nslack_ml}),
-we can use \emph{one} slack variable to represent the sum of the $N$ hinge losses in (\ref{eq:nslack_ml}),
-which leads to %this $1$-slack formulation,
-\begin{equation}
-\label{eq:1slack_ml}
-\resizebox{0.9\linewidth}{!}{$
-\begin{aligned}
-\min_{\w, \, \xi \ge 0} ~\frac{1}{2} \w^\top \w + C \xi, ~~s.t.~ \frac{1}{N} \left( \sum_{i,j} \w^\top \Psi(\x^{(i)}, \y^{(ij)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}^{(i)}) \right) 
-  \ge \frac{1}{N} \sum_{i,j} \Delta(\y^{(ij)}, \bar{\y}^{(i)}) - \xi.
-\end{aligned}
-$}
-\end{equation}
+we can use \emph{one} slack variable to represent the sum of the $N$ hinge losses. % in (\ref{eq:nslack_ml}).
+%which leads to a $1$-slack formulation
 %This $1$-slack formulation can be learned more efficiently than the $N$-slack formulation (\ref{eq:nslack_ml}) if training using cutting-plane algorithm.
-If training using cutting-plane algorithm, %the above can be learned more efficiently than (\ref{eq:nslack_ml}).
-this 1-slack formulation can be learned more efficiently. % than (\ref{eq:nslack_ml}).
+This 1-slack formulation can be learned more efficiently than (\ref{eq:nslack_ml})
+if training using cutting-plane algorithms. %the above can be learned more efficiently than (\ref{eq:nslack_ml}).
 
 
 
@@ -214,22 +196,21 @@ sub-tour elimination constraints of the TSP~\cite{ijcai15,cikm16paper}.
 In particular, the integer linear program (ILP) formulation (Eq.~\ref{eq:obj} to \ref{eq:cons5})
 will solve SR inference for path $\y^*$ of length $l$ by decoding an optimal solution.
 
-\begin{wraptable}{r}{0.56\linewidth}
-\resizebox{0.8\linewidth}{!}{$\displaystyle
-\begin{minipage}{\linewidth}
-\begin{alignat}{5}
-\max_{\bu} ~& \sum_{k=1}^m \w_k^\top \Psi_k(\x, p_k) \sum_{j=1}^m u_{jk}
-+ \sum_{j,k=1}^m u_{jk} \w_{jk}^\top \Psi_{j, k}(\x, p_j, p_k)                                  \label{eq:obj} \\
-s.t. ~~& u_{jk}, ~z_j \in \{0, 1\}, ~u_{jj} = z_1 = 0, ~v_j \in \mathbf{Z}, ~j,k = 1,\cdots,m   \label{eq:cons1} \\
-%  & y_j \in \{1,\dots,m\}, ~\forall j, k = 1,\cdots,m                                           \nonumber \\
-  & \sum_{k=2}^m u_{1k} = 1, ~\sum_{j=2}^m u_{j1} = 0                                           \label{eq:cons2} \\
-  & \sum_{j=1}^m u_{ji} = z_i + \sum_{k=2}^m u_{ik} \le 1, ~i = 2,\cdots,m                      \label{eq:cons3} \\
-  & \sum_{j=1}^m \sum_{k=1}^m u_{jk} = l-1,                                                     \label{eq:cons4} \\
-  & v_j - v_k + 1 \le (m-1) (1-u_{jk}), ~j,k = 2,\cdots,m                                       \label{eq:cons5}
-\end{alignat}
-\end{minipage}
-$}
-\end{wraptable}
+%%\begin{wraptable}{r}{0.56\linewidth}
+%%\resizebox{0.8\linewidth}{!}{$\displaystyle
+%%\begin{minipage}{\linewidth}
+%%\begin{alignat}{5}
+%%\max_{\bu} ~& \sum_{k=1}^m \w_k^\top \psi_k(\x, p_k) \sum_{j=1}^m u_{jk}
+%%            + \sum_{j,k=1}^m u_{jk} \w_{jk}^\top \psi_{j, k}(\x, p_j, p_k)                                  \label{eq:obj} \\
+%%s.t. ~~& u_{jk}, ~z_j \in \{0, 1\}, ~u_{jj} = z_1 = 0, ~v_j \in \mathbf{Z}, ~j,k = 1,\cdots,m   \label{eq:cons1} \\
+%%  & \sum_{k=2}^m u_{1k} = 1, ~\sum_{j=2}^m u_{j1} = 0                                           \label{eq:cons2} \\
+%%  & \sum_{j=1}^m u_{ji} = z_i + \sum_{k=2}^m u_{ik} \le 1, ~i = 2,\cdots,m                      \label{eq:cons3} \\
+%%  & \sum_{j=1}^m \sum_{k=1}^m u_{jk} = l-1,                                                     \label{eq:cons4} \\
+%%  & v_j - v_k + 1 \le (m-1) (1-u_{jk}), ~j,k = 2,\cdots,m                                       \label{eq:cons5}
+%%\end{alignat}
+%%\end{minipage}
+%%$}
+%%\end{wraptable}
 
 Given a set of points $\{p_j\}_{j=1}^m$, 
 consider binary decision variables $u_{jk}$ that are true if and only if
@@ -237,30 +218,55 @@ the transition from $p_j$ to $p_k$ is in the resulting path,
 and binary decision variables $z_j$ that are true iff $p_j$ is the last point in $\y^*$.
 %Suppose that $l$ is the number of candidate POIs.
 For brevity, we index the points such that $y_1^* = p_1$.
-Firstly, the desired path should start from $y_1^*$ (Constraint~\ref{eq:cons2}).
-In addition, any point could be visited at most once (Constraint~\ref{eq:cons3}).
-Moreover, only $l-1$ transitions between points are permitted
-since the path length is $l$ (Constraint~\ref{eq:cons4}).
-The last constraint, where $v_j$ is an auxiliary variable,
-enforces that only a single sequence of points without sub-tours is permitted in $\y^*$.
+Firstly, the desired path should start from $y_1^*$ (Constraint~\ref{eq:cons1}).
+In addition, only $l\!-\!1$ transitions between points are permitted as the path length is $l$ (Constraint~\ref{eq:cons2}).
+Moreover, any point could be visited at most once (Constraint~\ref{eq:cons3}).
+The last constraint, where $v_j \in \mathbf{Z}$ is an auxiliary variable,
+enforces that $\y^*$ is a single sequence of points without sub-tours.
 %\TODO{LX: i do not understand the last contraint, $v_j$ did not seem to have been defined? are they binary or something else?}
 % DW: v_j defined in the first constraint, which is a natural number
 We rewrite Eq.~(\ref{eq:jointfeature}) into a linear function of decision variables $u_{jk}$
 (dropping the unary term corresponding to $y_1^*$ as it has been observed), which results in ~(\ref{eq:obj}):
 
+\begin{equation}
+\label{eq:obj}
+\max_{\bu} ~\sum_{k=1}^m \w_k^\top \psi_k(\x, p_k) \sum_{j=1}^m u_{jk} +
+            \sum_{j,k=1}^m u_{jk} \w_{jk}^\top \psi_{j, k}(\x, p_j, p_k)
+\end{equation}
+
+{$\displaystyle
+\begin{minipage}{0.45\linewidth}
+\begin{alignat}{2}
+s.t. \, 
+& \sum_{k=2}^m u_{1k} = 1, \, \sum_{j=2}^m u_{j1} = z_1=0                 \label{eq:cons1} \\
+& \sum_{j=1}^m \sum_{k=1}^m u_{jk} = l-1, \, \sum_{j=1}^m u_{jj}=0        \label{eq:cons2}
+\end{alignat}
+\end{minipage}
+\qquad
+\begin{minipage}{0.5\linewidth}
+\begin{alignat}{3}
+\sum_{j=1}^m u_{ji} = z_i + \sum_{k=2}^m u_{ik} \le 1, \, i = 2,\cdots,m  \label{eq:cons3} \\
+v_j - v_k + 1 \le (m-1) (1-u_{jk}),                                       \nonumber \\
+j,k = 2,\cdots,m~                                                         \label{eq:cons4}
+\end{alignat}
+\end{minipage}
+$}
+
 % ILP for top-k prediction/inference
 We can use the above formulation to find the top-$K$ scored paths in a sequential manner. 
 In particular, given the $K\!-\!1$ top scored paths $\{\y^{(k)}\}_{k=1}^{K-1}$, 
 the $K\!$-th best scored path can be found by solving the above ILP with additional constraints:
-\begin{equation}
-\label{eq:topk_ILP}
-\sum_{j=1}^{l-1} u_{y_j, y_{j+1}} \le l-2, ~\forall \y \in \{\y^{(k)}\}_{k=1}^{K-1}.
-\end{equation}
-
+%%\begin{equation}
+%%\label{eq:topk_ILP}
+$\sum_{j=1}^{l-1} u_{y_j, y_{j+1}} \le l-2, ~\forall \y \in \{\y^{(k)}\}_{k=1}^{K-1}$.
+%%\end{equation}
 % ILP for learning (loss-augmented inference)
-To learn an SR model, we can solve the loss-augmented inference~(\ref{eq:loss_aug_inf}) 
-using ILP constraints~(\ref{eq:cons1})-(\ref{eq:cons5}),
-with additional ones similar to~(\ref{eq:topk_ILP}) to exclude observed labels,
+This constraint can also be used to exclude observed labels when learning an SR model, 
+\ie solving the loss-augmented inference~(\ref{eq:loss_aug_inf}),
+together with constraints~(\ref{eq:cons1})-(\ref{eq:cons4}),
+%%To learn an SR model, we can solve the loss-augmented inference~(\ref{eq:loss_aug_inf}) 
+%%using ILP constraints~(\ref{eq:cons1})-(\ref{eq:cons4}),
+%%with additional ones similar to~(\ref{eq:topk_ILP}) to exclude observed labels,
 as long as the loss $\Delta(\y,\bar\y)$ can be represented as a linear function of $u_{jk}$,
 \eg the number of mis-predicted POIs disregarding the order $\Delta(\y, \bar\y) = \sum_{j=2}^l (1 - \sum_{k=1}^m u_{k, y_j})$.
 However, we note that Hamming loss, the most common loss function for sequence prediction tasks,

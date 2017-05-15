@@ -295,3 +295,31 @@ and F$_1$ score on pairs can be written as
 % topk evaluation plots
 %\includepdf[pages={1-},scale=0.75]{plots.pdf}
 \includepdf[pages={1-}]{plot_topk.pdf}
+
+
+slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th example~\cite{tsochantaridis2005large},
+\begin{equation*}
+%%\label{eq:hingeloss}
+%%\resizebox{1.1\linewidth}{!}{
+%%\begin{minipage}{\linewidth}
+%\begin{align*}
+\xi_i = \max \left( 0, \, 
+        \max_{\bar{\y} \in \mathcal{Y}}
+        \left\{ \Delta(\y^{(i)}, \bar{\y}) + \w^\top \Psi(\x^{(i)}, \bar{\y}) \right\} - \w^\top \Psi(\x^{(i)}, \y^{(i)}) \right).
+%\end{align*}
+%%\end{minipage}
+%%}
+\end{equation*}
+
+we can use \emph{one} slack variable to represent the sum of the $N$ hinge losses in (\ref{eq:nslack_ml}),
+which leads to %this $1$-slack formulation,
+\begin{equation*}
+%%\label{eq:1slack_ml}
+\resizebox{0.9\linewidth}{!}{$
+\begin{aligned}
+\min_{\w, \, \xi \ge 0} ~\frac{1}{2} \w^\top \w + C \xi, ~~s.t.~ \frac{1}{N} \left( \sum_{i,j} \w^\top \Psi(\x^{(i)}, \y^{(ij)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}^{(i)}) \right) 
+  \ge \frac{1}{N} \sum_{i,j} \Delta(\y^{(ij)}, \bar{\y}^{(i)}) - \xi.
+\end{aligned}
+$}
+\end{equation*}
+
