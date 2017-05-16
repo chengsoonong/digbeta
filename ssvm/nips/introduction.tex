@@ -20,13 +20,13 @@ recommending a trajectory of points of interest in a city to a visitor~\citep{lu
 or
 a playlist of songs to users based on their listening history~\citep{McFee:2011,chen2012playlist,hidasi2015session,choi2016towards}.
 
-A na\"{i}ve approach to such sequential recommendation problems is to ignore the structure,
-and learn a standard recommendation model.
+A na\"{i}ve approach to sequential recommendation is to simply ignore the structure.
+%and learn a standard recommendation model.
 % In the playlist example, we could learn a user's preference for individual songs,
 % and then create a playlist based on the top ranked songs.
 In the trajectory example, we could learn a user's preference for individual locations,
-and then create a trajectory based on the top ranked locations.
-However, it is easy to construct cases where such an approach is sub-optimal:
+and create a trajectory based on the top ranked locations.
+However, such an approach may be sub-optimal:
 %This however completely ignores the fact that while a user's
 for example,
 in the trajectory recommendation problem, it is unlikely a user will want to visit three restaurants in a row.
@@ -54,7 +54,7 @@ Specifically, our contributions are as follows:
 	%Following \citep{joachims2009cutting}, we propose both $n$-slack and 1-slack versions of the structured recommender.%\footnote{This new structured recommender can in principle be applied to any problem where loss augmented inference can be efficiently computed. We focus on sequence recommendation in this paper.}
 	
 	\item We show how one can avoid recommending sequences with loops or repetitions via integer linear programming and an extension of the classic Viterbi algorithm that returns a list of the highest scored sequences under some model; we show that these algorithms may be incorporated during both the training %(via loss augmented inference)
-	and prediction steps of our structured recommendation (\S\ref{ssec:subtour}).
+	and prediction steps of our structured recommendation (\S\ref{ssec:training}, \S\ref{ssec:testing}).
 	
 	\item We present experiments on real-world trajectory recommendation problems, and demonstrate our structured prediction approaches improve over existing non-structured baselines (\S\ref{sec:experiment}).\itemmoveup
 \end{itemize}

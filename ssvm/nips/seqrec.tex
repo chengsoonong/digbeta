@@ -39,7 +39,9 @@ where each $y_i$ belongs to some fixed set (e.g.\ places of interest in a city, 
 %Thus, for example, the training set might represent a collection of users in a city, along with a set of trajectories () they have visited.
 We call the resulting specialisation the \emph{sequence recommendation} problem,
 and this shall be our primary interest in this paper.
-The assumption that $\y$ is a sequence does not limit the generality of our approach,
+In many settings, one further requires the sequences to be \emph{paths} \ie not contain any repetitions.
+
+As a remark, we note that the assumption that $\y$ is a sequence does not limit the generality of our approach,
 as inferring $\y$ of other structure can be achieved using corresponding inference and loss-augmented inference algorithms~\cite{joachims2009predicting}.  %LX - this sentence can be cut or merged above
 
 
@@ -67,12 +69,14 @@ Structured prediction approaches do not have a standard way to handle such multi
 %for each input %$\x\pb{i}$
 %yet.
 
-On the other hand, in a typical recommender systems problem, the outputs are non-structured; canonically, one works with {static} content such as books or movies~\citep{Goldberg:1992,Sarwar:2001,Netflix}.
-Thus, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$ for suitable score function $f$ \eg some form of matrix factorisation.
-For structured recommendation, computing $\argmax_\y f(\x,\y)$ is harder since it is often impossible to efficiently enumerate $\y$ (\eg all possible trajectories in a city).
-This inability to enumerate $\y$ also poses a challenge in designing a suitable $f(\x,\y)$; \eg
-the standard matrix factorisation approach to recommender systems~\citep{Koren:2009}
-requires associating a latent feature with each $\y$, which will be infeasible.
+In a typical recommender systems problem, the outputs are non-structured; canonically, one works with {static} content such as books or movies~\citep{Goldberg:1992,Sarwar:2001,Netflix}.
+Thus, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$ for suitable score function $f$ \eg some form of matrix factorisation~\citep{Koren:2009}.
+For sequence recommendation, computing $\argmax_\y f(\x,\y)$ is harder since it is often impossible to efficiently enumerate $\y$ (\eg all possible trajectories in a city).
+This inability to enumerate $\y$ also poses a challenge in designing a suitable $f(\x,\y)$;
+\eg
+%the standard matrix factorisation approach to recommender systems~\citep{Koren:2009}
+matrix factorisation
+would require associating a latent feature with each $\y$, which will be infeasible.
 
 
 %
@@ -84,5 +88,6 @@ we provide three specific examples,
 starting with the problem of trajectory recommendation
 that shall serve as a recurring motivation.
 %we explicate how a recently studied problem may be viewed as a special case.
+Note that in all these problems, one is specifically interested in sequences that are paths.
 
 \input{trajrec}
