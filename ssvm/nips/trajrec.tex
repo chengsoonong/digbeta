@@ -85,43 +85,48 @@ which %is fed as input %pairs $(p_i, p_j)$ of POIs such that $p_i$ appears ahead
 learns to predict whether a POI is likely to appear ahead of another POI in a trajectory corresponding to some query.
 Formally,
 from the given set of trajectories
-we derive a training set $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
-where each POI $p$ is augmented with a label 
-%$y^{(i)} \in \{ \pm 1 \}$ denoting whether or not
-$y^{(i)}$ denoting how many times
-it appeared in a trajectory corresponding to the query $\x^{(i)}$. 
+we derive a training set
+% $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
+% where each POI $p$ is augmented with a label 
+% %$y^{(i)} \in \{ \pm 1 \}$ denoting whether or not
+% $y^{(i)}$ denoting how many times
+% it appeared in a trajectory corresponding to the query $\x^{(i)}$. 
+$\{ ( \x^{(i)}, \mathbf{r}^{(i)} ) \}_{i = 1}^n$,
+where for each trajectory query $\x^{(i)}$ there is a list of POI pairs
+$\mathbf{r}^{(i)} \subseteq \mathcal{P} \times \mathcal{P}$
+such that
+$(p, p') \in \mathbf{r}^{(i)}$
+iff
+%POI $p$ is ranked above the POI $p'$ in the trajectories associated with $\x^{(i)}$, %according to some notion.
+%\eg based on the counts of the number of times a POI appears in the trajectories associated with a query.
+POI $p$ appears more times than POI $p'$ in all trajectories associated with $\x^{(i)}$. %according to some notion.
 The objective used for training is then
 \begin{equation*}
 \resizebox{0.7\linewidth}{!}{$\displaystyle
 \displaystyle \min_{\w} \frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathcal{R}( \x^{(i)} )} 
-\ell\left( \w^\top ( \Phi( \x^{(i)}, p ) - \Phi( \x^{(i)}, p' ) ) \right),
+\ell\left( \w^\top ( \Psi( \x^{(i)}, p ) - \Psi( \x^{(i)}, p' ) ) \right),
 $}
 \end{equation*}
+for
+feature mapping $\Psi$,
+regularisation strength $C > 0$,
+and squared hinge loss $\ell( v ) = \max( 0, 1 - v )^2$.
 %where $\Phi, C$ are as before,
-where
-$\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
-$C > 0$ is some regularisation strength,
-$\ell( v ) = \max( 0, 1 - v )^2$ is the squared hinge loss,
-and
-%$p \succeq_{\mathbf{x}} p'$ is denoted to mean that the
-$\mathcal{R}( \x )$
-denotes all pairs of POIs $(p, p')$ such that
-POI $p$ is ranked above the POI $p'$ in the trajectories associated with $\x$, %according to some notion.
-\eg based on the counts of the number of times a POI appears in the trajectories associated with a query.
+% where
+% $\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
+% $C > 0$ is some regularisation strength,
+% and $\ell( v ) = \max( 0, 1 - v )^2$ is the squared hinge loss,
+% and
+% %$p \succeq_{\mathbf{x}} p'$ is denoted to mean that the
+% $\mathcal{R}( \x )$
+% denotes all pairs of POIs $(p, p')$ such that
+% POI $p$ is ranked above the POI $p'$ in the trajectories associated with $\x$, %according to some notion.
+% \eg based on the counts of the number of times a POI appears in the trajectories associated with a query.
 %For example, this may be computed by counting the number of times a POI appears in the trajectories associated with a query, 
 %and using this to determine which of two POIs is more suitable for a query.
 
-While such approaches can certainly learn to recommend useful trajectories,
-we observe that their modelling power is inherently limited:
-they are not capable of ensuring the \emph{global} cohesion of a trajectory.
-%as they inherently rely on either pointwise or pairwise preferences for POIs.
-For example, as argued in Section~\ref{sec:intro},
-we might find three restaurants to be the highest scoring POIs in a city;
-however, this it is unlikely that these three POIs form a trajectory that most travellers will enjoy.
-This motivates an approach that directly ensures such global cohesion.
-
 More abstractly, we can view trajectory recommendation as a kind of sequence recommendation as follows:
-given some $\x$, and a suitable function $f(\cdot,\cdot)$, we wish to find
+given some $\x$, and a suitable scoring function $f$, we wish to find
 $\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~f(\mathbf{x}, \mathbf{y}),$ 
 %%DW: use top-k prediction formulation or not?
 where $\mathcal{Y}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ that conform to the constraints imposed by the query $\mathbf{x}$.
@@ -130,8 +135,8 @@ $\mathbf{y} = (s,~ y_2, \dots, y_l)$ is a trajectory with $l$ distinct POIs. %, 
 
 Now, our training set of historical trajectories may be written as
 $\{ ( \x\pb{i}, \{ \y\pb{ij} \}_{j=1}^{n_i} ) \}_{i=1}^{n}$,
-where each $\x\pb{i}$ is a distinct query,
-while the corresponding $\{ \y\pb{ij} \}_{j=1}^{n_i}$ is the \emph{set} of trajectories observed for that query.
+where each $\x\pb{i}$ is a distinct query
+with $\{ \y\pb{ij} \}_{j=1}^{n_i}$ the corresponding \emph{set} of observed trajectories.
 Note that we expect most queries to have several distinct trajectories;
 minimally,
 for example,
@@ -144,7 +149,7 @@ Another example of sequential recommendation is the problem of recommending song
 The canonical approach here is to
 learn a latent representation of songs from historical playlist data,
 and exploit a Markovian assumption on the song transitions.
-While a reasonable first order approximation, this assumption limits the modelling power of such approaches.
+%While a reasonable first order approximation, this assumption limits the modelling power of such approaches.
 
 
 %
@@ -154,11 +159,24 @@ The canonical approach here is to apply matrix factorisation to the Markov chain
 This method is feasible because one is only interested in predicting sequences one element at a time, so that latent embeddings for each item may be found.
 
 
+%
+\subsection{The case for exploiting structure in sequence recommendation}
+
+Each of the sequence recommendation problems above can be plausibly solved with approaches that do not exploit the structure inherent in the outputs $\y$, or do so in a simple way.
+While such approaches can certainly be useful,
+their modelling power is inherently limited:
+in particular,
+they are not capable of ensuring the \emph{global} cohesion of the corresponding recommended outputs $\y$.
+%as they inherently rely on either pointwise or pairwise preferences for POIs.
+For example, consider the RankSVM baseline in the trajectory recommendation problem. %as argued in Section~\ref{sec:intro},
+Here, we might find three restaurants to be the highest scoring POIs in a city;
+however, this it is unlikely that these three POIs form a trajectory that most travellers will enjoy.
+
+This motivates an approach to sequence recommendation that directly ensures such global cohesion.
+We now see how to do so by attacking the problem using tools from structured prediction.
 
 % To do this, we show how the problem can be cast as one of sequential recommendation, 
 % thus allowing us to leverage the tools developed in the previous section.
-
-
 
 % Comparing the above to the discussion in the previous section, it is clear that
 % we can cast trajectory recommendation as a special case of the structured recommendation problem.

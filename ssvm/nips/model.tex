@@ -5,14 +5,14 @@
 \textmoveup
 
 We now show how to solve sequence recommendation problems using structured prediction.
-We first provide background on structured prediction problems (Sec~\ref{ssec:ssvm}),
+We first provide background on structured SVMs (SSVM) (Sec~\ref{ssec:ssvm}),
 then present a model for structured recommendation (Sec~\ref{ssec:sr}),
 followed by algorithms for its learning %(Sec~\ref{ssec:subtour}) 
 and inference (Sec~\ref{ssec:SRinf}).
 
 
 \secmoveup
-\subsection{Structured SVM (SSVM) for structured prediction}
+\subsection{SSVM for structured prediction}
 \label{ssec:ssvm}
 \textmoveup
 
@@ -29,14 +29,24 @@ $f(\x, \y) = \w^\top \Psi(\x, \y)$,
 where $\w$ is a weight vector, and $\Psi(\x, \y)$ is a \emph{joint feature map}.
 %between the input $\x$ and label sequence $\y$.
 
-The design of the feature map $\Psi(\cdot,\cdot)$ is problem specific.
-For many problems, we can assume that it is a vector whose elements represent unary
-terms for each element in the label $y_{1:l}$, and pairwise interactions between elements in the label.
-For sequence data, %in particular, 
-we also assume that the pairwise interactions are between
-adjacent elements, i.e. $y_j$ and $y_{j+1}$ for $j=1 : l \!-\! 1$.
-Subsequently, the score function $f(\x,\y)$ decomposes into a weighted sum of
-each of these unary and pairwise features: %with the corresponding feature weight:
+The design of the feature map $\Psi$ is problem specific.
+For sequence prediction problems,
+where $\y = y_{1 : l}$,
+%For many problems,
+%we may assume that it
+a popular choice
+is a vector whose elements represent unary
+terms for each element in the label $y_{1:l}$, and pairwise interactions between
+adjacent
+elements in the label
+%For sequence data, %in particular, 
+%we also
+% We may further
+% assume that the pairwise interactions are between
+% adjacent elements,
+i.e. $y_j$ and $y_{j+1}$ for $j=1 : l \!-\! 1$.
+Subsequently, $f(\x,\y)$ decomposes into a weighted sum of
+each of these features: %with the corresponding feature weight:
 \begin{equation}
 \label{eq:jointfeature}
 %\resizebox{0.9\linewidth}{!}{$\displaystyle
@@ -50,7 +60,7 @@ with a corresponding weight vector $\w_{j,j+1}$.
 
 %To learn the parameters, we train the structured SVM by optimising a quadratic program (QP),
 \emph{Objective function}.
-To learn a suitable set of weights $\w$, SSVMs solve: %the following optimisation problem:
+To learn a suitable weight vector $\w$, SSVMs solve: %the following optimisation problem:
 \begin{equation}
 \label{eq:nslack}
 \resizebox{0.93\linewidth}{!}{$\displaystyle
@@ -69,7 +79,7 @@ and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i
 To solve problem (\ref{eq:nslack}),
 % one option is to simply enumerate all constraints, and feed the problem into a standard solver.
 % However, this approach is impractical as there is a constraint for every possible label $\bar{\y}$.
-recently developed learning schemes such as 
+%recently developed learning schemes such as 
 cutting-plane algorithms~\cite{joachims2009predicting}, % cutting-plane
 gradient-based algorithms~\cite{ratliff2006subgradient} % sub-gradient
 and conditional gradient methods~\cite{lacoste2013block} % Frank-Wolfe
@@ -95,27 +105,37 @@ with respect to individual and pairs of label elements.
 % in a way similar to Equation~\eqref{eq:jointfeature}.
 
 \secmoveup
-\subsection{SSVM for structured recommendation: the SR model}
+\subsection{SSVM for structured recommendation: the SP and SR models}
 \label{ssec:sr}
 \textmoveup
 
-Recall that the structured recommendation problem
-involves observing \emph{multiple} ground truth output sequences for each input, \ie
+We now present two possible means of applying SSVMs to sequence recommendation.
+
+\emph{The SP model}.
+Recall that structured recommendation
+involves observing \emph{multiple} ground truth outputs for each input, \ie
 %If we observed more than one labels for a particular set of features,
 %The classic SSVM described in Section~\ref{ssec:ssvm} can be generalised to capture this setting:
-given feature vector $\x^{(i)}$ and the corresponding set of ground truths $\{\y^{(ij)}\}_{j=1}^{n_i}$
-where $n_i$ is the number of labels for $\x^{(i)}$.
+for input $\x^{(i)}$, there is a set of ground truths $\{\y^{(ij)}\}_{j=1}^{n_i}$.
+%where $n_i$ is the number of labels for $\x^{(i)}$.
 % describe duplicating examples
-One na\"{i}ve approach for the classic SSVM described in Section~\ref{ssec:ssvm} to capture this setting is simply creating 
-$n_i$ examples $\{(\xii, \yij)\}_{j=1}^{n_i}$. 
-However, this is sub-optimal:
+One na\"{i}ve approach to the problem
+is simply creating 
+$n_i$ examples $\{(\xii, \yij)\}_{j=1}^{n_i}$,
+and feeding this to the classic SSVM. %described in Section~\ref{ssec:ssvm} to capture this setting 
+We call this the \emph{structured prediction} (\emph{SP}) model.
+
+The SP model is appealing due to its simplicity.
+However, it is sub-optimal:
 %The problem with this approach is in the result of loss-augmented inference, 
 %\ie
 the result of loss-augmented inference on $(\xii, \yij)$ could be any label $\yik \in \{\yij\}_{j=1}^{n_i} \setminus \{\yij\}$,
 but then we would incorrectly penalise predicting $\yik$ for $\xii$. 
 
-We propose a \emph{structured recommendation} (\emph{SR}) model that generalises the classic SSVM by explicitly incorporating the multiple ground truths for each example.
-We can learn an \emph{SR} model by optimising %a quadratic program similar to (\ref{eq:nslack}),
+\emph{The SR model}.
+To overcome the limitation of the SP model,
+we propose the following \emph{structured recommendation} (\emph{SR}) model that extends the SSVM to explicitly incorporate multiple ground truths: %for each example.
+%We can learn an \emph{SR} model by optimising %a quadratic program similar to (\ref{eq:nslack}),
 \begin{equation}
 \label{eq:nslack_ml}
 \resizebox{0.93\linewidth}{!}{$
@@ -134,7 +154,7 @@ Such objectives have proven useful in classic unstructured recommendation~\cite{
 %Recent work on positive and unlabelled data have
 %theoretically shown the close relationship between positive and unlabelled learning and two class classification.
 
-Compared to (\ref{eq:nslack}), the key distinction is that (\ref{eq:nslack_ml})
+Compared to the SP model (\ref{eq:nslack}), the key distinction is that (\ref{eq:nslack_ml})
 explicitly aggregates all the ground truth labels for each input when generating the constraints,
 i.e., the loss-augmented inference becomes
 \begin{equation}
@@ -146,7 +166,8 @@ i.e., the loss-augmented inference becomes
 \end{equation}
 In this way, we do not have apparently contradictory constraints where
 two ground truth sequences are each required to have larger score than the other.
-Instead of using $N$ slack variables as that in (\ref{eq:nslack_ml}),
+
+As a remark, we note that instead of using $N$ slack variables as that in (\ref{eq:nslack_ml}),
 we can use \emph{one} slack variable to represent the sum of the $N$ hinge losses. % in (\ref{eq:nslack_ml}).
 %which leads to a $1$-slack formulation
 %This $1$-slack formulation can be learned more efficiently than the $N$-slack formulation (\ref{eq:nslack_ml}) if training using cutting-plane algorithm.
@@ -160,25 +181,16 @@ if training using cutting-plane algorithms. %the above can be learned more effic
 \label{ssec:subtour}
 \label{ssec:SRinf}
 
-The SR model require two algorithmic components for inference and learning
-(missing from the SSVM algorithms).
-For inference, SR needs to predict a {\em path}, \ie a sequence whose elements are distinct from each other,
-that maximises the score function (Eq.~\ref{eq:jointfeature}).
-As described in Section~\ref{sec:intro}, this is desirable since users traversing a sequence (of locations or music)
+Both the SP and SR models require two algorithmic components for inference and learning
+missing from the classic SSVM.
+For inference, we need to predict a {\em path}, \ie a sequence whose elements are distinct from each other,
+that maximises the score function (Eq.~\ref{eq:jointfeature});
+%As described in Section~\ref{sec:intro},
+this is desirable since users traversing a sequence (of locations or music)
 would not want to see repeated entries.
-Given desired sequence length $l$ among $m$ possible points, the Viterbi algorithm~\cite{tsochantaridis2005large}
-will generate the length-$l$ sequence $\y^*$ with the best score. %i.e. $\y^* = \argmax_\y f(\x,\y)$.
-One may then use the well-known
-Christofides algorithm~\cite{christofides1976} on $\y^*$ to eliminate loops in the sequence.
-%is known to generate a solutions within a factor of 3/2 of the optimal solution for traveling salesman problems.
-However, the resulting sequence will have less than the desired number of points, and the resulting score will not be optimal in general.
+For learning, loss-augmented inference (\ref{eq:loss_aug_inf}) needs to be done by \emph{excluding multiple known sequences};
+this is desirable since otherwise we will incorrectly penalise valid sequences.
 
-For learning an SR model, loss-augmented inference (\ref{eq:loss_aug_inf}) needs to be done by excluding multiple known sequences.
-As described in Section~\ref{ssec:sr}, %this involves %we would want to maximize the loss-augmented objective function
-%$\max_{\bar\y} \left\{ \w^\top \Psi(\x^{(i)}, \bar\y) + \Delta(\y^{(ij)}, \bar{\y}) \right\}$
-%where the domain of candidate sequences excludes the known sequences for query $\x^{(i)}$, \ie $\bar{\y} \in \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}$.
-however, the Viterbi algorithm uses back-tracking to find the best sequence,
-and cannot easily exclude known sequences.
 The rest of this section describes two algorithms, each intuitively aimed to address %one of 
 the two requirements above, which can be applied in novel contexts of the SR model.
 %We will also describe practical choices about which algorithm to use when.
@@ -187,10 +199,18 @@ the two requirements above, which can be applied in novel contexts of the SR mod
 %\subsubsection{Finding paths with integer programming}
 % ILP for subtour elimination: (prediction) inference
 %Inference in the SR model requires finding the best path that traverses exactly $l$ of $m$ candidate points.
-\textbf{Finding paths with integer programming}.
+%\textbf{Finding paths with integer programming}.
+\textbf{Excluding loops with integer programming}.
 For inference in the SR model, 
 we consider the setting of finding the best path $\y^*$ that starts from a specific point $y_1^*$ and traverses exactly $l$ of $m$ candidate points.
-This can be seen as a variant of the travelling salesman problem (TSP), or the best of ${m \choose l}$ TSPs.
+Given desired sequence length $l$ among $m$ possible points, the Viterbi algorithm~\cite{tsochantaridis2005large}
+will generate the length-$l$ sequence $\y^*$ with the best score. %i.e. $\y^* = \argmax_\y f(\x,\y)$.
+One may then use the well-known
+Christofides algorithm~\cite{christofides1976} on $\y^*$ to eliminate loops in the sequence.
+%is known to generate a solutions within a factor of 3/2 of the optimal solution for traveling salesman problems.
+However, the resulting sequence will have less than the desired number of points, and the resulting score will not be optimal in general.
+
+More generally, our problem is a variant of the travelling salesman problem (TSP), or the best of ${m \choose l}$ TSPs.
 Such a point traversal problem can be solved by incorporating
 sub-tour elimination constraints of the TSP~\cite{ijcai15,cikm16paper}.
 In particular, the integer linear program (ILP) formulation (Eq.~\ref{eq:obj} to \ref{eq:cons5})
@@ -261,6 +281,7 @@ the $K\!$-th best scored path can be found by solving the above ILP with additio
 $\sum_{j=1}^{l-1} u_{y_j, y_{j+1}} \le l-2, ~\forall \y \in \{\y^{(k)}\}_{k=1}^{K-1}$.
 %%\end{equation}
 % ILP for learning (loss-augmented inference)
+
 This constraint can also be used to exclude observed labels when learning an SR model, 
 \ie solving the loss-augmented inference~(\ref{eq:loss_aug_inf}),
 together with constraints~(\ref{eq:cons1})-(\ref{eq:cons4}),
@@ -284,9 +305,16 @@ cannot be expressed as a linear function of $u_{jk}$.
 %while Hamming loss cannot be expressed as a linear function of $u_{jk}$.
 
 %\subsubsection{Finding $k$-best sequences}
-\textbf{Finding $k$-best sequences}.
+%\textbf{Finding $k$-best sequences}.
+\textbf{Excluding known sequences with list Viterbi}.
 % 1) list Viterbi for top-k inference (sub-tour elimination in prediction)
 % 2) list Viterbi for learning (multiple ground truths in loss-augmented inference)
+As described in Section~\ref{ssec:sr}, %this involves %we would want to maximize the loss-augmented objective function
+%$\max_{\bar\y} \left\{ \w^\top \Psi(\x^{(i)}, \bar\y) + \Delta(\y^{(ij)}, \bar{\y}) \right\}$
+%where the domain of candidate sequences excludes the known sequences for query $\x^{(i)}$, \ie $\bar{\y} \in \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}$.
+the Viterbi algorithm uses back-tracking to find the best sequence,
+and cannot easily exclude known sequences.
+
 An alternative approach to solve the inference and learning of the SR model is making use of 
 %The algorithm that seems closest to loss-augmented inference with exclusions are 
 several extensions of the Viterbi algorithm that aim to find more than one high-scoring sequences.

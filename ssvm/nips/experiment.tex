@@ -60,7 +60,7 @@ Therefore, evaluation is carried out on the problem of recommending trajectories
 	\end{minipage}%
 	\quad
 	\begin{minipage}[t]{0.45\linewidth}
-		\includegraphics[scale=0.35]{hist_query.pdf}
+		\includegraphics[scale=0.25]{hist_query.pdf}
 	    \captionof{figure}{\# of trajectories per query.}
 	    \label{fig:image}
   \end{minipage}
@@ -182,11 +182,13 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 \input{tab_experiment}
 
 
-\begin{minipage}[t]{0.8\linewidth}
-		\includegraphics[scale=0.5]{tau_topk.pdf}
+%\begin{minipage}[!t]{0.8\linewidth}
+\begin{figure}[!t]
+		\centering
+		\includegraphics[scale=0.35]{tau_topk.pdf}
 	    \captionof{figure}{Average $\tau$ on short/long trajectories w.r.t. top-k recommendation.}
 	    \label{fig:topk}
-\end{minipage}
+\end{figure}
 
 % experimental results
 %The performance of %three baselines and four variants based on structured prediction on two datasets
