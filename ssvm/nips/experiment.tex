@@ -6,9 +6,9 @@
 \textmoveup
 
 We now present evaluations assessing the viability of our structured prediction approach
-for the sequential recommendation task discussed in Section~\ref{sec:trajrec}.
+for the trajectory recommendation task discussed in Section~\ref{sec:trajrec}.
 %of trajectory recommendation.
-On two real-world dataset of photo tours, our methods are shown to significantly outperform
+On real-world dataset of photo tours, our methods are shown to significantly outperform
 a number of non-structured baselines or those that do not take into account the recommendation setting.
 %, over which we demonstrate significant improvements.
 
@@ -66,7 +66,7 @@ Therefore, evaluation is carried out on the problem of recommending trajectories
 	\end{minipage}%
 	%%\quad
 	%%\begin{minipage}[t]{0.45\linewidth}
-	%%	\includegraphics[scale=0.35]{hist_query.pdf}
+	%%	\includegraphics[scale=0.25]{hist_query.pdf}
 	%%    \captionof{figure}{\# of trajectories per query.}
 	%%    \label{fig:image}
     %%\end{minipage}
@@ -125,14 +125,17 @@ To assess the viability of our structured prediction approach, and the necessity
 
 \item The structured recommendation ({\sc SR}) method extends the {\sc SP} method by additionally incorporating multiple ground truths into
       forming the constraints and adding them in cutting-plane algorithm,
-      described in Section~\ref{ssec:sr} and \ref{ssec:SRinf}.
+      described in Section~\ref{ssec:sr}.
 	%performing normalisation of the loss function per query,
 	%so that we do not attempt to distinguish between multiple ground truths for the same query.
 
 \item The variants {\sc SPpath} and {\sc SRpath} extend the above methods by enforcing the constraint during training 
       that sequences with loops are disallowed.
 \end{itemize}\itemmoveup
-All above variants predict with the list Viterbi algorithm (Section~\ref{ssec:subtour}) to generate a path.
+All above methods predict a path
+with the %list Viterbi
+ILP
+algorithm (Section~\ref{ssec:testing}).
 
 \secmoveup
 \subsection{Evaluation procedure}
@@ -188,20 +191,23 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 \input{tab_experiment}
 
 
-\begin{minipage}[t]{0.8\linewidth}
-		\includegraphics[scale=0.5]{tau_topk.pdf}
+%\begin{minipage}[!t]{0.8\linewidth}
+\begin{figure}[!t]
+		\centering
+		\includegraphics[scale=0.35]{tau_topk.pdf}
 	    \captionof{figure}{Average $\tau$ on short/long trajectories w.r.t. top-k recommendation.}
 	    \label{fig:topk}
-\end{minipage}
+	    \vspace{-0.2in}
+\end{figure}
 
 % experimental results
 %The performance of %three baselines and four variants based on structured prediction on two datasets
 %all methods are shown in Table~\ref{tab:result}.
-From the results in Table~\ref{tab:result} and Figure~\ref{fig:topk}, we make the following observations that validate our contributions:
+The results in Table~\ref{tab:result} and Figure~\ref{fig:topk} validate our contributions as follows:
 
 \textbf{Exploiting the structure of sequences helps}.
 All variants of our structured prediction methods achieve better performance than existing baselines.
-This indicates that the basis of our approach -- reducing sequence recommendation to a structured prediction problem -- is sensible, and has empirical benefit.
+Thus, the basis of our approach -- reducing sequence recommendation to a structured prediction problem -- is sensible, and has empirical benefit.
 
 \textbf{Accounting for multiple ground truths helps}.
 \textsc{SR} always performs better than \textsc{SP},

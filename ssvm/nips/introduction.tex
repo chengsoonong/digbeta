@@ -10,22 +10,23 @@ with established techniques seeing widespread adoption in industry~\citep{Linden
 The success of these methods is explained by both the explosion in availability of user's explicit and implicit preferences for content,
 as well as the design of methods that can suitably exploit these to make useful recommendations~\citep{Koren:2009}.
 
-For the most part, models for recommendation have been limited to the case of static, \emph{unstructured} content.
-While this setting has considerable value by itself,
+For the most part, recommendation models have been limited to the case of static, \emph{unstructured} content.
+While this setting has considerable value,
 in many important scenarios one needs to recommend content that possesses some \emph{structure}.
-In its simplest form, this structure may be manifest by the items we wish to recommend being \emph{sequential} in nature.
-For example, consider the problem of
+%In its simplest form, this structure may be manifest by
+A wide-reaching example of this is where the content is \emph{sequential} in nature.
+For example, consider %the problem of
 recommending a trajectory of points of interest in a city to a visitor~\citep{lu2010photo2trip,lu2012personalized,ijcai15,cikm16paper},
-or alternately,
-recommending a playlist of songs to users based on their listening history~\citep{McFee:2011,chen2012playlist,hidasi2015session,choi2016towards}.
+or
+a playlist of songs to users based on their listening history~\citep{McFee:2011,chen2012playlist,hidasi2015session,choi2016towards}.
 
-A na\"{i}ve approach to such sequential recommendation problems is to simply ignore the structure,
-and learn a standard recommendation model.
+A na\"{i}ve approach to sequential recommendation is to simply ignore the structure.
+%and learn a standard recommendation model.
 % In the playlist example, we could learn a user's preference for individual songs,
 % and then create a playlist based on the top ranked songs.
 In the trajectory example, we could learn a user's preference for individual locations,
-and then create a trajectory based on the top ranked songs.
-However, it is easy to construct cases where such an approach is sub-optimal:
+and create a trajectory based on the top ranked locations.
+However, such an approach may be sub-optimal:
 %This however completely ignores the fact that while a user's
 for example,
 in the trajectory recommendation problem, it is unlikely a user will want to visit three restaurants in a row.
@@ -45,14 +46,17 @@ suitably normalising the loss function for the model,
 and by modifying the inference and prediction steps using a variant of the Viterbi algorithm.
 Specifically, our contributions are as follows:
 \begin{itemize}[noitemsep,leftmargin=12pt]\itemmoveup
-	\item We formalise the problem of sequence recommendation, cast it as a structured prediction task (\S\ref{sec:recseq}), and show how trajectory recommendation can be seen as a special case (\S\ref{sec:trajrec}).
+	\item We formalise the problem of sequence recommendation (\S\ref{sec:seqrec-defn}), and show how trajectory recommendation can be seen as a special case (\S\ref{sec:trajrec}).
+	%cast it as a structured prediction task (\S\ref{sec:recseq}), and .
 
 	\item We show how sequential recommendation may be attacked using structured SVMs (\S\ref{sec:recseq}).
-	We propose a correction to the na\"{i}ve implementation of structured SVMs to the recommendation problem, so as to account for the existence of multiple ground truths for each input (\S\ref{ssec:sr}). Following \citep{joachims2009cutting}, we propose both $n$-slack and 1-slack versions of the structured recommender.%\footnote{This new structured recommender can in principle be applied to any problem where loss augmented inference can be efficiently computed. We focus on sequence recommendation in this paper.}
+	We propose a correction to the na\"{i}ve implementation of structured SVMs to the recommendation problem, so as to account for the existence of multiple ground truths for each input (\S\ref{ssec:sr}).
+	%Following \citep{joachims2009cutting}, we propose both $n$-slack and 1-slack versions of the structured recommender.%\footnote{This new structured recommender can in principle be applied to any problem where loss augmented inference can be efficiently computed. We focus on sequence recommendation in this paper.}
 	
-	\item We show how one can avoid recommending sequences with loops or repetitions via integer linear programming and an extension of the classic Viterbi algorithm that returns a list of the highest scored sequences under some model; we show that these algorithms may be incorporated during both the training (via loss augmented inference) and prediction steps of our structured recommendation (\S\ref{ssec:subtour}).
+	\item We show how one can avoid recommending sequences with loops or repetitions via integer linear programming and an extension of the classic Viterbi algorithm that returns a list of the highest scored sequences under some model; we show that these algorithms may be incorporated during both the training %(via loss augmented inference)
+	and prediction steps of our structured recommendation (\S\ref{ssec:training}, \S\ref{ssec:testing}).
 	
-	\item We present experiments on two real-world trajectory recommendation problems, and demonstrate our structured prediction approaches improve over existing non-structured baselines (\S\ref{sec:experiment}).\itemmoveup
+	\item We present experiments on real-world trajectory recommendation problems, and demonstrate our structured prediction approaches improve over existing non-structured baselines (\S\ref{sec:experiment}).\itemmoveup
 \end{itemize}
 
 %We begin with an overview of related work, before presenting our model.
