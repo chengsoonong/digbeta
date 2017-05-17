@@ -80,9 +80,10 @@ Existing approaches treat the problem as one of determining a score for the intr
 % and $\ell( v )$ is any suitable margin loss, such as the logistic loss $\ell( v ) = \log( 1 + e^{-v} )$.
 % One can use the resulting model to produce a score for any POI $p$ given a new query $\x$,
 % and then pick the top-$l$ scoring POIs to produce a trajectory.
-For example, \citep{cikm16paper} proposed a RankSVM model,
+%%For example, \citep{cikm16paper} proposed a RankSVM model,
+For example, a RankSVM model
 which %is fed as input %pairs $(p_i, p_j)$ of POIs such that $p_i$ appears ahead of $p_j$ in some trajectory.
-learns to predict whether a POI is likely to appear ahead of another POI in a trajectory corresponding to some query.
+learns to predict whether a POI is likely to appear ahead of another POI in a trajectory corresponding to some query~\cite{cikm16paper}.
 Formally,
 from the given set of trajectories
 we derive a training set
@@ -109,7 +110,7 @@ $}
 \end{equation*}
 for
 feature mapping $\Psi$,
-regularisation strength $C > 0$,
+regularisation strength $C$ % > 0$,
 and squared hinge loss $\ell( v ) = \max( 0, 1 - v )^2$.
 %where $\Phi, C$ are as before,
 % where
