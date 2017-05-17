@@ -43,27 +43,33 @@ Therefore, evaluation is carried out on the problem of recommending trajectories
 
 % dataset stats
 \begin{table}[!h]
-	\begin{minipage}[t]{0.45\linewidth}
-		\resizebox{0.9\linewidth}{!}{
+	\begin{minipage}[t]{\linewidth}
+		\resizebox{\linewidth}{!}{
 		\setlength{\tabcolsep}{4pt} % tweak the space between columns
 		\small
-		\begin{tabular}{l*{5}{c}} \hline
-		\textbf{Dataset} & \textbf{\#Traj.} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#Queries} & \textbf{AvgLenth} \\ \hline
-		Osaka            & 186              & 26              & 130              & 47                 & 2.4 \\
-		Glasgow          & 351              & 25              & 219              & 64                 & 2.5 \\
-        Toronto          & 977              & 27              & 454              & 99                 & 2.6 \\
+		\begin{tabular}{l*{9}{c}} \hline
+		\textbf{Dataset} & \textbf{\#Traj.} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#Queries} & \textbf{\#GroundTruth=1} & \textbf{\#GroundTruth$\in$[2,5]} & \textbf{\#GroundTruth$>$5} & \textbf{\#Traj.(short)} & \textbf{\#Traj.(long)} \\ \hline
+		Osaka            & 186              & 26              & 130              & 47                 & 17                           & 22                             & 8                             & 178                    & 8  \\
+		Glasgow          & 351              & 25              & 219              & 64                 & 23                           & 22                             & 19                            & 336                    & 15 \\
+        Toronto          & 977              & 27              & 454              & 99                 & 30                           & 33                             & 36                            & 918                    & 59 \\
 		\hline
 		\end{tabular}%
 		}
-		\captionof{table}{Statistics of trajectory dataset.}	
+		\captionof{table}{Statistics of trajectory dataset,
+        including the number of trajectories (\textbf{\#Traj.}), the number of POIs (\textbf{\#POIs}), the number of users (\textbf{\#Users}),
+        the number of queries (\textbf{\#Queries}); the number of queries with a single ground truth (\textbf{\#GroundTruth=1}),
+        the number of queries with 2 to 5 ground truths (\textbf{\#GroundTruth$\in$[2,5]}), and the number of queries with more than 5 ground truths
+        (\textbf{\#GroundTruth$>$5}); the number of trajectories with less than 5 POIs (\textbf{\#Traj.(short)}) and the number of trajectories with
+        more than 5 POIs (\textbf{\#Traj.(long)}).
+        }
 		\label{tab:data}
 	\end{minipage}%
-	\quad
-	\begin{minipage}[t]{0.45\linewidth}
-		\includegraphics[scale=0.35]{hist_query.pdf}
-	    \captionof{figure}{\# of trajectories per query.}
-	    \label{fig:image}
-  \end{minipage}
+	%%\quad
+	%%\begin{minipage}[t]{0.45\linewidth}
+	%%	\includegraphics[scale=0.35]{hist_query.pdf}
+	%%    \captionof{figure}{\# of trajectories per query.}
+	%%    \label{fig:image}
+    %%\end{minipage}
 \end{table}
 
 %\newsavebox\tmpbox
