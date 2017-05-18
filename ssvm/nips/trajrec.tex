@@ -38,7 +38,7 @@ comprising a start POI $s \in \mathcal{P}$ and trip length
 %with additional constraint $\sum_{k=1}^l t_k \le T$ where $t_k$ is the time spent at POI $y_k$.}
 $l \!>\! 1$ (\ie the desired number of POIs, including $s$),
 the \emph{trajectory recommendation} problem is to
-recommend one or more sequences of POIs (or \emph{trajectories}) %$\mathbf{y}^*$ 
+recommend one or more sequences of POIs %%(or \emph{trajectories}) %$\mathbf{y}^*$ 
 that maximise some notion of utility
 %To learn a suitable $f$,
 %we are 
@@ -126,7 +126,8 @@ and squared hinge loss $\ell( v ) = \max( 0, 1 - v )^2$.
 %For example, this may be computed by counting the number of times a POI appears in the trajectories associated with a query, 
 %and using this to determine which of two POIs is more suitable for a query.
 
-More abstractly, we can view trajectory recommendation as a kind of sequence recommendation as follows:
+%%More abstractly, 
+We can view trajectory recommendation as a kind of sequence recommendation as follows:
 given some $\x$, and a suitable scoring function $f$, we wish to find
 $\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~f(\mathbf{x}, \mathbf{y}),$ 
 %%DW: use top-k prediction formulation or not?

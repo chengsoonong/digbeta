@@ -14,7 +14,8 @@ For the most part, recommendation models have been limited to the case of static
 While this setting has considerable value,
 in many important scenarios one needs to recommend content that possesses some \emph{structure}.
 %In its simplest form, this structure may be manifest by
-A wide-reaching example of this is where the content is \emph{sequential} in nature.
+%A wide-reaching 
+An example of this is where the content is \emph{sequential} in nature.
 For example, consider %the problem of
 recommending a trajectory of points of interest in a city to a visitor~\citep{lu2010photo2trip,lu2012personalized,ijcai15,cikm16paper},
 or
@@ -52,8 +53,12 @@ Specifically, our contributions are as follows:
 	\item We show how sequential recommendation may be attacked using structured SVMs (\S\ref{sec:recseq}).
 	We propose a correction to the na\"{i}ve implementation of structured SVMs to the recommendation problem, so as to account for the existence of multiple ground truths for each input (\S\ref{ssec:sr}).
 	%Following \citep{joachims2009cutting}, we propose both $n$-slack and 1-slack versions of the structured recommender.%\footnote{This new structured recommender can in principle be applied to any problem where loss augmented inference can be efficiently computed. We focus on sequence recommendation in this paper.}
+
+    \item We propose a novel application of the list Viterbi algorithm, an extension of the classic Viterbi algorithm that returns a list of the highest scored sequences under some model, to exclude multiple ground truths for model learning (\S\ref{ssec:training}).
 	
-	\item We show how one can avoid recommending sequences with loops or repetitions via integer linear programming and an extension of the classic Viterbi algorithm that returns a list of the highest scored sequences under some model; we show that these algorithms may be incorporated during both the training %(via loss augmented inference)
+	\item We show how one can avoid recommending sequences with loops or repetitions via integer linear programming and list Viterbi;
+%an extension of the classic Viterbi algorithm that returns a list of the highest scored sequences under some model; 
+we show that these algorithms may be incorporated during both the training %(via loss augmented inference)
 	and prediction steps of our structured recommendation (\S\ref{ssec:training}, \S\ref{ssec:testing}).
 	
 	\item We present experiments on real-world trajectory recommendation problems, and demonstrate our structured prediction approaches improve over existing non-structured baselines (\S\ref{sec:experiment}).\itemmoveup

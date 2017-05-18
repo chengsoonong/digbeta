@@ -12,7 +12,7 @@ and inference (Sec~\ref{ssec:testing}).
 
 
 \secmoveup
-\subsection{SSVM for structured prediction}
+\subsection{Background on SSVM for structured prediction}
 \label{ssec:ssvm}
 \textmoveup
 
@@ -31,10 +31,10 @@ where $\w$ is a weight vector, and $\Psi(\x, \y)$ is a \emph{joint feature map}.
 
 The design of the feature map $\Psi$ is problem specific.
 For sequence prediction problems,
-where $\y = y_{1 : l}$,
+where $\y = y_{1 : l}$
 %For many problems,
 %we may assume that it
-a popular choice
+%%a popular choice
 is a vector whose elements represent unary
 terms for each element in the label $y_{1:l}$, and pairwise interactions between
 adjacent
@@ -121,7 +121,7 @@ for input $\x\pb{i}$, there is a set of ground truths $\{\y\pb{ij}\}_{j=1}^{n_i}
 %where $n_i$ is the number of labels for $\x^{(i)}$.
 % describe duplicating examples
 One na\"{i}ve approach to the problem
-is simply creating 
+is creating 
 $n_i$ examples $\{(\x\pb{i}, \y\pb{ij})\}_{j=1}^{n_i}$,
 and feeding this to the classic SSVM. %described in Section~\ref{ssec:ssvm} to capture this setting 
 We call this the \emph{structured prediction} (\emph{SP}) model.
@@ -135,8 +135,8 @@ However, it is sub-optimal:
 %%the result of loss-augmented inference on $(\xii, \yij)$ could be any label $\yik \in \{\yij\}_{j=1}^{n_i} \setminus \{\yij\}$,
 %%but then we would incorrectly penalise predicting $\yik$ for $\xii$. 
 %% 
-the result of loss-augmented inference on $(\x\pb{i}, \y\pb{ij})$ could be any label $\y' \in \{\y\pb{ij}\}_{j=1}^{n_i}\}$,
-but then we would incorrectly penalise predicting $\y'$ for $\x\pb{i}$. 
+the result of loss-augmented inference on $(\x\pb{i}, \y\pb{ij})$ could be a ground truth label $\y' \in \{\y\pb{ij}\}_{j=1}^{n_i}\}$,
+which means we would incorrectly penalise predicting $\y'$ for $\x\pb{i}$. 
 
 \emph{The SR model}.
 To overcome the limitation of the SP model,
@@ -170,7 +170,7 @@ explicitly aggregates all the ground truth sequences for each input when generat
      \left( \Delta(\y^{(ij)}, \bar{\y}^{(i)}) + \w^\top \Psi(\x^{(i)}, \bar\y^{(i)}) \right).
 %%$}
 \end{equation}
-In this way, we do not have apparently contradictory constraints where
+In this way, we do not have contradictory constraints where
 two ground truth sequences are each required to have larger score than the other.
 
 As a remark, we note that instead of using $N$ slack variables as that in (\ref{eq:nslack_ml}),
@@ -178,7 +178,7 @@ we can use \emph{one} slack variable to represent the sum of the $N$ hinge losse
 %which leads to a $1$-slack formulation
 %This $1$-slack formulation can be learned more efficiently than the $N$-slack formulation (\ref{eq:nslack_ml}) if training using cutting-plane algorithm.
 This 1-slack formulation can be learned more efficiently than (\ref{eq:nslack_ml})
-if training using cutting-plane algorithms. %the above can be learned more efficiently than (\ref{eq:nslack_ml}).
+when training using cutting-plane algorithms. %the above can be learned more efficiently than (\ref{eq:nslack_ml}).
 
 To describe how to use the above models for sequence recommendation, we must precisely describe how one performs training and prediction using them.
 This is the focus of the next two sections.
@@ -235,7 +235,7 @@ can be used for loss-augmented inference with Hamming loss, the most common loss
 since it only requires the loss function be decomposable with respect to the label elements.
 
 %
-\textbf{Eliminating loops with list Viterbi}.
+\textbf{Eliminating loops with list Viterbi: the \textsc{SPpath} and \textsc{SRpath} model}.
 %Having seen the viability of the list Viterbi algorithm for removing known sequences from consideration during inference,
 The list Viterbi algorithm is also applicable to enforce that loss-augmented inference only considers sequences that are \emph{paths}.
 This may be done by simply expanding the set of disallowed sequences and following the algorithm as above.
@@ -249,7 +249,7 @@ We call these extended models \textsc{SPpath} and \textsc{SRpath} respectively.
 
 For both the SP and SR models, prediction requires that we compute $\argmax_{\y \in \mathcal{Y}_{\mathrm{path}}} f( \x, \y )$;
 subtly, we compute the maximum over $\mathcal{Y}_{\mathrm{path}} \subseteq \mathcal{Y}$, which comprises all elements of $\mathcal{Y}$ that are {paths}.
-Observing that this requires excluding a set of sequences from consideration, a natural idea is to apply the list Viterbi algorithm of the previous section for this task.
+Observing that this requires excluding a set of sequences from consideration, a natural idea is to apply the \emph{list Viterbi algorithm} of the previous section for this task.
 However, while list Viterbi algorithms are polynomial time given the list depth $k$~\cite{nilsson2001sequentially},
 in reality $k$ is unknown a priori and can be very large for long sequences.
 It is fortunately possible to explore %%more efficient 
