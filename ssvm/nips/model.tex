@@ -186,8 +186,7 @@ This is a {\em global} constraint bringing new challenges for prediction and los
 The next two sections describes the training and prediction with the above requirements.}
 %This is the focus of the next two sections.
 
-
-%
+\secmoveup
 \subsection{SP and SR model training}
 \label{ssec:training}
 
@@ -241,40 +240,39 @@ We call these extended models \textsc{SPpath} and \textsc{SRpath} respectively.
 %LX - remark, doesn't have to be here. intuition for the real extension to SLVA?
 \rev{Note that $k$ is expected to be small in noisy signal recovery, such as digital communications~\cite{nill1995list} and speech recognition~\cite{soong1991tree}. But this is not necessarily the case for inference in SR models.}
 
-%
+\secmoveup
 \subsection{SP and SR model prediction}
 \label{ssec:testing}
 
 For both the SP and SR models, prediction requires that we compute $\argmax_{\y \in \mathcal{Y}_{\mathrm{path}}} f( \x, \y )$;
-subtly, we compute the maximum over $\mathcal{Y}_{\mathrm{path}} \subseteq \mathcal{Y}$, which comprises all elements of $\mathcal{Y}$ that are {paths}.
-Observing that this requires excluding a set of sequences from consideration, a natural idea is to apply the \emph{list Viterbi algorithm} of the previous section for this task.
-However, while list Viterbi algorithms are polynomial time given the list depth $k$~\cite{nilsson2001sequentially},
-in reality $k$ is unknown a priori and can be very large for long sequences.
-It is fortunately possible to explore %%more efficient 
-alternative
-approaches to this problem.
+subtly, \rev{this is the} maximum over $\mathcal{Y}_{\mathrm{path}} \subseteq \mathcal{Y}$, 
+which comprises all elements of $\mathcal{Y}$ that are {paths}.
+Observing that this requires excluding a set of sequences from consideration, a natural idea is to apply the \emph{list Viterbi algorithm} of the previous section.
+\rev{We notice that our {\em path-decoding} problem is a variant of the well-known} {\em traveling salesman problem} (TSP), or the best of ${m \choose l}$ TSPs. 
+%LX - uh, do we need to explain, or is this obvious
+\rev{This is because list Viterbi finds all best-scoring sequences until one of which a path, while TSP is formulated to find the best path.} 
+\rev{This equivalence relation opens new possibilities to leverage well-studied TSP formulations~\cite{reinelt1991tsplib} and modern implementations~\ref{?}. In particular, we consider an integer linear program (ILP) formulation of the TSP (Eq.~\ref{eq:obj} to \ref{eq:cons4}). This formulation extends earlier work on sequence recommendation~\cite{lian2014geomf,cikm16paper} by systematically incorporating unary and pairwise scoring terms.}
+%LX - is the last sentence true?
 
-%
-\textbf{Eliminating loops with ILP}.
-Consider the setting of finding the best path $\y^*$ that starts from a specific point $y_1^*$ and traverses exactly $l$ of $m$ candidate points.
-Given desired sequence length $l$ among $m$ possible points, the Viterbi algorithm~\cite{tsochantaridis2005large}
-will generate the length-$l$ sequence $\y^*$ with the best score. %i.e. $\y^* = \argmax_\y f(\x,\y)$.
-One may then use the well-known
-Christofides algorithm~\cite{christofides1976} on $\y^*$ to eliminate loops in the sequence.
-%is known to generate a solutions within a factor of 3/2 of the optimal solution for traveling salesman problems.
-However, the resulting sequence will have less than the desired number of points, and the resulting score will not be optimal in general.
+%LX -- getting rid of this prelim redundant discussion 
+%LX - also moving Christofeds to the end of the section 
+%Consider the setting of finding the best path $\y^*$ that starts from a specific point $y_1^*$ and traverses exactly $l$ of $m$ candidate points.
+%Given desired sequence length $l$ among $m$ possible points, the Viterbi algorithm~\cite{tsochantaridis2005large}
+%will generate the length-$l$ sequence $\y^*$ with the best score. %i.e. $\y^* = \argmax_\y f(\x,\y)$.
 
-This problem is a variant of the travelling salesman problem (TSP), or the best of ${m \choose l}$ TSPs.
-Such a point traversal problem can be solved by incorporating
-sub-tour elimination constraints of the TSP~\cite{ijcai15,cikm16paper}.
-In particular, %%the integer linear program (ILP) formulation (Eq.~\ref{eq:obj} to \ref{eq:cons4})
+%LX - this paragraph is logically confusing, restructure 
+%Such a point traversal problem can be solved by incorporating
+%sub-tour elimination constraints of the TSP~\cite{ijcai15,cikm16paper}.
+%In particular, %%the integer linear program (ILP) formulation (Eq.~\ref{eq:obj} to \ref{eq:cons4})
 %%will solve SR inference for path $\y^*$ of length $l$ by decoding an optimal solution.
-it can be solved by decoding an optimal solution of the integer linear program (ILP) Eq.~\ref{eq:obj} to \ref{eq:cons4}.
+%it can be solved by decoding an optimal solution of the integer linear program (ILP) Eq.~\ref{eq:obj} to \ref{eq:cons4}.
 
 Given a set of points $\{p_j\}_{j=1}^m$, 
 consider binary decision variables $u_{jk}$ that are true if and only if
 the transition from $p_j$ to $p_k$ is in the resulting path,
-and binary decision variables $z_j$ that are true iff $p_j$ is the last point in $\y^*$.
+and binary decision variables $z_j$ that are true iff 
+\rev{the optimal path $\y^*$ terminates at $p_j$.}
+%$p_j$ is the last point in $\y^*$.
 %Suppose that $l$ is the number of candidate POIs.
 For brevity, we index the points such that $y_1^* = p_1$.
 Firstly, the desired path should start from $y_1^*$ (Constraint~\ref{eq:cons1}).
@@ -287,10 +285,11 @@ enforces that $\y^*$ is a single sequence of points without sub-tours.
 We rewrite Eq.~(\ref{eq:jointfeature}) into a linear function of decision variables $u_{jk}$
 (dropping the unary term corresponding to $y_1^*$ as it is a constant), which results in ~(\ref{eq:obj}).
 
-\begin{equation}
+\begin{equation}\eqmoveup
 \label{eq:obj}
 \max_{\bu} ~\sum_{k=1}^m \w_k^\top \psi_k(\x, p_k) \sum_{j=1}^m u_{jk} +
             \sum_{j,k=1}^m u_{jk} \w_{jk}^\top \psi_{j, k}(\x, p_j, p_k)
+\eqmoveup
 \end{equation}
 {$\displaystyle
 \begin{minipage}{0.45\linewidth}
@@ -308,7 +307,7 @@ v_j - v_k + 1 &\le (m-1) (1-u_{jk}),                                       \nonu
               & \qquad j,k = 2,\cdots,m                                    \label{eq:cons4}
 \end{alignat}
 \end{minipage}
-$}
+$}\eqmoveup
 
 % ILP for top-k prediction/inference
 %\textbf{Top-$K$ prediction}.
@@ -333,10 +332,16 @@ However, we note that Hamming loss %%, the most common loss function for sequenc
 cannot be used here, as $\Delta(\y,\bar\y) = \sum_{j=1}^l (1 - \llb y_j = \bar y_j \rrb)$
 cannot be expressed as a linear function of $u_{jk}$.
 
-\textbf{Practical choices.}
+\textbf{Practical choices: ILP vs SLVA vs other heuristics.}
 When performing prediction for SP and SR model, we found that state-of-the-art ILP solvers converge to a solution faster 
-than the serial list Viterbi algorithm if the sequence length $l$ is large.
+than the serial list Viterbi algorithm if the sequence length $l$ is large. 
+The reason is, while list Viterbi algorithms are polynomial time given the list depth $k$~\cite{nilsson2001sequentially},
+in reality $k$ is unknown a priori and can be very large for long sequences.
 We therefore use ILP for very long ($l\ge10$) sequences in the experiments (otherwise the list Viterbi algorithm is applied).
+
+\rev{%LX - moved here from early this Sec
+One may also want to use the well-known Christofides algorithm~\cite{christofides1976} to eliminate loops in the sequence, this is known to generate a solutions within a factor of 3/2 of the optimal solution for traveling salesman problems. However, the resulting sequence will have less than the desired number of points, and the resulting score will not be optimal.
+}
 
 % \subsection{SSVM for sequence recommendation: sequence decoding}
 % \label{ssec:subtour}
