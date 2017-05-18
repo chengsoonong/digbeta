@@ -4,15 +4,16 @@
 \label{sec:recseq}
 \textmoveup
 
-We now show how to solve sequence recommendation problems using structured prediction.
+We now \rev{describe a method to}%show how to 
+solve sequence recommendation problems. % using structured prediction.
 We first provide background on structured SVMs (SSVM) (Sec~\ref{ssec:ssvm}),
 then present a model for structured recommendation (Sec~\ref{ssec:sr}),
-followed by algorithms for its learning (Sec~\ref{ssec:training}) 
+followed by \rev{new} algorithms for its learning (Sec~\ref{ssec:training}) 
 and inference (Sec~\ref{ssec:testing}).
 
 
 \secmoveup
-\subsection{Background on SSVM for structured prediction}
+\subsection{Background: SSVM for structured prediction}
 \label{ssec:ssvm}
 \textmoveup
 
@@ -21,13 +22,8 @@ typically via a score function $f(\x,\y)$ that determines the affinity of an (in
 A popular model is the Structured Support Vector Machine (SSVM)~\cite{joachims2009predicting,tsochantaridis2005large}, comprising three core ingredients.
 
 \emph{Score function}. In SSVMs, we specify that the score function $f(\x, \y)$ takes a linear form, \ie 
-%is a function that scores the compatibility between features $\mathbf{x}$ and a specific label $\mathbf{y}$,
-%in the case of structured SVM (SSVM), the compatibility function $f(\mathbf{x}, \mathbf{y})$ for structured SVM is this linear form,
-%\begin{equation*}
 $f(\x, \y) = \w^\top \Psi(\x, \y)$,
-%\end{equation*}
 where $\w$ is a weight vector, and $\Psi(\x, \y)$ is a \emph{joint feature map}.
-%between the input $\x$ and label sequence $\y$.
 
 The design of the feature map $\Psi$ is problem specific.
 For sequence prediction problems,
@@ -52,7 +48,8 @@ each of these features: %with the corresponding feature weight:
 %\resizebox{0.9\linewidth}{!}{$\displaystyle
 f(\x, \y) = \w^\top \Psi(\x, \y) = 
 \sum_{j=1}^l \w_j^\top \psi_j(\x, y_j) + \sum_{j=1}^{l-1} \w_{j,j+1}^\top \psi_{j,j+1}(\x, y_{j}, y_{j+1}).
-%$}
+%$} 
+\eqmoveup
 \end{equation}
 Here, $\psi_j$ is a feature map between the input and one output label element $y_j$, with a corresponding weight vector $\w_j$,
 and $\psi_{j,j+1}$ is a pairwise feature vector that captures the interactions between consecutive labels $y_j$ and $y_{j+1}$,
@@ -69,7 +66,7 @@ To learn a suitable weight vector $\w$, SSVMs solve: %the following optimisation
   \w^\top \Psi(\x^{(i)}, \y^{(i)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}) \ge
   \Delta(\y^{(i)}, \bar{\y}) - \xi_i, \, \forall \bar\y \in \mathcal{Y}.
 \end{aligned}
-$}
+$} \eqmoveup
 \end{equation}
 
 Here, 
@@ -84,7 +81,8 @@ cutting-plane algorithms~\cite{joachims2009predicting}, % cutting-plane
 gradient-based algorithms~\cite{ratliff2006subgradient} % sub-gradient
 and conditional gradient methods~\cite{lacoste2013block} % Frank-Wolfe
 %can efficiently optimise the objective and
-are widely used in practice~\cite{muller2014methods}.
+are widely used in practice~\cite{muller2014methods}. 
+%LX - do we want to say the gradient-based methods are inefficient?? 
 %Instead, we can resort to a cutting-plane algorithm which repeatedly solves the quadratic program (\ref{eq:nslack})
 %with a growing set of constraints~\cite{joachims2009predicting}.
 %In each iteration, a new constraint is formed by solving the loss-augmented inference,
@@ -102,7 +100,7 @@ and the maximisation at the right side is known as the loss-augmented inference.
 When the underlying graph of SSVM is a tree (which is the case for sequence recommendation),
 this may be done efficiently if the loss function $\Delta(\cdot,\cdot)$ is decomposable
 with respect to individual and pairs of label elements,
-\eg using the Viterbi algorithm.
+\eg using the Viterbi algorithm~\cite{joachims2009predicting}.
 % in a way similar to Equation~\eqref{eq:jointfeature}.
 
 \secmoveup
@@ -180,8 +178,13 @@ we can use \emph{one} slack variable to represent the sum of the $N$ hinge losse
 This 1-slack formulation can be learned more efficiently than (\ref{eq:nslack_ml})
 when training using cutting-plane algorithms. %the above can be learned more efficiently than (\ref{eq:nslack_ml}).
 
-To describe how to use the above models for sequence recommendation, we must precisely describe how one performs training and prediction using them.
-This is the focus of the next two sections.
+%LX - the sentence below contains little info
+%To describe how to use the above models for sequence recommendation, we must precisely describe how one performs training and prediction using them.
+\rev{One additional requirement is for the predicted sequence to be a {\em path}. 
+This is a {\em global} constraint bringing new challenges for prediction and loss-augmented inference. 
+%that makes the underlying graph structure no longer a tree, 
+The next two sections describes the training and prediction with the above requirements.}
+%This is the focus of the next two sections.
 
 
 %
