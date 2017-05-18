@@ -7,24 +7,16 @@
 \textmoveup
 
 We introduce the sequence recommendation problem that is the focus of this paper.
-%To do so, we first
 We then provide some motivating examples, in particular the problem of trajectory recommendation.
-%and show how it may be viewed as a kind of structured prediction problem.
 
-
-%
-%\subsection{Trajectory recommendation as a structured prediction problem}
-%\input{trajrec}
-
-%
-%\subsection{From trajectory to sequence recommendation}
+\secmoveup
 \subsection{Structured and sequence recommendation}
 \label{sec:seqrec-defn}
 
 %We now generalise the previous discussion to cover a broad class of problems.
-Consider the following abstract
+Consider the following \rev{general}%abstract
 \emph{structured recommendation} problem:
-given an input query $\x \in \mathcal{X}$ (representing \eg a user, a location, or some ``seed'' song)
+given an input query $\x \in \mathcal{X}$ (representing \eg a location, or some ``seed'' song)
 we wish to recommend one or more \emph{structured outputs} $\y \in \mathcal{Y}$ (representing \eg a sequence of locations, or songs)
 according to a learned \emph{score function} $f(\x,\y)$.
 To learn $f$,
@@ -45,29 +37,26 @@ As a remark, we note that the assumption that $\y$ is a sequence does not limit 
 as inferring $\y$ of other structures can be achieved using corresponding inference and loss-augmented inference algorithms~\cite{joachims2009predicting}.  %LX - this sentence can be cut or merged above
 
 
-%
+\secmoveup
 \subsection{Sequence recommendation versus existing problems}
 
 There are key differences between sequence recommendation and %what is being solved in
 standard problems in structured prediction and recommender systems;
-%This setting generalises from structured prediction and recommendation problems in the following ways.
 this brings unique challenges for both inference and learning.
 
 In a structured prediction problem (for sequences), the goal is to learn from a set of
-input vector and output sequence tuples %$(\x\pb{i}, \y\pb{i})$, $i=1:n$.
+input vector and output sequence tuples 
 $\{ (\x\pb{i}, \y\pb{i}) \}_{i = 1}^n$, where
 for each input $\x\pb{i}$ there is usually one \emph{unique} output sequence $\y\pb{i}$.
 In a sequence recommendation problem, however, we expect that %learn from
-%tuples $(\x\pb{i}, \{ y\pb{ij} \}_{j=1:n^i})$, $i=1:n$. That is to say,
 for each input $\x\pb{i}$ (\eg users),
-there %is %have not one, but a set of
-are \emph{multiple} associated outputs %$\{ y\pb{ij} \}_{j=1:n^i}$ (\eg movies).
-$\{ \y\pb{ij} \}_{j=1}^{n_i}$ (\eg trajectories they have visited).
-%Indeed, the existence of multiple outputs is the basis on which even non-structured recommendation systems are built, as one looks to exploit signal embedded in the aggregate information.
+there are \emph{multiple} associated outputs 
+$\{ \y\pb{ij} \}_{j=1}^{n_i}$ (\eg trajectories visited).
 Structured prediction approaches do not have a standard way to handle such multiple output sequences.
-%$\{ \y\pb{ij} \}_{j=1:n^i}$
-%for each input %$\x\pb{i}$
-%yet.
+\rev{Furthermore, it is desirable for the recommended sequence to consist of unique elements, 
+or be a {\em path}~\cite{west2001introduction} in the candidate space (\eg locations).
+Classic structured prediction does not constrain the output sequence, and having such a 
+path constraint makes both inference and learning harder.}
 
 In a typical recommender systems problem, the outputs are non-structured; canonically, one works with {static} content such as books or movies~\citep{Goldberg:1992,Sarwar:2001,Netflix}.
 Thus, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$ for suitable score function $f$, \eg some form of matrix factorisation~\citep{Koren:2009}.
@@ -79,7 +68,7 @@ matrix factorisation
 would require associating a latent feature with each $\y$, which will be infeasible.
 
 
-%
+\secmoveup
 \subsection{Examples of sequence recommendation}
 \label{sec:trajrec}
 
