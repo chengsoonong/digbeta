@@ -175,7 +175,7 @@ As a remark, we note that instead of using $N$ slack variables as that in (\ref{
 we can use \emph{one} slack variable to represent the sum of the $N$ hinge losses. % in (\ref{eq:nslack_ml}).
 %which leads to a $1$-slack formulation
 %This $1$-slack formulation can be learned more efficiently than the $N$-slack formulation (\ref{eq:nslack_ml}) if training using cutting-plane algorithm.
-This 1-slack formulation\footnote{See supplement for the detailed formulation} can be learned more efficiently than (\ref{eq:nslack_ml})
+This 1-slack formulation (see supplement) can be learned more efficiently than (\ref{eq:nslack_ml})
 when training using cutting-plane algorithms. %the above can be learned more efficiently than (\ref{eq:nslack_ml}).
 
 %LX - the sentence below contains little info
@@ -194,7 +194,7 @@ The next two sections describes the training and prediction with the above requi
 In training the SP and SR models, the main challenge is in performing loss-augmented inference~(\ref{eq:loss_aug_inf}).
 As noted above, the SP model can be trained as per the vanilla SSVM.
 The SR model, however, requires that we modify the training procedure to account for the existence of multiple ground truths.
-In particular, (\ref{eq:loss_aug_inf}) needs to be solved by \emph{excluding the sequences} $\{\y\pb{ij}\}_{j=1}^{n_i}$.
+In particular, (\ref{eq:loss_aug_inf}) needs to be solved by \emph{excluding the sequences} $\{\y\pb{ij}\}_{j=1}^{n_i}$\rev{, and ideally with {\sc path} constraints.} We now see how this problem may be addressed with an extension of the Viterbi algorithm.
 
 %% DW: do we need to describe this here?
 %%
@@ -203,48 +203,43 @@ In particular, (\ref{eq:loss_aug_inf}) needs to be solved by \emph{excluding the
 %%The motivation is that, as mentioned in \S\ref{sec:trajrec}, repeated elements are often undesirable in sequence recommendation 
 %%\eg a user will likely not want to visit the same location twice.
 
-%%We now see how both these problems may be addressed with an extension of the Viterbi algorithm.
-We now see how this problem may be addressed with an extension of the Viterbi algorithm.
+\rev{
+\textbf{The list Viterbi algorithms}.
+ListViterbi represent a family of algorithms originally invented to decode digitally signals corrupted by noise~\cite{seshadri1994list,nill1995list}, or to find more than one sentence hypotheses in speech recognition~\cite{soong1991tree}. Given a score function that can be decomposed into unary and pairwise costs (such as (\ref{eq:jointfeature}), ListViterbi algorithm aims to find $k$ sequences that has the highest score. 
 
-
-%
-\textbf{Eliminating multiple ground truths with list Viterbi}.
-Recall that standard loss-augmented inference for an SSVM (for sequence) may be done with the classic Viterbi algorithm.
-To modify this algorithm to exclude a known set of sequences (\ie $\{\y^{(ij)}\}_{j=1}^{n_i}$),
-we may employ
-several extensions of the Viterbi algorithm that aim to find more than one high-scoring sequences.
 The \emph{parallel list Viterbi} algorithm~\cite{seshadri1994list} finds the top $k$ sequences
-by keeping $k$ backtrack pointers for each possible state in each position of the sequence.
-However, it is difficult to apply in our scenario,
-since we do not know $k$ beforehand.
-This is because it is generally impossible to foresee
-the rank (according to the score) of the first path among all valid sequences. %% (that may have repeated points). 
-%% DW: what is a valid sequence? no loops or not observed?
+by keeping $k$ backtrack pointers for each possible state in each position of the sequence. 
+This algorithm is memory-inefficient and can be difficult to use when one does not know what $k$ to use apriori -- this is the case for both the learning and inference challenges in this work. 
 
-We resort to the \emph{serial list Viterbi} algorithm~\cite{seshadri1994list,nilsson2001sequentially}.
+An important variant is the \emph{serial list Viterbi} algorithms (SLVA)~\cite{seshadri1994list,nill1995list,nilsson2001sequentially}.
 This algorithm sequentially find the $k$-th best sequence given the best, 2nd best, \dots, $(k \!-\! 1)$-th best sequences.
 The key insight here is that the 2nd best sequence deviates from the best sequence
 for one continuous segment, and then finally merges back to the best sequence without deviating again
 -- otherwise replacing one of the continuous segments with those from the best sequence will increase the score.
 Subsequently, the $k$th best sequence can be the 2nd best sequence relative to the $(k \!-\! 1)$-th sequence
-at the point of final merge, or the 2nd or 3rd best sequence to the $(k \!-\! 2)$-th sequence at the point of final merge, \ldots, and so on.
-The serial list Viterbi allows exclusion of sequences with repeats,
-as well as
-excluding an arbitrary number of known sequences.
-The list Viterbi algorithm is fully detailed in the supplement.
+at the point of final merge, or the 2nd or 3rd best sequence to the $(k \!-\! 2)$-th sequence at the point of final merge, \ldots, and so on. SLVA works by keeping track of the score differences to the best sequences and merge points along the sequences. See appendix for a complete description. 
+}
 
+\rev{
+\textbf{Eliminating multiple ground truths}.
+Recall that standard loss-augmented inference for an SSVM (for sequence) may be done with the classic Viterbi algorithm, but the best-scoring sequence could be in the ground-truth set $\{\y^{(ij)}\}_{j=1}^{n_i}$. We check whether this is the case, and if it is, use SLVA to decode the next-best sequence until it is no longer in the ground truth set.}
+%The serial list Viterbi allows exclusion of sequences with repeats,
+%as well as
+%excluding an arbitrary number of known sequences.
+%The list Viterbi algorithm is fully detailed in the supplement.
 Note that the serial list Viterbi algorithm
 can be used for loss-augmented inference with Hamming loss, the most common loss function for sequence prediction tasks,
 since it only requires the loss function be decomposable with respect to the label elements.
 
 %
-\textbf{Eliminating loops with list Viterbi: the \textsc{SPpath} and \textsc{SRpath} model}.
+\textbf{Eliminating loops: the \textsc{SPpath} and \textsc{SRpath} model}.
 %Having seen the viability of the list Viterbi algorithm for removing known sequences from consideration during inference,
-The list Viterbi algorithm is also applicable to enforce that loss-augmented inference only considers sequences that are \emph{paths}.
-This may be done by expanding the set of disallowed sequences and following the algorithm as above.
-This idea can be applied to both the SP and SR models, as it is independent of whether or not we exclude multiple ground truths.
+The list Viterbi algorithm is also applicable to enforce that loss-augmented inference only considers sequences that are \emph{paths}. \rev{This may be done by checking if each of the next-best sequence has a loop and following SLVA as above.}
+This idea can be applied to both the SP and SR models, as \rev{enforcing path constraint} is independent of whether or not we exclude multiple ground truths.
 We call these extended models \textsc{SPpath} and \textsc{SRpath} respectively.
 
+%LX - remark, doesn't have to be here. intuition for the real extension to SLVA?
+\rev{Note that $k$ is expected to be small in noisy signal recovery, such as digital communications~\cite{nill1995list} and speech recognition~\cite{soong1991tree}. But this is not necessarily the case for inference in SR models.}
 
 %
 \subsection{SP and SR model prediction}
