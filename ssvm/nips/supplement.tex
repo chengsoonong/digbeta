@@ -5,6 +5,18 @@
 \subsection{List Viterbi}
 \label{sec:listviterbi-supp}
 
+1-slack formulation for the SR model described in Section~\ref{ssec:sr}:
+\begin{equation*}
+%%\label{eq:1slack_ml}
+\resizebox{0.9\linewidth}{!}{$
+\begin{aligned}
+\min_{\w, \, \xi \ge 0} ~\frac{1}{2} \w^\top \w + C \xi, ~~s.t.~ \frac{1}{N} \left( \sum_{i,j} \w^\top \Psi(\x^{(i)}, \y^{(ij)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}^{(i)}) \right) 
+  \ge \frac{1}{N} \sum_{i,j} \Delta(\y^{(ij)}, \bar{\y}^{(i)}) - \xi.
+\end{aligned}
+$}
+\end{equation*}
+
+
 We require a top-$k$ decoding of a sequence for three situations:
 \begin{enumerate}
   \item To perform top-$k$ inference during the prediction phase
@@ -129,8 +141,9 @@ or the learned weight vector during prediction.
 
 In the interests of reproducibility we present further details of our empirical experiment.
 
-The POI and query specific features extracted from trajectories are shown in Table~\ref{tab:poifeature},
-features that describe the transition preference between different POIs are shown in Table~\ref{tab:tranfeature}.
+\textbf{Features}
+The POI-query features used by \textsc{PoiRank}, SP and SR methods are shown in Table~\ref{tab:poifeature},
+pairwise features used in SP and SR methods are shown in Table~\ref{tab:tranfeature}.
 
 \begin{table*}[ht]
 \caption{Features of POI $p$ with respect to query $(s,l)$}
@@ -163,7 +176,7 @@ features that describe the transition preference between different POIs are show
 
 
 \begin{table}[ht]
-\caption{POI features used to estimate the (feature-wise) transition probabilities}
+\caption{Pairwise POI features}
 \label{tab:tranfeature}
 \centering
 \setlength{\tabcolsep}{2pt} % tweak the space between columns
@@ -181,6 +194,12 @@ features that describe the transition preference between different POIs are show
 \clearpage
 \subsection{Evaluation procedures}
 \label{sec:metric}
+
+\textbf{Top-k prediction for baselines}.
+\begin{itemize}
+\item To perform top-$k$ prediction with \textsc{Random} baseline, we simply repeat the \textsc{Random} method $k$ times.
+\item To perform top-$k$ prediction with \textsc{Popularity} and \textsc{PoiRank}, we make use of the list Viterbi algorithm~\ref{alg:listviterbi} to get $k$ best scored paths, in particular, for \textsc{Popularity}, the score of a path is the accumulated popularity of all POIs in the path; for \textsc{PoiRank}, the score of a path is the likelihood (the ranking scores for POIs are transformed into a probability distribution using the softmax function, as described in~\cite{cikm16paper}).
+\end{itemize}
 
 To evaluate the performance of a certain recommendation algorithm,
 we need to measure the similarity (or loss) given prediction $\hat{\mathbf{y}}$
@@ -311,15 +330,4 @@ slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th
 %%}
 \end{equation*}
 
-we can use \emph{one} slack variable to represent the sum of the $N$ hinge losses in (\ref{eq:nslack_ml}),
-which leads to %this $1$-slack formulation,
-\begin{equation*}
-%%\label{eq:1slack_ml}
-\resizebox{0.9\linewidth}{!}{$
-\begin{aligned}
-\min_{\w, \, \xi \ge 0} ~\frac{1}{2} \w^\top \w + C \xi, ~~s.t.~ \frac{1}{N} \left( \sum_{i,j} \w^\top \Psi(\x^{(i)}, \y^{(ij)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}^{(i)}) \right) 
-  \ge \frac{1}{N} \sum_{i,j} \Delta(\y^{(ij)}, \bar{\y}^{(i)}) - \xi.
-\end{aligned}
-$}
-\end{equation*}
 
