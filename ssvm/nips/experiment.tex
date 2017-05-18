@@ -20,20 +20,20 @@ a number of non-structured baselines or those that do not take into account the 
 
 % experiment protocol: Nested cross-validation with Monte-Carlo cross-validation for the inner loop
 We assess the recommendation performance %methods developed in Section~\ref{sec:trajrec}
-of various methods
+%%of various methods
 on trajectories extracted from Flickr photos
-for the cities of Glasgow and Osaka~\cite{thomee2016yfcc100m,ijcai15}.
+for the cities of Glasgow, Osaka and Toronto~\cite{thomee2016yfcc100m,ijcai15}.
 Each dataset comprises of a
 list of trajectories, being a sequence of points of interest (POI), as visited by various Flickr users
 and recorded by the geotags in photos. Photos that are nearby in time and space are grouped and then segmented by eight hours of time gap, and visits that only include a single POI are excluded.
 The statistics of datasets are shown in Table~\ref{tab:data}.
-Both datasets are sparse in user activity,
+All three datasets are sparse in user activity,
 i.e., each user has on average less than two trajectories.
 This makes user-specific recommendation impractical, and also undesirable because of the domain being urban locations
 (a user would want different recommendations given different starting locations, and not a static recommendation no matter where she is).
-From Table~\ref{tab:data} and Figure~\ref{fig:hist},
+From Table~\ref{tab:data}, %%and Figure~\ref{fig:hist},
 each distinct query %, %comprising of start POI and a desired trip length,
-has an average of 4-6, and a maximum of 20-30 trajectories.
+has an average of 4-9, and a maximum of 30-60 trajectories.
 Therefore, evaluation is carried out on the problem of recommending trajectories given a query.
 %as posed in \S\ref{sec:trajrec}:
 %given a query , can we recommend a trajectory of POIs that a visitor will enjoy?
@@ -48,19 +48,17 @@ Therefore, evaluation is carried out on the problem of recommending trajectories
 		\setlength{\tabcolsep}{4pt} % tweak the space between columns
 		\small
 		\begin{tabular}{l*{9}{c}} \hline
-		\textbf{Dataset} & \textbf{\#Traj.} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#Queries} & \textbf{\#GroundTruth=1} & \textbf{\#GroundTruth$\in$[2,5]} & \textbf{\#GroundTruth$>$5} & \textbf{\#Traj.(short)} & \textbf{\#Traj.(long)} \\ \hline
-		Osaka            & 186              & 26              & 130              & 47                 & 17                           & 22                             & 8                             & 178                    & 8  \\
-		Glasgow          & 351              & 25              & 219              & 64                 & 23                           & 22                             & 19                            & 336                    & 15 \\
-        Toronto          & 977              & 27              & 454              & 99                 & 30                           & 33                             & 36                            & 918                    & 59 \\
+		\textbf{Dataset} & \textbf{\#Traj.} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#Queries} & \textbf{\#GT=1} & \textbf{\#GT$\in$[2,5]} & \textbf{\#GT$>$5} & \textbf{\#Traj.(short)} & \textbf{\#Traj.(long)} \\ \hline
+		Osaka            & 186              & 26              & 130              & 47                 & 17              & 22                      & 8                 & 178                     & 8  \\
+		Glasgow          & 351              & 25              & 219              & 64                 & 23              & 22                      & 19                & 336                     & 15 \\
+        Toronto          & 977              & 27              & 454              & 99                 & 30              & 33                      & 36                & 918                     & 59 \\
 		\hline
 		\end{tabular}%
 		}
 		\captionof{table}{Statistics of trajectory dataset,
-        including the number of trajectories (\textbf{\#Traj.}), the number of POIs (\textbf{\#POIs}), the number of users (\textbf{\#Users}),
-        the number of queries (\textbf{\#Queries}); the number of queries with a single ground truth (\textbf{\#GroundTruth=1}),
-        the number of queries with 2 to 5 ground truths (\textbf{\#GroundTruth$\in$[2,5]}), and the number of queries with more than 5 ground truths
-        (\textbf{\#GroundTruth$>$5}); the number of trajectories with less than 5 POIs (\textbf{\#Traj.(short)}) and the number of trajectories with
-        more than 5 POIs (\textbf{\#Traj.(long)}).
+        including the number of trajectories/POIs/users/queries (\ie \textbf{\#Traj.}, \textbf{\#POIs}, \textbf{\#Users} and \textbf{\#Queries}); 
+        the number of queries with a single/2-5/more than 5 ground truths (\ie \textbf{\#GT=1}, \textbf{\#GT$\in$[2,5]} and \textbf{\#GT$>$5}); 
+        the number of trajectories with less than 5 (\textbf{\#Traj.(short)}) and more than 5 POIs (\textbf{\#Traj.(long)}).
         }
 		\label{tab:data}
 	\end{minipage}%
@@ -103,39 +101,38 @@ Therefore, evaluation is carried out on the problem of recommending trajectories
 
 \secmoveup
 \subsection{Methods compared}
+\label{ssec:methods}
 \textmoveup
 
 We compare the performance of our methods to the following three baselines:
 \begin{itemize}[leftmargin=0.125in]\itemmoveup
 \parskip -.05em
-\item The \textsc{Random} baseline simply recommends a sequence of POIs by sampling uniformly at random from the whole set of POIs (without replacement).
+\item The \textsc{Random} baseline simply recommends a sequence of POIs by sampling uniformly at random from the whole set of POIs 
+      (without utilising any POI or query related features).
 
-\item The stronger \textsc{Popularity} baseline recommends the top-$k$ most popular POIs, 
+\item The stronger \textsc{Popularity} baseline simply recommends the top-$l$ most popular POIs, 
       \ie, the POIs that have been visited by the most number of users in the training set.
 
 \item \textsc{PoiRank}~\cite{cikm16paper} is a generalisation of \textsc{Popularity} 
-      which considers a number of POI-query features in addition to the popularity,
-      and trains a RankSVM model to learn a score for each POI. The top-$k$ scored POIs are then used to construct a trajectory.
+      which considers a number of POI-query features\footnote{See supplement for details of features.\label{fn:suplement}} in addition to the popularity,
+      and trains a RankSVM model to learn a score for each POI. The top-$l$ scored POIs are then used to construct a trajectory.
 \end{itemize}\itemmoveup
 
 To assess the viability of our structured prediction approach, and the necessity of our two extensions (normalising the loss per query and disallowing loops), we consider the following structured methods: %the following versions of our structured prediction methods:
 \begin{itemize}[leftmargin=0.125in]\itemmoveup
 \parskip -.05em
-\item The structured prediction ({\sc SP}) method employs the vanilla structured SVM framework in order to learn a score for trajectories given a query.
+%\item The structured prediction ({\sc SP}) method employs the vanilla structured SVM framework in order to learn a score for trajectories given a query.
+\item The SP and SR methods described in Section~\ref{ssec:sr} with both POI-query features and pairwise features\footref{fn:suplement}.
 
-\item The structured recommendation ({\sc SR}) method extends the {\sc SP} method by additionally incorporating multiple ground truths into
-      forming the constraints and adding them in cutting-plane algorithm,
-      described in Section~\ref{ssec:sr}.
+%\item The structured recommendation ({\sc SR}) method extends the {\sc SP} method by additionally incorporating multiple ground truths into
+%      forming the constraints and adding them in cutting-plane algorithm,
+%      described in Section~\ref{ssec:sr}.
 	%performing normalisation of the loss function per query,
 	%so that we do not attempt to distinguish between multiple ground truths for the same query.
 
-\item The variants {\sc SPpath} and {\sc SRpath} extend the above methods by enforcing the constraint during training 
-      that sequences with loops are disallowed.
+\item The variants {\sc SPpath} and {\sc SRpath} described in Section~\ref{ssec:training} with the same features as the SP and SR methods.
 \end{itemize}\itemmoveup
-All above methods predict a path
-with the %list Viterbi
-ILP
-algorithm (Section~\ref{ssec:testing}).
+All above methods take into account the specified start location properly.
 
 \secmoveup
 \subsection{Evaluation procedure}
@@ -146,24 +143,30 @@ algorithm (Section~\ref{ssec:testing}).
 %To evaluate the performance of the various methods under comparison,
 %we first group the trajectories  %according to queries that they conform to.
 We then evaluate the performance of each algorithm using leave-one-query-out cross validation. 
-That is, holding out each query $\x\pb{i}$, and also all of its relevant trajectories $\{\y\pb{ij}\}_{j=1}^{n_i}$ in each round,
+That is, holding out all the relevant trajectories for each query $\x\pb{i}$ (\ie $\{\y\pb{ij}\}_{j=1}^{n_i}$) in each round,
 where in each iteration of this procedure,
 %one query and its associated trajectories serves as a test point, with all other trajectories for training.
 %(Note that without this query aggregation, there will be considerable overlap between the train and test set, and simple nearest neighbour methods will be hard to outperform.)
 % model selection (Monte Carlo CV) (with query aggregation): 90/10 random split for 5 times
-relevant hyper-parameters (\eg the regularisation constant $C$) are tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
+the hyper-parameter (\eg the regularisation constant $C$) are tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
 
 We use three different measures to compare algorithm performances.
 The {\bf F$_1$ score on points}~\cite{ijcai15} computes F$_1$ on the predicted versus seen points
 without considering their relative order.
-The {\bf F$_1$ score on pairs}~\cite{cikm16paper} is proposed to mitigate this by computing F$_1$ on all ordered pairs in the predicted versus groundtruth sequence. It is 1 iff both sequences agree completely.
+The {\bf F$_1$ score on pairs}~\cite{cikm16paper} is proposed to mitigate this by computing F$_1$ on all ordered pairs in the predicted versus groundtruth sequence. %%It is 1 iff both sequences agree completely.
 The well-known rank correlation {\bf Kendall's $\tau$} (version $b$)~\cite{agresti2010analysis} 
 computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all possible pairs after taking care of ties.
 %$\frac{1}{2}l(l-1)$) pairs  %DW: this is not correct
 
 Structured recommendation problems aims to perform ranking on a very large $m^l$ labelset.
-We adopt the practice of {\em best of top 10}~\cite{russakovsky2015imagenet} for reporting results:
-that is, we predict the top 10 trajectories, and then report the best match of any in the top 10 to any trajectory in the ground truth set.
+We adopt the practice of {\em best of top $k$}~\cite{russakovsky2015imagenet} for reporting results: %\footnote{$k=10$ in our experiments}:
+that is, for all methods described in Section~\ref{ssec:methods},
+we predict the top $k$ trajectories
+\footnote{We use the list Viterbi algorithm to perform top $k$ predictions for \textsc{Popularity} and \textsc{PoiRank}, see supplement for details.}
+and then report the best match of any in the top $k$ to any trajectory in the ground truth set.
+We also explored the effect of different values for $k$ (\eg $k=1,\cdots\!,10$).
+
+
 \eat{
 As described previously, our methods are capable of recommending not merely a single trajectory,
 but rather a list of trajectories.
