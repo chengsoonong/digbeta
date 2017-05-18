@@ -238,7 +238,7 @@ since it only requires the loss function be decomposable with respect to the lab
 \textbf{Eliminating loops with list Viterbi: the \textsc{SPpath} and \textsc{SRpath} model}.
 %Having seen the viability of the list Viterbi algorithm for removing known sequences from consideration during inference,
 The list Viterbi algorithm is also applicable to enforce that loss-augmented inference only considers sequences that are \emph{paths}.
-This may be done by simply expanding the set of disallowed sequences and following the algorithm as above.
+This may be done by expanding the set of disallowed sequences and following the algorithm as above.
 This idea can be applied to both the SP and SR models, as it is independent of whether or not we exclude multiple ground truths.
 We call these extended models \textsc{SPpath} and \textsc{SRpath} respectively.
 

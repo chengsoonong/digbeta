@@ -107,10 +107,10 @@ Therefore, evaluation is carried out on the problem of recommending trajectories
 We compare the performance of our methods to the following three baselines:
 \begin{itemize}[leftmargin=0.125in]\itemmoveup
 \parskip -.05em
-\item The \textsc{Random} baseline simply recommends a sequence of POIs by sampling uniformly at random from the whole set of POIs 
+\item The \textsc{Random} baseline recommends a sequence of POIs by sampling uniformly at random from the whole set of POIs 
       (without utilising any POI or query related features).
 
-\item The stronger \textsc{Popularity} baseline simply recommends the top-$l$ most popular POIs, 
+\item The stronger \textsc{Popularity} baseline recommends the top-$l$ most popular POIs, 
       \ie, the POIs that have been visited by the most number of users in the training set.
 
 \item \textsc{PoiRank}~\cite{cikm16paper} is a generalisation of \textsc{Popularity} 
@@ -170,7 +170,7 @@ We also explored the effect of different values for $k$ (\eg $k=1,\cdots\!,10$).
 \eat{
 As described previously, our methods are capable of recommending not merely a single trajectory,
 but rather a list of trajectories.
-While one can simply take the top recommended trajectory as the prediction,
+While one can take the top recommended trajectory as the prediction,
 this ignores the fact that there are likely multiple plausible trajectories for any given query.
 Thus, for each performance measure $\mathrm{perf}$,
 we take the maximum over all trajectories,
