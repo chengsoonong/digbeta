@@ -135,7 +135,7 @@ However, it is sub-optimal:
 %%the result of loss-augmented inference on $(\xii, \yij)$ could be any label $\yik \in \{\yij\}_{j=1}^{n_i} \setminus \{\yij\}$,
 %%but then we would incorrectly penalise predicting $\yik$ for $\xii$. 
 %% 
-the result of loss-augmented inference on $(\x\pb{i}, \y\pb{ij})$ could be a ground truth label $\y' \in \{\y\pb{ij}\}_{j=1}^{n_i}\}$,
+the result of loss-augmented inference on $(\x\pb{i}, \y\pb{ij})$ could be a ground truth label $\y' \in \{\y\pb{ij}\}_{j=1}^{n_i}$,
 which means we would incorrectly penalise predicting $\y'$ for $\x\pb{i}$. 
 
 \emph{The SR model}.
@@ -153,7 +153,7 @@ we propose the following \emph{structured recommendation} (\emph{SR}) model that
 $}
 \end{equation}
 where $N = \sum_i n_i$ and $\bar{\y}^{(i)} \in \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}$.
-The 1-slack formulation of~(\ref{eq:nslack_ml}) can be formed similar to that of~(\ref{eq:nsalck}).
+The 1-slack formulation of~(\ref{eq:nslack_ml}) can be formed similar to that of~(\ref{eq:nslack}).
 Intuitively, the objective in (\ref{eq:nslack_ml}) is similar to a ranking objective, as the constraints enforce
 that the positively labeled sequences (the known items that the user likes) are scored
 higher than all other unseen sequences.
@@ -191,7 +191,8 @@ which we describe in the next two sections.
 %DW: do we need this paragraph?
 %LX - the sentence below contains little info
 %To describe how to use the above models for sequence recommendation, we must precisely describe how one performs training and prediction using them.
-\rev{One additional requirement is for the predicted sequence to be a {\em path}. 
+Beyond dealing with multiple ground truths,
+\rev{one additional requirement is for the predicted sequence to be a {\em path}. 
 This is a {\em global} constraint bringing new challenges for prediction and loss-augmented inference. 
 %that makes the underlying graph structure no longer a tree, 
 The next two sections describes the training and prediction with the above requirements.}
@@ -216,7 +217,7 @@ In particular, (\ref{eq:loss_aug_inf}) needs to be solved by \emph{excluding the
 
 \rev{
 \textbf{The list Viterbi algorithms}.
-ListViterbi represent a family of algorithms originally invented to decode digital signals corrupted by noise~\cite{seshadri1994list,nill1995list}, or to find more than one sentence hypotheses in speech recognition~\cite{soong1991tree}. Given a score function that can be decomposed into unary and pairwise costs such as (\ref{eq:jointfeature}), ListViterbi algorithm aims to find $k$ highest scored sequences. % that has the highest score. 
+ListViterbi represents a family of algorithms originally invented to decode digital signals corrupted by noise~\cite{seshadri1994list,nill1995list}, or to find more than one candidate sentence in speech recognition~\cite{soong1991tree}. Given a score function that can be decomposed into unary and pairwise costs such as (\ref{eq:jointfeature}), a ListViterbi algorithm aims to find the $k$ highest scored sequences. % that has the highest score. 
 
 The \emph{parallel list Viterbi} algorithm~\cite{seshadri1994list} finds the top $k$ sequences
 by keeping $k$ backtrack pointers for each possible state in each position of the sequence. 
@@ -245,12 +246,12 @@ since it only requires the loss function be decomposable with respect to the lab
 %
 \textbf{Eliminating loops: the \textsc{SPpath} and \textsc{SRpath} model}.
 %Having seen the viability of the list Viterbi algorithm for removing known sequences from consideration during inference,
-The list Viterbi algorithm is also applicable to enforce that loss-augmented inference only considers sequences that are \emph{paths}. \rev{This may be done by checking if each of the next-best sequence has a loop and following SLVA as above.}
-This idea can be applied to both the SP and SR models, as \rev{enforcing path constraint} is independent of whether or not we exclude multiple ground truths.
+The list Viterbi algorithm is also applicable to enforce that loss-augmented inference only considers sequences that are \emph{paths}. \rev{This may be done by checking if each of the next-best sequences has a loop, and following SLVA as above.}
+This idea can be applied to both the SP and SR models, as \rev{enforcing path constraints} is independent of excluding multiple ground truths.
 We call these extended models \textsc{SPpath} and \textsc{SRpath} respectively.
 
 %LX - remark, doesn't have to be here. intuition for the real extension to SLVA?
-\rev{Note that $k$ is expected to be small in noisy signal recovery, such as digital communications~\cite{nill1995list} and speech recognition~\cite{soong1991tree}. But this is not necessarily the case for inferences in SR models.}
+\rev{Note that $k$ is expected to be small in noisy signal recovery, such as digital communications~\cite{nill1995list} and speech recognition~\cite{soong1991tree}. But this is not necessarily the case for inference in SR models.}
 
 \secmoveup
 \subsection{SP and SR model prediction}
@@ -353,8 +354,9 @@ The reason is, while list Viterbi algorithms are polynomial time given the list 
 in reality $k$ is unknown a priori and can be very large for long sequences.
 We therefore use ILP for very long ($l\ge10$) sequences in the experiments (otherwise the list Viterbi algorithm is applied).
 
+As a final remark,
 \rev{%LX - moved here from early this Sec
-One may also want to use the well-known Christofides algorithm~\cite{christofides1976} to eliminate loops in the sequence, this is known to generate a solutions within a factor of 3/2 of the optimal solution for traveling salesman problems. However, the resulting sequence will have less than the desired number of points, and the resulting score will not be optimal.
+one might also consider the well-known Christofides algorithm~\cite{christofides1976} to eliminate loops in a sequence, as this is known to generate a solutions within a factor of 3/2 of the optimal solution for traveling salesman problems. However, the resulting sequence will have less than the desired number of points, and the resulting score will not be optimal.
 }
 
 % \subsection{SSVM for sequence recommendation: sequence decoding}
