@@ -195,7 +195,7 @@ Beyond dealing with multiple ground truths,
 one additional requirement is for the predicted sequence to be a {\em path}.
 This is a {\em global} constraint bringing new challenges for prediction and loss-augmented inference.
 %that makes the underlying graph structure no longer a tree,
-The next two sections describes the training and prediction with the above requirements.
+The following two sections describe the training and prediction with these requirements.
 %This is the focus of the next two sections.
 
 \secmoveup
@@ -229,7 +229,7 @@ The key insight here is that the 2nd best sequence deviates from the best sequen
 for one continuous segment, and then finally merges back to the best sequence without deviating again
 -- otherwise replacing one of the continuous segments with those from the best sequence will increase the score.
 Subsequently, the $k$th best sequence can be the 2nd best sequence relative to the $(k \!-\! 1)$-th sequence
-at the point of final merge, or the 2nd or 3rd best sequence to the $(k \!-\! 2)$-th sequence at the point of final merge, \ldots, and so on. SLVA works by keeping track of the score differences to the best sequences and merge points along the sequences. See appendix for a complete description.
+at the point of final merge, or the 2nd or 3rd best sequence to the $(k \!-\! 2)$-th sequence at the point of final merge, \ldots, and so on. SLVA works by keeping track of the score differences to the best sequences and merge points along the sequences. See supplement for a complete description.
 
 
 We use SLVA in two different ways, first to deal with multiple ground truths, and second
@@ -264,7 +264,7 @@ For both the SP and SR models, prediction requires that we compute $\argmax_{\y 
 This is the maximum over $\mathcal{Y}_{\mathrm{path}} \subseteq \mathcal{Y}$,
 which comprises all elements of $\mathcal{Y}$ that are paths and not all possible sequences.
 Observing that this requires excluding a set of sequences from consideration, a natural idea is to apply the \emph{list Viterbi algorithm} of the previous section.
-Observe that our {\em path-decoding} problem is a variant of the well-known
+We further observe that our {\em path-decoding} problem is a variant of the well-known
 {\em traveling salesman problem} (TSP), in particular the best of ${m \choose l}$ TSPs.
 %LX - uh, do we need to explain, or is this obvious
 This is because list Viterbi can find all best-scoring sequences until one of which is a path, while TSP can be formulated to find the best path.
@@ -302,12 +302,12 @@ enforces that $\y^*$ is a single sequence of points without sub-tours.
 % DW: v_j defined in the first constraint, which is a natural number
 We rewrite Eq.~(\ref{eq:jointfeature}) into a linear function of decision variables $u_{jk}$
 (dropping the unary term corresponding to $y_1^*$ as it is a constant), which results in ~(\ref{eq:obj}).
-
-\begin{equation}\eqmoveup\eqmoveup
+\setlength{\belowdisplayskip}{1pt} \setlength{\belowdisplayshortskip}{0pt}
+\setlength{\abovedisplayskip}{1pt} \setlength{\abovedisplayshortskip}{0pt}
+\begin{equation}%\eqmoveup\eqmoveup
 \label{eq:obj}
 \max_{\bu} ~\sum_{k=1}^m \w_k^\top \psi_k(\x, p_k) \sum_{j=1}^m u_{jk} +
             \sum_{j,k=1}^m u_{jk} \w_{jk}^\top \psi_{j, k}(\x, p_j, p_k)
-\eqmoveup
 \end{equation}
 {$\displaystyle
 \begin{minipage}{0.45\linewidth}
@@ -327,17 +327,21 @@ v_j - v_k + 1 &\le (m-1) (1-u_{jk}),                                       \nonu
 \end{minipage}
 $}
 
+\textbf{Recommending more than one trajectory}.
+Since multiple possible trajectories can start at the same POI, 
+we need to predict multiple trajectories for each test query. 
 % ILP for top-k prediction/inference
 %\textbf{Top-$K$ prediction}.
-We can also use the above formulation to find the top-$K$ scored paths in a sequential manner.
+We can use the above ILP formulation to find the top-$K$ scored paths in a sequential manner.
 In particular, given the $K\!-\!1$ top scored paths $\{\y\pb{k}\}_{k=1}^{K-1}$,
 the $K\!$-th best scored path can be found by solving the above ILP with additional constraints:
 %%\begin{equation}
 %%\label{eq:topk_ILP}
 $\sum_{j=1}^{l-1} u_{y_j, y_{j+1}} \le l-2, ~\forall \y \in \{\y^{(k)}\}_{k=1}^{K-1}$.
 %%\end{equation}
-% ILP for learning (loss-augmented inference)
+Alternatively, we can achieve this by using the same approach as when eliminating ground truth sequences using SLVA.
 
+% ILP for learning (loss-augmented inference)
 \textbf{Eliminating multiple ground truths with ILP?}
 A natural question is whether one can use the above ILP
 to exclude observed labels when training an SR model,
@@ -350,7 +354,7 @@ However, we note that Hamming loss %%, the most common loss function for sequenc
 cannot be used here, as $\Delta(\y,\bar\y) = \sum_{j=1}^l (1 - \llb y_j = \bar y_j \rrb)$
 cannot be expressed as a linear function of $u_{jk}$.
 
-\textbf{Practical choices: ILP vs SLVA vs other heuristics.}
+\textbf{Practical choices: ILP vs SLVA vs other heuristics}.
 When performing prediction for SP and SR model, we found that state-of-the-art ILP solvers converge to a solution faster
 than the serial list Viterbi algorithm if the sequence length $l$ is large.
 The reason is, while list Viterbi algorithms are polynomial time given the list depth $k$~\cite{nilsson2001sequentially},
@@ -359,10 +363,6 @@ We therefore use ILP for very long ($l\ge10$) sequences in the experiments (othe
 
 One might also consider the well-known Christofides algorithm~\cite{christofides1976} to eliminate loops in a sequence, as this is known to generate a solutions within a factor of 3/2 of the optimal solution for traveling salesman problems. However, the resulting sequence will have less than the desired number of points, and the resulting score will not be optimal.
 
-\textbf{Recommending more than one trajectory}
-Since multiple possible trajectories can start at the same POI, we need to predict multiple
-trajectories for each test query. We achieve this by using the same approach as when eliminating
-ground truth sequences using SLVA.
 % \subsection{SSVM for sequence recommendation: sequence decoding}
 % \label{ssec:subtour}
 % \label{ssec:SRinf}
