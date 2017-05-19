@@ -183,7 +183,7 @@ computes the ratio of concordant (correctly ranked) pairs minus discordant pairs
 Structured recommendation performs ranking on a very large labelset (of size $m^l$).
 We report results on the {\em best of top $k$}~\cite{russakovsky2015imagenet}.
 That is, for all methods described in Section~\ref{ssec:methods},
-We predict the top $k$ trajectories
+We predict the top $k$ trajectories\footnote{To get $k$ paths, the list Viterbi algorithm normally searches a long list which contains sequences with loops.}
 and then report the best match of any in the top $k$ to any trajectory in the ground truth set.
 We reiterate that irrespective of the training procedure, \textsc{SP}, \textsc{SR},
 \textsc{SPpath} and \textsc{SRpath} all use prediction procedures that eliminate subtours.
@@ -219,7 +219,7 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 		\centering
 		\includegraphics[width=0.65\textwidth]{tau_topk.pdf}
 		\includegraphics[width=0.33\textwidth]{f1_glasgow_gte5}
-	    \captionof{figure}{Average Kendall’s $\tau$ over k=1:10, for short (left) and long (middle) trajectories. (right) F$_1$ score for long trajectories.
+	    \captionof{figure}{Average Kendall’s $\tau$ over k=1:10, for short (left) and long (middle) trajectories. (right) F$_1$ score on points for long trajectories.
 			Structured recommendation methods perform best for all values of $k$.
 			For longer trajectories, the predictions of \textsc{Popularity} and \textsc{POIRank} are permutations of the same set of POIs (that do not fully overlap with the ground truth).}
 	    \label{fig:topk}
