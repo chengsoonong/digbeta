@@ -200,45 +200,45 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 
 \input{tab_experiment}
 
-
 %\begin{minipage}[!t]{0.8\linewidth}
 \begin{figure}[!t]
 		\centering
 		\includegraphics[scale=0.35]{tau_topk.pdf}
-	    \captionof{figure}{Average $\tau$ on short/long trajectories w.r.t. top-k recommendation.}
+	    \captionof{figure}{\rev{Average Kendall’s $\tau$ over k=1:10, for short (left) and long (right) trajectories.}}
 	    \label{fig:topk}
-	    \vspace{-0.2in}
+	    \captionmoveup
 \end{figure}
 
 % experimental results
 %The performance of %three baselines and four variants based on structured prediction on two datasets
 %all methods are shown in Table~\ref{tab:result}.
-The results in Table~\ref{tab:result} and Figure~\ref{fig:topk} validate our contributions as follows:
-
-\textbf{Exploiting the structure of sequences helps}.
-All variants of our structured prediction methods achieve better performance than existing baselines.
-Thus, the basis of our approach -- reducing sequence recommendation to a structured prediction problem -- is sensible, and has empirical benefit.
-
-\textbf{Accounting for multiple ground truths helps}.
+\rev{Table~\ref{tab:result} and Figure~\ref{fig:topk} summarize results for structured recommendation approaches and baselines. See the supplement for results across all datasets on all metric variants. Overall, we are pleased to see that the best and next best approaches uses structured prediction and their path variants. In particular,}
+%\textbf{Exploiting the sequence structure helps}. The proposed structured recommendation variants of our achieve better performance than existing baselines.
+%Thus, the basis of our approach -- reducing sequence recommendation to a structured prediction problem -- is sensible, and has empirical benefit.
+accounting for multiple ground truths helps --
 \textsc{SR} always performs better than \textsc{SP},
 and similarly for the {\sc path} variants of both methods.
-This indicates that our first extension -- explicitly modelling multiple ground truths helps recommendation -- is important to achieve good performance.
-(We note that even without this correction, our structured methods outperform baselines.)
+This indicates that our first extension -- explicitly modelling multiple ground truths helps recommendation -- is important to achieve good performance. 
+%(We note that even without this correction, our structured methods outperform baselines.)
+%LX - not sure we can claim this at all??
+%\textbf{Eliminating loops during training helps}.
+%{\sc SRpath} improves performance further of the {\sc SR} method,
+%as indicated by the F$_1$ score on pairs.
+%This indicates that our second extension -- explicitly performing sub-tour elimination in training -- is important to further improve performance.
+%Interestingly,
+%this advantage does \emph{not} take effect if the multiple ground truths are not modelled explicitly,
+%with the performance of the {\sc SP} method largely unaffected.
+\rev{We can also see that the advantages of {\sc SR}, {\sc SPpath}, {\sc SRpath} are salient for longer trajectories, where pairwise and sequential information play a larger role.}
 
-\textbf{Eliminating loops during training helps}.
-{\sc SRpath} improves performance further of the {\sc SR} method,
-as indicated by the F$_1$ score on pairs.
-This indicates that our second extension -- explicitly performing sub-tour elimination in training -- is important to further improve performance.
-Interestingly,
-this advantage does \emph{not} take effect if the multiple ground truths are not modelled explicitly,
-with the performance of the {\sc SP} method largely unaffected.
+%\textbf{An illustrative example}. 
+\rev{Figure~\ref{fig:example} illustrates with an example differences among the algorithms.} The query requires the trajectory to start from the point \rev{in the middle of the map} and be of length 3.
+\textsc{PoiRank} regards points at the lower right and upper left be of the highest rank, but did not consider their compatibility (\ie pairwise features). {\sc SP} and {\sc SR} hits one edge (green edge) out of the two ground truths, while {\sc SRpath} hits both edges for two valid trajectories by exploiting all factors.\TODO{dawei to make sure this example is sane, agrees w. eval protocol, and well-explained.}
 
-\textbf{An illustrative example}. Figure~\ref{fig:example} presents an example illustrating the differences among three algorithms. The query requires the trajectory to start from the middle point and be of length 3.
-\textsc{PoiRank} regards points at the lower right and upper left be of the highest rank, but did not consider their compatibility (\ie pairwise features). {\sc SP} and {\sc SR} hits one edge (green edge) out of the two ground truths, while {\sc SRpath} hits both edges for two valid trajectories by exploiting all factors.
-
-Overall, these results indicate that our structured prediction approach to the problem has
-benefits over non-structured approaches,
-and that our extensions to the vanilla structured approach are important to further improve performance.
+%LX - reflections and confessions
+Overall, \rev{structured recommendation methods has shown superior performance in location sequence recommendation tasks from public benchmark. Most notably, taking into account multiple ground truths in structured prediction and modeling path constraints are important; and the effects are more pronounced in longer trajectories. The sparsity of this dataset presents a barrier for large-scale evaluations, this is left for further exploration.}
+%these results indicate that our structured prediction approach to the problem has
+%benefits over non-structured approaches,
+%and that our extensions to the vanilla structured approach are important to further improve performance.
 
 %\subsection{Example}
 %\label{sec:example}
@@ -246,7 +246,7 @@ and that our extensions to the vanilla structured approach are important to furt
 \begin{figure*}[t]
 	\centering
 	\includegraphics[scale=0.5]{example.pdf}
-	\caption{Example of structured recommender versus baseline on a query with two ground truths. %as shown in Figure (c).
+	\caption{Example of structured recommender versus baseline on a query with two ground truths \rev{in Glasgow}. %as shown in Figure (c).
              (a) \textsc{PoiRank} cannot make a recommendation related to any of the ground truths;
              (b) \textsc{SP} and \textsc{SR} recommend a better trajectory than \textsc{PoiRank}, but not fully consistent with the ground truths;
              (c) \textsc{SRpath} hits both ground truths at rank 3 (green edges) and 5 (red edges) respectively.}
