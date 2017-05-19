@@ -116,28 +116,31 @@ We compare the performance of our methods to the following three baselines:
       (without utilising any POI or query related features).
 
 \item The stronger \textsc{Popularity} baseline recommends the top-$l$ most popular POIs, 
-      \ie, the POIs that have been visited by the most number of users in the training set.
+      \ie, the POIs visited by the most number of users in the training set.
 
-\item \textsc{PoiRank}~\cite{cikm16paper} is a generalisation of \textsc{Popularity} 
-      which considers a number of POI-query features\footnote{See supplement for details of features.\label{fn:suplement}} in addition to the popularity,
-      and trains a RankSVM model to learn a score for each POI. The top-$l$ scored POIs are then used to construct a trajectory.
+\item \textsc{PoiRank}~\cite{cikm16paper} 
+      %is a generalisation of \textsc{Popularity} which 
+      considers a number of POI-query features (see supplement) in addition to the popularity,
+      and trains a RankSVM model~\eqref{eq:ranksvm} to learn a score for each POI. The top-$l$ scored POIs are then used to construct a trajectory.
 \end{itemize}\itemmoveup
 
-To assess the viability of our structured prediction approach, and the necessity of our two extensions (normalising the loss per query and disallowing loops), we consider the following structured methods: %the following versions of our structured prediction methods:
+%LX - this is very long-winded
+%To assess the viability of our structured prediction approach, and the necessity of our two extensions (normalising the loss per query and disallowing loops), we consider the following structured methods: %the following versions of our structured prediction methods:
+\rev{We evaluate four variants of sequence recommendation, using structured prediction models, incorporating multiple valid truths, and path constraints.}
 \begin{itemize}[leftmargin=0.125in]\itemmoveup
 \parskip -.05em
 %\item The structured prediction ({\sc SP}) method employs the vanilla structured SVM framework in order to learn a score for trajectories given a query.
-\item The SP and SR methods described in Section~\ref{ssec:sr} with both POI-query features and pairwise features\footref{fn:suplement}.
-
+\item The SP and SR methods, described in Section~\ref{ssec:sr}, using both POI-query features and pairwise features (see supplement).
 %\item The structured recommendation ({\sc SR}) method extends the {\sc SP} method by additionally incorporating multiple ground truths into
-%      forming the constraints and adding them in cutting-plane algorithm,
+%      forming the constrai{}nts and adding them in cutting-plane algorithm,
 %      described in Section~\ref{ssec:sr}.
 	%performing normalisation of the loss function per query,
 	%so that we do not attempt to distinguish between multiple ground truths for the same query.
 
-\item The variants {\sc SPpath} and {\sc SRpath} described in Section~\ref{ssec:training} with the same features as the SP and SR methods.
+\item {\sc SPpath} and {\sc SRpath}, described in Section~\ref{ssec:training} with the same features as SP and SR.
 \end{itemize}\itemmoveup
-All above methods take into account the specified start location properly.
+%LX - not clear what the sentence below is trying to say, delete. 
+%All above methods take into account the specified start location properly.
 
 \secmoveup
 \subsection{Evaluation procedure}
