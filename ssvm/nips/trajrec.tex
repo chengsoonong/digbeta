@@ -29,19 +29,19 @@ Travel recommendation problems involve a set of points-of-interest (POIs) $\math
 %or sequence models such as recurrent neural networks~\cite{aaai16}.
 %The third setting is \emph{trajectory recommendation},
 %which is our interest in this paper.
-%The \emph{trajectory recommendation} problem is: 
+%The \emph{trajectory recommendation} problem is:
 Given a \emph{trajectory query} $\mathbf{x} = (s, l)$,
 comprising a start POI $s \in \mathcal{P}$ and trip length
-%\footnote{Instead of specifying the number of desired POIs, 
-%we can constrain the trajectory with a total time budget $T$. 
-%In this case, the number of POIs $l$ can be treated as a \emph{hidden} variable, 
+%\footnote{Instead of specifying the number of desired POIs,
+%we can constrain the trajectory with a total time budget $T$.
+%In this case, the number of POIs $l$ can be treated as a \emph{hidden} variable,
 %with additional constraint $\sum_{k=1}^l t_k \le T$ where $t_k$ is the time spent at POI $y_k$.}
 $l \!>\! 1$ (\ie the desired number of POIs, including $s$),
 the \emph{trajectory recommendation} problem is to
-recommend one or more sequences of POIs %%(or \emph{trajectories}) %$\mathbf{y}^*$ 
-that maximise some notion of utility, 
+recommend one or more sequences of POIs %%(or \emph{trajectories}) %$\mathbf{y}^*$
+that maximise some notion of utility,
 %To learn a suitable $f$,
-%we are 
+%we are
 %provided as input
 \rev{learned from} a training set
 %$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$,
@@ -72,7 +72,7 @@ Existing approaches treat the problem as one of determining a score for the intr
 % Perhaps the simplest such approach is based on learning a model to predict whether a particular POI occurs, or not, in the trajectory corresponding to a query.
 % Formally, from the given set of trajectories
 % we derive a training set $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
-% where each POI $p$ is augmented with a label $y^{(i)} \in \{ \pm 1 \}$ denoting whether or not it appeared in a trajectory corresponding to the query $\x^{(i)}$. 
+% where each POI $p$ is augmented with a label $y^{(i)} \in \{ \pm 1 \}$ denoting whether or not it appeared in a trajectory corresponding to the query $\x^{(i)}$.
 % Formally, the objective used for training is
 % $$ \min_{\w} \frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{p \in \mathcal{P}} \ell\left( y^{(i)} \cdot ( \w^\top \Phi( \x^{(i)}, p ) ) \right) $$
 % where
@@ -89,10 +89,10 @@ Formally,
 from the given set of trajectories
 we derive a training set
 % $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
-% where each POI $p$ is augmented with a label 
+% where each POI $p$ is augmented with a label
 % %$y^{(i)} \in \{ \pm 1 \}$ denoting whether or not
 % $y^{(i)}$ denoting how many times
-% it appeared in a trajectory corresponding to the query $\x^{(i)}$. 
+% it appeared in a trajectory corresponding to the query $\x^{(i)}$.
 $\{ ( \x^{(i)}, \mathbf{r}^{(i)} ) \}_{i = 1}^n$,
 where for each trajectory query $\x^{(i)}$ there is a list of \rev{ranked} POI pairs
 $\mathbf{r}^{(i)} \subseteq \mathcal{P} \times \mathcal{P}$
@@ -105,7 +105,7 @@ POI $p$ appears more times than POI $p'$ in all trajectories associated with $\x
 The training objective is then
 \begin{align}
 \resizebox{0.7\linewidth}{!}{$\displaystyle
-\displaystyle \min_{\w} ~\frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathbf{r}^{(i)}} 
+\displaystyle \min_{\w} ~\frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathbf{r}^{(i)}}
 \ell\left( \w^\top ( \Psi( \x^{(i)}, p ) - \Psi( \x^{(i)}, p' ) ) \right),
 $} \label{eq:ranksvm}
 \end{align}
@@ -124,17 +124,19 @@ and squared hinge loss $\ell( v ) = \max( 0, 1 - v )^2$.
 % denotes all pairs of POIs $(p, p')$ such that
 % POI $p$ is ranked above the POI $p'$ in the trajectories associated with $\x$, %according to some notion.
 % \eg based on the counts of the number of times a POI appears in the trajectories associated with a query.
-%For example, this may be computed by counting the number of times a POI appears in the trajectories associated with a query, 
+%For example, this may be computed by counting the number of times a POI appears in the trajectories associated with a query,
 %and using this to determine which of two POIs is more suitable for a query.
 
-%%More abstractly, 
-We can view trajectory recommendation as a kind of sequence recommendation as follows:
+%%More abstractly,
+We can view trajectory recommendation as sequence recommendation in the following way:
 given trajectory query $\x$, and a suitable scoring function $f$, we wish to find
-$\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~f(\mathbf{x}, \mathbf{y}),$ 
+$\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~f(\mathbf{x}, \mathbf{y}),$
 %%DW: use top-k prediction formulation or not?
 where $\mathcal{Y}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ that conform to the constraints imposed by the query $\mathbf{x}$.
 In particular,
 $\mathbf{y} = (s,~ y_2, \dots, y_l)$ is a trajectory with $l$ POIs. %, which has no sub-tours. %i.e. $y_j \ne y_k$ if $j \ne k$.
+This was the view proposed in~\cite{cikm16paper} where they authors considered an
+objective function that added two components together: a POI score and a transition score.
 
 Now, our training set of historical trajectories may be written as
 $\{ ( \x\pb{i}, \{ \y\pb{ij} \}_{j=1}^{n_i} ) \}_{i=1}^{n}$,
@@ -180,7 +182,7 @@ however, it is unlikely that these form a trajectory that most travellers will e
 This motivates an approach to sequence recommendation that directly ensures such global cohesion.
 We now see how to do so \rev{with novel extensions to} structured prediction approaches. %by attacking the problem using tools from structured prediction.
 
-% To do this, we show how the problem can be cast as one of sequential recommendation, 
+% To do this, we show how the problem can be cast as one of sequential recommendation,
 % thus allowing us to leverage the tools developed in the previous section.
 
 % Comparing the above to the discussion in the previous section, it is clear that
@@ -200,7 +202,7 @@ We now see how to do so \rev{with novel extensions to} structured prediction app
 % \subsection{Query Aggregation}
 % \label{sec:query}
 
-% To modelling the fact that a given query has multiple observed trajectories, 
+% To modelling the fact that a given query has multiple observed trajectories,
 % we firstly group trajectories according to queries, in other words,
 % we now have a dataset $\{\mathbf{x}^{(i)}, \{\mathbf{y}^{(ij)}\}_{j=1}^{N_i}\}_{i=1}^N$
 % with $N$ queries and queries $\mathbf{x}^{(i)}$ has $N_i$ trajectories observed.

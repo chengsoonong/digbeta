@@ -5,16 +5,16 @@
 \label{sec:experiment}
 \textmoveup
 
-\rev{We present evaluations on the trajectory recommendation task in Section~\ref{sec:trajrec}.
-Results are reported on real-world dataset of photo tours 
-created from the publicly available YFCC100M corpus~\cite{thomee2016yfcc100m}, and will be made available online. 
-Finding meaningful problem domains for sequence recommendation is non-trivial. 
-Music playlist datasets are plausible, but recent results show that sequencing information does not affect the data likelihood~\cite{chen2012playlist}. 
-}
+
+
+We present empirical evaluations for the trajectory recommendation task in
+Section~\ref{sec:trajrec}.
+Results are reported on real-world datasets of photo tours
+created from the publicly available YFCC100M corpus~\cite{thomee2016yfcc100m}.
 %LX - this is verbose
 %We now present evaluations assessing the viability of our structured prediction approach
 %for the trajectory recommendation task discussed in Section~\ref{sec:trajrec}.
-%LX - don't be a spoiler! 
+%LX - don't be a spoiler!
 %On a real-world dataset of photo tours, our methods are shown to significantly outperform
 %a number of non-structured baselines or those that do not take into account the recommendation setting.
 
@@ -26,30 +26,29 @@ Music playlist datasets are plausible, but recent results show that sequencing i
 
 % experiment protocol: Nested cross-validation with Monte-Carlo cross-validation for the inner loop
 %We assess the recommendation performance %methods developed in Section~\ref{sec:trajrec}
-\rev{We extract} trajectories from Flickr photos
-for the cities of Glasgow, Osaka and Toronto~\cite{thomee2016yfcc100m,ijcai15}.
+We used the trajectory data\footnote{\url{https://bitbucket.org/d-chen/tour-cikm16}}
+extracted from Flickr photos for the cities of Glasgow, Osaka and
+Toronto~\cite{ijcai15,cikm16paper}.
 Each dataset comprises of a
-list of trajectories, being a sequence of points of interest (POI), as visited by various Flickr users
-and recorded by the geotags in photos. Photos that are nearby in time and space are grouped, \rev{mapped to POIs,} and then segmented by eight hours of time gap. Visits \rev{with} %that only include 
-a single POI are excluded. \rev{We use 12 behavioural and geographical features to describe each POI and pairs of POIs (see supplement).}
-\rev{Table~\ref{tab:data} summarises the profile of each dataset. 
-We see that most queries have more than one ground truth, making the sequence recommendation setting relevant. Further, each query has an average of 4-9, and a maximum of 30-60 trajectories (details in supplement).}
+list of trajectories, being a sequence of points of interest (POI),
+as visited by various Flickr users and recorded by the geotags in photos.
+%Photos that are nearby in time and space are grouped, \rev{mapped to POIs,} and then segmented by eight hours of time gap. Visits \rev{with} %that only include
+%a single POI are excluded.
+%We use 12 behavioural and geographical features to describe each POI and pairs of POIs (see supplement).
+Table~\ref{tab:data} summarises the profile of each dataset.
+We see that most queries have more than one ground truth, making the sequence recommendation setting relevant. Further, each query has an average of 4-9, and a maximum of 30-60 trajectories (details in supplement).
 % All datasets are sparse in user activity,
 % i.e.,
 In all datasets,
 each user has on average less than two trajectories.
-This makes user-specific recommendation impractical, and also undesirable because 
+This makes user-specific recommendation impractical, and also undesirable because
 %of the domain being urban locations
 a user would want different recommendations given different starting locations, and not a static recommendation no matter where she is.
-%LX - this doesn't belong here. first summarize what's in the dataset, then
-%From Table~\ref{tab:data}, %%and Figure~\ref{fig:hist},
-%we see that each distinct query %, %comprising of start POI and a desired trip length,
-%has an average of 4-9, and a maximum of 30-60 trajectories.
-%LX - delete? the sentence below is redundant and has no new info??
-%Therefore, evaluation is carried out on the problem of recommending trajectories given a query.
+The sparsity of this dataset presents a barrier for large-scale evaluations.
+Music playlist datasets are larger, but recent results show that sequencing information does not affect the data likelihood~\cite{chen2012playlist}.
 
 % dataset stats
-\begin{table}[!h]
+\begin{table}[t]
 	\begin{minipage}[t]{\linewidth}
 		\resizebox{\linewidth}{!}{
 		\setlength{\tabcolsep}{4pt} % tweak the space between columns
@@ -63,8 +62,8 @@ a user would want different recommendations given different starting locations, 
 		\end{tabular}%
 		}
 		\captionof{table}{Statistics of trajectory datasets.
-        Including the number of trajectories (\#Traj), POIs (\#POIs), users (\#Users), queries (\#Queries); 
-        the number of queries with a single (\#GT=1), 2-5 (\#GT$\in$[2,5]), or more than 5 (\#GT$>$5) ground truths; 
+        Including the number of trajectories (\#Traj), POIs (\#POIs), users (\#Users), queries (\#Queries);
+        the number of queries with a single (\#GT=1), 2-5 (\#GT$\in$[2,5]), or more than 5 (\#GT$>$5) ground truths;
         and profile of trajectory length, \ie less than 5 (\#shortTraj) and more than 5 POIs (\#longTraj).
         }
 		\label{tab:data}
@@ -76,6 +75,15 @@ a user would want different recommendations given different starting locations, 
 	%%    \label{fig:image}
     %%\end{minipage}
 \end{table}
+
+
+
+%LX - this doesn't belong here. first summarize what's in the dataset, then
+%From Table~\ref{tab:data}, %%and Figure~\ref{fig:hist},
+%we see that each distinct query %, %comprising of start POI and a desired trip length,
+%has an average of 4-9, and a maximum of 30-60 trajectories.
+%LX - delete? the sentence below is redundant and has no new info??
+%Therefore, evaluation is carried out on the problem of recommending trajectories given a query.
 
 %\newsavebox\tmpbox
 
@@ -114,23 +122,27 @@ a user would want different recommendations given different starting locations, 
 We compare the performance of our methods to the following three baselines:
 \begin{itemize}[leftmargin=0.125in]\itemmoveup
 \parskip -.05em
-\item The \textsc{Random} baseline recommends a sequence of POIs by sampling uniformly at random from the whole set of POIs 
-      (without utilising any POI or query related features).
+\item The \textsc{Random} baseline recommends a sequence of POIs by sampling uniformly at random from the whole set of POIs
+      (without utilising any POI or query related features). To obtain top-$k$ predictions
+			we independently repeat $k$ times.
 
-\item The stronger \textsc{Popularity} baseline recommends the top-$l$ most popular POIs, 
+\item The stronger \textsc{Popularity} baseline recommends the top-$l$ most popular POIs,
       \ie, the POIs visited by the most number of users in the training set.
 
-\item \textsc{PoiRank}~\cite{cikm16paper} 
-      %is a generalisation of \textsc{Popularity} which 
+\item \textsc{PoiRank}~\cite{cikm16paper}
+      %is a generalisation of \textsc{Popularity} which
       considers a number of POI-query features (see supplement) in addition to the popularity,
       and trains a RankSVM model~\eqref{eq:ranksvm} to learn a score for each POI. The top-$l$ scored POIs are then used to construct a trajectory.
 \end{itemize}\itemmoveup
-
+To perform top-$k$ prediction with \textsc{Popularity} and \textsc{PoiRank},
+we make use of the same approach we used to deal with multiple ground truths.
+For \textsc{Popularity}, the score of a path is the accumulated popularity of all POIs in the path;
+for \textsc{PoiRank}, the score of a path is the likelihood
+(the ranking scores for POIs are first transformed into a probability distribution using the softmax function, as described in~\cite{cikm16paper}).
 %LX - this is very long-winded
 %To assess the viability of our structured prediction approach, and the necessity of our two extensions (normalising the loss per query and disallowing loops), we consider the following structured methods: %the following versions of our structured prediction methods:
-\rev{We consider four variants of sequence recommendation, starting with a structured prediction model, then incorporating multiple ground truths, and finally path constraints:}
-\begin{itemize}[leftmargin=0.125in]\itemmoveup
-\parskip -.05em
+We consider four variants of sequence recommendation, starting with a structured prediction model, then incorporating multiple ground truths, and finally path constraints:
+\begin{itemize}[leftmargin=0.125in]
 %\item The structured prediction ({\sc SP}) method employs the vanilla structured SVM framework in order to learn a score for trajectories given a query.
 \item The SP and SR methods, described in Section~\ref{ssec:sr}, using both POI-query features and pairwise features (see supplement).
 %\item The structured recommendation ({\sc SR}) method extends the {\sc SP} method by additionally incorporating multiple ground truths into
@@ -141,7 +153,7 @@ We compare the performance of our methods to the following three baselines:
 
 \item {\sc SPpath} and {\sc SRpath}, described in Section~\ref{ssec:training} with the same features as SP and SR.
 \end{itemize}\itemmoveup
-%LX - not clear what the sentence below is trying to say, delete. 
+%LX - not clear what the sentence below is trying to say, delete.
 %All above methods take into account the specified start location properly.
 
 % LX - why not have one long subsection rather than two short ones?
@@ -150,31 +162,31 @@ We compare the performance of our methods to the following three baselines:
 %\textmoveup
 
 
-%We then evaluate the performance of each algorithm using leave-one-query-out cross validation. 
+%We then evaluate the performance of each algorithm using leave-one-query-out cross validation.
 % LX - remove extra words!!
-We evaluate each algorithm using leave-one-query-out cross validation. 
-That is, holding out all the relevant trajectories for each query $\x\pb{i}$ (\ie $\{\y\pb{ij}\}_{j=1}^{n_i}$) in each round,
-where in each iteration of this procedure,
+We evaluate each algorithm using leave-one-query-out cross validation.
+That is, holding out all the relevant trajectories for each query $\x\pb{i}$ (\ie $\{\y\pb{ij}\}_{j=1}^{n_i}$) in each round.
+%where in each iteration of this procedure,
 %one query and its associated trajectories serves as a test point, with all other trajectories for training.
 %(Note that without this query aggregation, there will be considerable overlap between the train and test set, and simple nearest neighbour methods will be hard to outperform.)
 % model selection (Monte Carlo CV) (with query aggregation): 90/10 random split for 5 times
-the hyper-parameter (\eg the regularisation constant $C$) are tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
+The regularisation constant $C$ is tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
 We use three performance measures for POIs, sequences and ordered lists.
 %We use three different measures to compare algorithm performances.
 The {\bf F$_1$ score on points}~\cite{ijcai15} computes F$_1$ on the predicted versus seen points
 without considering their relative order.
-The {\bf F$_1$ score on pairs}~\cite{cikm16paper} is proposed to mitigate this by computing F$_1$ on all ordered pairs in the predicted versus groundtruth sequence. %%It is 1 iff both sequences agree completely.
-The well-known rank correlation {\bf Kendall's $\tau$} (version $b$)~\cite{agresti2010analysis} 
-computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all possible pairs after \rev{accounting for} ties.%taking care of ties.
+The {\bf F$_1$ score on pairs}~\cite{cikm16paper} is proposed to mitigate this by computing F$_1$ on all ordered pairs in the predicted versus ground truth sequence. %%It is 1 iff both sequences agree completely.
+The well-known rank correlation {\bf Kendall's $\tau$}~\cite{agresti2010analysis}
+computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all possible pairs after accounting for ties.%taking care of ties.
 %$\frac{1}{2}l(l-1)$) pairs  %DW: this is not correct
 
 Structured recommendation performs ranking on a very large labelset (of size $m^l$).
-We report results on the {\em best of top $k$}~\cite{russakovsky2015imagenet}. 
+We report results on the {\em best of top $k$}~\cite{russakovsky2015imagenet}.
 That is, for all methods described in Section~\ref{ssec:methods},
-\rev{we predict the top $k$ trajectories
-(generated using list Viterbi algorithm, see supplement)}
-and then report the best match of any in the top $k$ to any trajectory in the ground truth set. \rev{We vary $k$ from 1 to 10.}
-
+We predict the top $k$ trajectories
+and then report the best match of any in the top $k$ to any trajectory in the ground truth set.
+We reiterate that irrespective of the training procedure, \textsc{SP}, \textsc{SR},
+\textsc{SPpath} and \textsc{SRpath} all use prediction procedures that eliminate subtours.
 
 \eat{
 As described previously, our methods are capable of recommending not merely a single trajectory,
@@ -205,8 +217,11 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 %\begin{minipage}[!t]{0.8\linewidth}
 \begin{figure}[!t]
 		\centering
-		\includegraphics[scale=0.35]{tau_topk.pdf}
-	    \captionof{figure}{\rev{Average Kendall’s $\tau$ over k=1:10, for short (left) and long (right) trajectories.}}
+		\includegraphics[width=0.65\textwidth]{tau_topk.pdf}
+		\includegraphics[width=0.33\textwidth]{f1_glasgow_gte5}
+	    \captionof{figure}{Average Kendall’s $\tau$ over k=1:10, for short (left) and long (middle) trajectories. (right) F$_1$ score for long trajectories.
+			Structured recommendation methods perform best for all values of $k$.
+			For longer trajectories, the predictions of \textsc{Popularity} and \textsc{POIRank} are permutations of the same set of POIs (that do not fully overlap with the ground truth).}
 	    \label{fig:topk}
 	    \captionmoveup\eqmoveup
 \end{figure}
@@ -214,13 +229,27 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 % experimental results
 %The performance of %three baselines and four variants based on structured prediction on two datasets
 %all methods are shown in Table~\ref{tab:result}.
-\rev{Table~\ref{tab:result} and Figure~\ref{fig:topk} summarise results for structured recommendation approaches and baselines. See the supplement for results across all datasets on all metric variants. Reassuringly, we see that the best and next best approaches uses structured prediction and their path variants. In particular,}
+
+
+Table~\ref{tab:result} summarises the performance of all methods for top-10 recommendations.
+We can observe from the results that \textsc{POIRank} and \textsc{SP},
+methods that convert the trajectory recommendation task
+into data that is amenable to off the shelf methods (ranking and structured SVM respectively)
+performs better than baselines but are not the best performing methods.
+The best results are obtained using our proposed methods
+\textsc{SPpath}, \textsc{SR}, and \textsc{SRpath}.
+We also compare the performance for all values of top-$k$ with $k=1,\ldots,10$, and
+Figure~\ref{fig:topk} shows a selection of the curves for Glasgow. We observe that
+our proposed methods are consistently the best for all values of $k$.
+See the supplement for results across all datasets on all metric variants.
+In particular,
 %\textbf{Exploiting the sequence structure helps}. The proposed structured recommendation variants of our achieve better performance than existing baselines.
 %Thus, the basis of our approach -- reducing sequence recommendation to a structured prediction problem -- is sensible, and has empirical benefit.
 accounting for multiple ground truths helps --
 \textsc{SR} always performs better than \textsc{SP},
 and similarly for the {\sc path} variants of both methods.
-This indicates that our first extension -- explicitly modelling multiple ground truths helps recommendation -- is important to achieve good performance. 
+This indicates that our first extension -- explicitly modelling multiple ground truths
+ -- is important to achieve good performance.
 %(We note that even without this correction, our structured methods outperform baselines.)
 %LX - not sure we can claim this at all??
 %\textbf{Eliminating loops during training helps}.
@@ -230,15 +259,16 @@ This indicates that our first extension -- explicitly modelling multiple ground 
 %Interestingly,
 %this advantage does \emph{not} take effect if the multiple ground truths are not modelled explicitly,
 %with the performance of the {\sc SP} method largely unaffected.
-\rev{We can also see that the advantages of {\sc SR}, {\sc SPpath}, {\sc SRpath} are salient for longer trajectories, where pairwise and sequential information play a larger role.}
+We can also see that the advantages of {\sc SR}, {\sc SPpath}, {\sc SRpath} are salient for longer trajectories, where pairwise and sequential information play a larger role.
 
-%\textbf{An illustrative example}. 
-\rev{Figure~\ref{fig:example} illustrates with an example differences among the algorithms.} The query requires the trajectory to start from the point \rev{in the middle of the map} and be of length 3.
-\textsc{PoiRank} regards points at the lower right and upper left be of the highest rank, but did not consider their compatibility (\ie pairwise features). {\sc SP} and {\sc SR} hits one edge (green edge) out of the two ground truths, while {\sc SRpath} hits both edges for two valid trajectories by exploiting all factors.\TODO{dawei to make sure this example is sane, agrees w. eval protocol, and well-explained.}
+%\textbf{An illustrative example}.
+%\rev{Figure~\ref{fig:example} illustrates with an example differences among the algorithms.} The query requires the trajectory to start from the point \rev{in the middle of the map} and be of length 3.
+%\textsc{PoiRank} regards points at the lower right and upper left be of the highest rank, but did not consider their compatibility (\ie pairwise features). {\sc SP} and {\sc SR} hits one edge (green edge) out of the two ground truths, while {\sc SRpath} hits both edges for two valid trajectories by exploiting all factors.\TODO{dawei to make sure this example is sane, agrees w. eval protocol, and well-explained.}
+
 
 %LX - reflections and confessions
-Overall, \rev{structured recommendation methods have shown superior performance in location sequence recommendation tasks on a public benchmark. Most notably, taking into account multiple ground truths in structured prediction and modeling path constraints are important; and the effects are more pronounced in longer trajectories. The sparsity of this dataset presents a barrier for large-scale evaluations, and this is left for further exploration.}
-Finally, we note that the unary terms in the sequence scoring function \eqref{eq:jointfeature} can be replaced with {\em personalised} terms to each user, such as from a recommender system~\cite{Koren:2009,bpr09}; we leave this, and joint personalisation and structured recommendation, as future work.
+Overall, structured recommendation methods have shown superior performance in location sequence recommendation tasks on a public benchmark. Most notably, taking into account multiple ground truths in structured prediction and modeling path constraints are important; and the effects are more pronounced in longer trajectories.
+Finally, we note that the unary terms in the sequence scoring function \eqref{eq:jointfeature} can be replaced with {\em personalised} terms to each user, such as from a recommender system~\cite{Koren:2009,bpr09}. We leave this and personalisation as future work.
 %these results indicate that our structured prediction approach to the problem has
 %benefits over non-structured approaches,
 %and that our extensions to the vanilla structured approach are important to further improve performance.
@@ -246,12 +276,12 @@ Finally, we note that the unary terms in the sequence scoring function \eqref{eq
 %\subsection{Example}
 %\label{sec:example}
 
-\begin{figure*}[t]
-	\centering
-	\includegraphics[scale=0.5]{example.pdf}
-	\caption{Example of structured recommender versus baseline on a query with two ground truths \rev{in Glasgow}. %as shown in Figure (c).
-             (a) \textsc{PoiRank} cannot make a recommendation related to any of the ground truths;
-             (b) \textsc{SP} and \textsc{SR} recommend a better trajectory than \textsc{PoiRank}, but not fully consistent with the ground truths;
-             (c) \textsc{SRpath} hits both ground truths at rank 3 (green edges) and 5 (red edges) respectively.}
-	\label{fig:example}\captionmoveup
-\end{figure*}
+%\begin{figure*}[t]
+%	\centering
+%	\includegraphics[scale=0.5]{example.pdf}
+%	\caption{Example of structured recommender versus baseline on a query with two ground truths \rev{in Glasgow}. %as shown in Figure (c).
+%             (a) \textsc{PoiRank} cannot make a recommendation related to any of the ground truths;
+%             (b) \textsc{SP} and \textsc{SR} recommend a better trajectory than \textsc{PoiRank}, but not fully consistent with the ground truths;
+%             (c) \textsc{SRpath} hits both ground truths at rank 3 (green edges) and 5 (red edges) respectively.}
+%	\label{fig:example}\captionmoveup
+%\end{figure*}

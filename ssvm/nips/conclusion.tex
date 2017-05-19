@@ -4,18 +4,18 @@
 \section{Conclusion}
 \textmoveup
 
-We showed how the problem of sequence recommendation
-%which arises in contexts such as recommending a playlist of songs, or a trajectory of points-of-interest in a city,
-can be viewed as a structured prediction problem.
-\rev{We based our solution on a structured SVM, with two important extensions}:
+We cast the problem of sequence recommendation
+as a structured prediction problem.
+Our proposed solution extends structured SVMs to account for the new setting:
 first, we modified the training objective to account for the existence of multiple ground truths;
-second, we modified the prediction and loss augmented inference procedures to avoid predicting loops in the sequence via list Viterbi algorithms.
-Experiments on real-world trajectory recommendation datasets showed that structure recommendation outperform existing, non-structured approaches. 
-\rev{Future work include further improving the efficiency of inference and learning, and extending our approaches to additionally capture latent user- and POI-representations, in a domain where sequential and personal information is sufficiently rich.}
-
-%There are several directions for future work.
-%First, it is of interest to assess the viability of probabilistic approaches to structured prediction,
-%such as the conditional random field and maximum entropy Markov model.
-%Second, extending our approaches to additionally capture latent user- and POI-representations, when sufficient personalised data of this type is available, would be of interest.
-%Third, applying structured prediction approaches to other sequential prediction problems, such as playlist generation, may indicate similar benefits as observed in trajectory recommendation.
-%Third, it will be beneficial to consider loss-augmented inference for more complex performance measures.
+second, we modified the prediction and loss augmented inference procedures to avoid predicting
+loops in the sequence. The inference procedures are novel applications of the list Viterbi
+algorithm.
+Experiments on real-world trajectory recommendation datasets showed that
+structured recommendation outperform existing, non-structured approaches.
+Our new viewpoint enables researchers to bring recent advances in structured prediction
+to bear on recommender systems problems,
+including further improving the efficiency of inference and learning.
+In the other direction techniques from recommender systems to capture latent
+user- and POI-representations, in sufficiently rich domains, may be used to
+improve the predictive power of structured prediction models.
