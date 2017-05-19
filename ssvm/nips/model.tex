@@ -203,9 +203,9 @@ The next two sections describes the training and prediction with the above requi
 \label{ssec:training}
 \textmoveup
 
-In training the SP and SR models, the main challenge is in performing loss-augmented inference~(\ref{eq:loss_aug_inf}).
+The main challenge in training the SP and SR models is performing loss-augmented inference~(\ref{eq:loss_aug_inf}).
 As noted above, the SP model can be trained as per the vanilla SSVM.
-The SR model, however, requires that we modify the training procedure to account for the existence of multiple ground truths.
+The SR model, however, requires modifying the training procedure to account for the existence of multiple ground truths.
 In particular, (\ref{eq:loss_aug_inf}) needs to be solved by \emph{excluding the sequences} $\{\y\pb{ij}\}_{j=1}^{n_i}$\rev{, and ideally with {\sc path} constraints.} We now see how this problem may be addressed with an extension of the Viterbi algorithm.
 
 %% DW: do we need to describe this here?
