@@ -357,7 +357,7 @@ The reason is, while list Viterbi algorithms are polynomial time given the list 
 in reality $k$ is unknown a priori and can be very large for long sequences.
 We therefore use ILP for very long ($l\ge10$) sequences in the experiments (otherwise the list Viterbi algorithm is applied).
 
-Qne might also consider the well-known Christofides algorithm~\cite{christofides1976} to eliminate loops in a sequence, as this is known to generate a solutions within a factor of 3/2 of the optimal solution for traveling salesman problems. However, the resulting sequence will have less than the desired number of points, and the resulting score will not be optimal.
+One might also consider the well-known Christofides algorithm~\cite{christofides1976} to eliminate loops in a sequence, as this is known to generate a solutions within a factor of 3/2 of the optimal solution for traveling salesman problems. However, the resulting sequence will have less than the desired number of points, and the resulting score will not be optimal.
 
 \textbf{Recommending more than one trajectory}
 Since multiple possible trajectories can start at the same POI, we need to predict multiple
