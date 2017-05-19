@@ -1,11 +1,24 @@
 \appendix
-\section{Supplementary material to Sequence Recommendation via Structured Prediction}
+\section{Supplementary material to Structured Recommendation}
 \label{sec:supplement}
 
-\subsection{List Viterbi}
-\label{sec:listviterbi-supp}
+\subsection{1-slack formulation for the SR model}
+\label{ssec:1slack_sr}
 
-1-slack formulation for the SR model described in Section~\ref{ssec:sr}:
+We can use \emph{one} slack variable to represent the sum of the $N$ hinge losses:
+\begin{equation*}
+%%\label{eq:hingeloss}
+%%\resizebox{1.1\linewidth}{!}{
+%%\begin{minipage}{\linewidth}
+%\begin{align*}
+\xi_i = \max \left( 0, \, 
+        \max_{\bar{\y} \in \mathcal{Y}}
+        \left\{ \Delta(\y^{(i)}, \bar{\y}) + \w^\top \Psi(\x^{(i)}, \bar{\y}) \right\} - \w^\top \Psi(\x^{(i)}, \y^{(i)}) \right).
+%\end{align*}
+%%\end{minipage}
+%%}
+\end{equation*}
+Which results in the 1-slack formulation for the SR model:
 \begin{equation*}
 %%\label{eq:1slack_ml}
 \resizebox{0.9\linewidth}{!}{$
@@ -17,27 +30,27 @@ $}
 \end{equation*}
 
 
-We require a top-$k$ decoding of a sequence for three situations:
+\subsection{The list Viterbi algorithm}
+\label{sec:listviterbi-supp}
+
+We make use of the list Viterbi in four situations:
 \begin{enumerate}
-  \item To perform top-$k$ inference during the prediction phase
-  \item To perform loss-augmented inference that includes avoiding all $n_i$ ground truth
-    trajectories corresponding to the $i$th example.
-  \item To find a decoding that does not have loops, that is to find a path
-    and not a walk (with subtours).
+  \item To avoid sequence with loops during the prediction phase of the SP and SR models
+  \item To make top-$k$ prediction using the SP and SR models
+  \item To eliminate known ground truths during the training phase (\ie loss augmented inference) of the SR and \textsc{SRpath} models
+  \item To avoid sequence with loops during the training phase (\ie loss augmented inference) of the \textsc{SPpath} and \textsc{SRpath} models
 \end{enumerate}
 
-There are two general approaches for generalising Viterbi decoding to when we require $k$
-sequences to be decoded: by maintaining $k$ paths through the trellis while decoding; or by
-careful book keeping of the best $k-1$ paths through the trellis found so far and avoiding them.
-We choose the latter approach as it is more memory efficient.
+%%There are two general approaches for generalising Viterbi decoding to when we require $k$
+%%sequences to be decoded: by maintaining $k$ paths through the trellis while decoding; or by
+%%careful book keeping of the best $k-1$ paths through the trellis found so far and avoiding them.
+%%We choose the latter approach as it is more memory efficient.
 
-The list Viterbi approach~\cite{nilsson2001sequentially,seshadri1994list} maintains
+The serial list Viterbi algorithm~\cite{nilsson2001sequentially,seshadri1994list} maintains
 a heap (\ie priority queue) of potential solutions, which are then checked for the desired property (for example
-whether there are subtours). Once the requisite number of trajectories with the desired
-property are found, the algorithm terminates (for example once one trajectory without subtours
-is found). The heap is initialised by running forward-backward
-(Algorithm~\ref{alg:forward-backward})
-followed by Viterbi (Algorithm~\ref{alg:viterbi}).
+whether there are loops). Once the requisite number of trajectories with the desired
+property are found, the algorithm terminates (for example once $k$ trajectories without loops are found when performing top-k prediction)
+The heap is initialised by running forward-backward (Algorithm~\ref{alg:forward-backward}) followed by the vanilla Viterbi (Algorithm~\ref{alg:viterbi}).
 
 \begin{algorithm}[htbp]
 \caption{Forward-backward procedure~\cite{rabiner1989tutorial}}
@@ -89,19 +102,24 @@ We assume the score function is of the form $\mathbf{w}^\top \Psi$ where $\Psi$ 
 feature vector. $\mathbf{w}$ could be the value of the weight in the current iteration in training,
 or the learned weight vector during prediction.
 
+The list Viterbi algorithm for performing top-$k$ prediction is described in Algorithm~\ref{alg:listviterbi}.
+To eliminating known ground truths in loss augmented inference,
+we modify the forward-backward procedure (Algorithm~\ref{alg:forward-backward}) to account for the loss term $\Delta(\cdot,\cdot)$,
+and Algorithm~\ref{alg:viterbi} and Algorithm~\ref{alg:listviterbi} can be used without modification.
+
 \begin{algorithm}[htbp]
-\caption{The list Viterbi algorithm for top-$1$ prediction~\cite{nilsson2001sequentially,seshadri1994list}}
+\caption{The list Viterbi algorithm for top-$K$ prediction~\cite{nilsson2001sequentially,seshadri1994list}}
 \label{alg:listviterbi}
 \begin{algorithmic}[1]
-\STATE \textbf{Input}: $\mathbf{x}=(s, l),~ \mathcal{P},~ \mathbf{w},~ \Psi$
+\STATE \textbf{Input}: $\mathbf{x}=(s, l),~ \mathcal{P},~ \mathbf{w},~ \Psi, ~K$
 %\STATE Initialise score matrices $\alpha,~ \beta,~ f_t,~ f_{t, t+1}$, a max-heap $H,~ k=0$.
 \STATE Initialise score matrices $\alpha,~ \beta,~ f_{t, t+1}$, a max-heap $H$, result set $R$, $k=0$.
-\STATE $\triangleright$ Do the forward-backward procedure~\cite{rabiner1989tutorial}
+\STATE $\triangleright$ Do the forward-backward procedure (Algorithm~\ref{alg:forward-backward})
 \STATE $\triangleright$ Identify the best (scored) trajectory $\mathbf{y}^1=(y_1^1,\dots,y_l^1)$
-  with Viterbi. This may be a trajectory that violates the desired condition.
+  with Viterbi (Algorithm~\ref{alg:viterbi}). This may be a trajectory that violates the desired condition.
 \STATE $H.\textit{push}\left(r^1,~ (\mathbf{y}^1, \textsc{nil}, \emptyset) \right)$
 \STATE Set $R=\emptyset$, the list of trajectories to be returned.
-\WHILE{$H \ne \emptyset$ \textbf{and} $k < \,|\mathcal{P}|^{l-1} - \prod_{t=2}^l (|\mathcal{P}|-t+1) + 1$}
+\WHILE{$H \ne \emptyset$ \textbf{and} $k < \,|\mathcal{P}|^{l-1} - \prod_{t=2}^l (|\mathcal{P}|-t+1) + K$}
     \STATE $r^k,~ (\mathbf{y}^k, I, S) = H.\textit{pop}()~~~ \triangleright$
            $r^k$ is the score of $\mathbf{y}^k=(y_1^k,\dots,y_l^k)$, $I$ is the partition index, and $S$ is the exclude set
     \STATE $k = k + 1$
@@ -136,21 +154,44 @@ or the learned weight vector during prediction.
 \end{algorithm}
 
 \clearpage
-\subsection{Photo Trajectory Dataset}
+\subsection{Photo Trajectory Dataset and Features}
 \label{sec:feature}
 
+\textbf{Dataset}.
 In the interests of reproducibility we present further details of our empirical experiment.
+The histogram of the number of trajectories per query is shown in Figure~\ref{fig:hist_query},
+where we can see each query has 4-9 ground truths (\ie trajectories) on average, and 30-60 trajectories at most.
+The histogram of trajectory length (\ie the number of POIs in a trajectory) is shown in Figure~\ref{fig:hist_length},
+where we can see the majority are short trajectories (\ie length $\le$ 5).
 
-\textbf{Features}
-The POI-query features used by \textsc{PoiRank}, SP and SR methods are shown in Table~\ref{tab:poifeature},
-pairwise features used in SP and SR methods are shown in Table~\ref{tab:tranfeature}.
+% histogram of #ground truth
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=.9\linewidth]{hist_query.pdf}
+	\caption{Histograms of the number of trajectories per query.}
+	\label{fig:hist_query}
+\end{figure}
 
-\begin{table*}[ht]
-\caption{Features of POI $p$ with respect to query $(s,l)$}
+
+% histogram of trajectory length
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=.9\linewidth]{hist_length.pdf}
+	\caption{Histograms of trajectory length.}
+	\label{fig:hist_length}
+\end{figure}
+
+
+\textbf{Features}.
+The POI-query features used by \textsc{PoiRank}, SP and SR methods and their extensions 
+(\ie the \textsc{SPpath} and \textsc{SRpath} models) are shown in Table~\ref{tab:poifeature},
+pairwise features used in SP and SR methods and their extensions are shown in Table~\ref{tab:tranfeature}.
+
+\begin{table*}[!h]
+\caption{POI-query features: features of POI $p$ with respect to query $(s,l)$}
 \label{tab:poifeature}
 \centering
-
-
+\small
 \setlength{\tabcolsep}{10pt} % tweak the space between columns
 \begin{tabular}{l|l} \hline
 \textbf{Feature}       & \textbf{Description} \\ \hline
@@ -175,10 +216,11 @@ pairwise features used in SP and SR methods are shown in Table~\ref{tab:tranfeat
 
 
 
-\begin{table}[ht]
+\begin{table}[!h]
 \caption{Pairwise POI features}
 \label{tab:tranfeature}
 \centering
+\small
 \setlength{\tabcolsep}{2pt} % tweak the space between columns
 \begin{tabular}{l|l} \hline
 \textbf{Feature}       & \textbf{Description} \\ \hline
@@ -192,22 +234,27 @@ pairwise features used in SP and SR methods are shown in Table~\ref{tab:tranfeat
 
 
 \clearpage
-\subsection{Evaluation procedures}
+\subsection{Evaluation settings}
 \label{sec:metric}
 
 \textbf{Top-k prediction for baselines}.
 \begin{itemize}
 \item To perform top-$k$ prediction with \textsc{Random} baseline, we simply repeat the \textsc{Random} method $k$ times.
-\item To perform top-$k$ prediction with \textsc{Popularity} and \textsc{PoiRank}, we make use of the list Viterbi algorithm~\ref{alg:listviterbi} to get $k$ best scored paths, in particular, for \textsc{Popularity}, the score of a path is the accumulated popularity of all POIs in the path; for \textsc{PoiRank}, the score of a path is the likelihood (the ranking scores for POIs are transformed into a probability distribution using the softmax function, as described in~\cite{cikm16paper}).
+\item To perform top-$k$ prediction with \textsc{Popularity} and \textsc{PoiRank}, we make use of the list Viterbi algorithm 
+      (Algorithm~\ref{alg:listviterbi} to get $k$ best scored paths, in particular, 
+      for \textsc{Popularity}, the score of a path is the accumulated popularity of all POIs in the path; 
+      for \textsc{PoiRank}, the score of a path is the likelihood 
+      (the ranking scores for POIs are first transformed into a probability distribution using the softmax function, as described in~\cite{cikm16paper}).
 \end{itemize}
 
 To evaluate the performance of a certain recommendation algorithm,
 we need to measure the similarity (or loss) given prediction $\hat{\mathbf{y}}$
 and ground truth $\mathbf{y}$.
 
-\begin{itemize}
-  \item F$_1$ score on points~\cite{ijcai15}, where we care about the set of correctly recommended POIs.
-      Let $\texttt{set}(\mathbf{y})$ denote the set of POIs in trajectory $\mathbf{y}$, F$_1$ score on points is defined as
+
+\textbf{F$_1$ score on points}.
+F$_1$ score on points~\cite{ijcai15} cares about only the set of correctly recommended POIs.
+%%Let $\texttt{set}(\mathbf{y})$ denote the set of POIs in trajectory $\mathbf{y}$, F$_1$ score on points is defined as
 \begin{equation*}
 F_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{2  P_{\textsc{point}}  R_{\textsc{point}}}{P_{\textsc{point}} + R_{\textsc{point}}}
 %~~\text{where}~
@@ -218,7 +265,9 @@ where $P_\textsc{point}$, $R_\textsc{point}$ are respectively the precision and 
 If $| \hat{\mathbf{y}} | = | \mathbf{y} |$, this metric is just the unordered Hamming loss,
 i.e., Hamming loss between two binary indicator vectors of size $| \mathcal{P} |$.
 
-\item F$_1$ score on pairs~\cite{cikm16paper}, where we care about the set of correctly predicted POI pairs,
+\textbf{F$_1$ score on pairs}.
+To take into account the orders in recommended sequence, 
+we also use the F$_1$ score on pairs~\cite{cikm16paper} measure, which considers the set of correctly predicted POI pairs,
 \begin{equation*}
 \text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{2 P_{\textsc{pair}} R_{\textsc{pair}}}{P_{\textsc{pair}} + R_{\textsc{pair}}}
 %~~\text{where}~
@@ -226,108 +275,88 @@ i.e., Hamming loss between two binary indicator vectors of size $| \mathcal{P} |
 %R_{\textsc{pair}} = \frac{N_c} {| \texttt{set}(\mathbf{y}) | (| \texttt{set}(\mathbf{y}) | - 1) / 2},
 \end{equation*}
 where $P_\textsc{point}$, $R_\textsc{point}$ are respectively the precision and recall for all possible pairs of $\hat\y$ and $\y$.
-\eat{
-and $N_c = \sum_{j=1}^{| \mathbf{y} | - 1} \sum_{k=j+1}^{| \mathbf{y} |} \llb y_j \prec_{\bar{\mathbf{y}}} y_k \rrb$,
-here $y_j \prec_{\bar{\mathbf{y}}} y_k$ denotes that POI $y_j$ appears before POI $y_k$ in trajectory $\bar{\mathbf{y}}$.
-We define pairs-F$_1 = 0$ when $N_c = 0$.
-}
+%%\eat{
+%%and $N_c = \sum_{j=1}^{| \mathbf{y} | - 1} \sum_{k=j+1}^{| \mathbf{y} |} \llb y_j \prec_{\bar{\mathbf{y}}} y_k \rrb$,
+%%here $y_j \prec_{\bar{\mathbf{y}}} y_k$ denotes that POI $y_j$ appears before POI $y_k$ in trajectory $\bar{\mathbf{y}}$.
+%%We define pairs-F$_1 = 0$ when $N_c = 0$.
+%%}
 
-\end{itemize}
 
-However, if we cast a trajectory $\mathbf{y} = (y_1,\dots,y_l)$ as a ranking of POIs in $\mathcal{P}$,
-where $y_k$ has a rank $| \mathcal{P} | - k + 1$ and any other POI $p \notin \mathbf{y}$ has a rank $0$ ($0$ is an arbitrary choice).
-We can make use of ranking evaluation metrics such as Kendall's $\tau$ by taking care of ties in ranks.
-
-\subsection{Kendall's $\tau$ with ties}
-
-Given a prediction $\hat{\mathbf{y}} = (\hat{y}_1, \hat{y}_2, \dots, \hat{y}_l)$ and ground truth $\mathbf{y} = (y_1, y_2, \dots, y_l)$,
-for a specific ordering of POIs $(p_1, p_2, \dots, p_{|\mathcal{P}|})$,
-we produce two ranks according to $\mathbf{y}$ and $\hat{\mathbf{y}}$,
+\textbf{Kendall's $\tau$ with ties}
+Alternatively, we can cast a trajectory $\y = y_{1:l}$ as a ranking of POIs in $\mathcal{P}$,
+where $y_j$ has a rank $| \mathcal{P} | - j + 1$ and any other POI $p \notin \mathbf{y}$ has a rank $0$ ($0$ is an arbitrary choice),
+then we can make use of ranking evaluation metrics such as Kendall's $\tau$ by taking care of ties in ranks.
+In particular, given a prediction $\hat\y = \hat{y_{1:l}}$ and ground truth $\y = y_{1:l}$,
+we produce two ranks for $\mathbf{y}$ and $\hat{\mathbf{y}}$ with respect to 
+a specific ordering of POIs $(p_1, p_2, \dots, p_{|\mathcal{P}|})$:
 \begin{align*}
 r_i       &= \sum_{j=1}^l (| \mathcal{P} | - j + 1)  \llb p_i = y_j \rrb,~
 i = 1, \dots, | \mathcal{P} | \\
 \hat{r}_i &= \sum_{j=1}^l (| \mathcal{P} | - j + 1)  \llb p_i = \hat{y}_j \rrb,~
 i = 1, \dots, | \mathcal{P} |
 \end{align*}
-where POIs not in $\mathbf{y}$ will have a rank of $0$ in $r$ and similarly in $\hat{r}$.
-Then we have
-\begin{align*}
-C &= \frac{1}{2} \sum_{i,j} \left(\llb r_i < r_j \rrb  \llb \hat{r}_i < \hat{r}_j \rrb +
-     \llb r_i > r_j \rrb  \llb \hat{r}_i > \hat{r}_j \rrb \right), \\
-D &= \frac{1}{2} \sum_{i,j} \left(\llb r_i < r_j \rrb  \llb \hat{r}_i > \hat{r}_j \rrb +
-     \llb r_i > r_j \rrb  \llb \hat{r}_i < \hat{r}_j \rrb \right), \\
-T_{\mathbf{y}} &= \frac{1}{2} \sum_{i \ne j} \llb r_i = r_j \rrb \\
-               &= \frac{1}{2} \sum_{i \ne j} \llb r_i = 0 \rrb  \llb r_j = 0 \rrb \\
-               &= \frac{1}{2} \left( |\mathcal{P}| - l \right) \left( |\mathcal{P}| - l - 1 \right), \\
-T_{\hat{\mathbf{y}}} &= \frac{1}{2} \sum_{i \ne j} \llb \hat{r}_i = \hat{r}_j \rrb \\
-                     &= \frac{1}{2} \sum_{i \ne j} \llb \hat{r}_i = 0 \rrb  \llb \hat{r}_j = 0 \rrb \\
-                     &= \frac{1}{2} \left( |\mathcal{P}| - l \right) \left( |\mathcal{P}| - l - 1 \right), \\
-T_{\mathbf{y},\hat{\mathbf{y}}} &= \frac{1}{2} \sum_{i \ne j} \llb r_i = r_j \rrb  \llb \hat{r}_i = \hat{r}_j \rrb \\
-                                &= \frac{1}{2} \sum_{i \ne j} \llb r_i = 0 \rrb  \llb r_j = 0 \rrb
-                                   \llb \hat{r}_i = 0 \rrb  \llb \hat{r}_j = 0 \rrb.
-\end{align*}
+where POIs not in $\mathbf{y}$ will have a rank of $0$.
+Then we compute the following metrics:
+\begin{itemize}
+\item the number of concordant pairs \(
+      C = \frac{1}{2} \sum_{i,j} \left(\llb r_i < r_j \rrb  \llb \hat{r}_i < \hat{r}_j \rrb +
+                      \llb r_i > r_j \rrb  \llb \hat{r}_i > \hat{r}_j \rrb \right) \)
+\item the number of discordant pairs \(
+      D = \frac{1}{2} \sum_{i,j} \left(\llb r_i < r_j \rrb  \llb \hat{r}_i > \hat{r}_j \rrb +
+                      \llb r_i > r_j \rrb  \llb \hat{r}_i < \hat{r}_j \rrb \right) \)
+\item the number of ties in ground truth $\y$: \(
+      T_{\mathbf{y}} = \frac{1}{2} \sum_{i \ne j} \llb r_i = r_j \rrb 
+%                     = \frac{1}{2} \sum_{i \ne j} \llb r_i = 0 \rrb  \llb r_j = 0 \rrb 
+                     = \frac{1}{2} \left( |\mathcal{P}| - l \right) \left( |\mathcal{P}| - l - 1 \right) \)
+\item the number of ties in prediction $\hat\y$: \(
+      T_{\hat{\mathbf{y}}} = \frac{1}{2} \sum_{i \ne j} \llb \hat{r}_i = \hat{r}_j \rrb 
+%                           = \frac{1}{2} \sum_{i \ne j} \llb \hat{r}_i = 0 \rrb  \llb \hat{r}_j = 0 \rrb 
+                           = \frac{1}{2} \left( |\mathcal{P}| - l \right) \left( |\mathcal{P}| - l - 1 \right) \)
+\item the number of ties in both $\y$ and $\hat\y$: \(
+      T_{\mathbf{y},\hat{\mathbf{y}}} = \frac{1}{2} \sum_{i \ne j} \llb r_i = r_j \rrb  \llb \hat{r}_i = \hat{r}_j \rrb \)
+%                                      = \frac{1}{2} \sum_{i \ne j} \llb r_i = 0 \rrb  \llb r_j = 0 \rrb
+%                                        \llb \hat{r}_i = 0 \rrb  \llb \hat{r}_j = 0 \rrb \)
+\end{itemize}
 Kendall's $\tau$ (version $b$)~\cite{kendall1945,agresti2010analysis} is
 \begin{equation*}
 \tau_b(\mathbf{y}, \hat{\mathbf{y}}) = \frac{C - D}{\sqrt{(C + D + T) (C + D + U)}},
 \end{equation*}
 where $T = T_{\mathbf{y}} - T_{\mathbf{y},\hat{\mathbf{y}}}$ and $U = T_{\hat{\mathbf{y}}} - T_{\mathbf{y},\hat{\mathbf{y}}}$.
 
-Furthermore, F$_1$ score on points can be written as
-\begin{equation*}
-F_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{1}{l} \sum_i \llb r_i > 0 \rrb  \llb \hat{r}_i > 0 \rrb,
-\end{equation*}
-and F$_1$ score on pairs can be written as
-\begin{align*}
-& \text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}) \\
-&= \left( \frac{1}{2} \sum_{i,j} \llb r_i < r_j \rrb  \llb r_i > 0 \rrb \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i > 0 \rrb \right. \\
-&  \left. ~+ \frac{1}{2} \sum_{i,j} \llb r_i > r_j \rrb  \llb r_j > 0 \rrb \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j > 0 \rrb \right)
-   \cdot \frac{1}{l(l-1)/2} \\
-&= \frac{\sum_{i,j} \llb r_i < r_j \rrb  \llb r_i > 0 \rrb \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i > 0 \rrb +
-         \sum_{i,j} \llb r_i > r_j \rrb  \llb r_j > 0 \rrb \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j > 0 \rrb}
-        {l(l-1)}
-\end{align*}
+%Furthermore, F$_1$ score on points can be written as
+%\begin{equation*}
+%F_1(\mathbf{y}, \hat{\mathbf{y}}) = \frac{1}{l} \sum_i \llb r_i > 0 \rrb  \llb \hat{r}_i > 0 \rrb,
+%\end{equation*}
+%and F$_1$ score on pairs can be written as
+%\begin{align*}
+%& \text{pairs-F}_1(\mathbf{y}, \hat{\mathbf{y}}) \\
+%&= \left( \frac{1}{2} \sum_{i,j} \llb r_i < r_j \rrb  \llb r_i > 0 \rrb \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i > 0 \rrb \right. \\
+%&  \left. ~+ \frac{1}{2} \sum_{i,j} \llb r_i > r_j \rrb  \llb r_j > 0 \rrb \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j > 0 \rrb \right)
+%   \cdot \frac{1}{l(l-1)/2} \\
+%&= \frac{\sum_{i,j} \llb r_i < r_j \rrb  \llb r_i > 0 \rrb \llb \hat{r}_i < \hat{r}_j \rrb  \llb \hat{r}_i > 0 \rrb +
+%         \sum_{i,j} \llb r_i > r_j \rrb  \llb r_j > 0 \rrb \llb \hat{r}_i > \hat{r}_j \rrb  \llb \hat{r}_j > 0 \rrb}
+%        {l(l-1)}
+%\end{align*}
 
+\clearpage
+\subsection{Experimental results}
+
+\textbf{The effects of $k$ for top-$k$ prediction}.
+The performance of baselines and structured recommendation algorithms for top-$k$ ($k=1,3,5,10$) 
+prediction are shown in the following tables.
+Bold entries: \textbf{best} performing method for each metric; italicised entries: the \textit{next best}. 
 
 % topk evaluation table
 \input{tab_topk}
 
 
-% histogram of #ground truth
-\begin{figure}[t]
-	\centering
-	\includegraphics[width=\columnwidth]{hist_query.pdf}
-	\caption{Histograms of the number of trajectories per query.}
-	\label{fig:hist}
-\end{figure}
-
-
-% histogram of trajectory length
-\begin{figure}[t]
-	\centering
-	\includegraphics[width=\columnwidth]{hist_length.pdf}
-	\caption{Histograms of the length of trajectories.}
-	\label{fig:hist}
-\end{figure}
-
 \clearpage
+
+\textbf{Performance on short and long trajectories}.
+The performance of baselines and structured recommendation algorithms 
+for short (length $<$ 5) and long (length $\ge$ 5) trajectories 
+with top-$k$ ($k=1:10$) prediction are shown in the following figures.
 
 % topk evaluation plots
 %\includepdf[pages={1-},scale=0.75]{plots.pdf}
 \includepdf[pages={1,2,4}]{plot_topk.pdf}
-
-
-slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th example~\cite{tsochantaridis2005large},
-\begin{equation*}
-%%\label{eq:hingeloss}
-%%\resizebox{1.1\linewidth}{!}{
-%%\begin{minipage}{\linewidth}
-%\begin{align*}
-\xi_i = \max \left( 0, \, 
-        \max_{\bar{\y} \in \mathcal{Y}}
-        \left\{ \Delta(\y^{(i)}, \bar{\y}) + \w^\top \Psi(\x^{(i)}, \bar{\y}) \right\} - \w^\top \Psi(\x^{(i)}, \y^{(i)}) \right).
-%\end{align*}
-%%\end{minipage}
-%%}
-\end{equation*}
-
-
