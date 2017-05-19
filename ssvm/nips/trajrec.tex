@@ -105,7 +105,7 @@ POI $p$ appears more times than POI $p'$ in all trajectories associated with $\x
 The training objective is then
 \begin{align}
 \resizebox{0.7\linewidth}{!}{$\displaystyle
-\displaystyle \min_{\w} \frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathbf{r}^{(i)}} 
+\displaystyle \min_{\w} ~\frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathbf{r}^{(i)}} 
 \ell\left( \w^\top ( \Psi( \x^{(i)}, p ) - \Psi( \x^{(i)}, p' ) ) \right),
 $} \label{eq:ranksvm}
 \end{align}
@@ -129,7 +129,7 @@ and squared hinge loss $\ell( v ) = \max( 0, 1 - v )^2$.
 
 %%More abstractly, 
 We can view trajectory recommendation as a kind of sequence recommendation as follows:
-given some $\x$, and a suitable scoring function $f$, we wish to find
+given trajectory query $\x$, and a suitable scoring function $f$, we wish to find
 $\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~f(\mathbf{x}, \mathbf{y}),$ 
 %%DW: use top-k prediction formulation or not?
 where $\mathcal{Y}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ that conform to the constraints imposed by the query $\mathbf{x}$.
@@ -158,7 +158,7 @@ and exploit a Markovian assumption on the song transitions.
 
 %
 \textbf{Shopping basket prediction}.
-One more example of sequential recommendation is the problem of recommending the next items a user might like to purchase, given the sequence of their shopping basket purchases~\citep{Rendle:2010,Wang:2015}.
+One more example of sequence recommendation is the problem of recommending the next items a user might like to purchase, given the sequence of their shopping basket purchases~\citep{Rendle:2010,Wang:2015}.
 The canonical approach here is to apply matrix factorisation to the Markov chain of transitions between items.
 This method is feasible because one is only interested in predicting sequences one element at a time, \rev{instead of predicting the entire sequence given the initial item.}
 %so that latent embeddings for each item may be found.
