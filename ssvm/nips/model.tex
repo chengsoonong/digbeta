@@ -251,7 +251,8 @@ Observing that this requires excluding a set of sequences from consideration, a 
 \rev{We notice that our {\em path-decoding} problem is a variant of the well-known} {\em traveling salesman problem} (TSP), or the best of ${m \choose l}$ TSPs. 
 %LX - uh, do we need to explain, or is this obvious
 \rev{This is because list Viterbi finds all best-scoring sequences until one of which a path, while TSP is formulated to find the best path.} 
-\rev{This equivalence relation opens new possibilities to leverage well-studied TSP formulations~\cite{reinelt1991tsplib} and modern implementations~\ref{?}. In particular, we consider an integer linear program (ILP) formulation of the TSP (Eq.~\ref{eq:obj} to \ref{eq:cons4}). This formulation extends earlier work on sequence recommendation~\cite{lian2014geomf,cikm16paper} by systematically incorporating unary and pairwise scoring terms.}
+\rev{This equivalence relation opens new possibilities to leverage well-studied TSP formulations%%~\cite{reinelt1991tsplib} 
+and modern implementations~\cite{tspbook2011}. In particular, we consider an integer linear program (ILP) formulation of the TSP (Eq.~\ref{eq:obj} to \ref{eq:cons4}). This formulation extends earlier work on sequence recommendation~\cite{lian2014geomf,cikm16paper} by systematically incorporating unary and pairwise scoring terms.}
 %LX - is the last sentence true?
 
 %LX -- getting rid of this prelim redundant discussion 
