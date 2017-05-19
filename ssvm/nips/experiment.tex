@@ -147,24 +147,23 @@ We compare the performance of our methods to the following three baselines:
 %\subsection{Evaluation procedure}
 %\textmoveup
 
-% leave-one-out evaluation (with query aggregation)
-%As described in Section~\ref{sec:queryagg},
-%To evaluate the performance of the various methods under comparison,
-%we first group the trajectories  %according to queries that they conform to.
-We then evaluate the performance of each algorithm using leave-one-query-out cross validation. 
+
+%We then evaluate the performance of each algorithm using leave-one-query-out cross validation. 
+% LX - remove extra words!!
+We evaluate each algorithm using leave-one-query-out cross validation. 
 That is, holding out all the relevant trajectories for each query $\x\pb{i}$ (\ie $\{\y\pb{ij}\}_{j=1}^{n_i}$) in each round,
 where in each iteration of this procedure,
 %one query and its associated trajectories serves as a test point, with all other trajectories for training.
 %(Note that without this query aggregation, there will be considerable overlap between the train and test set, and simple nearest neighbour methods will be hard to outperform.)
 % model selection (Monte Carlo CV) (with query aggregation): 90/10 random split for 5 times
 the hyper-parameter (\eg the regularisation constant $C$) are tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
-
-We use three different measures to compare algorithm performances.
+We use three performance measures for POIs, sequences and ordered lists.
+%We use three different measures to compare algorithm performances.
 The {\bf F$_1$ score on points}~\cite{ijcai15} computes F$_1$ on the predicted versus seen points
 without considering their relative order.
 The {\bf F$_1$ score on pairs}~\cite{cikm16paper} is proposed to mitigate this by computing F$_1$ on all ordered pairs in the predicted versus groundtruth sequence. %%It is 1 iff both sequences agree completely.
 The well-known rank correlation {\bf Kendall's $\tau$} (version $b$)~\cite{agresti2010analysis} 
-computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all possible pairs after taking care of ties.
+computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all possible pairs after \rev{accounting for} ties.%taking care of ties.
 %$\frac{1}{2}l(l-1)$) pairs  %DW: this is not correct
 
 Structured recommendation problems aims to perform ranking on a very large $m^l$ labelset.
