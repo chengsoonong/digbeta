@@ -6,10 +6,10 @@
 \textmoveup
 
 \rev{We present evaluations on the trajectory recommendation task in Section~\ref{sec:trajrec}.
-Results are reported on real-world dataset of photo tours, 
-created from the publicly available YFCC100M corpus~\cite{thomee2016yfcc100m} and will be made available online. 
+Results are reported on real-world dataset of photo tours 
+created from the publicly available YFCC100M corpus~\cite{thomee2016yfcc100m}, and will be made available online. 
 Finding meaningful problem domains for sequence recommendation is non-trivial. 
-Music playlist datasets are plausible, but recent results show that sequencing information does not affect the data likelihood~\cite{chen2012playlist}. Also note that the unary terms in the sequence scoring function \eqref{eq:jointfeature} can be replaced with {\em personalised} terms to each user, such as from a recommender system~\cite{Koren:2009,bpr09}, we leave this, and joint personalisation and structured recommendation as future work. 
+Music playlist datasets are plausible, but recent results show that sequencing information does not affect the data likelihood~\cite{chen2012playlist}. 
 }
 %LX - this is verbose
 %We now present evaluations assessing the viability of our structured prediction approach
@@ -30,12 +30,14 @@ Music playlist datasets are plausible, but recent results show that sequencing i
 for the cities of Glasgow, Osaka and Toronto~\cite{thomee2016yfcc100m,ijcai15}.
 Each dataset comprises of a
 list of trajectories, being a sequence of points of interest (POI), as visited by various Flickr users
-and recorded by the geotags in photos. Photos that are nearby in time and space are grouped, \rev{mapped to POIs,} and then segmented by eight hours of time gap. Visits \rev{with}%that only include 
-a single POI are excluded. \rev{We use 12 behavioral and geographical features to describe each POI and pairs of POIs (see supplement).}
-\rev{Table~\ref{tab:data} summarizes the profile of each dataset. 
-We can see that most queries have more than one ground truth, making the sequence recommendation setting relevant. Moreover, each query has an average of 4-9, and a maximum of 30-60 trajectories (details in supplement).}
-All datasets are sparse in user activity,
-i.e., each user has on average less than two trajectories.
+and recorded by the geotags in photos. Photos that are nearby in time and space are grouped, \rev{mapped to POIs,} and then segmented by eight hours of time gap. Visits \rev{with} %that only include 
+a single POI are excluded. \rev{We use 12 behavioural and geographical features to describe each POI and pairs of POIs (see supplement).}
+\rev{Table~\ref{tab:data} summarises the profile of each dataset. 
+We see that most queries have more than one ground truth, making the sequence recommendation setting relevant. Further, each query has an average of 4-9, and a maximum of 30-60 trajectories (details in supplement).}
+% All datasets are sparse in user activity,
+% i.e.,
+In all datasets,
+each user has on average less than two trajectories.
 This makes user-specific recommendation impractical, and also undesirable because 
 %of the domain being urban locations
 a user would want different recommendations given different starting locations, and not a static recommendation no matter where she is.
@@ -126,7 +128,7 @@ We compare the performance of our methods to the following three baselines:
 
 %LX - this is very long-winded
 %To assess the viability of our structured prediction approach, and the necessity of our two extensions (normalising the loss per query and disallowing loops), we consider the following structured methods: %the following versions of our structured prediction methods:
-\rev{We consider four variants of sequence recommendation, using structured prediction models, incorporating multiple ground truths, and path constraints.}
+\rev{We consider four variants of sequence recommendation, starting with a structured prediction model, then incorporating multiple ground truths, and finally path constraints:}
 \begin{itemize}[leftmargin=0.125in]\itemmoveup
 \parskip -.05em
 %\item The structured prediction ({\sc SP}) method employs the vanilla structured SVM framework in order to learn a score for trajectories given a query.
@@ -212,7 +214,7 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 % experimental results
 %The performance of %three baselines and four variants based on structured prediction on two datasets
 %all methods are shown in Table~\ref{tab:result}.
-\rev{Table~\ref{tab:result} and Figure~\ref{fig:topk} summarize results for structured recommendation approaches and baselines. See the supplement for results across all datasets on all metric variants. Overall, we are pleased to see that the best and next best approaches uses structured prediction and their path variants. In particular,}
+\rev{Table~\ref{tab:result} and Figure~\ref{fig:topk} summarise results for structured recommendation approaches and baselines. See the supplement for results across all datasets on all metric variants. Reassuringly, we see that the best and next best approaches uses structured prediction and their path variants. In particular,}
 %\textbf{Exploiting the sequence structure helps}. The proposed structured recommendation variants of our achieve better performance than existing baselines.
 %Thus, the basis of our approach -- reducing sequence recommendation to a structured prediction problem -- is sensible, and has empirical benefit.
 accounting for multiple ground truths helps --
@@ -235,7 +237,8 @@ This indicates that our first extension -- explicitly modelling multiple ground 
 \textsc{PoiRank} regards points at the lower right and upper left be of the highest rank, but did not consider their compatibility (\ie pairwise features). {\sc SP} and {\sc SR} hits one edge (green edge) out of the two ground truths, while {\sc SRpath} hits both edges for two valid trajectories by exploiting all factors.\TODO{dawei to make sure this example is sane, agrees w. eval protocol, and well-explained.}
 
 %LX - reflections and confessions
-Overall, \rev{structured recommendation methods has shown superior performance in location sequence recommendation tasks from public benchmark. Most notably, taking into account multiple ground truths in structured prediction and modeling path constraints are important; and the effects are more pronounced in longer trajectories. The sparsity of this dataset presents a barrier for large-scale evaluations, this is left for further exploration.}
+Overall, \rev{structured recommendation methods have shown superior performance in location sequence recommendation tasks on a public benchmark. Most notably, taking into account multiple ground truths in structured prediction and modeling path constraints are important; and the effects are more pronounced in longer trajectories. The sparsity of this dataset presents a barrier for large-scale evaluations, and this is left for further exploration.}
+Finally, we note that the unary terms in the sequence scoring function \eqref{eq:jointfeature} can be replaced with {\em personalised} terms to each user, such as from a recommender system~\cite{Koren:2009,bpr09}; we leave this, and joint personalisation and structured recommendation, as future work.
 %these results indicate that our structured prediction approach to the problem has
 %benefits over non-structured approaches,
 %and that our extensions to the vanilla structured approach are important to further improve performance.
