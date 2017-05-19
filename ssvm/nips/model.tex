@@ -4,7 +4,7 @@
 \label{sec:recseq}
 \textmoveup
 
-We now \rev{describe a method to}%show how to 
+We now \rev{describe a method to}  %show how to 
 solve sequence recommendation problems. % using structured prediction.
 We first provide background on structured SVMs (SSVM) (Sec~\ref{ssec:ssvm}),
 then present a model for structured recommendation (Sec~\ref{ssec:sr}),
@@ -27,14 +27,14 @@ where $\w$ is a weight vector, and $\Psi(\x, \y)$ is a \emph{joint feature map}.
 
 The design of the feature map $\Psi$ is problem specific.
 For sequence prediction problems,
-where $\y = y_{1 : l}$
+%%where $\y = y_{1 : l}$
 %For many problems,
 %we may assume that it
 %%a popular choice
-is a vector whose elements represent unary
+%%is a vector whose elements represent 
+consider the unary 
 terms for each element in the label $y_{1:l}$, and pairwise interactions between
-adjacent
-elements in the label
+adjacent elements in the label,
 %For sequence data, %in particular, 
 %we also
 % We may further
@@ -73,15 +73,17 @@ Here,
 $\mathcal{Y}$ is the set of all possible sequences
 and $\Delta(\y\pb{i}, \bar\y)$ is the loss function between $\bar\y$ and the ground truth $\y\pb{i}$,
 and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th example~\cite{tsochantaridis2005large}.
-To solve problem (\ref{eq:nslack}),
+Alternatively, we can use \emph{one} slack variable to represent the sum of the $n$ hinge losses in~(\ref{eq:nslack}), 
+\ie the 1-slack formulation~\cite{tsochantaridis2005large}.
+%%To solve problem (\ref{eq:nslack}),
 % one option is to simply enumerate all constraints, and feed the problem into a standard solver.
 % However, this approach is impractical as there is a constraint for every possible label $\bar{\y}$.
 %recently developed learning schemes such as 
-cutting-plane algorithms~\cite{joachims2009predicting}, % cutting-plane
-gradient-based algorithms~\cite{ratliff2006subgradient} % sub-gradient
-and conditional gradient methods~\cite{lacoste2013block} % Frank-Wolfe
+%%cutting-plane algorithms~\cite{joachims2009predicting}, % cutting-plane
+%%gradient-based algorithms~\cite{ratliff2006subgradient} % sub-gradient
+%%and conditional gradient methods~\cite{lacoste2013block} % Frank-Wolfe
 %can efficiently optimise the objective and
-are widely used in practice~\cite{muller2014methods}. 
+%%are widely used in practice~\cite{muller2014methods}. 
 %LX - do we want to say the gradient-based methods are inefficient?? 
 %Instead, we can resort to a cutting-plane algorithm which repeatedly solves the quadratic program (\ref{eq:nslack})
 %with a growing set of constraints~\cite{joachims2009predicting}.
@@ -151,10 +153,11 @@ we propose the following \emph{structured recommendation} (\emph{SR}) model that
 $}
 \end{equation}
 where $N = \sum_i n_i$ and $\bar{\y}^{(i)} \in \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}$.
+The 1-slack formulation of~(\ref{eq:nslack_ml}) can be formed similar to that of~(\ref{eq:nsalck}).
 Intuitively, the objective in (\ref{eq:nslack_ml}) is similar to a ranking objective, as the constraints enforce
 that the positively labeled sequences (the known items that the user likes) are scored
 higher than all other unseen sequences.
-Such objectives have proven useful in classic unstructured recommendation~\cite{bpr09}.
+Such objectives have been proven useful in classic unstructured recommendation~\cite{bpr09}.
 %Recent work on positive and unlabelled data have
 %theoretically shown the close relationship between positive and unlabelled learning and two class classification.
 
@@ -171,13 +174,21 @@ explicitly aggregates all the ground truth sequences for each input when generat
 In this way, we do not have contradictory constraints where
 two ground truth sequences are each required to have larger score than the other.
 
-As a remark, we note that instead of using $N$ slack variables as that in (\ref{eq:nslack_ml}),
-we can use \emph{one} slack variable to represent the sum of the $N$ hinge losses. % in (\ref{eq:nslack_ml}).
+%%As a remark, we note that instead of using $N$ slack variables as that in (\ref{eq:nslack_ml}),
+%%we can use \emph{one} slack variable to represent the sum of the $N$ hinge losses. % in (\ref{eq:nslack_ml}).
 %which leads to a $1$-slack formulation
 %This $1$-slack formulation can be learned more efficiently than the $N$-slack formulation (\ref{eq:nslack_ml}) if training using cutting-plane algorithm.
-This 1-slack formulation (see supplement) can be learned more efficiently than (\ref{eq:nslack_ml})
-when training using cutting-plane algorithms. %the above can be learned more efficiently than (\ref{eq:nslack_ml}).
+%%This 1-slack formulation (see supplement) can be learned more efficiently than (\ref{eq:nslack_ml})
+%%when training using cutting-plane algorithms. %the above can be learned more efficiently than (\ref{eq:nslack_ml}).
 
+The SP and SR models can be learned using a rich set of training schemes such as 
+cutting-plane algorithms~\cite{joachims2009predicting}, % cutting-plane
+gradient-based algorithms~\cite{ratliff2006subgradient} % sub-gradient
+and conditional gradient methods~\cite{lacoste2013block} % Frank-Wolfe
+giving proper loss augmented inference and prediction procedures,
+which we describe in the next two sections.
+
+%DW: do we need this paragraph?
 %LX - the sentence below contains little info
 %To describe how to use the above models for sequence recommendation, we must precisely describe how one performs training and prediction using them.
 \rev{One additional requirement is for the predicted sequence to be a {\em path}. 
@@ -205,14 +216,14 @@ In particular, (\ref{eq:loss_aug_inf}) needs to be solved by \emph{excluding the
 
 \rev{
 \textbf{The list Viterbi algorithms}.
-ListViterbi represent a family of algorithms originally invented to decode digitally signals corrupted by noise~\cite{seshadri1994list,nill1995list}, or to find more than one sentence hypotheses in speech recognition~\cite{soong1991tree}. Given a score function that can be decomposed into unary and pairwise costs (such as (\ref{eq:jointfeature}), ListViterbi algorithm aims to find $k$ sequences that has the highest score. 
+ListViterbi represent a family of algorithms originally invented to decode digital signals corrupted by noise~\cite{seshadri1994list,nill1995list}, or to find more than one sentence hypotheses in speech recognition~\cite{soong1991tree}. Given a score function that can be decomposed into unary and pairwise costs such as (\ref{eq:jointfeature}), ListViterbi algorithm aims to find $k$ highest scored sequences. % that has the highest score. 
 
 The \emph{parallel list Viterbi} algorithm~\cite{seshadri1994list} finds the top $k$ sequences
 by keeping $k$ backtrack pointers for each possible state in each position of the sequence. 
 This algorithm is memory-inefficient and can be difficult to use when one does not know what $k$ to use apriori -- this is the case for both the learning and inference challenges in this work. 
 
 An important variant is the \emph{serial list Viterbi} algorithms (SLVA)~\cite{seshadri1994list,nill1995list,nilsson2001sequentially}.
-This algorithm sequentially find the $k$-th best sequence given the best, 2nd best, \dots, $(k \!-\! 1)$-th best sequences.
+This algorithm sequentially find the $k$-th best sequences given the best, 2nd best, \dots, $(k \!-\! 1)$-th best sequences.
 The key insight here is that the 2nd best sequence deviates from the best sequence
 for one continuous segment, and then finally merges back to the best sequence without deviating again
 -- otherwise replacing one of the continuous segments with those from the best sequence will increase the score.
@@ -222,7 +233,7 @@ at the point of final merge, or the 2nd or 3rd best sequence to the $(k \!-\! 2)
 
 \rev{
 \textbf{Eliminating multiple ground truths}.
-Recall that standard loss-augmented inference for an SSVM (for sequence) may be done with the classic Viterbi algorithm, but the best-scoring sequence could be in the ground-truth set $\{\y^{(ij)}\}_{j=1}^{n_i}$. We check whether this is the case, and if it is, use SLVA to decode the next-best sequence until it is no longer in the ground truth set.}
+Recall that standard loss-augmented inference for an SSVM (for sequences) may be done with the classic Viterbi algorithm, but the best-scoring sequence could be in the ground-truth set $\{\y^{(ij)}\}_{j=1}^{n_i}$. We check whether this is the case, and if it is, use SLVA to decode the next-best sequence until it is no longer in the ground truth set.}
 %The serial list Viterbi allows exclusion of sequences with repeats,
 %as well as
 %excluding an arbitrary number of known sequences.
@@ -239,7 +250,7 @@ This idea can be applied to both the SP and SR models, as \rev{enforcing path co
 We call these extended models \textsc{SPpath} and \textsc{SRpath} respectively.
 
 %LX - remark, doesn't have to be here. intuition for the real extension to SLVA?
-\rev{Note that $k$ is expected to be small in noisy signal recovery, such as digital communications~\cite{nill1995list} and speech recognition~\cite{soong1991tree}. But this is not necessarily the case for inference in SR models.}
+\rev{Note that $k$ is expected to be small in noisy signal recovery, such as digital communications~\cite{nill1995list} and speech recognition~\cite{soong1991tree}. But this is not necessarily the case for inferences in SR models.}
 
 \secmoveup
 \subsection{SP and SR model prediction}
@@ -252,7 +263,7 @@ which comprises all elements of $\mathcal{Y}$ that are {paths}.
 Observing that this requires excluding a set of sequences from consideration, a natural idea is to apply the \emph{list Viterbi algorithm} of the previous section.
 \rev{We notice that our {\em path-decoding} problem is a variant of the well-known} {\em traveling salesman problem} (TSP), or the best of ${m \choose l}$ TSPs. 
 %LX - uh, do we need to explain, or is this obvious
-\rev{This is because list Viterbi finds all best-scoring sequences until one of which a path, while TSP is formulated to find the best path.} 
+\rev{This is because list Viterbi can find all best-scoring sequences until one of which is a path, while TSP can be formulated to find the best path.} 
 \rev{This equivalence relation opens new possibilities to leverage well-studied TSP formulations
 and modern implementations~\cite{tspbook2011}. In particular, we consider an integer linear program (ILP) formulation of the TSP (Eq.~\ref{eq:obj} to \ref{eq:cons4}). This formulation extends earlier work on sequence recommendation~\cite{lian2014geomf,cikm16paper} by systematically incorporating unary and pairwise scoring terms.}
 %LX - is the last sentence true?
