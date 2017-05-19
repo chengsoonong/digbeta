@@ -189,6 +189,7 @@ The next two sections describes the training and prediction with the above requi
 \secmoveup
 \subsection{SP and SR model training}
 \label{ssec:training}
+\textmoveup
 
 In training the SP and SR models, the main challenge is in performing loss-augmented inference~(\ref{eq:loss_aug_inf}).
 As noted above, the SP model can be trained as per the vanilla SSVM.
@@ -243,6 +244,7 @@ We call these extended models \textsc{SPpath} and \textsc{SRpath} respectively.
 \secmoveup
 \subsection{SP and SR model prediction}
 \label{ssec:testing}
+\textmoveup
 
 For both the SP and SR models, prediction requires that we compute $\argmax_{\y \in \mathcal{Y}_{\mathrm{path}}} f( \x, \y )$;
 subtly, \rev{this is the} maximum over $\mathcal{Y}_{\mathrm{path}} \subseteq \mathcal{Y}$, 
@@ -286,7 +288,7 @@ enforces that $\y^*$ is a single sequence of points without sub-tours.
 We rewrite Eq.~(\ref{eq:jointfeature}) into a linear function of decision variables $u_{jk}$
 (dropping the unary term corresponding to $y_1^*$ as it is a constant), which results in ~(\ref{eq:obj}).
 
-\begin{equation}\eqmoveup
+\begin{equation}\eqmoveup\eqmoveup
 \label{eq:obj}
 \max_{\bu} ~\sum_{k=1}^m \w_k^\top \psi_k(\x, p_k) \sum_{j=1}^m u_{jk} +
             \sum_{j,k=1}^m u_{jk} \w_{jk}^\top \psi_{j, k}(\x, p_j, p_k)
@@ -308,7 +310,7 @@ v_j - v_k + 1 &\le (m-1) (1-u_{jk}),                                       \nonu
               & \qquad j,k = 2,\cdots,m                                    \label{eq:cons4}
 \end{alignat}
 \end{minipage}
-$}\eqmoveup
+$}
 
 % ILP for top-k prediction/inference
 %\textbf{Top-$K$ prediction}.
