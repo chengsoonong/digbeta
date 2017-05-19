@@ -2,11 +2,11 @@
 
 %\section{Recommending sequences}
 \secmoveup
-\section{The sequence recommendation problem}
+\section{The structured recommendation problem}
 \label{sec:recseq}
 \textmoveup
 
-We introduce the sequence recommendation problem that is the focus of this paper.
+We introduce the structured recommendation problem that is the focus of this paper.
 We then provide some motivating examples, in particular the problem of trajectory recommendation.
 
 \secmoveup
@@ -14,7 +14,7 @@ We then provide some motivating examples, in particular the problem of trajector
 \label{sec:seqrec-defn}
 
 %We now generalise the previous discussion to cover a broad class of problems.
-Consider the following \rev{general} %abstract
+Consider the following general %abstract
 \emph{structured recommendation} problem:
 given an input query $\x \in \mathcal{X}$ (representing \eg a location, or some ``seed'' song)
 we wish to recommend one or more \emph{structured outputs} $\y \in \mathcal{Y}$ (representing \eg a sequence of locations, or songs)
@@ -45,18 +45,18 @@ standard problems in structured prediction and recommender systems;
 this brings unique challenges for both inference and learning.
 
 In a structured prediction problem (for sequences), the goal is to learn from a set of
-input vector and output sequence tuples 
+input vector and output sequence tuples
 $\{ (\x\pb{i}, \y\pb{i}) \}_{i = 1}^n$, where
 for each input $\x\pb{i}$ there is usually one \emph{unique} output sequence $\y\pb{i}$.
 In a sequence recommendation problem, however, we expect that %learn from
 for each input $\x\pb{i}$ (\eg users),
-there are \emph{multiple} associated outputs 
+there are \emph{multiple} associated outputs
 $\{ \y\pb{ij} \}_{j=1}^{n_i}$ (\eg trajectories visited).
 Structured prediction approaches do not have a standard way to handle such multiple output sequences.
-\rev{Furthermore, it is desirable for the recommended sequence to consist of unique elements, 
+Furthermore, it is desirable for the recommended sequence to consist of unique elements,
 or be a {\em path}~\cite{west2001introduction} in the candidate space (\eg locations).
-Classic structured prediction does not constrain the output sequence, and having such a 
-path constraint makes both inference and learning harder.}
+Classic structured prediction does not constrain the output sequence, and having such a
+path constraint makes both inference and learning harder.
 
 In a typical recommender systems problem, the outputs are non-structured; canonically, one works with {static} content such as books or movies~\citep{Goldberg:1992,Sarwar:2001,Netflix}.
 Thus, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$ for suitable score function $f$, \eg some form of matrix factorisation~\citep{Koren:2009}.

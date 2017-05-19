@@ -43,7 +43,7 @@ that maximise some notion of utility,
 %To learn a suitable $f$,
 %we are
 %provided as input
-\rev{learned from} a training set
+learned from a training set
 %$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$,
 %comprising pairs of queries and corresponding
 of trajectories visited by travellers in the city.
@@ -94,7 +94,7 @@ we derive a training set
 % $y^{(i)}$ denoting how many times
 % it appeared in a trajectory corresponding to the query $\x^{(i)}$.
 $\{ ( \x^{(i)}, \mathbf{r}^{(i)} ) \}_{i = 1}^n$,
-where for each trajectory query $\x^{(i)}$ there is a list of \rev{ranked} POI pairs
+where for each trajectory query $\x^{(i)}$ there is a list of ranked POI pairs
 $\mathbf{r}^{(i)} \subseteq \mathcal{P} \times \mathcal{P}$
 such that
 $(p, p') \in \mathbf{r}^{(i)}$
@@ -159,11 +159,12 @@ and exploit a Markovian assumption on the song transitions.
 
 
 %
-\textbf{Shopping basket prediction}.
+\textbf{Next basket and next song prediction}.
 One more example of sequence recommendation is the problem of recommending the next items a user might like to purchase, given the sequence of their shopping basket purchases~\citep{Rendle:2010,Wang:2015}.
 The canonical approach here is to apply matrix factorisation to the Markov chain of transitions between items.
-This method is feasible because one is only interested in predicting sequences one element at a time, \rev{instead of predicting the entire sequence given the initial item.}
-%so that latent embeddings for each item may be found.
+This method is feasible because one is only interested in predicting sequences one element at a time, instead of predicting the entire sequence given the initial item.
+Recent approaches using recurrent neural networks for playlist
+generation~\cite{choi2016towards} also focus on modelling high quality transitions between tracks.
 
 
 %
@@ -180,7 +181,7 @@ might find three restaurants to be the highest scoring POIs;
 however, it is unlikely that these form a trajectory that most travellers will enjoy.
 
 This motivates an approach to sequence recommendation that directly ensures such global cohesion.
-We now see how to do so \rev{with novel extensions to} structured prediction approaches. %by attacking the problem using tools from structured prediction.
+We now see how to do so with novel extensions to structured prediction approaches. %by attacking the problem using tools from structured prediction.
 
 % To do this, we show how the problem can be cast as one of sequential recommendation,
 % thus allowing us to leverage the tools developed in the previous section.

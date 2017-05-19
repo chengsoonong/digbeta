@@ -4,11 +4,11 @@
 \label{sec:recseq}
 \textmoveup
 
-We now \rev{describe a method to}  %show how to
-solve sequence recommendation problems. % using structured prediction.
+We now describe a method to
+solve sequence recommendation problems.
 We first provide background on structured SVMs (SSVM) (Sec~\ref{ssec:ssvm}),
 then present a model for structured recommendation (Sec~\ref{ssec:sr}),
-followed by \rev{new} algorithms for its learning (Sec~\ref{ssec:training})
+followed by the correspondingly updated algorithms for its learning (Sec~\ref{ssec:training})
 and inference (Sec~\ref{ssec:testing}).
 
 
@@ -192,10 +192,10 @@ which we describe in the next two sections.
 %LX - the sentence below contains little info
 %To describe how to use the above models for sequence recommendation, we must precisely describe how one performs training and prediction using them.
 Beyond dealing with multiple ground truths,
-\rev{one additional requirement is for the predicted sequence to be a {\em path}.
+one additional requirement is for the predicted sequence to be a {\em path}.
 This is a {\em global} constraint bringing new challenges for prediction and loss-augmented inference.
 %that makes the underlying graph structure no longer a tree,
-The next two sections describes the training and prediction with the above requirements.}
+The next two sections describes the training and prediction with the above requirements.
 %This is the focus of the next two sections.
 
 \secmoveup
@@ -206,7 +206,8 @@ The next two sections describes the training and prediction with the above requi
 The main challenge in training the SP and SR models is performing loss-augmented inference~(\ref{eq:loss_aug_inf}).
 As noted above, the SP model can be trained as per the vanilla SSVM.
 The SR model, however, requires modifying the training procedure to account for the existence of multiple ground truths.
-In particular, (\ref{eq:loss_aug_inf}) needs to be solved by \emph{excluding the sequences} $\{\y\pb{ij}\}_{j=1}^{n_i}$\rev{, and ideally with {\sc path} constraints.} We now see how this problem may be addressed with an extension of the Viterbi algorithm.
+In particular, (\ref{eq:loss_aug_inf}) needs to be solved by \emph{excluding the sequences} $\{\y\pb{ij}\}_{j=1}^{n_i}$, and ideally with {\sc path} constraints.
+We show in the following how to address both problems with an extension of the Viterbi algorithm.
 
 %% DW: do we need to describe this here?
 %%
@@ -215,9 +216,8 @@ In particular, (\ref{eq:loss_aug_inf}) needs to be solved by \emph{excluding the
 %%The motivation is that, as mentioned in \S\ref{sec:trajrec}, repeated elements are often undesirable in sequence recommendation
 %%\eg a user will likely not want to visit the same location twice.
 
-\rev{
 \textbf{The list Viterbi algorithms}.
-ListViterbi represents a family of algorithms originally invented to decode digital signals corrupted by noise~\cite{seshadri1994list,nill1995list}, or to find more than one candidate sentence in speech recognition~\cite{soong1991tree}. Given a score function that can be decomposed into unary and pairwise costs such as (\ref{eq:jointfeature}), a ListViterbi algorithm aims to find the $k$ highest scored sequences. % that has the highest score.
+List Viterbi represents a family of algorithms originally invented to decode digital signals corrupted by noise~\cite{seshadri1994list,nill1995list}, or to find more than one candidate sentence in speech recognition~\cite{soong1991tree}. Given a score function that can be decomposed into unary and pairwise costs such as (\ref{eq:jointfeature}), a list Viterbi algorithm aims to find the $k$ highest scoring sequences. % that has the highest score.
 
 The \emph{parallel list Viterbi} algorithm~\cite{seshadri1994list} finds the top $k$ sequences
 by keeping $k$ backtrack pointers for each possible state in each position of the sequence.
@@ -230,11 +230,13 @@ for one continuous segment, and then finally merges back to the best sequence wi
 -- otherwise replacing one of the continuous segments with those from the best sequence will increase the score.
 Subsequently, the $k$th best sequence can be the 2nd best sequence relative to the $(k \!-\! 1)$-th sequence
 at the point of final merge, or the 2nd or 3rd best sequence to the $(k \!-\! 2)$-th sequence at the point of final merge, \ldots, and so on. SLVA works by keeping track of the score differences to the best sequences and merge points along the sequences. See appendix for a complete description.
-}
 
-\rev{
+
+We use SLVA in two different ways, first to deal with multiple ground truths, and second
+to find paths.
+
 \textbf{Eliminating multiple ground truths}.
-Recall that standard loss-augmented inference for an SSVM (for sequences) may be done with the classic Viterbi algorithm, but the best-scoring sequence could be in the ground-truth set $\{\y^{(ij)}\}_{j=1}^{n_i}$. We check whether this is the case, and if it is, use SLVA to decode the next-best sequence until it is no longer in the ground truth set.}
+Recall that standard loss-augmented inference for an SSVM (for sequences) may be done with the classic Viterbi algorithm, but the best-scoring sequence could be in the ground-truth set $\{\y^{(ij)}\}_{j=1}^{n_i}$. We check whether this is the case, and if it is, use SLVA to decode the next best sequence until we find one that is not in the ground truth set.
 %The serial list Viterbi allows exclusion of sequences with repeats,
 %as well as
 %excluding an arbitrary number of known sequences.
@@ -246,27 +248,28 @@ since it only requires the loss function be decomposable with respect to the lab
 %
 \textbf{Eliminating loops: the \textsc{SPpath} and \textsc{SRpath} model}.
 %Having seen the viability of the list Viterbi algorithm for removing known sequences from consideration during inference,
-The list Viterbi algorithm is also applicable to enforce that loss-augmented inference only considers sequences that are \emph{paths}. \rev{This may be done by checking if each of the next-best sequences has a loop, and following SLVA as above.}
-This idea can be applied to both the SP and SR models, as \rev{enforcing path constraints} is independent of excluding multiple ground truths.
+The list Viterbi algorithm is also applicable to enforce that loss-augmented inference only considers sequences that are \emph{paths}. This may be done by checking if each of the next-best sequences has a loop, and following SLVA as above.
+This idea can be applied to both the SP and SR models, as enforcing path constraints is independent of excluding multiple ground truths.
 We call these extended models \textsc{SPpath} and \textsc{SRpath} respectively.
 
 %LX - remark, doesn't have to be here. intuition for the real extension to SLVA?
-\rev{Note that $k$ is expected to be small in noisy signal recovery, such as digital communications~\cite{nill1995list} and speech recognition~\cite{soong1991tree}. But this is not necessarily the case for inference in SR models.}
+Note that $k$ is expected to be small in noisy signal recovery, such as digital communications~\cite{nill1995list} and speech recognition~\cite{soong1991tree}. But this is not necessarily the case for inference in SR models.
 
 \secmoveup
 \subsection{SP and SR model prediction}
 \label{ssec:testing}
 \textmoveup
 
-For both the SP and SR models, prediction requires that we compute $\argmax_{\y \in \mathcal{Y}_{\mathrm{path}}} f( \x, \y )$;
-subtly, \rev{this is the} maximum over $\mathcal{Y}_{\mathrm{path}} \subseteq \mathcal{Y}$,
-which comprises all elements of $\mathcal{Y}$ that are {paths}.
+For both the SP and SR models, prediction requires that we compute $\argmax_{\y \in \mathcal{Y}_{\mathrm{path}}} f( \x, \y )$.
+This is the maximum over $\mathcal{Y}_{\mathrm{path}} \subseteq \mathcal{Y}$,
+which comprises all elements of $\mathcal{Y}$ that are paths and not all possible sequences.
 Observing that this requires excluding a set of sequences from consideration, a natural idea is to apply the \emph{list Viterbi algorithm} of the previous section.
-\rev{We notice that our {\em path-decoding} problem is a variant of the well-known} {\em traveling salesman problem} (TSP), or the best of ${m \choose l}$ TSPs.
+Observe that our {\em path-decoding} problem is a variant of the well-known
+{\em traveling salesman problem} (TSP), in particular the best of ${m \choose l}$ TSPs.
 %LX - uh, do we need to explain, or is this obvious
-\rev{This is because list Viterbi can find all best-scoring sequences until one of which is a path, while TSP can be formulated to find the best path.}
-\rev{This equivalence relation opens new possibilities to leverage well-studied TSP formulations
-and modern implementations~\cite{tspbook2011}. In particular, we consider an integer linear program (ILP) formulation of the TSP (Eq.~\ref{eq:obj} to \ref{eq:cons4}). This formulation extends earlier work on sequence recommendation~\cite{lian2014geomf,cikm16paper} by systematically incorporating unary and pairwise scoring terms.}
+This is because list Viterbi can find all best-scoring sequences until one of which is a path, while TSP can be formulated to find the best path.
+This equivalence relation opens new possibilities to leverage well-studied TSP formulations
+and modern implementations~\cite{tspbook2011}. In particular, we consider an integer linear program (ILP) formulation of the TSP (Eq.~\ref{eq:obj} to \ref{eq:cons4}). This formulation extends earlier work on sequence recommendation~\cite{lian2014geomf,cikm16paper} by systematically incorporating unary and pairwise scoring terms.
 %LX - is the last sentence true?
 
 %LX -- getting rid of this prelim redundant discussion
@@ -286,7 +289,7 @@ Given a set of points $\{p_j\}_{j=1}^m$,
 consider binary decision variables $u_{jk}$ that are true if and only if
 the transition from $p_j$ to $p_k$ is in the resulting path,
 and binary decision variables $z_j$ that are true iff
-\rev{the optimal path $\y^*$ terminates at $p_j$.}
+the optimal path $\y^*$ terminates at $p_j$.
 %$p_j$ is the last point in $\y^*$.
 %Suppose that $l$ is the number of candidate POIs.
 For brevity, we index the points such that $y_1^* = p_1$.
