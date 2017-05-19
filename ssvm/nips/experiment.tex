@@ -5,12 +5,18 @@
 \label{sec:experiment}
 \textmoveup
 
-We now present evaluations assessing the viability of our structured prediction approach
-for the trajectory recommendation task discussed in Section~\ref{sec:trajrec}.
-%of trajectory recommendation.
-On a real-world dataset of photo tours, our methods are shown to significantly outperform
-a number of non-structured baselines or those that do not take into account the recommendation setting.
-%, over which we demonstrate significant improvements.
+\rev{We present evaluations on the trajectory recommendation task in Section~\ref{sec:trajrec}.
+Results are reported on real-world dataset of photo tours, 
+created from the publicly available YFCC100M corpus~\cite{thomee2016yfcc100m} and will be made available online. 
+Finding meaningful problem domains for sequence recommendation is non-trivial. 
+Music playlist datasets are plausible, but recent results show that sequencing information does not affect the data likelihood~\cite{chen2012playlist}. Also note that the unary terms in the sequence scoring function \eqref{eq:jointfeature} can be replaced with {\em personalised} to each user, such as from a recommender system~\cite{Koren:2009,bpr09}, we leave this, and joint personalisation and structured recommendation as future work. 
+}
+%LX - this is verbose
+%We now present evaluations assessing the viability of our structured prediction approach
+%for the trajectory recommendation task discussed in Section~\ref{sec:trajrec}.
+%LX - don't be a spoiler! 
+%On a real-world dataset of photo tours, our methods are shown to significantly outperform
+%a number of non-structured baselines or those that do not take into account the recommendation setting.
 
 
 \secmoveup
@@ -19,9 +25,8 @@ a number of non-structured baselines or those that do not take into account the 
 \textmoveup
 
 % experiment protocol: Nested cross-validation with Monte-Carlo cross-validation for the inner loop
-We assess the recommendation performance %methods developed in Section~\ref{sec:trajrec}
-%%of various methods
-on trajectories extracted from Flickr photos
+%We assess the recommendation performance %methods developed in Section~\ref{sec:trajrec}
+\rev{We extract}trajectories from Flickr photos
 for the cities of Glasgow, Osaka and Toronto~\cite{thomee2016yfcc100m,ijcai15}.
 Each dataset comprises of a
 list of trajectories, being a sequence of points of interest (POI), as visited by various Flickr users
