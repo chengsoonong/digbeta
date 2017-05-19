@@ -1,6 +1,13 @@
 \appendix
-\section{Supplementary material to Structured Recommendation}
+%\section{Supplementary material to Structured Recommendation}
+%\label{sec:supplement}
+{\Large\bf Supplementary material to Structured Recommendation}
+
+\section{Model learning and prediction}
 \label{sec:supplement}
+
+In this section, we describe the 1-slack formulation for the proposed SR model 
+and the details of the list Viterbi algorithm.
 
 \subsection{1-slack formulation for the SR model}
 \label{ssec:1slack_sr}
@@ -154,7 +161,13 @@ and Algorithm~\ref{alg:viterbi} and Algorithm~\ref{alg:listviterbi} can be used 
 \end{algorithm}
 
 \clearpage
-\subsection{Photo Trajectory Dataset and Features}
+
+\section{Experiment}
+
+In this section, we describe trajectory dataset used in experiments as well as features for each methods.
+In addition, the details of evaluation and empirical results are also described.
+
+\subsection{Photo trajectory dataset and features}
 \label{sec:feature}
 
 \textbf{Dataset}.
@@ -167,7 +180,7 @@ where we can see the majority are short trajectories (\ie length $\le$ 5).
 % histogram of #ground truth
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=.9\linewidth]{hist_query.pdf}
+	\includegraphics[width=.7\linewidth]{hist_query.pdf}
 	\caption{Histograms of the number of trajectories per query.}
 	\label{fig:hist_query}
 \end{figure}
@@ -176,7 +189,7 @@ where we can see the majority are short trajectories (\ie length $\le$ 5).
 % histogram of trajectory length
 \begin{figure}[t]
 	\centering
-	\includegraphics[width=.9\linewidth]{hist_length.pdf}
+	\includegraphics[width=.7\linewidth]{hist_length.pdf}
 	\caption{Histograms of trajectory length.}
 	\label{fig:hist_length}
 \end{figure}
@@ -339,7 +352,7 @@ where $T = T_{\mathbf{y}} - T_{\mathbf{y},\hat{\mathbf{y}}}$ and $U = T_{\hat{\m
 %\end{align*}
 
 \clearpage
-\subsection{Experimental results}
+\subsection{Empirical results}
 
 \textbf{The effects of $k$ for top-$k$ prediction}.
 The performance of baselines and structured recommendation algorithms for top-$k$ ($k=1,3,5,10$) 
