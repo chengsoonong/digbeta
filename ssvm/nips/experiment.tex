@@ -52,21 +52,21 @@ a user would want different recommendations given different starting locations, 
 		\resizebox{\linewidth}{!}{
 		\setlength{\tabcolsep}{4pt} % tweak the space between columns
 		\small
-		\begin{tabular}{l*{9}{c}} \hline
-		\textbf{Dataset} & \textbf{\#Traj.} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#Queries} & \textbf{\#GT=1} & \textbf{\#GT$\in$[2,5]} & \textbf{\#GT$>$5} & \textbf{\#Traj.(short)} & \textbf{\#Traj.(long)} \\ \hline
+		\begin{tabular}{lllll|ccc|cc} \hline %{l*{9}{c}} \hline
+		\textbf{Dataset} & \textbf{\#Traj} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#Queries} & \textbf{\#GT=1} & \textbf{\#GT$\in [2,5]$} & \textbf{\#GT$>$5} & \textbf{\#shortTraj} & \textbf{\#longTraj} \\ \hline
 		Osaka            & 186              & 26              & 130              & 47                 & 17              & 22                      & 8                 & 178                     & 8  \\
 		Glasgow          & 351              & 25              & 219              & 64                 & 23              & 22                      & 19                & 336                     & 15 \\
         Toronto          & 977              & 27              & 454              & 99                 & 30              & 33                      & 36                & 918                     & 59 \\
 		\hline
 		\end{tabular}%
 		}
-		\captionof{table}{Statistics of trajectory dataset,
-        including the number of trajectories/POIs/users/queries (\ie \textbf{\#Traj.}, \textbf{\#POIs}, \textbf{\#Users} and \textbf{\#Queries}); 
-        the number of queries with a single/2-5/more than 5 ground truths (\ie \textbf{\#GT=1}, \textbf{\#GT$\in$[2,5]} and \textbf{\#GT$>$5}); 
-        the number of trajectories with less than 5 (\textbf{\#Traj.(short)}) and more than 5 POIs (\textbf{\#Traj.(long)}).
+		\captionof{table}{Statistics of trajectory datasets.
+        Including the number of trajectories (\#Traj), POIs (\#POIs), users (\#Users), queries (\#Queries); 
+        the number of queries with a single (\#GT=1), 2-5 (\#GT$\in$[2,5]), or more than 5 (\#GT$>$5) ground truths; 
+        and profile of trajectory length, \ie less than 5 (\#shortTraj) and more than 5 POIs (\#longTraj).
         }
 		\label{tab:data}
-	\end{minipage}%
+	\end{minipage}\captionmoveup
 	%%\quad
 	%%\begin{minipage}[t]{0.45\linewidth}
 	%%	\includegraphics[scale=0.25]{hist_query.pdf}
