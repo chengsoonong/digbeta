@@ -9,7 +9,7 @@
 Results are reported on real-world dataset of photo tours, 
 created from the publicly available YFCC100M corpus~\cite{thomee2016yfcc100m} and will be made available online. 
 Finding meaningful problem domains for sequence recommendation is non-trivial. 
-Music playlist datasets are plausible, but recent results show that sequencing information does not affect the data likelihood~\cite{chen2012playlist}. Also note that the unary terms in the sequence scoring function \eqref{eq:jointfeature} can be replaced with {\em personalised} to each user, such as from a recommender system~\cite{Koren:2009,bpr09}, we leave this, and joint personalisation and structured recommendation as future work. 
+Music playlist datasets are plausible, but recent results show that sequencing information does not affect the data likelihood~\cite{chen2012playlist}. Also note that the unary terms in the sequence scoring function \eqref{eq:jointfeature} can be replaced with {\em personalised} terms to each user, such as from a recommender system~\cite{Koren:2009,bpr09}, we leave this, and joint personalisation and structured recommendation as future work. 
 }
 %LX - this is verbose
 %We now present evaluations assessing the viability of our structured prediction approach
@@ -126,7 +126,7 @@ We compare the performance of our methods to the following three baselines:
 
 %LX - this is very long-winded
 %To assess the viability of our structured prediction approach, and the necessity of our two extensions (normalising the loss per query and disallowing loops), we consider the following structured methods: %the following versions of our structured prediction methods:
-\rev{We evaluate four variants of sequence recommendation, using structured prediction models, incorporating multiple valid truths, and path constraints.}
+\rev{We consider four variants of sequence recommendation, using structured prediction models, incorporating multiple ground truths, and path constraints.}
 \begin{itemize}[leftmargin=0.125in]\itemmoveup
 \parskip -.05em
 %\item The structured prediction ({\sc SP}) method employs the vanilla structured SVM framework in order to learn a score for trajectories given a query.
