@@ -3,6 +3,9 @@
 %\label{sec:supplement}
 {\Large\bf Supplementary material to Structured Recommendation}
 
+\setlength{\belowdisplayskip}{2pt} \setlength{\belowdisplayshortskip}{1pt}
+\setlength{\abovedisplayskip}{2pt} \setlength{\abovedisplayshortskip}{1pt}
+
 \section{Model learning and prediction}
 \label{sec:supplement}
 
@@ -66,20 +69,20 @@ The heap is initialised by running forward-backward (Algorithm~\ref{alg:forward-
   \STATE $\forall p_j \in \mathcal{P},~ \alpha_t(p_j) =
           \begin{cases}
           0,~ t = 1 \\
-          \max_{p_i \in \mathcal{P}} \left\{ \alpha_{t-1}(p_i) + \mathbf{w}_{ij}^\top \Psi_{ij}(\mathbf{x}, p_i, p_j) +
-          \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) \right\},~ t=2,\dots,l
+          \max_{p_i \in \mathcal{P}} \left\{ \alpha_{t-1}(p_i) + \mathbf{w}_{ij}^\top \psi_{ij}(\mathbf{x}, p_i, p_j) +
+          \mathbf{w}_j^\top \psi_j(\mathbf{x}, p_j) \right\},~ t=2,\dots,l
           \end{cases}$
 
   \STATE $\forall p_i \in \mathcal{P},~ \beta_t(p_i) =
           \begin{cases}
           0,~ t = l \\
-          \max_{p_j \in \mathcal{P}} \left\{ \mathbf{w}_{ij}^\top \Psi_{ij}(\mathbf{x}, p_i, p_j) +
-          \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j) \right\},~ t = l-1,\dots,1
+          \max_{p_j \in \mathcal{P}} \left\{ \mathbf{w}_{ij}^\top \psi_{ij}(\mathbf{x}, p_i, p_j) +
+          \mathbf{w}_j^\top \psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j) \right\},~ t = l-1,\dots,1
           \end{cases}$
 
   %\STATE $\forall p_i \in \mathcal{P},~ f_t(p_i) = \alpha_t(p_i) + \beta_t(p_i),~ t = 1,\dots,K$
-  \STATE $\forall p_i, p_j \in \mathcal{P},~ f_{t,t+1}(p_i, p_j) = \alpha_t(p_i) + \mathbf{w}_{ij}^\top \Psi_{ij}(\mathbf{x}, p_i, p_j) +
-                                \mathbf{w}_j^\top \Psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j),~ t = 1,\dots,l-1$
+  \STATE $\forall p_i, p_j \in \mathcal{P},~ f_{t,t+1}(p_i, p_j) = \alpha_t(p_i) + \mathbf{w}_{ij}^\top \psi_{ij}(\mathbf{x}, p_i, p_j) +
+                                \mathbf{w}_j^\top \psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j),~ t = 1,\dots,l-1$
 \end{algorithmic}
 \end{algorithm}
 
@@ -132,29 +135,29 @@ and Algorithm~\ref{alg:viterbi} and Algorithm~\ref{alg:listviterbi} can be used 
     \STATE $k = k + 1$
     \STATE Add $\mathbf{y}^k$ to $R$ if it satisfies the desired property
     \RETURN $R$ if it contains the required number of trajectories
-    \STATE $\bar{I} = \begin{cases}
-                      2,~ I = \textsc{nil} \\
-                      I,~ \text{otherwise}
-                      \end{cases}$
+    \STATE $I' = \begin{cases}
+                  2, & I = \textsc{nil} \\
+                  I, & \text{otherwise}
+                 \end{cases}$
 
-    \FOR{$t = \bar{I},\dots,l$}
-        \STATE $\bar{S} = \begin{cases}
-                          S \cup \{ y_t^k \},& t = \bar{I} \\
-                          \{ y_t^k \},& \text{otherwise}
-                          \end{cases}$
+    \FOR{$t = I',\dots,l$}
+        \STATE $S' = \begin{cases}
+                      S \cup \{ y_t^k \}, & t = I' \\
+                      \{ y_t^k \},        & \text{otherwise}
+                     \end{cases}$
 
-        \STATE $\bar{y}_j = \begin{cases}
-                            y_j^k,& j=1,\dots,t-1 \\
-                            %\argmax_{p \in \mathcal{P} \setminus \textit{new\_exclude\_set}} f_{t-1,t}(y_{t-1}^k, p),~ j=t \\
-                            \argmax_{p \in \mathcal{P} \setminus \bar{S}} \left\{ f_{t-1,t}(y_{t-1}^k, p) \right\},& j=t \\
-                            \argmax_{p \in \mathcal{P}} \left\{ f_{j-1, j}(\bar{y}_{j-1}, p) \right\},& j=t+1,\dots,l
+        \STATE $y'_j = \begin{cases}
+                            y_j^k,                                                                             & j=1,\dots,t-1 \\
+                            \argmax_{p \in \mathcal{P} \setminus S'} \left\{ f_{t-1,t}(y_{t-1}^k, p) \right\}, & j=t \\
+                            \argmax_{p \in \mathcal{P}} \left\{ f_{j-1, j}(y'_{j-1}, p) \right\},              & j=t+1,\dots,l
                 \end{cases}$
-        \STATE $\bar{r} = \begin{cases}
-                          f_{t-1,t}(y_{t-1}^k, \bar{y}_t),&I = \textsc{nil} \\
-                          r^k + f_{t-1,t}(y_{t-1}^k, \bar{y}_t) - f_{t-1,t}(y_{t-1}^k, y_t^k), &\text{otherwise}
-                          \end{cases}$
+        %\STATE $\bar{r} = \begin{cases}
+        %                  f_{t-1,t}(y_{t-1}^k, \bar{y}_t),&I = \textsc{nil} \\
+        %                  r^k + f_{t-1,t}(y_{t-1}^k, \bar{y}_t) - f_{t-1,t}(y_{t-1}^k, y_t^k), &\text{otherwise}
+        %                  \end{cases}$
+        \STATE \vspace{3pt}$r' = r^k + f_{t-1,t}(y_{t-1}^k, y'_t) - f_{t-1,t}(y_{t-1}^k, y_t^k)$
 
-        $H.\textit{push}\left(\bar{r}, (\bar{\mathbf{y}}, t, \bar{S}) \right)$
+        \STATE \vspace{3pt}$H.\textit{push}(r', (\y', t, S') )$ \vspace{2pt}
     \ENDFOR
 \ENDWHILE
 \end{algorithmic}
