@@ -25,12 +25,14 @@ which means we need to find the $k$ best scores among the $n\cdot k$ accumulated
 
 The time complexity for this step (Eq. (6) in~\cite{seshadri1994list})
 is $O \left( nk\cdot \log(nk) \right)$ if the $k$ best scores are found by sorting the $n\cdot k$ accumulated scores,
-or $O \left( k \cdot nk \right)$ if the $k$ best scores are found by order statistics algorithms~\cite{clrs2009}, which is more expensive,
+or $O \left( k \cdot nk \right)$ if the $k$ best scores are found by order statistics algorithms~\cite{clrs2009}, 
+which is more expensive if $k$ is very large (\ie when $k > \log(nk)$),
 so for this analysis, we assume this step is implemented by sorting.
 As we are doing this step at each state and time instant, the total time complexity is $O \left( n \cdot l \cdot nk \cdot \log(nk) \right)$.
 Intuitively, we are computing elements in a cube $n \times l \times k$, 
 the third dimension needs a sorting to get the $k$ best elements in $nk$ elements.
-The space complexity is $O \left( k \cdot nl + n^2 \right)$.
+
+The space complexity is $O ( nlk + nk )$, \ie $O(nlk)$ for all sequence states and $O(nk)$ for $nk$ accumulated scores at each time instant.
 
 
 \subsection{Serial LVA}
@@ -106,7 +108,7 @@ We summarise the time/space complexity of the three variants in Table~\ref{tab:v
 %\setlength{\tabcolsep}{28pt} % tweak the space between columns
 \begin{tabular}{|l|l|l|} \hline
 \textbf{Algorithm variants}  & \textbf{Time complexity} & \textbf{Space complexity} \\ \hline
-Parallel LVA~\cite{seshadri1994list} & $O \left( n^2 lk \log(nk) \right)$ & $O \left( n^2 + nlk \right)$ \\ \hline
+Parallel LVA~\cite{seshadri1994list} & $O \left( n^2 lk \log(nk) \right)$ or $O \left( n^2 k^2 l \right)$ & $O(nlk + nk)$ \\ \hline
 Serial LVA~\cite{seshadri1994list}   & $O \left( n^2 l + nlk + kl\log(kl) \right)$ & $\Omega(nl + kl + nlk)$ \\ \hline
 Nilsson and Goldberger~\cite{nilsson2001sequentially} & $O \left( n^2 l + nlk + kl\log(kl) \right)$ & $O(nl + kl^2 + nlk)$ \\ \hline
 \end{tabular}
