@@ -113,3 +113,72 @@ Serial LVA~\cite{seshadri1994list}   & $O \left( n^2 l + nlk + kl\log(kl) \right
 Nilsson and Goldberger~\cite{nilsson2001sequentially} & $O \left( n^2 l + nlk + kl\log(kl) \right)$ & $O(nl + kl^2 + nlk)$ \\ \hline
 \end{tabular}
 \end{table}
+
+
+\begin{algorithm}[htbp]
+\caption{The list Viterbi algorithm for top-$K$ prediction~\cite{nilsson2001sequentially}}
+\begin{algorithmic}[1]
+\STATE \textbf{Input}: $\mathbf{x}=(s, l),~ \mathcal{P},~ \mathbf{w},~ \Psi, ~K$
+%\STATE Initialise score matrices $\alpha,~ \beta,~ f_t,~ f_{t, t+1}$, a max-heap $H,~ k=0$.
+\STATE Initialise score matrices $\alpha,~ \beta,~ f_{t, t+1}$, a max-heap $H$, result set $R$, $k=0$.
+\STATE $\triangleright$ Do the forward-backward procedure \vspace{3pt}
+\STATE $\forall p_j \in \mathcal{P},~ \alpha_t(p_j) =
+        \begin{cases}
+         0, & t = 1 \\
+         \max_{p_i \in \mathcal{P}} \left\{ \alpha_{t-1}(p_i) + \mathbf{w}_{ij}^\top \psi_{ij}(\mathbf{x}, p_i, p_j) \right\} +
+         \mathbf{w}_j^\top \psi_j(\mathbf{x}, p_j), & t=2,\dots,l
+        \end{cases}$\vspace{3pt}
+\STATE $\forall p_i \in \mathcal{P},~ \beta_t(p_i) =
+         \begin{cases}
+          0, & t = l \\
+          \max_{p_j \in \mathcal{P}} \left\{ \mathbf{w}_{ij}^\top \psi_{ij}(\mathbf{x}, p_i, p_j) +
+          \mathbf{w}_j^\top \psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j) \right\}, & t = l-1,\dots,1
+         \end{cases}$
+%\STATE $\forall p_i \in \mathcal{P},~ f_t(p_i) = \alpha_t(p_i) + \beta_t(p_i),~ t = 1,\dots,K$
+\STATE \vspace{3pt}$\forall p_i, p_j \in \mathcal{P},~ f_{t,t+1}(p_i, p_j) = \alpha_t(p_i) + \mathbf{w}_{ij}^\top \psi_{ij}(\mathbf{x}, p_i, p_j) +
+                             \mathbf{w}_j^\top \psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j),~ t = 1,\dots,l-1$
+
+\STATE \vspace{3pt}$\triangleright$ Identify the best (scored) trajectory $\mathbf{y}^1=(y_1^1,\dots,y_l^1)$, it could be a trajectory that violates the desired condition.
+\STATE $y_t^1 = \begin{cases}
+                  s, & t = 1 \\
+                  \argmax_{p \in \mathcal{P}} \left\{ f_{t-1,t}(y_{t-1}^1, p) \right\}, & t = 2,\dots,l
+                 \end{cases}$
+
+%\STATE $r^1 = \max_{p \in \mathcal{P}} \left\{ f_K(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
+\STATE \vspace{3pt}$r^1 = \max_{p \in \mathcal{P}} \left\{ \alpha_{l}(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
+
+\STATE \vspace{3pt}$H.\textit{push}\left(r^1,~ (\mathbf{y}^1, \textsc{nil}, \emptyset) \right)$
+\STATE \vspace{3pt}Set $R=\emptyset$, the list of trajectories to be returned.\vspace{3pt}
+\WHILE{$H \ne \emptyset$ \textbf{and} $k < \,|\mathcal{P}|^{l-1} - \prod_{t=2}^l (|\mathcal{P}|-t+1) + K$}
+    \STATE \vspace{3pt}$r^k,~ (\mathbf{y}^k, I, S) = H.\textit{pop}()~~~ \triangleright$
+           $r^k$ is the score of $\mathbf{y}^k=(y_1^k,\dots,y_l^k)$, $I$ is the partition index, and $S$ is the exclude set
+    \STATE \vspace{3pt}$k = k + 1$
+    \STATE \vspace{3pt}Add $\mathbf{y}^k$ to $R$ if it satisfies the desired property\vspace{3pt}
+    \RETURN \vspace{3pt}$R$ if it contains the required number of trajectories
+    \STATE \vspace{3pt}$I' = \begin{cases}
+                  2, & I = \textsc{nil} \\
+                  I, & \text{otherwise}
+                 \end{cases}$\vspace{3pt}
+
+    \FOR{$t = I',\dots,l$}
+        \STATE \vspace{3pt}$S' = \begin{cases}
+                      S \cup \{ y_t^k \}, & t = I' \\
+                      \{ y_t^k \},        & \text{otherwise}
+                     \end{cases}$\vspace{3pt}
+
+        \STATE $y'_j = \begin{cases}
+                            y_j^k,                                                                             & j=1,\dots,t-1 \\
+                            \argmax_{p \in \mathcal{P} \setminus S'} \left\{ f_{t-1,t}(y_{t-1}^k, p) \right\}, & j=t \\
+                            \argmax_{p \in \mathcal{P}} \left\{ f_{j-1, j}(y'_{j-1}, p) \right\},              & j=t+1,\dots,l
+                \end{cases}$
+        %\STATE $\bar{r} = \begin{cases}
+        %                  f_{t-1,t}(y_{t-1}^k, \bar{y}_t),&I = \textsc{nil} \\
+        %                  r^k + f_{t-1,t}(y_{t-1}^k, \bar{y}_t) - f_{t-1,t}(y_{t-1}^k, y_t^k), &\text{otherwise}
+        %                  \end{cases}$
+        \STATE \vspace{3pt}$r' = r^k + f_{t-1,t}(y_{t-1}^k, y'_t) - f_{t-1,t}(y_{t-1}^k, y_t^k)$\vspace{3pt}
+
+        \STATE \vspace{3pt}$H.\textit{push}(r', (\y', t, S') )$ \vspace{5pt}
+    \ENDFOR\vspace{3pt}
+\ENDWHILE
+\end{algorithmic}
+\end{algorithm}
