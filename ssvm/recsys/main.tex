@@ -1,0 +1,63 @@
+%\documentclass[twocolumn,10pt,a4paper]{article}
+\documentclass[9pt]{extarticle}
+\usepackage[a4paper,top=0.79in,left=0.79in,bottom=0.79in,right=0.79in]{geometry} % A4 paper margins in LibreOffice
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{mathrsfs}
+\usepackage{bm}
+\usepackage{bbm}
+\usepackage{stmaryrd}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage[sc]{mathpazo}
+\linespread{1.05}       % Palladio needs more leading (space between lines)
+\usepackage[T1]{fontenc}
+\usepackage{footmisc}   % \footref, refer the same footnote at different places
+\usepackage{subcaption} % sub-figures
+\usepackage{setspace}   % set space between lines
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{graphicx}
+\graphicspath{{fig/}}   % Location of the graphics files
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+\newcommand{\eat}[1]{}
+\newcommand{\given}{\mid}
+\newcommand{\llb}{\llbracket}
+\newcommand{\rrb}{\rrbracket}
+\newcommand{\bu}{\mathbf{u}}
+\newcommand{\bv}{\mathbf{v}}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\w}{\mathbf{w}}
+
+\newcommand{\eg}{e.g.\ }
+\newcommand{\ie}{i.e.\ }
+\newcommand{\downto}{\,\textbf{downto}\,}
+
+\setlength{\columnsep}{1.5em} % spacing between columns
+
+\title{Insights on list Viterbi Algorithms and Applications to Trajectory Recommendation}
+%\author{}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\input{list_viterbi}
+
+
+\bibliographystyle{ieeetr}
+%\bibliographystyle{apalike}
+\bibliography{ref}
+
+
+\end{document}
