@@ -5,6 +5,9 @@ or algorithms that make use of the information computed by the forward-backward 
 and keep partitioning the set of all possible sequences of length $l$, computing the best scored sequence in all the partitions
 and tracking the next best scored sequence~\cite{nilsson2001sequentially}.
 
+\section{Basics}
+\label{sec:basic}
+
 We found that by leveraging information computed by the forward-backward procedure, similar to the approach proposed in~\cite{nilsson2001sequentially},
 it is possible to unify these approaches.
 
@@ -33,7 +36,7 @@ x_t^1 = \argmax_{s} f_{t-1, t}(x_{t-1}^1, s), t > 2
 \begin{lemma}
 \label{lemma1}
 Let $E$ denote a set of sequences $E = \{\x |x_1 = x_1^*, \dots, x_i = x_i^*\}$ and
-$x_t = \argmax_{s} f_{t-1, t}(x_t, s), \, t = i+1,\dots,m$, 
+$x_t = \argmax_{s} f_{t-1, t}(x_{t-1}, s), \, t = i+1,\dots,m$, 
 we claim that if $x_{1:k}, k > i$ is the best scored \textbf{prefix} (of length $k$) over $E$, 
 then $x_{1:k+1}$ is also the best scored \textbf{prefix} (of length $k+1$) over $E$,
 assuming no ties exists.
@@ -50,8 +53,8 @@ which contradicts with the fact that $f_{k,k+1}(x_k, s^*) > f_{k,k+1}(x_k, s), \
 \begin{theorem}
 \label{theorem1}
 Let $E$ denote a set of sequences $E = \{\x |x_1 = x_1^*, \dots, x_i = x_i^*\}$ and
-$x_t = \argmax_{s} f_{t-1, t}(x_t, s), \, t = i+1,\dots,m$, 
-then $(x_1^*,\dots,x_i^*, x_{t:m}) = \max_{\x \in E} P(\x,\y)$.
+$x_t = \argmax_{s} f_{t-1, t}(x_{t-1}, s), \, t = i+1,\dots,m$, 
+then $(x_1^*,\dots,x_i^*, x_{t:m}) = \argmax_{\x \in E} P(\x,\y)$.
 \end{theorem}
 
 \begin{proof}
@@ -81,7 +84,7 @@ which contradicts with the fact that $f_{k-1,k}(s^*, x_k) > f_{k-1,k}(s, x_k), \
 \label{theorem2}
 Let $E$ denote a set of sequences $E = \{\x |x_i = x_i^*, \dots, x_m = x_m^*\}$ and
 $x_t = \argmax_{s} f_{t, t+1}(s, x_{t+1}), \, t = i-1 \downto 1$, 
-then $(x_{1:i-1},x_i^*,\dots,x_m^*) = \max_{\x \in E} P(\x,\y)$.
+then $(x_{1:i-1},x_i^*,\dots,x_m^*) = \argmax_{\x \in E} P(\x,\y)$.
 \end{theorem}
 
 \begin{proof}
@@ -90,3 +93,79 @@ where $x_{i-1}^* = \argmax_{s} f_{i-1, i}(s, x_i^*)$.
 By Lemma~\ref{lemma2} and mathematical induction, the result follows.
 \end{proof}
 
+
+\section{Find top-k scored sequences}
+\label{sec:topk}
+
+Given the best, second best, $\cdots$, $k$-th best sequences, how can we find the $k\!+\!1$-th best sequence?
+
+Consider the set of sequences $D = \{\x |x_i \notin \mathcal{X}'_i, x_{i+1} = x_{i+1}^k, \dots, x_m = x_m^k\}$,
+we can partition $D$ as 
+$D_j = \{\x |x_j \notin \bar{\mathcal{X}}_j, x_{j+1} = x_{j+1}^k, \dots, x_m = x_m^k \}, \, \forall j=1,\dots,i$
+where 
+\begin{equation*}
+\bar{\mathcal{X}}_k = \begin{cases}
+                       \mathcal{X}'_j \cup \{x_j^k\}, & j = i \\
+                       \{x_j^k \}, & j < i
+                      \end{cases}
+\end{equation*}
+
+We note that the joint probability~(\ref{eq:joint}) can be expressed as~\cite{nilsson2001sequentially}:
+\begin{equation}
+P(\x, \y) = \frac{\prod_{t=1}^{m-1} f_{t,t+1}(x_t, x_{t+1})} {\prod_{t=2}^{m-1} f_t(x_t)}.
+\end{equation}
+
+We also have the following \emph{max-consistency} from Eq.~(\ref{eq:basic}):
+\begin{align}
+\label{eq:consistency}
+\max_{x_{t+1}} f_{t,t+1}(x_t, x_{t+1}) & = f_t(x_t) \\
+\max_{x_t} f_{t,t+1}(x_t, x_{t+1}      & = f_{t+1}(x_{t+1})
+\end{align}
+
+\begin{lemma}
+\label{lemma3}
+Let $E$ denote a set of sequences $E = \{\x |x_1 = x_1^*, \dots, x_i = x_i^*\}$, then
+\begin{equation*}
+\max_{\x \in E} P(\x,\y) = \frac{\prod_{t=1}^{i-1} f_{t,t+1}(x_t^*, x_{t+1}^*)} {\prod_{t=2}^{i-1} f_t(x_t^*)}
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+Let $x_t^* = \argmax_{s} f_{t-1, t}(x_{t-1}, s), \, t = i\!+\!1,\dots,m$, 
+then $(x_1^*,\dots,x_m^*) = \argmax_{\x \in E} P(\x,\y)$ by Lemma~\ref{lemma1},
+and $f_{t,t+1}(x_t^*, x_{t+1}^*) = f_{t}(x_t^*), \, t = i\!+\!1,\dots,m\!-\!1$ by max-consistency~(\ref{eq:consistency}),
+as a results,
+\begin{align*}
+\max_{\x \in E} P(\x,\y) &= P((x_1^*,\dots,x_m^*), \y) \\
+&= \frac{\prod_{t=1}^{m-1} f_{t,t+1}(x_t^*, x_{t+1}^*)} {\prod_{t=2}^{m-1} f_t(x_t^*)} %\\
+%= \frac{\prod_{t=1}^{i-1} f_{t,t+1}(x_t^*, x_{t+1}^*)} {\prod_{t=2}^{i-1} f_t(x_t^*)} 
+%  \frac{\prod_{t=i}^{m-1} f_{t,t+1}(x_t^*, x_{t+1}^*)} {\prod_{t=i}^{m-1} f_t(x_t^*)} \\
+= \frac{\prod_{t=1}^{i-1} f_{t,t+1}(x_t^*, x_{t+1}^*)} {\prod_{t=2}^{i-1} f_t(x_t^*)} \cdot
+  \prod_{t=i}^{m-1} \frac{f_{t,t+1}(x_t^*, x_{t+1}^*)} {f_t(x_t^*)}                   %\\
+= \frac{\prod_{t=1}^{i-1} f_{t,t+1}(x_t^*, x_{t+1}^*)} {\prod_{t=2}^{i-1} f_t(x_t^*)}.
+\end{align*}
+\end{proof}
+
+\begin{lemma}
+\label{lemma4}
+Let $E$ denote a set of sequences $E = \{\x |x_i = x_i^*, \dots, x_m = x_m^*\}$ and
+\begin{equation*}
+\max_{\x \in E} P(\x,\y) = \frac{\prod_{t=1}^{i-1} f_{t,t+1}(x_t^*, x_{t+1}^*)} {\prod_{t=2}^{i-1} f_t(x_t^*)}
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+Let $x_t^* = \argmax_{s} f_{t, t+1}(s, x_{t+1}), \, t = i\!-\!1 \downto 1$, 
+then $(x_1^*,\dots,x_m^*) = \argmax_{\x \in E} P(\x,\y)$ by Lemma~\ref{lemma2},
+and $f_{t,t+1}(x_t^*, x_{t+1}^*) = f_{t+1}(x_{t+1}^*),\,t = i\!-\!1 \downto 1$ by max-consistency~(\ref{eq:consistency}),
+as a results,
+\begin{align*}
+\max_{\x \in E} P(\x,\y) &= P((x_1^*,\dots,x_m^*), \y) \\
+&= \frac{\prod_{t=1}^{m-1} f_{t,t+1}(x_t^*, x_{t+1}^*)} {\prod_{t=2}^{m-1} f_t(x_t^*)} %\\
+%= \frac{\prod_{t=1}^{i-1} f_{t,t+1}(x_t^*, x_{t+1}^*)} {\prod_{t=2}^{i} f_t(x_t^*)} 
+%  \frac{\prod_{t=i}^{m-1} f_{t,t+1}(x_t^*, x_{t+1}^*)} {\prod_{t=i+1}^{m-1} f_t(x_t^*)} \\
+= \prod_{t=1}^{i-1} \frac{f_{t,t+1}(x_t^*, x_{t+1}^*)} {f_{t+1}(x_{t+1}^*)}  \cdot
+  \frac{\prod_{t=i}^{m-1} f_{t,t+1}(x_t^*, x_{t+1}^*)} {\prod_{t=i+1}^{m-1} f_t(x_t^*)} 
+= \frac{\prod_{t=i}^{m-1} f_{t,t+1}(x_t^*, x_{t+1}^*)} {\prod_{t=i+1}^{m-1} f_t(x_t^*)}.
+\end{align*}
+\end{proof}
