@@ -37,15 +37,15 @@ x_t^1 = \argmax_{s} f_{t-1, t}(x_{t-1}^1, s), t > 2
 \label{lemma1}
 Let $E$ denote a set of sequences $E = \{\x |x_1 = x_1^*, \dots, x_i = x_i^*\}$ and
 $x_t = \argmax_{s} f_{t-1, t}(x_{t-1}, s), \, t = i+1,\dots,m$, 
-we claim that if $x_{1:k}, k > i$ is the best scored \textbf{prefix} (of length $k$) over $E$, 
-then $x_{1:k+1}$ is also the best scored \textbf{prefix} (of length $k+1$) over $E$,
+we claim that if $x_{1:k}, k > i$ is the best scored \textbf{prefix} (partial sequence of length $k$) over $E$, 
+then $x_{1:k+1}$ is also the best scored \textbf{prefix} (partial sequence of length $k+1$) over $E$,
 assuming no ties exists.
 \end{lemma}
 
 \begin{proof}
 This lemma can be easily proved by contradiction.
 Let $s^* = \argmax_{s} f_{k, k+1}(x_k, s)$, so $f_{k,k+1}(x_k, s^*) > f_{k,k+1}(x_k, s), \, \forall s \ne s^*$.
-Assuming $(x_1:k, x_{k+1}^*)$ is the best scored \emph{prefix} (of length $k+1$) over $E$ and $x_{k+1}^* \ne s^*$,
+Assuming $(x_1:k, x_{k+1}^*)$ is the best scored \emph{prefix} (partial sequence of length $k+1$) over $E$ and $x_{k+1}^* \ne s^*$,
 then $f_{k,k+1}(x_k, x_{k+1}^*) > f_{k,k+1}(x_k, s^*)$ according to Eq.~(\ref{eq:basic}), 
 which contradicts with the fact that $f_{k,k+1}(x_k, s^*) > f_{k,k+1}(x_k, s), \, \forall s \ne s^*$.
 \end{proof}
@@ -58,7 +58,7 @@ then $(x_1^*,\dots,x_i^*, x_{t:m}) = \argmax_{\x \in E} P(\x,\y)$.
 \end{theorem}
 
 \begin{proof}
-According to Eq.~(\ref{eq:basic}), the best scored \emph{prefix} (of length $i+1$) over $E$ is $(x_1^*,\dots,x_i^*,x_{i+1}^*)$
+According to Eq.~(\ref{eq:basic}), the best scored \emph{prefix} (partial sequence of length $i+1$) over $E$ is $(x_1^*,\dots,x_i^*,x_{i+1}^*)$
 where $x_{i+1}^* = \argmax_{s} f_{i, i+1}(x_i^*, s)$.
 By Lemma~\ref{lemma1} and mathematical induction, the result follows.
 \end{proof}
@@ -67,15 +67,15 @@ By Lemma~\ref{lemma1} and mathematical induction, the result follows.
 \label{lemma2}
 Let $E$ denote a set of sequences $E = \{\x |x_i = x_i^*, \dots, x_m = x_m^*\}$ and
 $x_t = \argmax_{s} f_{t, t+1}(s, x_{t+1}), \, t = i-1 \downto 1$, 
-we claim that if $x_{k:m}, k < i$ is the best scored \textbf{suffix} (of length $k$) over $E$, 
-then $x_{k-1:m}$ is also the best scored \textbf{suffix} (of length $k+1$) over $E$,
+we claim that if $x_{k:m}, k < i$ is the best scored \textbf{suffix} (partial sequence of length $k$) over $E$, 
+then $x_{k-1:m}$ is also the best scored \textbf{suffix} (partial sequence of length $k+1$) over $E$,
 assuming no ties exists.
 \end{lemma}
 
 \begin{proof}
 This lemma can be proved in the same manner as Lemma~\ref{lemma1} (by contradiction).
 Let $s^* = \argmax_{s} f_{k-1, k}(s, x_k)$, so $f_{k-1,k}(s^*, x_k) > f_{k-1,k}(s, x_k), \, \forall s \ne s^*$.
-Assuming $(x_{k-1}^*, x_{k:m})$ is the best scored \emph{suffix} (of length $k+1$) over $E$ and $x_{k-1}^* \ne s^*$,
+Assuming $(x_{k-1}^*, x_{k:m})$ is the best scored \emph{suffix} (partial sequence of length $k+1$) over $E$ and $x_{k-1}^* \ne s^*$,
 then $f_{k-1,k}(x_{k-1}^*, x_k) > f_{k-1,k}(s^*, x_k)$ according to Eq.~(\ref{eq:basic}), 
 which contradicts with the fact that $f_{k-1,k}(s^*, x_k) > f_{k-1,k}(s, x_k), \, \forall s \ne s^*$.
 \end{proof}
@@ -88,7 +88,7 @@ then $(x_{1:i-1},x_i^*,\dots,x_m^*) = \argmax_{\x \in E} P(\x,\y)$.
 \end{theorem}
 
 \begin{proof}
-According to Eq.~(\ref{eq:basic}), the best scored \emph{suffix} (of length $i+1$) over $E$ is $(x_{i-1}^*,x_i^*,\dots,x_m^*)$
+According to Eq.~(\ref{eq:basic}), the best scored \emph{suffix} (partial sequence of length $i+1$) over $E$ is $(x_{i-1}^*,x_i^*,\dots,x_m^*)$
 where $x_{i-1}^* = \argmax_{s} f_{i-1, i}(s, x_i^*)$.
 By Lemma~\ref{lemma2} and mathematical induction, the result follows.
 \end{proof}
@@ -99,9 +99,16 @@ By Lemma~\ref{lemma2} and mathematical induction, the result follows.
 
 Given the best, second best, $\cdots$, $k$-th best sequences, how can we find the $k\!+\!1$-th best sequence?
 
-Consider the set of sequences $D = \{\x |x_i \notin \mathcal{X}'_i, x_{i+1} = x_{i+1}^k, \dots, x_m = x_m^k\}$,
+Consider the set of sequences 
+\begin{equation}
+\label{eq:d}
+D = \{\x |x_i \notin \mathcal{X}'_i, x_{i+1} = x_{i+1}^k, \dots, x_m = x_m^k\},
+\end{equation}
 we can partition $D$ as 
-$D_j = \{\x |x_j \notin \bar{\mathcal{X}}_j, x_{j+1} = x_{j+1}^k, \dots, x_m = x_m^k \}, \, \forall j=1,\dots,i$
+\begin{equation}
+\label{eq:dj}
+D_j = \{\x |x_j \notin \bar{\mathcal{X}}_j, x_{j+1} = x_{j+1}^k, \dots, x_m = x_m^k \}, \, \forall j=1,\dots,i
+\end{equation}
 where 
 \begin{equation*}
 \bar{\mathcal{X}}_k = \begin{cases}
@@ -167,5 +174,92 @@ as a results,
 = \prod_{t=1}^{i-1} \frac{f_{t,t+1}(x_t^*, x_{t+1}^*)} {f_{t+1}(x_{t+1}^*)}  \cdot
   \frac{\prod_{t=i}^{m-1} f_{t,t+1}(x_t^*, x_{t+1}^*)} {\prod_{t=i+1}^{m-1} f_t(x_t^*)} 
 = \frac{\prod_{t=i}^{m-1} f_{t,t+1}(x_t^*, x_{t+1}^*)} {\prod_{t=i+1}^{m-1} f_t(x_t^*)}.
+\end{align*}
+\end{proof}
+
+\begin{lemma}
+\label{lemma5}
+Suppose $\x^k = \argmax_{\x \in D} P(\x,\y)$ where $D$ is a set defined in Eq.~(\ref{eq:d}),
+then we have
+\begin{equation*}
+\max_{\x \in D} P(\x,\y) = \frac{\prod_{t=1}^{j-1} f_{t,t+1}(x_t^k, x_{t+1}^k)} {\prod_{t=2}^{j-1} f_t(x_t^k)},
+\, j = i, \dots, m.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+Let $D' = \{\x |x_1 = x_1^k, \dots, x_j = x_j^k \}$ for any $j \ge i$,
+since $D' \subset D$, we have
+\begin{equation*}
+\max_{\x \in D'} P(\x,\y) \le \max_{\x \in D} P(\x,\y).
+\end{equation*}
+Furthermore, as $\x^k \in D'$ and $\x^k = \argmax_{\x \in D} P(\x,\y)$,
+we have,
+\begin{equation*}
+\max_{\x \in D'} P(\x,\y) \ge P(\x^k,\y) \ge \max_{\x \in D} P(\x,\y),
+\end{equation*}
+Thus, we have $\max_{\x \in D'} P(\x,\y) = \max_{\x \in D} P(\x,\y)$,
+then by Lemma~\ref{lemma3}
+\begin{equation*}
+\max_{\x \in D} P(\x,\y) = \max_{\x \in D'} P(\x,\y) 
+= \frac{\prod_{t=1}^{j-1} f_{t,t+1}(x_t^k, x_{t+1}^k)} {\prod_{t=2}^{j-1} f_t(x_t^k)},
+\, j = i, \dots, m.
+\end{equation*}
+\end{proof}
+
+\begin{lemma}
+\label{lemma6}
+Suppose $\x^k = \argmax_{\x \in D} P(\x,\y)$ where $D$ is a set defined in Eq.~(\ref{eq:d}),
+then we have
+\begin{equation*}
+\max_{\x \in D} P(\x,\y) = \frac{\prod_{t=j}^{m-1} f_{t,t+1}(x_t^k, x_{t+1}^k)} {\prod_{t=j+1}^{m-1} f_t(x_t^k)},
+\, j = 1, \dots, i.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+Let $D' = \{\x |x_j = x_j^k, \dots, x_m = x_m^k \}$ for any $j \le i$,
+since $D' \subset D$, we have
+\begin{equation*}
+\max_{\x \in D'} P(\x,\y) \le \max_{\x \in D} P(\x,\y).
+\end{equation*}
+Furthermore, as $\x^k \in D'$ and $\x^k = \argmax_{\x \in D} P(\x,\y)$,
+we have,
+\begin{equation*}
+\max_{\x \in D'} P(\x,\y) \ge P(\x^k,\y) \ge \max_{\x \in D} P(\x,\y),
+\end{equation*}
+Thus, we have $\max_{\x \in D'} P(\x,\y) = \max_{\x \in D} P(\x,\y)$,
+then by Lemma~\ref{lemma4}
+\begin{equation*}
+\max_{\x \in D} P(\x,\y) = \max_{\x \in D'} P(\x,\y) 
+= \frac{\prod_{t=j}^{m-1} f_{t,t+1}(x_t^k, x_{t+1}^k)} {\prod_{t=j+1}^{m-1} f_t(x_t^k)},
+\, j = 1, \dots, i.
+\end{equation*}
+\end{proof}
+
+\begin{theorem}
+\label{theorem3}
+Suppose $\x^k = \argmax_{\x \in D} P(\x,\y)$ where $D$ is a set defined in Eq.~(\ref{eq:d}),
+then we have
+\begin{equation*}
+\max_{\x \in D_j} P(\x,\y) 
+= \frac{\max_{s \notin \bar{\mathcal{X}}_j} f_{j-1,j}(x_j^k,s)} {f_{j-1,j}(x_j^k,x_{j+1}^k)}
+  \cdot \max_{\x \in D} P(\x,\y),
+\end{equation*}
+where $D_j$ is defined in Eq.~(\ref{eq:dj}). 
+\end{theorem}
+
+\begin{proof}
+We can express $D_j$ as 
+$D_j = \cup_{s |s \notin \bar{\mathcal{X}}_j} \{\x |x_1 = x_1^k, \dots, x_{j-1} = x_{j-1}^k, x_j = s\}$,
+by Lemma~\ref{lemma1}, Lemma~\ref{lemma3} and Lemma~\ref{lemma5}, we have
+\begin{align*}
+&\max_{\x \in D_j} P(\x,\y) \\
+&= \frac{\prod_{t=1}^{j-2} f_{t,t+1}(x_t^k,x_{t+1}^k)} {\prod_{t=2}^{j-1} f_t(x_t^k)}
+   \cdot \max_{s \notin \bar{\mathcal{X}}_j} f_{j-1,j}(x_{j-1}^k, s)
+~~\text{(by Lemma~\ref{lemma1} and Lemma~\ref{lemma3})} \\
+&= \frac{\max_{s \notin \bar{\mathcal{X}}_j} f_{j-1,j}(x_j^k,s)} {f_{j-1,j}(x_j^k,x_{j+1}^k)}
+   \cdot \max_{\x \in D} P(\x,\y)
+~~\text{(by Lemma~\ref{lemma5})}
 \end{align*}
 \end{proof}
