@@ -157,7 +157,7 @@ as a results,
 \label{lemma4}
 Let $E$ denote a set of sequences $E = \{\x |x_i = x_i^*, \dots, x_m = x_m^*\}$ and
 \begin{equation*}
-\max_{\x \in E} P(\x,\y) = \frac{\prod_{t=1}^{i-1} f_{t,t+1}(x_t^*, x_{t+1}^*)} {\prod_{t=2}^{i-1} f_t(x_t^*)}
+\max_{\x \in E} P(\x,\y) = \frac{\prod_{t=i}^{m-1} f_{t,t+1}(x_t^*, x_{t+1}^*)} {\prod_{t=i+1}^{m-1} f_t(x_t^*)}
 \end{equation*}
 \end{lemma}
 
@@ -261,5 +261,32 @@ by Lemma~\ref{lemma1}, Lemma~\ref{lemma3} and Lemma~\ref{lemma5}, we have
 &= \frac{\max_{s \notin \bar{\mathcal{X}}_j} f_{j-1,j}(x_j^k,s)} {f_{j-1,j}(x_j^k,x_{j+1}^k)}
    \cdot \max_{\x \in D} P(\x,\y)
 ~~\text{(by Lemma~\ref{lemma5})}
+\end{align*}
+\end{proof}
+
+\begin{theorem}
+\label{theorem4}
+Suppose $\x^k = \argmax_{\x \in D} P(\x,\y)$ where $D$ is a set defined in Eq.~(\ref{eq:d}), % should use another definition of D (suffix)
+then we have
+\begin{equation*}
+\max_{\x \in D_j} P(\x,\y) 
+= \frac{\max_{s \notin \bar{\mathcal{X}}_j} f_{j,j+1}(s, x_{j+1}^k)} {f_{j,j+1}(x_j^k,x_{j+1}^k)}
+  \cdot \max_{\x \in D} P(\x,\y),
+\end{equation*}
+where $D_j$ is defined in Eq.~(\ref{eq:dj}).  % should use another definition of Dj (suffix)
+\end{theorem}
+
+\begin{proof}
+We can express $D_j$ as 
+$D_j = \cup_{s |s \notin \bar{\mathcal{X}}_j} \{\x |x_j = s, x_{j+1} = x_{j+1}^k, \dots, x_m = x_m^k\}$,
+by Lemma~\ref{lemma2}, Lemma~\ref{lemma4} and Lemma~\ref{lemma6}, we have
+\begin{align*}
+&\max_{\x \in D_j} P(\x,\y) \\
+&= \frac{\prod_{t=j+1}^{m-1} f_{t,t+1}(x_t^k,x_{t+1}^k)} {\prod_{t=j+1}^{m-1} f_t(x_t^k)}
+   \cdot \max_{s \notin \bar{\mathcal{X}}_j} f_{j,j+1}(s, x_{j+1}^k)
+~~\text{(by Lemma~\ref{lemma2} and Lemma~\ref{lemma4})} \\
+&= \frac{\max_{s \notin \bar{\mathcal{X}}_j} f_{j,j+1}(s, x_{j+1}^k)} {f_{j,j+1}(x_j^k,x_{j+1}^k)}
+   \cdot \max_{\x \in D} P(\x,\y)
+~~\text{(by Lemma~\ref{lemma6})}
 \end{align*}
 \end{proof}
