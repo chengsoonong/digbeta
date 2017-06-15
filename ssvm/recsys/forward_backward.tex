@@ -1,0 +1,27 @@
+Given a hidden Markov model with parameters $\lambda = (A, B, \pi)$,
+$A = \{a_{ij}\}$, $B = \{b_j(v_k)\}$, $\pi = \{\pi_i\}$, 
+state sequence $q_{1:T} = q_1 q_2 \cdots q_T, \, q_t \in \{s_i\}_{i=1}^N$,
+and observation sequence $O_{1:T} = O_1 O_2 \cdots O_T, \, O_t \in \{v_k\}_{k=1}^M$ and
+\begin{align*}
+a_{ij} &= \p(q_{t+1} = s_j |q_{t} = s_i), & 1 \le i,j \le N \\
+b_j(v_k) &= \p(v_k |s_j),                   & 1 \le j \le N, \, 1 \le k \le M   \\
+\pi_i  &= \p(q_1 = s_i),                  & 1 \le i \le N.
+\end{align*}
+
+The likelihood of observation sequence $O_{1:T}$ is
+\begin{align*}
+\p(O_{1:T} |\lambda) &= \sum_{i} \p(O_{1:T}, q_T = s_i |\lambda) \\
+&= \sum_{i} \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j |\lambda) \cdot \p(q_T = s_i |q_{T-1} = s_j) \cdot \p(O_T |q_T = s_i) \\
+&= \sum_{i} \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j |\lambda) \cdot a_{ji} \cdot b_i(O_T)
+\end{align*}
+where we use the simplified notation $\p(O_{1:T}, q_T = s_i |\lambda)$ to denote $\sum_{q_{1:T-1}} \p(O_{1:T}, q_{1:T-1}, q_T = s_i |\lambda)$,
+\ie 
+\begin{equation*}
+\p(O_{1:T}, q_T = s_i |\lambda) = \sum_{q_{1:T-1}} \p(O_{1:T}, q_{1:T-1}, q_T = s_i |\lambda).
+\end{equation*}
+
+Let $\alpha_t(i) = \p(O_{1:t}, q_t = s_i |\lambda)$, then the likelihood of $O_{1:T}$ is
+\begin{align*}
+\p(O_{1:T} |\lambda) &= \sum_{i} \p(O_{1:T}, q_T = s_i |\lambda) = \sum_{i} \alpha_T(i) \\
+&= \sum_{i} \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j |\lambda) \cdot a_{ji} \cdot b_i(O_T) = \sum_{i} \sum_{j} \alpha_{T-1}(j) \cdot a_{ji} \cdot b_i(O_T)
+\end{align*}
