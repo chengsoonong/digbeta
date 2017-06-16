@@ -2,26 +2,134 @@ Given a hidden Markov model with parameters $\lambda = (A, B, \pi)$,
 $A = \{a_{ij}\}$, $B = \{b_j(v_k)\}$, $\pi = \{\pi_i\}$, 
 state sequence $q_{1:T} = q_1 q_2 \cdots q_T, \, q_t \in \{s_i\}_{i=1}^N$,
 and observation sequence $O_{1:T} = O_1 O_2 \cdots O_T, \, O_t \in \{v_k\}_{k=1}^M$ and
-\begin{align*}
-a_{ij} &= \p(q_{t+1} = s_j |q_{t} = s_i), & 1 \le i,j \le N \\
-b_j(v_k) &= \p(v_k |s_j),                   & 1 \le j \le N, \, 1 \le k \le M   \\
-\pi_i  &= \p(q_1 = s_i),                  & 1 \le i \le N.
-\end{align*}
+\begin{equation}
+\label{eq:notebasic}
+\begin{aligned}
+a_{ij}   & \doteq \p(q_{t+1} = s_j |q_{t} = s_i), & 1 \le i,j \le N \\
+b_j(v_k) & \doteq \p(v_k |s_j),                   & 1 \le j \le N, \, 1 \le k \le M   \\
+\pi_i    & \doteq \p(q_1 = s_i),                  & 1 \le i \le N.
+\end{aligned}
+\end{equation}
+
+% describe three problems: compute likelihood; identity the best sequence; training HMM using EM
+
+\section{The forward procedure and Viterbi algorithm}
+\label{sec:forward}
 
 The likelihood of observation sequence $O_{1:T}$ is
 \begin{align*}
-\p(O_{1:T} |\lambda) &= \sum_{i} \p(O_{1:T}, q_T = s_i |\lambda) \\
-&= \sum_{i} \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j |\lambda) \cdot \p(q_T = s_i |q_{T-1} = s_j) \cdot \p(O_T |q_T = s_i) \\
-&= \sum_{i} \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j |\lambda) \cdot a_{ji} \cdot b_i(O_T)
+\p(O_{1:T} |\lambda) 
+&= \sum_{i} \p(O_{1:T}, q_T = s_i |\lambda) \\
+&= \sum_{i} \left[ \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j |\lambda) \cdot \p(q_T = s_i |q_{T-1} = s_j) \right] \p(O_T |q_T = s_i) \\
+&= \sum_{i} \left[ \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j |\lambda) \cdot a_{ji} \right] b_i(O_T)
 \end{align*}
 where we use the simplified notation $\p(O_{1:T}, q_T = s_i |\lambda)$ to denote $\sum_{q_{1:T-1}} \p(O_{1:T}, q_{1:T-1}, q_T = s_i |\lambda)$,
-\ie 
-\begin{equation*}
-\p(O_{1:T}, q_T = s_i |\lambda) = \sum_{q_{1:T-1}} \p(O_{1:T}, q_{1:T-1}, q_T = s_i |\lambda).
-\end{equation*}
+\ie in general,
+\begin{equation}
+\label{eq:notesimp}
+\p(O_{1:t}, q_t = s_i |\lambda) \doteq \sum_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i |\lambda).
+\end{equation}
 
 Let $\alpha_t(i) = \p(O_{1:t}, q_t = s_i |\lambda)$, then the likelihood of $O_{1:T}$ is
+\begin{alignat}{2}
+\p(O_{1:T} |\lambda) 
+&= \sum_{i} \p(O_{1:T}, q_T = s_i |\lambda) 
+ = \blue{\sum_{i} \alpha_T(i)}  \label{eq:likelihood-forward} \\
+&= \sum_{i} \left[ \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j |\lambda) \right] a_{ji} \cdot b_i(O_T) 
+ = \blue{\sum_{i} \left[ \sum_{j} \alpha_{T-1}(j) \cdot a_{ji} \right] b_i(O_T)}. \nonumber
+\end{alignat}
+We can repeat the above procedure to decompose $\alpha_{T-1}(j)$, in general, we have
+\begin{equation}
+\label{eq:forward-sum}
+\alpha_t(i) = \begin{cases}
+               \left[ \sum_{j} \alpha_{t-1}(j) \cdot a_{ji} \right] b_i(O_t), & t=2,\dots,T \\
+               \pi_i \cdot b_i(O_t), & t=1.
+              \end{cases}
+\end{equation}
+
+Computing the $\alpha_t(i)$ values by Eq.~(\ref{eq:forward-sum}) is known as the \emph{forward procedure}, 
+and the likelihood of observation sequence $O_{1:T}$ can be computed using Eq.~(\ref{eq:likelihood-forward}).
+
+To compute the highest probability state sequence $q_{1:T}^*$ given observations $O_{1:T}$, we have
+\begin{equation*}
+q_{1:T}^* = \argmax_{q_{1:T}} \p(O_{1:T}, q_{1:T} |\lambda).
+\end{equation*}
+Observe that 
 \begin{align*}
-\p(O_{1:T} |\lambda) &= \sum_{i} \p(O_{1:T}, q_T = s_i |\lambda) = \sum_{i} \alpha_T(i) \\
-&= \sum_{i} \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j |\lambda) \cdot a_{ji} \cdot b_i(O_T) = \sum_{i} \sum_{j} \alpha_{T-1}(j) \cdot a_{ji} \cdot b_i(O_T)
+\max_{q_{1:T}} \p(O_{1:T}, q_{1:T} |\lambda) 
+&= \max_{i} \left\{ \max_{q_{1:T-1}} \p(O_{1:T}, q_{1:T-1}, q_T = s_i |\lambda) \right\} \\
+&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{1:T-2}} \p(O_{1:T-1}, q_{1:T-2}, q_{T-1} = s_j |\lambda) \cdot 
+   \p(q_T = s_i |q_{T-1} = s_j) \right\} \p(O_T |q_T = s_i) \right\} \\
+&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{1:T-2}} \p(O_{1:T-1}, q_{1:T-2}, q_{T-1} = s_j |\lambda) \cdot a_{ji} \right\} b_i(O_T) \right\}
 \end{align*}
+and let $\alphat_{t}(i) = \max_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i |\lambda)$, we have
+\begin{align*}
+\max_{q_{1:T}} \p(O_{1:T}, q_{1:T} |\lambda) 
+&= \max_{i} \left\{ \max_{q_{1:T-1}} \p(O_{1:T}, q_{1:T-1}, q_T = s_i |\lambda) \right\} 
+ = \blue{\max_{i} \alphat_{T}(i)} \\
+&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{1:T-2}} \p(O_{1:T-1}, q_{1:T-2}, q_{T-1} = s_j |\lambda) \cdot a_{ji} \right\} b_i(O_T) \right\}
+ = \blue{\max_{i} \left\{ \max_{j} \left\{ \alphat_{T-1}(j) \cdot a_{ji} \right\} b_i(O_T) \right\}}.
+\end{align*}
+We can repeat the above procedure to decompose $\alphat_{T-1}(j)$, in general, we have
+\begin{equation}
+\label{eq:forward-max}
+\alphat_t(i) = \begin{cases}
+                \left[ \max_{j} \alphat_{t-1}(j) \cdot a_{ji} \right] b_i(O_t), & t=2,\dots,T \\
+                \pi_i \cdot b_i(O_t), & t=1.
+               \end{cases}
+\end{equation}
+
+Computing the $\alphat_t(i)$ values by Eq.~(\ref{eq:forward-max}) is known as the \emph{Viterbi algorithm}, 
+and the/a sequence with highest probability can be identified via back-tracking.
+
+Compare Eq.~(\ref{eq:forward-sum}) with Eq.~(\ref{eq:forward-max}), 
+the only difference is that Eq.~(\ref{eq:forward-max}) uses \emph{maximisation} instead of \emph{summation} (used in Eq.~\ref{eq:forward-sum}).
+
+
+\section{The backward procedure}
+\label{sec:backward}
+
+Similar to the forward procedure and the Viterbi algorithm, 
+we can compute the likelihood of observations $O_{1:T}$ and identity the state sequence with highest probability by computing backwards.
+By making use of conditional independences encoded by the HMM:
+\begin{alignat}{2}
+& q_t \perp q_{t' \notin \{t-1,t\}} \mid q_{t-1} \text{~and~} q_t \perp O_{1:T} \mid q_{t-1}, \, \forall t=2,\dots,T  \label{eq:indep1} \\
+& O_t \perp q_{t' \ne t} \mid q_t \text{~and~} O_t \perp O_{t' \ne t} \mid q_t, \, \forall t=1,\dots,T                \label{eq:indep2}
+\end{alignat}
+The likelihood of $O_{1:T}$ is 
+\begin{align*}
+\p(O_{1:T} |\lambda) 
+&= \sum_{q_{1:T}} \p(O_{1:T},q_{1:T} |\lambda) \\
+&= \sum_{i} \sum_{q_{2:T}} \p(q_1 = s_i, q_{2:T}, O_{1:T} |\lambda) \\
+&= \sum_{i} \left[ \sum_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i, \lambda) \right] \p(q_1 = s_i) \cdot \p(O_1 |q_1 = s_i) 
+   ~~~ \text{(by Eq.~\ref{eq:indep1} and Eq.~\ref{eq:indep2})} \\
+%&= \sum_{q_{2:T}} \sum_{i} \p(q_{2:T}, O_{2:T} |q_1 = s_i, \lambda) \cdot \pi_i \cdot b_i(O_1) \\
+&= \sum_{i} \left[ \sum_{j} \sum_{q_{3:T}} \p(q_2 = s_j, q_{3:T}, O_{2:T} |q_1 = s_i, \lambda) \right] \pi_i \cdot b_i(O_1) \\
+&= \sum_{i} \left[ \sum_{j} \left[ \sum_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j, \lambda) \right] \p(q_2 = s_j |q_1 = s_i) \cdot \p(O_2 |q_2 = s_j) 
+   \right] \pi_i \cdot b_i(O_1) 
+   ~~~ \text{(by Eq.~\ref{eq:indep1} and Eq.~\ref{eq:indep2})}
+%&= \sum_{i} \left[ \sum_{j} \left[ \sum_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j, \lambda) \right] a_{ij} \cdot b_j(O_2) \right] \pi_i \cdot b_i(O_1) 
+\end{align*}
+Let $\beta_t(i) = \p(O_{t+1:T} |q_t = s_i, \lambda)$ with notation simplification
+\begin{equation*}
+\p(O_{t+1:T} |q_t = s_i, \lambda) \doteq \sum_{q_{t+1:T}} \p(q_{t+1:T}, O_{t+1:T} |q_t = s_i, \lambda),
+\end{equation*}
+we have
+\begin{alignat}{2}
+\p(O_{1:T} |\lambda) 
+&= \sum_{i} \left[ \sum_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i, \lambda) \right] \pi_i \cdot b_i(O_1) 
+ = \blue{\sum_{i} \beta_1(i) \cdot \pi_i \cdot b_i(O_1)}  \label{eq:likelihood-backward} \\
+&= \sum_{i} \left[ \sum_{j} \left[ \sum_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j, \lambda) \right] a_{ij} \cdot b_j(O_2) \right] \pi_i \cdot b_i(O_1) 
+ = \blue{\sum_{i} \left[ \sum_{j} \beta_2(j) \cdot a_{ij} \cdot b_j(O_2) \right] \pi_i \cdot b_i(O_1)}  \nonumber
+\end{alignat}
+We can repeat the above procedure to decompose $\beta_2(j)$, in general, we have
+\begin{equation}
+\label{eq:backward-sum}
+\beta_t(i) = \begin{cases}
+              1, & t=T \\
+              \sum_{j} \beta_{t+1}(j) \cdot a_{ij} \cdot b_j(O_{t+1}), & t=T\!-\!1 \downto 1.
+             \end{cases}
+\end{equation}
+
+Computing the $\beta_t(i)$ values by Eq.~(\ref{eq:backward-sum}) is known as the \emph{backward procedure}, 
+and the likelihood of observation sequence $O_{1:T}$ can be computed using Eq.~(\ref{eq:likelihood-backward}).
