@@ -27,7 +27,6 @@ script:
 
 notifications:
   email: false
-  slack:
-    machlearn:4bsIJqghcxMDEgyfxzi0EIa1
+  slack: machlearn:4bsIJqghcxMDEgyfxzi0EIa1
     on_failure: always
     on_success: change
