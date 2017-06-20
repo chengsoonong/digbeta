@@ -18,27 +18,27 @@ b_j(v_k) & \doteq \p(v_k |s_j),                   & 1 \le j \le N, \, 1 \le k \l
 
 The likelihood of observation sequence $O_{1:T}$ is
 \begin{align*}
-\p(O_{1:T} |\lambda) 
-&= \sum_{i} \p(O_{1:T}, q_T = s_i |\lambda) \\
-&= \sum_{i} \left[ \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j |\lambda) \cdot \p(q_T = s_i |q_{T-1} = s_j) \right] \p(O_T |q_T = s_i) \\
-&= \sum_{i} \left[ \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j |\lambda) \cdot a_{ji} \right] b_i(O_T)
+\p(O_{1:T} ;\lambda) 
+&= \sum_{i} \p(O_{1:T}, q_T = s_i ;\lambda) \\
+&= \sum_{i} \left[ \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j ;\lambda) \cdot \p(q_T = s_i |q_{T-1} = s_j) \right] \p(O_T |q_T = s_i) \\
+&= \sum_{i} \left[ \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j ;\lambda) \cdot a_{ji} \right] b_i(O_T)
 \end{align*}
-where we use the simplified notation $\p(O_{1:t}, q_t = s_i |\lambda)$ to denote $\sum_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i |\lambda)$,
+where we use the simplified notation $\p(O_{1:t}, q_t = s_i ;\lambda)$ to denote $\sum_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda)$,
 %\begin{equation}
 %\label{eq:notesimp}
-%\p(O_{1:t}, q_t = s_i |\lambda) \doteq \sum_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i |\lambda).
+%\p(O_{1:t}, q_t = s_i ;\lambda) \doteq \sum_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda).
 %\end{equation}
 and let
 \begin{equation}
 \label{eq:alpha}
-\alpha_t(i) = \p(O_{1:t}, q_t = s_i |\lambda) \doteq \sum_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i |\lambda),
+\alpha_t(i) = \p(O_{1:t}, q_t = s_i ;\lambda) \doteq \sum_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda),
 \end{equation}
 then the likelihood of $O_{1:T}$ is
 \begin{alignat}{2}
-\p(O_{1:T} |\lambda) 
-&= \sum_{i} \p(O_{1:T}, q_T = s_i |\lambda) 
+\p(O_{1:T} ;\lambda) 
+&= \sum_{i} \p(O_{1:T}, q_T = s_i ;\lambda) 
  = \blue{\sum_{i} \alpha_T(i)}  \label{eq:likelihood-forward} \\
-&= \sum_{i} \left[ \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j |\lambda) \right] a_{ji} \cdot b_i(O_T) 
+&= \sum_{i} \left[ \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j ;\lambda) \right] a_{ji} \cdot b_i(O_T) 
  = \blue{\sum_{i} \left[ \sum_{j} \alpha_{T-1}(j) \cdot a_{ji} \right] b_i(O_T)}. \nonumber
 \end{alignat}
 We can repeat the above procedure to decompose $\alpha_{T-1}(j)$, in general, we have
@@ -55,27 +55,27 @@ and the likelihood of observation sequence $O_{1:T}$ can be computed using Eq.~(
 
 To compute the highest probability state sequence $q_{1:T}^*$ given observations $O_{1:T}$, we have
 \begin{equation*}
-q_{1:T}^* = \argmax_{q_{1:T}} \p(O_{1:T}, q_{1:T} |\lambda).
+q_{1:T}^* = \argmax_{q_{1:T}} \p(O_{1:T}, q_{1:T} ;\lambda).
 \end{equation*}
 Observe that 
 \begin{align*}
-\max_{q_{1:T}} \p(O_{1:T}, q_{1:T} |\lambda) 
-&= \max_{i} \left\{ \max_{q_{1:T-1}} \p(O_{1:T}, q_{1:T-1}, q_T = s_i |\lambda) \right\} \\
-&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{1:T-2}} \p(O_{1:T-1}, q_{1:T-2}, q_{T-1} = s_j |\lambda) \cdot 
+\max_{q_{1:T}} \p(O_{1:T}, q_{1:T} ;\lambda) 
+&= \max_{i} \left\{ \max_{q_{1:T-1}} \p(O_{1:T}, q_{1:T-1}, q_T = s_i ;\lambda) \right\} \\
+&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{1:T-2}} \p(O_{1:T-1}, q_{1:T-2}, q_{T-1} = s_j ;\lambda) \cdot 
    \p(q_T = s_i |q_{T-1} = s_j) \right\} \p(O_T |q_T = s_i) \right\} \\
-&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{1:T-2}} \p(O_{1:T-1}, q_{1:T-2}, q_{T-1} = s_j |\lambda) \cdot a_{ji} \right\} b_i(O_T) \right\}
+&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{1:T-2}} \p(O_{1:T-1}, q_{1:T-2}, q_{T-1} = s_j ;\lambda) \cdot a_{ji} \right\} b_i(O_T) \right\}
 \end{align*}
 and let 
 \begin{equation}
 \label{eq:alphat}
-\alphat_{t}(i) = \max_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i |\lambda),
+\alphat_{t}(i) = \max_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda),
 \end{equation}
 we have
 \begin{align*}
-\max_{q_{1:T}} \p(O_{1:T}, q_{1:T} |\lambda) 
-&= \max_{i} \left\{ \max_{q_{1:T-1}} \p(O_{1:T}, q_{1:T-1}, q_T = s_i |\lambda) \right\} 
+\max_{q_{1:T}} \p(O_{1:T}, q_{1:T} ;\lambda) 
+&= \max_{i} \left\{ \max_{q_{1:T-1}} \p(O_{1:T}, q_{1:T-1}, q_T = s_i ;\lambda) \right\} 
  = \blue{\max_{i} \alphat_{T}(i)} \\
-&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{1:T-2}} \p(O_{1:T-1}, q_{1:T-2}, q_{T-1} = s_j |\lambda) \cdot a_{ji} \right\} b_i(O_T) \right\}
+&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{1:T-2}} \p(O_{1:T-1}, q_{1:T-2}, q_{T-1} = s_j ;\lambda) \cdot a_{ji} \right\} b_i(O_T) \right\}
  = \blue{\max_{i} \left\{ \max_{j} \left\{ \alphat_{T-1}(j) \cdot a_{ji} \right\} b_i(O_T) \right\}}.
 \end{align*}
 We can repeat the above procedure to decompose $\alphat_{T-1}(j)$, in general, we have
@@ -106,9 +106,9 @@ By making use of conditional independences encoded by the HMM:
 \end{alignat}
 The likelihood of $O_{1:T}$ is 
 \begin{align*}
-\p(O_{1:T} |\lambda) 
-&= \sum_{q_{1:T}} \p(O_{1:T},q_{1:T} |\lambda) \\
-&= \sum_{i} \sum_{q_{2:T}} \p(q_1 = s_i, q_{2:T}, O_{1:T} |\lambda) \\
+\p(O_{1:T} ;\lambda) 
+&= \sum_{q_{1:T}} \p(O_{1:T},q_{1:T} ;\lambda) \\
+&= \sum_{i} \sum_{q_{2:T}} \p(q_1 = s_i, q_{2:T}, O_{1:T} ;\lambda) \\
 &= \sum_{i} \left[ \sum_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i, \lambda) \right] \p(q_1 = s_i) \cdot \p(O_1 |q_1 = s_i) 
    ~~~ \text{(by Eq.~\ref{eq:indep1} and Eq.~\ref{eq:indep2})} \\
 %&= \sum_{q_{2:T}} \sum_{i} \p(q_{2:T}, O_{2:T} |q_1 = s_i, \lambda) \cdot \pi_i \cdot b_i(O_1) \\
@@ -129,7 +129,7 @@ Let
 \end{equation}
 with notation simplification similar to Eq.~(\ref{eq:alpha}), we have
 \begin{alignat}{2}
-\p(O_{1:T} |\lambda) 
+\p(O_{1:T} ;\lambda) 
 &= \sum_{i} \left[ \sum_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i, \lambda) \right] \pi_i \cdot b_i(O_1) 
  = \blue{\sum_{i} \beta_1(i) \cdot \pi_i \cdot b_i(O_1)}  \label{eq:likelihood-backward} \\
 &= \sum_{i} \left[ \sum_{j} \left[ \sum_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j, \lambda) \right] a_{ij} \cdot b_j(O_2) \right] \pi_i \cdot b_i(O_1) 
@@ -150,8 +150,8 @@ and the likelihood of observation sequence $O_{1:T}$ can be computed using Eq.~(
 Similarly, to identity the highest probability state sequence $q_{1:T}^*$ given observations $O_{1:T}$, 
 we observe that 
 \begin{align*}
-\max_{q_{1:T}} \p(O_{1:T}, q_{1:T} |\lambda) 
-&= \max_{i} \max_{q_{2:T}} \p(q_1 = s_i, q_{2:T}, O_{1:T} |\lambda) \\
+\max_{q_{1:T}} \p(O_{1:T}, q_{1:T} ;\lambda) 
+&= \max_{i} \max_{q_{2:T}} \p(q_1 = s_i, q_{2:T}, O_{1:T} ;\lambda) \\
 &= \max_{i} \left\{ \max_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i, \lambda) \right\} \p(q_1 = s_i) \cdot \p(O_1 |q_1 = s_i) 
    ~~~ \text{(by Eq.~\ref{eq:indep1} and Eq.~\ref{eq:indep2})} \\
 &= \max_{i} \left\{ \max_{j} \max_{q_{3:T}} \p(q_2 = s_j, q_{3:T}, O_{2:T} |q_1 = s_i, \lambda) \right\} \pi_i \cdot b_i(O_1) \\
@@ -166,7 +166,7 @@ Let
 \end{equation}
 we have
 \begin{align*}
-\max_{q_{1:T}} \p(O_{1:T}, q_{1:T} |\lambda) 
+\max_{q_{1:T}} \p(O_{1:T}, q_{1:T} ;\lambda) 
 &= \max_{i} \left\{ \max_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i, \lambda) \right\} \pi_i \cdot b_i(O_1) 
  = \blue{\max_{i} \betat_1(i) \cdot \pi_i \cdot b_i(O_1)} \\
 &= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j, \lambda) \right\} a_{ij} \cdot b_j(O_2) \right\} \pi_i \cdot b_i(O_1) 
@@ -197,8 +197,8 @@ as well as observations $O_{1:T}$, given the model parameters $\lambda$, \ie
 \label{eq:gamma}
 \begin{aligned}
 \gamma_t(i,j) 
-&= \sum_{q_{1:t-1,t+2:T}} \p(O_{1:T}, q_{1:t-1}, q_t = s_i, q_{t+1} = s_j, q_{t+2:T} |\lambda) \\
-&= \left[ \sum_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i |\lambda) \right] \p(q_{t+1} = s_j |q_t = s_i) \cdot \p(O_{t+1} |q_{t+1} = s_j) 
+&= \sum_{q_{1:t-1,t+2:T}} \p(O_{1:T}, q_{1:t-1}, q_t = s_i, q_{t+1} = s_j, q_{t+2:T} ;\lambda) \\
+&= \left[ \sum_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda) \right] \p(q_{t+1} = s_j |q_t = s_i) \cdot \p(O_{t+1} |q_{t+1} = s_j) 
    \left[ \sum_{q_{t+2:T}} \p(O_{t+2:T}, q_{t+2:T} |q_{t+1} = s_j, \lambda) \right] \\
 &= \alpha_t(i) \cdot a_{ij} \cdot b_j(O_{t+1}) \cdot \beta_{t+1}(j) 
    ~~~ \text{(by Eq.~\ref{eq:notebasic}, \ref{eq:alpha} and \ref{eq:beta})}.
@@ -211,8 +211,8 @@ we can also compute the maximum joint probability over all possible observation-
 \label{eq:gammat}
 \begin{aligned}
 \gammat_t(i,j) 
-&= \max_{q_{1:t-1,t+2:T}} \p(O_{1:T}, q_{1:t-1}, q_t = s_i, q_{t+1} = s_j, q_{t+2:T} |\lambda) \\
-&= \left\{ \max_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i |\lambda) \right\} \p(q_{t+1} = s_j |q_t = s_i) \cdot \p(O_{t+1} |q_{t+1} = s_j) 
+&= \max_{q_{1:t-1,t+2:T}} \p(O_{1:T}, q_{1:t-1}, q_t = s_i, q_{t+1} = s_j, q_{t+2:T} ;\lambda) \\
+&= \left\{ \max_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda) \right\} \p(q_{t+1} = s_j |q_t = s_i) \cdot \p(O_{t+1} |q_{t+1} = s_j) 
    \left\{ \max_{q_{t+2:T}} \p(O_{t+2:T}, q_{t+2:T} |q_{t+1} = s_j, \lambda) \right\} \\
 &= \alphat_t(i) \cdot a_{ij} \cdot b_j(O_{t+1}) \cdot \betat_{t+1}(j) 
    ~~~ \text{(by Eq.~\ref{eq:notebasic}, \ref{eq:alphat} and \ref{eq:betat})}.
@@ -224,8 +224,8 @@ and the maximum joint probability is
 \label{eq:gammat0}
 \begin{aligned}
 \gammat_t(i) 
-&= \max_{q_{1:t-1,t+1:T}} \p(O_{1:T}, q_{1:t-1}, q_t = s_i, q_{t+1:T} |\lambda) \\
-&= \left\{ \max_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i |\lambda) \right\}  
+&= \max_{q_{1:t-1,t+1:T}} \p(O_{1:T}, q_{1:t-1}, q_t = s_i, q_{t+1:T} ;\lambda) \\
+&= \left\{ \max_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda) \right\}  
    \left\{ \max_{q_{t+1:T}} \p(O_{t+1:T}, q_{t+1:T} |q_t = s_i, \lambda) \right\} \\
 &= \alphat_t(i) \cdot \betat_t(i) 
    ~~~ \text{(by Eq.~\ref{eq:notebasic}, \ref{eq:alphat} and \ref{eq:betat})}.
@@ -235,7 +235,7 @@ and the maximum joint probability is
 Note that the joint probability of state sequence $q_{1:T}$ and observations $O_{1:T}$ is
 \begin{equation}
 \label{eq:jointdef}
-\p(O_{1:T}, q_{1:T} |\lambda) = \p(q_1) \cdot \p(O_1 |q_1) \left[ \prod_{t=1}^{T-1} \p(q_{t+1} |q_t) \cdot \p(O_{t+1} |q_{t+1}) \right],
+\p(O_{1:T}, q_{1:T} ;\lambda) = \p(q_1) \cdot \p(O_1 |q_1) \left[ \prod_{t=1}^{T-1} \p(q_{t+1} |q_t) \cdot \p(O_{t+1} |q_{t+1}) \right],
 \end{equation}
 and that
 \begin{equation}
@@ -252,7 +252,7 @@ and that
 &= \left[ \prod_{t=1}^{T-1} \p(q_{t+1} |q_t) \cdot \p(O_{t+1} |q_{t+1}) \right] \p(q_1) \cdot \p(O_1 |q_1) \cdot 1 
    ~~~ \text{(by Eq.~\ref{eq:forward-max} and \ref{eq:backward-max})} \\
 %&= \p(q_1) \cdot \p(O_1 |q_1) \left[ \prod_{t=1}^{T-1} \p(q_{t+1} |q_t) \cdot \p(O_{t+1} |q_{t+1}) \right] \\
-&= \p(O_{1:T}, q_{1:t} |\lambda) ~~~ \text{(by Eq.~\ref{eq:jointdef})}.
+&= \p(O_{1:T}, q_{1:t} ;\lambda) ~~~ \text{(by Eq.~\ref{eq:jointdef})}.
 \end{aligned}
 \end{equation}
 
@@ -314,3 +314,42 @@ then consider the maximisation term
 \end{align*}
 and the result follows.
 \end{proof}
+
+\subsection{Find the second best sequence}
+\label{ssec:2ndbest}
+
+Suppose $\q^* = q_{1:T}^*$ is the state sequence with highest probability,
+to find the second best sequence, we have
+\begin{align*}
+&\max_{\q \ne \q^*} \p(q_{1:T}, O_{1:T}; \lambda) \\
+&= \max_{q_{1:T} \ne q_{1:T}^*} \p(q_{1:T}, q_{T+1} = s_{T+1}^*, O_{1:T+1}) \\
+&= \max \left\{
+    \max_{q_{1:T-1}, \, q_T \ne q_T^*} \p(q_{1:T-1}, q_T \ne q_T^*, q_{T+1} = s_{T+1}^*, O_{1:T}), \,
+    \max_{q_{1:T-1} \ne q_{1:T-1}^*, \, q_T = q_T^*} \p(q_{1:T-1}, q_T = q_T^*, q_{T+1} = s_{T+1}^*, O_{1:T+1}) 
+   \right\} \\
+&= \max \left\{
+   \max_{s_i \ne q_T^*} \left\{ \max_{q_{1:T-1}} \p(q_{1:T-1}, q_T = s_i, O_{1:T}) \right\} 
+        \p(s_{T+1}^* |s_i) \p(O_{T+1} | s_{T+1}^*), \,
+   \max_{q_{1:T-1} \ne q_{1:T-1}^*} \p(q_{1:T-1}, q_T = q_T^*, O_{1:T}) \p(s_{T+1}^* |q_{T}^*) \p(O_{T+1} |q_{T+1}^*)
+   \right\} \\
+&= \max \left\{
+   \max_{s_i \ne q_T^*} \alphat_{T}(i)
+        \p(s_{T+1}^* |s_i) \p(O_{T+1} | s_{T+1}^*), \,
+   \max_{q_{1:T-1} \ne q_{1:T-1}^*} \p(q_{1:T-1}, q_T = q_T^*, O_{1:T}) \p(s_{T+1}^* |q_{T}^*) \p(O_{T+1} |q_{T+1}^*)
+   \right\} 
+\end{align*}
+%Let $\delta_T = \max_{\q \ne \q^*} \p(q_{1:T}, O_{1:T}; \lambda)$
+
+Alternatively, we have
+\begin{align*}
+&\max_{q_{1:T} \ne q_{1:T}^*} \p(q_{1:T}, O_{1:T}; \lambda) \\
+&= \max \left\{
+    \max_{q_1 \ne q_1^*, \, q_{2:T}} \p(q_1 \ne q_1^*, q_{2:T}, O_{1:T}), \,
+    \max_{q_1 = q_1^*, \, q_{2:T} \ne q_{2:T}^*} \p(q_1 = q_1^*, q_{2:T}, O_{1:T+1}) 
+   \right\} \\
+&= \max \left\{
+    \max_{s_i \ne q_1^*} \left\{ \max_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i) \p(O_1 |q_1 = s_i) \right\}, \,
+    \p(q_1^*, O_1) \max_{q_{2:T} \ne q_{2:T}^*} \p(q_{2:T}, O_{2:T} |q_1 = q_1^*) 
+   \right\}
+\end{align*}
+
