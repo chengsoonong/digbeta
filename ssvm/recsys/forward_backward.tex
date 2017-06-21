@@ -1,4 +1,4 @@
-Given a hidden Markov model with parameters $\lambda = (A, B, \pi)$,
+Given a hidden Markov model (HMM) with parameters $\lambda = (A, B, \pi)$,
 $A = \{a_{ij}\}$, $B = \{b_j(v_k)\}$, $\pi = \{\pi_i\}$, 
 state sequence $\q = q_{1:T} = q_1 q_2 \cdots q_T, \, q_t \in \{s_i\}_{i=1}^N$,
 and observation sequence $O_{1:T} = O_1 O_2 \cdots O_T, \, O_t \in \{v_k\}_{k=1}^M$ and
@@ -10,6 +10,8 @@ b_j(v_k) & \doteq \p(v_k |s_j),                   & 1 \le j \le N, \, 1 \le k \l
 \pi_i    & \doteq \p(q_1 = s_i),                  & 1 \le i \le N.
 \end{aligned}
 \end{equation}
+
+% graphical model for HMM
 
 % describe three problems: compute likelihood; identity the best sequence; training HMM using EM
 
@@ -71,13 +73,13 @@ and let
 \alphat_{t}(i) = \max_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda),
 \end{equation}
 we have
-\begin{align*}
+\begin{alignat}{2}
 \max_{q_{1:T}} \p(O_{1:T}, q_{1:T} ;\lambda) 
 &= \max_{i} \left\{ \max_{q_{1:T-1}} \p(O_{1:T}, q_{1:T-1}, q_T = s_i ;\lambda) \right\} 
- = \blue{\max_{i} \alphat_{T}(i)} \\
+ = \blue{\max_{i} \alphat_{T}(i)} \label{eq:max-forward} \\
 &= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{1:T-2}} \p(O_{1:T-1}, q_{1:T-2}, q_{T-1} = s_j ;\lambda) \cdot a_{ji} \right\} b_i(O_T) \right\}
- = \blue{\max_{i} \left\{ \max_{j} \left\{ \alphat_{T-1}(j) \cdot a_{ji} \right\} b_i(O_T) \right\}}.
-\end{align*}
+ = \blue{\max_{i} \left\{ \max_{j} \left\{ \alphat_{T-1}(j) \cdot a_{ji} \right\} b_i(O_T) \right\}}. \nonumber
+\end{alignat}
 We can repeat the above procedure to decompose $\alphat_{T-1}(j)$, in general, we have
 \begin{equation}
 \label{eq:forward-max}
@@ -87,11 +89,25 @@ We can repeat the above procedure to decompose $\alphat_{T-1}(j)$, in general, w
                \end{cases}
 \end{equation}
 
-Computing the $\alphat_t(i)$ values by Eq.~(\ref{eq:forward-max}) is known as the \emph{Viterbi algorithm}, 
-and the/a sequence with highest probability can be identified via back-tracking.
-
 Compare Eq.~(\ref{eq:forward-sum}) with Eq.~(\ref{eq:forward-max}), 
-the only difference is that Eq.~(\ref{eq:forward-max}) uses \emph{maximisation} instead of \emph{summation} (used in Eq.~\ref{eq:forward-sum}).
+the only difference is that Eq.~(\ref{eq:forward-max}) uses \emph{maximisation} instead of \emph{summation}.
+Computing the $\alphat_t(i)$ values by Eq.~(\ref{eq:forward-max}) is known as the \emph{Viterbi algorithm}, 
+and the/a sequence $\q^* = q_{1:T}^*$ with highest probability can be identified via back-tracking, and
+\begin{equation}
+\label{eq:alpha-sum}
+\alpha_t(q_t^*) = \p(q_1^*) \cdot \p(O_1 |q_1^*) \left[ \prod_{t'=2}^t \p(q_{t'}^* |q_{t'-1}^*) \cdot \p(O_{t'} |q_{t'}^*) \right], \, t = 1,\dots,T
+\end{equation}
+
+We note that by adding a dummy state $q_{T+1} = s_{T+1}^*$ at the end of $\q$, with observation $O_{T+1}$, 
+we can simplify Eq.~(\ref{eq:likelihood-forward}) and (\ref{eq:max-forward}) since dummy state $q_{T+1}$ is \emph{deterministic}:
+\begin{align*}
+\p(O_{1:T}; \lambda) 
+&= \sum_{q_{1:T}} \p(O_{1:T+1}, q_{1:T}, q_{T+1} = s_{T+1}^*; \lambda)
+ = \blue{\alpha_{T+1}(s_{T+1}^*)} \\
+\max_{q_{1:T}} \p(O_{1:T}, q_{1:T}; \lambda) 
+&= \max_{q_{1:T}} \p(O_{1:T+1}, q_{1:T}, q_{T+1} = s_{T+1}^*; \lambda)
+ = \blue{\alphat_{T+1}(s_{T+1}^*)}
+\end{align*}
 
 
 \section{The backward procedure}
@@ -109,30 +125,30 @@ The likelihood of $O_{1:T}$ is
 \p(O_{1:T} ;\lambda) 
 &= \sum_{q_{1:T}} \p(O_{1:T},q_{1:T} ;\lambda) \\
 &= \sum_{i} \sum_{q_{2:T}} \p(q_1 = s_i, q_{2:T}, O_{1:T} ;\lambda) \\
-&= \sum_{i} \left[ \sum_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i, \lambda) \right] \p(q_1 = s_i) \cdot \p(O_1 |q_1 = s_i) 
+&= \sum_{i} \left[ \sum_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i; \lambda) \right] \p(q_1 = s_i) \cdot \p(O_1 |q_1 = s_i) 
    ~~~ \text{(by Eq.~\ref{eq:indep1} and Eq.~\ref{eq:indep2})} \\
-%&= \sum_{q_{2:T}} \sum_{i} \p(q_{2:T}, O_{2:T} |q_1 = s_i, \lambda) \cdot \pi_i \cdot b_i(O_1) \\
-&= \sum_{i} \left[ \sum_{j} \sum_{q_{3:T}} \p(q_2 = s_j, q_{3:T}, O_{2:T} |q_1 = s_i, \lambda) \right] \pi_i \cdot b_i(O_1) \\
-&= \sum_{i} \left[ \sum_{j} \left[ \sum_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j, \lambda) \right] \p(q_2 = s_j |q_1 = s_i) \cdot \p(O_2 |q_2 = s_j) 
+%&= \sum_{q_{2:T}} \sum_{i} \p(q_{2:T}, O_{2:T} |q_1 = s_i; \lambda) \cdot \pi_i \cdot b_i(O_1) \\
+&= \sum_{i} \left[ \sum_{j} \sum_{q_{3:T}} \p(q_2 = s_j, q_{3:T}, O_{2:T} |q_1 = s_i; \lambda) \right] \pi_i \cdot b_i(O_1) \\
+&= \sum_{i} \left[ \sum_{j} \left[ \sum_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j; \lambda) \right] \p(q_2 = s_j |q_1 = s_i) \cdot \p(O_2 |q_2 = s_j) 
    \right] \pi_i \cdot b_i(O_1) 
    ~~~ \text{(by Eq.~\ref{eq:indep1} and Eq.~\ref{eq:indep2})}
-%&= \sum_{i} \left[ \sum_{j} \left[ \sum_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j, \lambda) \right] a_{ij} \cdot b_j(O_2) \right] \pi_i \cdot b_i(O_1) 
+%&= \sum_{i} \left[ \sum_{j} \left[ \sum_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j; \lambda) \right] a_{ij} \cdot b_j(O_2) \right] \pi_i \cdot b_i(O_1) 
 \end{align*}
 
-%Let $\beta_t(i) = \p(O_{t+1:T} |q_t = s_i, \lambda)$ with notation simplification
-%\p(O_{t+1:T} |q_t = s_i, \lambda) \doteq \sum_{q_{t+1:T}} \p(q_{t+1:T}, O_{t+1:T} |q_t = s_i, \lambda),
+%Let $\beta_t(i) = \p(O_{t+1:T} |q_t = s_i; \lambda)$ with notation simplification
+%\p(O_{t+1:T} |q_t = s_i; \lambda) \doteq \sum_{q_{t+1:T}} \p(q_{t+1:T}, O_{t+1:T} |q_t = s_i; \lambda),
 
 Let 
 \begin{equation}
 \label{eq:beta}
-\beta_t(i) = \p(O_{t+1:T} |q_t = s_i, \lambda) \doteq \sum_{q_{t+1:T}} \p(q_{t+1:T}, O_{t+1:T} |q_t = s_i, \lambda),
+\beta_t(i) = \p(O_{t+1:T} |q_t = s_i; \lambda) \doteq \sum_{q_{t+1:T}} \p(q_{t+1:T}, O_{t+1:T} |q_t = s_i; \lambda),
 \end{equation}
 with notation simplification similar to Eq.~(\ref{eq:alpha}), we have
 \begin{alignat}{2}
 \p(O_{1:T} ;\lambda) 
-&= \sum_{i} \left[ \sum_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i, \lambda) \right] \pi_i \cdot b_i(O_1) 
+&= \sum_{i} \left[ \sum_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i; \lambda) \right] \pi_i \cdot b_i(O_1) 
  = \blue{\sum_{i} \beta_1(i) \cdot \pi_i \cdot b_i(O_1)}  \label{eq:likelihood-backward} \\
-&= \sum_{i} \left[ \sum_{j} \left[ \sum_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j, \lambda) \right] a_{ij} \cdot b_j(O_2) \right] \pi_i \cdot b_i(O_1) 
+&= \sum_{i} \left[ \sum_{j} \left[ \sum_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j; \lambda) \right] a_{ij} \cdot b_j(O_2) \right] \pi_i \cdot b_i(O_1) 
  = \blue{\sum_{i} \left[ \sum_{j} \beta_2(j) \cdot a_{ij} \cdot b_j(O_2) \right] \pi_i \cdot b_i(O_1)}  \nonumber
 \end{alignat}
 We can repeat the above procedure to decompose $\beta_2(j)$, in general, we have
@@ -152,26 +168,26 @@ we observe that
 \begin{align*}
 \max_{q_{1:T}} \p(O_{1:T}, q_{1:T} ;\lambda) 
 &= \max_{i} \max_{q_{2:T}} \p(q_1 = s_i, q_{2:T}, O_{1:T} ;\lambda) \\
-&= \max_{i} \left\{ \max_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i, \lambda) \right\} \p(q_1 = s_i) \cdot \p(O_1 |q_1 = s_i) 
+&= \max_{i} \left\{ \max_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i; \lambda) \right\} \p(q_1 = s_i) \cdot \p(O_1 |q_1 = s_i) 
    ~~~ \text{(by Eq.~\ref{eq:indep1} and Eq.~\ref{eq:indep2})} \\
-&= \max_{i} \left\{ \max_{j} \max_{q_{3:T}} \p(q_2 = s_j, q_{3:T}, O_{2:T} |q_1 = s_i, \lambda) \right\} \pi_i \cdot b_i(O_1) \\
-&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j, \lambda) \right\} \p(q_2 = s_j |q_1 = s_i) \cdot \p(O_2 |q_2 = s_j) 
+&= \max_{i} \left\{ \max_{j} \max_{q_{3:T}} \p(q_2 = s_j, q_{3:T}, O_{2:T} |q_1 = s_i; \lambda) \right\} \pi_i \cdot b_i(O_1) \\
+&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j; \lambda) \right\} \p(q_2 = s_j |q_1 = s_i) \cdot \p(O_2 |q_2 = s_j) 
    \right\} \pi_i \cdot b_i(O_1) 
    ~~~ \text{(by Eq.~\ref{eq:indep1} and Eq.~\ref{eq:indep2})}
 \end{align*}
 Let 
 \begin{equation}
 \label{eq:betat}
-\betat_t(i) = \max_{q_{t+1:T}} \p(q_{t+1:T}, O_{t+1:T} |q_t = s_i, \lambda),
+\betat_t(i) = \max_{q_{t+1:T}} \p(q_{t+1:T}, O_{t+1:T} |q_t = s_i; \lambda),
 \end{equation}
 we have
-\begin{align*}
+\begin{alignat}{2}
 \max_{q_{1:T}} \p(O_{1:T}, q_{1:T} ;\lambda) 
-&= \max_{i} \left\{ \max_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i, \lambda) \right\} \pi_i \cdot b_i(O_1) 
- = \blue{\max_{i} \betat_1(i) \cdot \pi_i \cdot b_i(O_1)} \\
-&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j, \lambda) \right\} a_{ij} \cdot b_j(O_2) \right\} \pi_i \cdot b_i(O_1) 
+&= \max_{i} \left\{ \max_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i; \lambda) \right\} \pi_i \cdot b_i(O_1) 
+ = \blue{\max_{i} \betat_1(i) \cdot \pi_i \cdot b_i(O_1)}  \label{eq:max-backward}\\
+&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j; \lambda) \right\} a_{ij} \cdot b_j(O_2) \right\} \pi_i \cdot b_i(O_1) 
  = \blue{\max_{i} \left\{ \max_{j} \betat_2(j) \cdot a_{ij} \cdot b_j(O_2) \right\} \pi_i \cdot b_i(O_1)}  \nonumber
-\end{align*}
+\end{alignat}
 We can repeat the above procedure to decompose $\betat_2(j)$, in general, we have
 \begin{equation}
 \label{eq:backward-max}
@@ -185,7 +201,25 @@ Compare Eq.~(\ref{eq:backward-sum}) with Eq.~(\ref{eq:backward-max}),
 the only difference is that Eq.~(\ref{eq:backward-max}) uses \emph{maximisation} instead of \emph{summation} (used in Eq.~\ref{eq:backward-sum}).
 It is also interesting to compare Eq.~(\ref{eq:forward-max}) with Eq.~(\ref{eq:backward-max}), 
 the latter can be treated as the Viterbi algorithm works backwards, 
-and the/a sequence with highest probability can be identified via \emph{forward}-tracking.
+and the/a sequence $q_{1:T}^*$ with highest probability can be identified via \emph{forward}-tracking, and
+\begin{equation}
+\label{eq:beta-sum}
+\beta_t(q_t^*) = \prod_{t'=t}^{T-1} \p(q_{t'+1}^* |q_{t'}^*) \cdot \p(O_{t'+1} |q_{t'+1}^*), \, t = 1,\dots,T\!-\!1
+\end{equation}
+
+We also note that by adding a dummy state $q_0 = s_0^*$ at the front of $\q$, with observation $O_0$, 
+we can simplify Eq.~(\ref{eq:likelihood-backward}) and (\ref{eq:max-backward}) since dummy state $q_0$ is \emph{deterministic}:
+\begin{align*}
+\p(O_{1:T} ;\lambda) 
+&= \sum_{q_{1:T}} \p(O_{0:T}, q_0 = s_0^*, q_{1:T}; \lambda)
+ = \sum_{q_{1:T}} \p(O_{1:T}, q_{1:T} |q_0 = s_0^*; \lambda)
+ = \blue{\beta_0(s_0^*)} \\
+\max_{q_{1:T}} \p(O_{1:T}, q_{1:T}; \lambda) 
+&= \max_{q_{1:T}} \p(O_{0:T}, q_0 = s_0^*, q_{1:T}; \lambda)
+ = \max_{q_{1:T}} \p(O_{1:T}, q_{1:T} |q_0 = s_0^*; \lambda)
+ = \blue{\betat_0(s_0^*)}
+\end{align*}
+
 
 
 \section{The list Viterbi algorithm}
@@ -199,21 +233,22 @@ as well as observations $O_{1:T}$, given the model parameters $\lambda$, \ie
 \gamma_t(i,j) 
 &= \sum_{q_{1:t-1,t+2:T}} \p(O_{1:T}, q_{1:t-1}, q_t = s_i, q_{t+1} = s_j, q_{t+2:T} ;\lambda) \\
 &= \left[ \sum_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda) \right] \p(q_{t+1} = s_j |q_t = s_i) \cdot \p(O_{t+1} |q_{t+1} = s_j) 
-   \left[ \sum_{q_{t+2:T}} \p(O_{t+2:T}, q_{t+2:T} |q_{t+1} = s_j, \lambda) \right] \\
+   \left[ \sum_{q_{t+2:T}} \p(O_{t+2:T}, q_{t+2:T} |q_{t+1} = s_j; \lambda) \right] \\
 &= \alpha_t(i) \cdot a_{ij} \cdot b_j(O_{t+1}) \cdot \beta_{t+1}(j) 
    ~~~ \text{(by Eq.~\ref{eq:notebasic}, \ref{eq:alpha} and \ref{eq:beta})}.
 \end{aligned}
 \end{equation}
 
-While $\gamma_t(i,j)$ is the marginal joint probability of all possible observation-state pairs $(O_{1:T}, q_{1:t-1} s_i s_j q_{t+2:T})$ given the model,
-we can also compute the maximum joint probability over all possible observation-state pairs $(O_{1:T}, q_{1:t-1} s_i s_j q_{t+2:T})$, \ie
+While $\gamma_t(i,j)$ is the \emph{marginal} joint probability of all possible observation-state pairs 
+$(O_{1:T}, q_{1:t-1} s_i s_j q_{t+2:T})$ given the model,
+we can also compute the \emph{maximum} joint probability over all possible observation-state pairs $(O_{1:T}, q_{1:t-1} s_i s_j q_{t+2:T})$, \ie
 \begin{equation}
 \label{eq:gammat}
 \begin{aligned}
 \gammat_t(i,j) 
 &= \max_{q_{1:t-1,t+2:T}} \p(O_{1:T}, q_{1:t-1}, q_t = s_i, q_{t+1} = s_j, q_{t+2:T} ;\lambda) \\
 &= \left\{ \max_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda) \right\} \p(q_{t+1} = s_j |q_t = s_i) \cdot \p(O_{t+1} |q_{t+1} = s_j) 
-   \left\{ \max_{q_{t+2:T}} \p(O_{t+2:T}, q_{t+2:T} |q_{t+1} = s_j, \lambda) \right\} \\
+   \left\{ \max_{q_{t+2:T}} \p(O_{t+2:T}, q_{t+2:T} |q_{t+1} = s_j; \lambda) \right\} \\
 &= \alphat_t(i) \cdot a_{ij} \cdot b_j(O_{t+1}) \cdot \betat_{t+1}(j) 
    ~~~ \text{(by Eq.~\ref{eq:notebasic}, \ref{eq:alphat} and \ref{eq:betat})}.
 \end{aligned}
@@ -226,7 +261,7 @@ and the maximum joint probability is
 \gammat_t(i) 
 &= \max_{q_{1:t-1,t+1:T}} \p(O_{1:T}, q_{1:t-1}, q_t = s_i, q_{t+1:T} ;\lambda) \\
 &= \left\{ \max_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda) \right\}  
-   \left\{ \max_{q_{t+1:T}} \p(O_{t+1:T}, q_{t+1:T} |q_t = s_i, \lambda) \right\} \\
+   \left\{ \max_{q_{t+1:T}} \p(O_{t+1:T}, q_{t+1:T} |q_t = s_i; \lambda) \right\} \\
 &= \alphat_t(i) \cdot \betat_t(i) 
    ~~~ \text{(by Eq.~\ref{eq:notebasic}, \ref{eq:alphat} and \ref{eq:betat})}.
 \end{aligned}
@@ -319,7 +354,62 @@ and the result follows.
 \label{ssec:2ndbest}
 
 Suppose $\q^* = q_{1:T}^*$ is the state sequence with highest probability,
-to find the second best sequence, we have
+then the second best sequence $\q^2 = \argmax_{\q \ne \q^*} \p(q_{1:T}, O_{1:T}; \lambda)$.
+Let 
+\begin{equation}
+\delta_t(\q^*) = \max_{q_{t:T} \ne q_{t:T}^*} \p(q_{t:T}, O_{t:T} |q_{t-1} = q_{t-1}^*; \lambda),
+\end{equation}
+and note that $\delta_1(\q^*) = \max_{q_{1:T} \ne q_{1:T}^*} \p(q_{1:T}, O_{1:T}; \lambda)$, 
+we can break $q_{1:T} \ne q_{1:T}^*$ into two cases:
+\begin{itemize}
+\item $q_1 \ne q_1^*$, we maximise over all possible $q_{2:T}$;
+\item $q_1 = q_1^*$ and $q_{2:T} \ne q_{2:T}^*$, this is a recursive case.
+\end{itemize}
+If we unrolling the above recursive cases till time instant $t = T$, we get the approach to find the second best sequence 
+that described in~\cite{nilsson2001sequentially}.
+
+On the other hand, we can break $q_{1:T} \ne q_{1:T}^*$ into another two cases:
+\begin{itemize}
+\item $q_T \ne q_T^*$, we maximise over all possible $q_{2:T}$;
+\item $q_T = q_T^*$ and $q_{1:T-1} \ne q_{1:T-1}^*$, this is a recursive case.
+\end{itemize}
+If we unrolling the above recursive cases till time instant $t = 1$, we get the approach to find the second best sequence 
+that described in~\cite{seshadri1994list}.
+
+In particular, for the first approach, we have
+\begin{equation*}
+\begin{split}
+\delta_1(q_{1:T}^*) 
+%= \max_{q_{1:T} \ne q_{1:T}^*} \p(q_{1:T}, O_{1:T}; \lambda) \\
+= \max \Bigg\{ & \left[ \max_{q_1 \ne q_1^*, \, q_{2:T}} \p(q_1 \ne q_1^*, q_{2:T}, O_{1:T}; \lambda) \right],
+                 \left[ \max_{q_1 = q_1^*, \, q_{2:T} \ne q_{2:T}^*} \p(q_1 = q_1^*, q_{2:T}, O_{1:T}; \lambda) \right] \Bigg\} \\
+%= \max \Bigg\{ & \left[ \max_{s_i \ne q_1^*} \max_{q_{2:T}} \p(q_1 = s_i, q_{2:T}, O_{1:T}; \lambda) \right], \\
+%               & \left[ \max_{q_{2:T} \ne q_{2:T}^*} \p(q_1 = q_1^*, q_{2:T}, O_{1:T}; \lambda) \right]                 \Bigg\} \\
+= \max \Bigg\{ & \left[ \max_{s_i \ne q_1^*} \left\{ \max_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i; \lambda) \right\} 
+                 \p(q_1 = s_i) \cdot \p(O_1 |q_1 = s_i) \right], \\ 
+               & \left[ \left\{ \max_{q_{2:T} \ne q_{2:T}^*} \p(q_{2:T}, O_{2:T} |q_1 = q_1^*; \lambda) \right\}
+                 \p(q_1 = q_1^*) \cdot \p(O_1 |q_1 = q_1^*) \right] \Bigg\} \\
+= \max \Bigg\{ & \left[ \max_{s_i \ne q_1^*} \betat_1(s_i) \cdot \p(q_1 = s_i) \cdot \p(O_1 |q_1 = s_i) \right], 
+                 \Bigg[ \delta_2(\q^*) \cdot \alphat_1(q_1^*) \Bigg] \Bigg\} \\
+= \max \Bigg\{ & \left[ \max_{s_i \ne q_1^*} \betat_1(s_i) \cdot \p(q_1 = s_i) \cdot \p(O_1 |q_1 = s_i) \right], \\
+               & \left[ \max_{s_j \ne q_2^*} \left\{ \max_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j; \lambda) \right\} \p(q_2 = s_j |q_1 = q_1^*) 
+                 \cdot \p(O_2 |q_2 = s_j) \cdot \alphat_1(q_1^*) \right], \\
+               & \left[ \left\{ \max_{q_{3:T} \ne q_{3:T}^*} \p(q_{3:T}, O_{3:T} |q_2 = q_2^*; \lambda) \right\}
+                 \p(q_2 = q_2^* |q_1 = q_1^*) \cdot \p(O_2 |q_2 = q_2^*) \cdot \alphat_1(q_1^*) \right] \Bigg\} \\
+= \max \Bigg\{ & \left[ \max_{s_i \ne q_1^*} \betat_1(s_i) \cdot \p(q_1 = s_i) \cdot \p(O_1 |q_1 = s_i) \right], \\
+               & \left[ \max_{s_j \ne q_2^*} \betat_2(s_j) \cdot \p(q_2 = s_j |q_1 = q_1^*) \cdot \p(O_2 |q_2 = s_j) \cdot \alphat_1(q_1^*) \right], \\
+               & \Bigg[ \delta_3(\q^*) \cdot \alphat_2(q_2^*) \Bigg] \Bigg\} \\
+= \cdots \hspace{14pt} & \\
+= \max \Bigg\{ & \left[ \max_{s_i \ne q_1^*} \betat_1(s_i) \cdot \p(q_1 = s_i) \cdot \p(O_1 |q_1 = s_i) \right], 
+                 \cdots, \\
+               & \left[ \max_{s \ne q_t^*} \betat_t(s) \cdot \p(q_t=s |q_{t-1} = q_{t-1}^*) \cdot \p(O_t |q_t=s) \cdot \alphat_{t-1}(q_{t-1}^*) \right], 
+                 \cdots, \\
+               & \left[ \left\{ \max_{q_T \ne q_{T}^*} \p(q_T, O_T |q_{T-1} = q_{T-1}^*; \lambda) \right\} \alphat_{T-1}(q_{T-1}^*) \right] \Bigg\}
+\end{split}
+\end{equation*}
+
+
+
 \begin{align*}
 &\max_{\q \ne \q^*} \p(q_{1:T}, O_{1:T}; \lambda) \\
 &= \max_{q_{1:T} \ne q_{1:T}^*} \p(q_{1:T}, q_{T+1} = s_{T+1}^*, O_{1:T+1}) \\
@@ -339,17 +429,3 @@ to find the second best sequence, we have
    \right\} 
 \end{align*}
 %Let $\delta_T = \max_{\q \ne \q^*} \p(q_{1:T}, O_{1:T}; \lambda)$
-
-Alternatively, we have
-\begin{align*}
-&\max_{q_{1:T} \ne q_{1:T}^*} \p(q_{1:T}, O_{1:T}; \lambda) \\
-&= \max \left\{
-    \max_{q_1 \ne q_1^*, \, q_{2:T}} \p(q_1 \ne q_1^*, q_{2:T}, O_{1:T}), \,
-    \max_{q_1 = q_1^*, \, q_{2:T} \ne q_{2:T}^*} \p(q_1 = q_1^*, q_{2:T}, O_{1:T+1}) 
-   \right\} \\
-&= \max \left\{
-    \max_{s_i \ne q_1^*} \left\{ \max_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i) \p(O_1 |q_1 = s_i) \right\}, \,
-    \p(q_1^*, O_1) \max_{q_{2:T} \ne q_{2:T}^*} \p(q_{2:T}, O_{2:T} |q_1 = q_1^*) 
-   \right\}
-\end{align*}
-
