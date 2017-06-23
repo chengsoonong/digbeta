@@ -1,11 +1,9 @@
-%\documentclass[10pt,a4paper]{article}
 %\documentclass[twocolumn,10pt,a4paper]{article}
-%\documentclass[twocolumn,a4wide,9pt]{extarticle}
 \documentclass[9pt]{extarticle}
 \usepackage[a4paper,top=0.79in,left=0.79in,bottom=0.79in,right=0.79in]{geometry} % A4 paper margins in LibreOffice
-%\usepackage[a4paper,top=0.5in,left=0.6in,bottom=0.79in,right=0.79in]{geometry} % A4 paper margins in LibreOffice
 \usepackage{hyperref}
 \usepackage{amsmath}
+\usepackage{amsthm}
 \usepackage{amsfonts}
 \usepackage{mathrsfs}
 \usepackage{bm}
@@ -20,8 +18,15 @@
 \usepackage{footmisc}   % \footref, refer the same footnote at different places
 \usepackage{subcaption} % sub-figures
 \usepackage{setspace}   % set space between lines
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{xcolor}
 \usepackage{graphicx}
 \graphicspath{{fig/}}   % Location of the graphics files
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
 
 \DeclareMathOperator*{\argmin}{argmin}
 \DeclareMathOperator*{\argmax}{argmax}
@@ -34,9 +39,16 @@
 \newcommand{\x}{\mathbf{x}}
 \newcommand{\y}{\mathbf{y}}
 \newcommand{\w}{\mathbf{w}}
+\newcommand{\p}{\mathbb{P}}
+\newcommand{\q}{\mathbf{q}}
+\newcommand{\alphat}{\tilde{\alpha}}
+\newcommand{\betat}{\tilde{\beta}}
+\newcommand{\gammat}{\tilde{\gamma}}
 
 \newcommand{\eg}{e.g.\ }
 \newcommand{\ie}{i.e.\ }
+\newcommand{\downto}{\,\textbf{downto}\,}
+\newcommand{\blue}[1]{{\color{blue}{#1}}}
 
 \setlength{\columnsep}{1.5em} % spacing between columns
 
@@ -51,19 +63,25 @@
 \maketitle
 
 \input{problem}
-\input{metric_rank}
-\input{metric_sequence}
-\input{cutting_plane}
+
+\input{metric/metric_rank}
+\input{metric/metric_sequence}
+
+\input{cutting_plane/cutting_plane}
+\input{cutting_plane/ssvm}
+
+\input{list_viterbi/forward}
+\input{list_viterbi/backward}
+\input{list_viterbi/lva_basic}
+\input{list_viterbi/lva_2best}
+\input{list_viterbi/list_viterbi}
+
+\input{playlist/playlist}
 \input{methods}
 \input{experiment}
-\input{list_viterbi}
-\input{playlist}
 
-
-
-%\bibliographystyle{ieeetr}
-\bibliographystyle{apalike}
+\bibliographystyle{ieeetr}
+%\bibliographystyle{apalike}
 \bibliography{ref,ref_music}
-
 
 \end{document}

@@ -1,0 +1,110 @@
+Given a hidden Markov model (HMM) with parameters $\lambda = (A, B, \pi)$,
+$A = \{a_{ij}\}$, $B = \{b_j(v_k)\}$, $\pi = \{\pi_i\}$, 
+state sequence $\q = q_{1:T} = q_1 q_2 \cdots q_T, \, q_t \in \{s_i\}_{i=1}^N$,
+and observation sequence $O_{1:T} = O_1 O_2 \cdots O_T, \, O_t \in \{v_k\}_{k=1}^M$ and
+\begin{equation}
+\label{eq:notebasic}
+\begin{aligned}
+a_{ij} = a(s_i, s_j)   & \doteq \p(q_{t+1} = s_j |q_{t} = s_i), & 1 \le i,j \le N \\
+b_j(v_k) = b(s_j, v_k) & \doteq \p(v_k |s_j),                   & 1 \le j \le N, \, 1 \le k \le M   \\
+\pi_i = \pi(s_i)       & \doteq \p(q_1 = s_i),                  & 1 \le i \le N.
+\end{aligned}
+\end{equation}
+
+% graphical model for HMM
+
+% describe three problems: compute likelihood; identity the best sequence; training HMM using EM
+
+\section{The forward procedure and Viterbi algorithm}
+\label{sec:forward}
+
+The likelihood of observation sequence $O_{1:T}$ is
+\begin{align*}
+\p(O_{1:T} ;\lambda) 
+&= \sum_{i} \p(O_{1:T}, q_T = s_i ;\lambda) \\
+&= \sum_{i} \left[ \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j ;\lambda) \cdot \p(q_T = s_i |q_{T-1} = s_j) \right] \p(O_T |q_T = s_i) \\
+&= \sum_{i} \left[ \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j ;\lambda) \cdot a_{ji} \right] b_i(O_T)
+\end{align*}
+where we use the simplified notation $\p(O_{1:t}, q_t = s_i ;\lambda)$ to denote $\sum_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda)$,
+%\begin{equation}
+%\label{eq:notesimp}
+%\p(O_{1:t}, q_t = s_i ;\lambda) \doteq \sum_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda).
+%\end{equation}
+and let
+\begin{equation}
+\label{eq:alpha}
+\alpha_t(i) = \p(O_{1:t}, q_t = s_i ;\lambda) \doteq \sum_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda),
+\end{equation}
+then the likelihood of $O_{1:T}$ is
+\begin{alignat}{2}
+\p(O_{1:T} ;\lambda) 
+&= \sum_{i} \p(O_{1:T}, q_T = s_i ;\lambda) 
+ = \blue{\sum_{i} \alpha_T(i)}  \label{eq:likelihood-forward} \\
+&= \sum_{i} \left[ \sum_{j} \p(O_{1:T-1}, q_{T-1} = s_j ;\lambda) \right] a_{ji} \cdot b_i(O_T) 
+ = \blue{\sum_{i} \left[ \sum_{j} \alpha_{T-1}(j) \cdot a_{ji} \right] b_i(O_T)}. \nonumber
+\end{alignat}
+We can repeat the above procedure to decompose $\alpha_{T-1}(j)$, in general, we have
+\begin{equation}
+\label{eq:forward-sum}
+\alpha_t(i) = \begin{cases}
+               \left[ \sum_{j} \alpha_{t-1}(j) \cdot a_{ji} \right] b_i(O_t), & t=2,\dots,T \\
+               \pi_i \cdot b_i(O_t), & t=1.
+              \end{cases}
+\end{equation}
+
+Computing the $\alpha_t(i)$ values by Eq.~(\ref{eq:forward-sum}) is known as the \emph{forward procedure}, 
+and the likelihood of observation sequence $O_{1:T}$ can be computed using Eq.~(\ref{eq:likelihood-forward}).
+
+To compute the highest probability state sequence $q_{1:T}^*$ given observations $O_{1:T}$, we have
+\begin{equation*}
+q_{1:T}^* = \argmax_{q_{1:T}} \p(O_{1:T}, q_{1:T} ;\lambda).
+\end{equation*}
+Observe that 
+\begin{align*}
+\max_{q_{1:T}} \p(O_{1:T}, q_{1:T} ;\lambda) 
+&= \max_{i} \left\{ \max_{q_{1:T-1}} \p(O_{1:T}, q_{1:T-1}, q_T = s_i ;\lambda) \right\} \\
+&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{1:T-2}} \p(O_{1:T-1}, q_{1:T-2}, q_{T-1} = s_j ;\lambda) \cdot 
+   \p(q_T = s_i |q_{T-1} = s_j) \right\} \p(O_T |q_T = s_i) \right\} \\
+&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{1:T-2}} \p(O_{1:T-1}, q_{1:T-2}, q_{T-1} = s_j ;\lambda) \cdot a_{ji} \right\} b_i(O_T) \right\}
+\end{align*}
+and let 
+\begin{equation}
+\label{eq:alphat}
+\alphat_{t}(i) = \max_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda),
+\end{equation}
+we have
+\begin{alignat}{2}
+\max_{q_{1:T}} \p(O_{1:T}, q_{1:T} ;\lambda) 
+&= \max_{i} \left\{ \max_{q_{1:T-1}} \p(O_{1:T}, q_{1:T-1}, q_T = s_i ;\lambda) \right\} 
+ = \blue{\max_{i} \alphat_{T}(i)} \label{eq:max-forward} \\
+&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{1:T-2}} \p(O_{1:T-1}, q_{1:T-2}, q_{T-1} = s_j ;\lambda) \cdot a_{ji} \right\} b_i(O_T) \right\}
+ = \blue{\max_{i} \left\{ \max_{j} \left\{ \alphat_{T-1}(j) \cdot a_{ji} \right\} b_i(O_T) \right\}}. \nonumber
+\end{alignat}
+We can repeat the above procedure to decompose $\alphat_{T-1}(j)$, in general, we have
+\begin{equation}
+\label{eq:forward-max}
+\alphat_t(i) = \begin{cases}
+                \left[ \max_{j} \alphat_{t-1}(j) \cdot a_{ji} \right] b_i(O_t), & t=2,\dots,T \\
+                \pi_i \cdot b_i(O_t), & t=1.
+               \end{cases}
+\end{equation}
+
+Compare Eq.~(\ref{eq:forward-sum}) with Eq.~(\ref{eq:forward-max}), 
+the only difference is that Eq.~(\ref{eq:forward-max}) uses \emph{maximisation} instead of \emph{summation}.
+Computing the $\alphat_t(i)$ values by Eq.~(\ref{eq:forward-max}) is known as the \emph{Viterbi algorithm}, 
+and the/a sequence $\q^* = q_{1:T}^*$ with highest probability can be identified via back-tracking, and
+\begin{equation}
+\label{eq:alpha-sum}
+\alpha_t(q_t^*) = \p(q_1^*) \cdot \p(O_1 |q_1^*) \left[ \prod_{t'=2}^t \p(q_{t'}^* |q_{t'-1}^*) \cdot \p(O_{t'} |q_{t'}^*) \right], \, t = 1,\dots,T
+\end{equation}
+
+We note that by adding a dummy state $q_{T+1} = s_{T+1}^*$ at the end of $\q$, with observation $O_{T+1}$, 
+we can simplify Eq.~(\ref{eq:likelihood-forward}) and (\ref{eq:max-forward}) since dummy state $q_{T+1}$ is \emph{deterministic}:
+\begin{align*}
+\p(O_{1:T}; \lambda) 
+&= \sum_{q_{1:T}} \p(O_{1:T+1}, q_{1:T}, q_{T+1} = s_{T+1}^*; \lambda)
+ = \blue{\alpha_{T+1}(s_{T+1}^*)} \\
+\max_{q_{1:T}} \p(O_{1:T}, q_{1:T}; \lambda) 
+&= \max_{q_{1:T}} \p(O_{1:T+1}, q_{1:T}, q_{T+1} = s_{T+1}^*; \lambda)
+ = \blue{\alphat_{T+1}(s_{T+1}^*)}
+\end{align*}

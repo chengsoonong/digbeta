@@ -1,0 +1,109 @@
+\section{The backward procedure}
+\label{sec:backward}
+
+Similar to the forward procedure and the Viterbi algorithm, 
+we can compute the likelihood of observations $O_{1:T}$ and identity the state sequence with highest probability by computing backwards.
+By making use of conditional independences encoded by the HMM:
+\begin{alignat}{2}
+& q_t \perp q_{t' \notin \{t-1,t\}} \mid q_{t-1} \text{~and~} q_t \perp O_{1:T} \mid q_{t-1}, \, \forall t=2,\dots,T  \label{eq:indep1} \\
+& O_t \perp q_{t' \ne t} \mid q_t \text{~and~} O_t \perp O_{t' \ne t} \mid q_t, \, \forall t=1,\dots,T                \label{eq:indep2}
+\end{alignat}
+The likelihood of $O_{1:T}$ is 
+\begin{align*}
+\p(O_{1:T} ;\lambda) 
+&= \sum_{q_{1:T}} \p(O_{1:T},q_{1:T} ;\lambda) \\
+&= \sum_{i} \sum_{q_{2:T}} \p(q_1 = s_i, q_{2:T}, O_{1:T} ;\lambda) \\
+&= \sum_{i} \left[ \sum_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i; \lambda) \right] \p(q_1 = s_i) \cdot \p(O_1 |q_1 = s_i) 
+   ~~~ \text{(by Eq.~\ref{eq:indep1} and Eq.~\ref{eq:indep2})} \\
+%&= \sum_{q_{2:T}} \sum_{i} \p(q_{2:T}, O_{2:T} |q_1 = s_i; \lambda) \cdot \pi_i \cdot b_i(O_1) \\
+&= \sum_{i} \left[ \sum_{j} \sum_{q_{3:T}} \p(q_2 = s_j, q_{3:T}, O_{2:T} |q_1 = s_i; \lambda) \right] \pi_i \cdot b_i(O_1) \\
+&= \sum_{i} \left[ \sum_{j} \left[ \sum_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j; \lambda) \right] \p(q_2 = s_j |q_1 = s_i) \cdot \p(O_2 |q_2 = s_j) 
+   \right] \pi_i \cdot b_i(O_1) 
+   ~~~ \text{(by Eq.~\ref{eq:indep1} and Eq.~\ref{eq:indep2})}
+%&= \sum_{i} \left[ \sum_{j} \left[ \sum_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j; \lambda) \right] a_{ij} \cdot b_j(O_2) \right] \pi_i \cdot b_i(O_1) 
+\end{align*}
+
+%Let $\beta_t(i) = \p(O_{t+1:T} |q_t = s_i; \lambda)$ with notation simplification
+%\p(O_{t+1:T} |q_t = s_i; \lambda) \doteq \sum_{q_{t+1:T}} \p(q_{t+1:T}, O_{t+1:T} |q_t = s_i; \lambda),
+
+Let 
+\begin{equation}
+\label{eq:beta}
+\beta_t(i) = \p(O_{t+1:T} |q_t = s_i; \lambda) \doteq \sum_{q_{t+1:T}} \p(q_{t+1:T}, O_{t+1:T} |q_t = s_i; \lambda),
+\end{equation}
+with notation simplification similar to Eq.~(\ref{eq:alpha}), we have
+\begin{alignat}{2}
+\p(O_{1:T} ;\lambda) 
+&= \sum_{i} \left[ \sum_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i; \lambda) \right] \pi_i \cdot b_i(O_1) 
+ = \blue{\sum_{i} \beta_1(i) \cdot \pi_i \cdot b_i(O_1)}  \label{eq:likelihood-backward} \\
+&= \sum_{i} \left[ \sum_{j} \left[ \sum_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j; \lambda) \right] a_{ij} \cdot b_j(O_2) \right] \pi_i \cdot b_i(O_1) 
+ = \blue{\sum_{i} \left[ \sum_{j} \beta_2(j) \cdot a_{ij} \cdot b_j(O_2) \right] \pi_i \cdot b_i(O_1)}  \nonumber
+\end{alignat}
+We can repeat the above procedure to decompose $\beta_2(j)$, in general, we have
+\begin{equation}
+\label{eq:backward-sum}
+\beta_t(i) = \begin{cases}
+              1, & t=T \\
+              \sum_{j} \beta_{t+1}(j) \cdot a_{ij} \cdot b_j(O_{t+1}), & t=T\!-\!1 \downto 1.
+             \end{cases}
+\end{equation}
+
+Computing the $\beta_t(i)$ values by Eq.~(\ref{eq:backward-sum}) is known as the \emph{backward procedure}, 
+and the likelihood of observation sequence $O_{1:T}$ can be computed using Eq.~(\ref{eq:likelihood-backward}).
+
+Similarly, to identity the highest probability state sequence $q_{1:T}^*$ given observations $O_{1:T}$, 
+we observe that 
+\begin{align*}
+\max_{q_{1:T}} \p(O_{1:T}, q_{1:T} ;\lambda) 
+&= \max_{i} \max_{q_{2:T}} \p(q_1 = s_i, q_{2:T}, O_{1:T} ;\lambda) \\
+&= \max_{i} \left\{ \max_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i; \lambda) \right\} \p(q_1 = s_i) \cdot \p(O_1 |q_1 = s_i) 
+   ~~~ \text{(by Eq.~\ref{eq:indep1} and Eq.~\ref{eq:indep2})} \\
+&= \max_{i} \left\{ \max_{j} \max_{q_{3:T}} \p(q_2 = s_j, q_{3:T}, O_{2:T} |q_1 = s_i; \lambda) \right\} \pi_i \cdot b_i(O_1) \\
+&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j; \lambda) \right\} \p(q_2 = s_j |q_1 = s_i) \cdot \p(O_2 |q_2 = s_j) 
+   \right\} \pi_i \cdot b_i(O_1) 
+   ~~~ \text{(by Eq.~\ref{eq:indep1} and Eq.~\ref{eq:indep2})}
+\end{align*}
+Let 
+\begin{equation}
+\label{eq:betat}
+\betat_t(i) = \max_{q_{t+1:T}} \p(q_{t+1:T}, O_{t+1:T} |q_t = s_i; \lambda),
+\end{equation}
+we have
+\begin{alignat}{2}
+\max_{q_{1:T}} \p(O_{1:T}, q_{1:T} ;\lambda) 
+&= \max_{i} \left\{ \max_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i; \lambda) \right\} \pi_i \cdot b_i(O_1) 
+ = \blue{\max_{i} \betat_1(i) \cdot \pi_i \cdot b_i(O_1)}  \label{eq:max-backward}\\
+&= \max_{i} \left\{ \max_{j} \left\{ \max_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j; \lambda) \right\} a_{ij} \cdot b_j(O_2) \right\} \pi_i \cdot b_i(O_1) 
+ = \blue{\max_{i} \left\{ \max_{j} \betat_2(j) \cdot a_{ij} \cdot b_j(O_2) \right\} \pi_i \cdot b_i(O_1)}  \nonumber
+\end{alignat}
+We can repeat the above procedure to decompose $\betat_2(j)$, in general, we have
+\begin{equation}
+\label{eq:backward-max}
+\betat_t(i) = \begin{cases}
+              1, & t=T \\
+              \max_{j} \betat_{t+1}(j) \cdot a_{ij} \cdot b_j(O_{t+1}), & t=T\!-\!1 \downto 1.
+             \end{cases}
+\end{equation}
+
+Compare Eq.~(\ref{eq:backward-sum}) with Eq.~(\ref{eq:backward-max}), 
+the only difference is that Eq.~(\ref{eq:backward-max}) uses \emph{maximisation} instead of \emph{summation} (used in Eq.~\ref{eq:backward-sum}).
+It is also interesting to compare Eq.~(\ref{eq:forward-max}) with Eq.~(\ref{eq:backward-max}), 
+the latter can be treated as the Viterbi algorithm works backwards, 
+and the/a sequence $q_{1:T}^*$ with highest probability can be identified via \emph{forward}-tracking, and
+\begin{equation}
+\label{eq:beta-sum}
+\beta_t(q_t^*) = \prod_{t'=t}^{T-1} \p(q_{t'+1}^* |q_{t'}^*) \cdot \p(O_{t'+1} |q_{t'+1}^*), \, t = 1,\dots,T\!-\!1
+\end{equation}
+
+We also note that by adding a dummy state $q_0 = s_0^*$ at the front of $\q$, with observation $O_0$, 
+we can simplify Eq.~(\ref{eq:likelihood-backward}) and (\ref{eq:max-backward}) since dummy state $q_0$ is \emph{deterministic}:
+\begin{align*}
+\p(O_{1:T} ;\lambda) 
+&= \sum_{q_{1:T}} \p(O_{0:T}, q_0 = s_0^*, q_{1:T}; \lambda)
+ = \sum_{q_{1:T}} \p(O_{1:T}, q_{1:T} |q_0 = s_0^*; \lambda)
+ = \blue{\beta_0(s_0^*)} \\
+\max_{q_{1:T}} \p(O_{1:T}, q_{1:T}; \lambda) 
+&= \max_{q_{1:T}} \p(O_{0:T}, q_0 = s_0^*, q_{1:T}; \lambda)
+ = \max_{q_{1:T}} \p(O_{1:T}, q_{1:T} |q_0 = s_0^*; \lambda)
+ = \blue{\betat_0(s_0^*)}
+\end{align*}

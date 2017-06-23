@@ -1,0 +1,121 @@
+\subsection{Find the second best sequence}
+\label{ssec:2ndbest}
+
+Suppose $\q^* = q_{1:T}^*$ is the state sequence with highest probability,
+then the second best sequence $\q^2 = \argmax_{\q \ne \q^*} \p(q_{1:T}, O_{1:T}; \lambda)$.
+Let 
+\begin{equation}
+\phi_t(\q^*) = \max_{q_{t+1:T} \ne q_{t+1:T}^*} \p(q_{t+1:T}, O_{t+1:T} |q_t = q_t^*; \lambda),
+\end{equation}
+and note that 
+$\phi_0(\q^*) = \max_{q_{1:T} \ne q_{1:T}^*} \p(q_{1:T}, O_{1:T} |q_0 = s_0^*; \lambda) = \max_{q_{1:T} \ne q_{1:T}^*} \p(q_{1:T}, O_{1:T}; \lambda)$
+since dummy state $q_0$ is deterministic, and we can break $q_{1:T} \ne q_{1:T}^*$ into two cases:
+\begin{itemize}
+\item $q_1 \ne q_1^*$, we maximise over all possible $q_{2:T}$;
+\item $q_1 = q_1^*$ and $q_{2:T} \ne q_{2:T}^*$, this is a recursive case.
+\end{itemize}
+If we unrolling the above recursive cases till time instant $t = T$, we get the approach to find the second best sequence 
+that described in~\cite{nilsson2001sequentially}.
+
+On the other hand, we can break $q_{1:T} \ne q_{1:T}^*$ into another two cases:
+\begin{itemize}
+\item $q_T \ne q_T^*$, we maximise over all possible $q_{2:T}$;
+\item $q_T = q_T^*$ and $q_{1:T-1} \ne q_{1:T-1}^*$, this is a recursive case.
+\end{itemize}
+If we unrolling the above recursive cases till time instant $t = 1$, we get the approach to find the second best sequence 
+that described in~\cite{seshadri1994list}.
+
+In particular, for the first approach, we have
+\begin{equation*}
+\begin{aligned}
+\phi_0(\q^*) 
+&= \max_{q_{1:T} \ne q_{1:T}^*} \p(q_{1:T}, O_{1:T}; \lambda) \\
+&= \max \begin{cases}
+          \max_{q_1 \ne q_1^*, \, q_{2:T}} \p(q_1 \ne q_1^*, q_{2:T}, O_{1:T}; \lambda) \\
+          \max_{q_1 = q_1^*, \, q_{2:T} \ne q_{2:T}^*} \p(q_1 = q_1^*, q_{2:T}, O_{1:T}; \lambda)
+       \end{cases} \\
+&= \max \begin{cases}
+          \max_{s_i \ne q_1^*} \left[ \max_{q_{2:T}} \p(q_{2:T}, O_{2:T} |q_1 = s_i; \lambda) \right] \p(q_1 = s_i) \cdot \p(O_1 |q_1 = s_i) \\ 
+          \left[ \max_{q_{2:T} \ne q_{2:T}^*} \p(q_{2:T}, O_{2:T} |q_1 = q_1^*; \lambda) \right] \p(q_1 = q_1^*) \cdot \p(O_1 |q_1 = q_1^*)
+        \end{cases} \\
+&= \max \begin{cases} 
+          \max_{s_i \ne q_1^*} \betat_1(s_i) \cdot \alphat_1(s_i) \\
+          \phi_1(\q^*) \cdot \alphat_1(q_1^*)
+        \end{cases} \\
+&= \max \begin{cases}
+          \max_{s_i \ne q_1^*} \betat_1(s_i) \cdot \alphat_1(s_i) \\
+          \max \begin{cases}
+            \max_{s_j \ne q_2^*} \left[ \max_{q_{3:T}} \p(q_{3:T}, O_{3:T} |q_2 = s_j; \lambda) \right] \p(q_2 = s_j |q_1 = q_1^*) \cdot 
+                 \p(O_2 |q_2 = s_j) \cdot \alphat_1(q_1^*) \\
+            \left[ \max_{q_{3:T} \ne q_{3:T}^*} \p(q_{3:T}, O_{3:T} |q_2 = q_2^*; \lambda) \right]
+                 \p(q_2 = q_2^* |q_1 = q_1^*) \cdot \p(O_2 |q_2 = q_2^*) \cdot \alphat_1(q_1^*)
+          \end{cases}
+        \end{cases} \\
+&= \max \begin{cases}
+          \max_{s_i \ne q_1^*} \betat_1(s_i) \cdot \alphat_1(s_i) \\
+          \max_{s_j \ne q_2^*} \betat_2(s_j) \cdot \alphat_2(s_j) \\
+          \phi_2(\q^*) \cdot \alphat_2(q_2^*)
+        \end{cases}
+\end{aligned}
+\end{equation*}
+We can repeat the above procedure to decompose $\phi_2(\q^*)$, in general, we have
+\begin{equation*}
+\begin{aligned}
+\phi_t(\q^*) 
+&= \max \begin{cases}
+          \max_{s \ne q_{t+1}^*} \left[ \max_{q_{t+2:T}} \p(q_{t+2:T}, O_{t+2:T} |q_{t+1} = s; \lambda) \right] \p(q_{t+1} = s |q_t = q_t^*) \cdot 
+               \p(O_{t+1} |q_{t+1} = s) \\
+          \left[ \max_{q_{t+2:T} \ne q_{t+2:T}^*} \p(q_{t+2:T}, O_{t+2:T} |q_{t+1} = q_{t+1}^*; \lambda) \right]
+               \p(q_{t+1} = q_{t+1}^* |q_t = q_t^*) \cdot \p(O_{t+1} |q_{t+1} = q_{t+1}^*)
+        \end{cases}  \forall t \in \{1,\dots,T-1\} \\
+&= \max \begin{cases}
+          \max_{s \ne q_{t+1}^*} \betat_{t+1}(s) \cdot a(q_t^*, s) \cdot b(s, O_{t+1}) \\
+          \phi_{t+1}(\q^*) \cdot a(q_t^*, q_{t+1}^*) \cdot b(q_{t+1}^*, O_{t+1})
+        \end{cases}  \forall t \in \{1,\dots,T-1\} \\
+&= \max \begin{cases}
+          \max_{s \ne q_{t+1}^*} \betat_{t+1}(s) \frac{\alphat_{t+1}(s)}         {\alphat_t(q_t^*)} \\
+          \phi_{t+1}(\q^*)                       \frac{\alphat_{t+1}(q_{t+1}^*)} {\alphat_t(q_t^*)}
+        \end{cases}  \forall t \in \{1,\dots,T-1\} \\
+\end{aligned}
+\end{equation*}
+and 
+\begin{equation*}
+\begin{aligned}
+\phi_0(\q^*) 
+&= \max_{q_{1:T} \ne q_{1:T}^*} \p(q_{1:T}, O_{1:T}; \lambda) \\
+&= \max \begin{cases}
+           \max_{t \in \{1,\dots,T-1\}} \max_{s \ne q_t^*} \betat_t(s) \cdot \alphat_t(s) \\
+           \phi_{T-1}(\q^*) \cdot \alphat_{T-1}(q_{T-1}^*)
+        \end{cases} \\
+&= \max \begin{cases}
+           \max_{t \in \{1,\dots,T-1\}} \max_{s \ne q_t^*} \betat_t(s) \cdot \alphat_t(s) \\
+           \max_{s \ne q_{T}^*} \betat_{T-1}(s) \cdot \alphat_{T-1}(q_{T-1}^*)
+        \end{cases} \\
+&= \max \begin{cases}
+           \max_{t \in \{1,\dots,T-1\}} \max_{s \ne q_t^*} \betat_t(s) \cdot \alphat_t(s) \\
+           \max_{s \ne q_{T}^*} \betat_{T-1}(s) \cdot \alphat_{T-1}(q_{T-1}^*)
+        \end{cases}
+\end{aligned}
+\end{equation*}
+
+
+
+\begin{align*}
+&\max_{\q \ne \q^*} \p(q_{1:T}, O_{1:T}; \lambda) \\
+&= \max_{q_{1:T} \ne q_{1:T}^*} \p(q_{1:T}, q_{T+1} = s_{T+1}^*, O_{1:T+1}) \\
+&= \max \left\{
+    \max_{q_{1:T-1}, \, q_T \ne q_T^*} \p(q_{1:T-1}, q_T \ne q_T^*, q_{T+1} = s_{T+1}^*, O_{1:T}), \,
+    \max_{q_{1:T-1} \ne q_{1:T-1}^*, \, q_T = q_T^*} \p(q_{1:T-1}, q_T = q_T^*, q_{T+1} = s_{T+1}^*, O_{1:T+1}) 
+   \right\} \\
+&= \max \left\{
+   \max_{s_i \ne q_T^*} \left\{ \max_{q_{1:T-1}} \p(q_{1:T-1}, q_T = s_i, O_{1:T}) \right\} 
+        \p(s_{T+1}^* |s_i) \p(O_{T+1} | s_{T+1}^*), \,
+   \max_{q_{1:T-1} \ne q_{1:T-1}^*} \p(q_{1:T-1}, q_T = q_T^*, O_{1:T}) \p(s_{T+1}^* |q_{T}^*) \p(O_{T+1} |q_{T+1}^*)
+   \right\} \\
+&= \max \left\{
+   \max_{s_i \ne q_T^*} \alphat_{T}(i)
+        \p(s_{T+1}^* |s_i) \p(O_{T+1} | s_{T+1}^*), \,
+   \max_{q_{1:T-1} \ne q_{1:T-1}^*} \p(q_{1:T-1}, q_T = q_T^*, O_{1:T}) \p(s_{T+1}^* |q_{T}^*) \p(O_{T+1} |q_{T+1}^*)
+   \right\} 
+\end{align*}
+%Let $\delta_T = \max_{\q \ne \q^*} \p(q_{1:T}, O_{1:T}; \lambda)$

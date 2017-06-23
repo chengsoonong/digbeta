@@ -1,0 +1,127 @@
+\section{The list Viterbi algorithm}
+\label{sec:lva}
+
+Let $\gamma_t(i,j)$ denote the probability of being in state $s_i$ at time $t$, and state $s_j$ at time $t\!+\!1$, 
+as well as observations $O_{1:T}$, given the model parameters $\lambda$, \ie
+\begin{equation}
+\label{eq:gamma}
+\begin{aligned}
+\gamma_t(i,j) 
+&= \sum_{q_{1:t-1,t+2:T}} \p(O_{1:T}, q_{1:t-1}, q_t = s_i, q_{t+1} = s_j, q_{t+2:T} ;\lambda) \\
+&= \left[ \sum_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda) \right] \p(q_{t+1} = s_j |q_t = s_i) \cdot \p(O_{t+1} |q_{t+1} = s_j) 
+   \left[ \sum_{q_{t+2:T}} \p(O_{t+2:T}, q_{t+2:T} |q_{t+1} = s_j; \lambda) \right] \\
+&= \alpha_t(i) \cdot a_{ij} \cdot b_j(O_{t+1}) \cdot \beta_{t+1}(j) 
+   ~~~ \text{(by Eq.~\ref{eq:notebasic}, \ref{eq:alpha} and \ref{eq:beta})}.
+\end{aligned}
+\end{equation}
+
+While $\gamma_t(i,j)$ is the \emph{marginal} joint probability of all possible observation-state pairs 
+$(O_{1:T}, q_{1:t-1} s_i s_j q_{t+2:T})$ given the model,
+we can also compute the \emph{maximum} joint probability over all possible observation-state pairs $(O_{1:T}, q_{1:t-1} s_i s_j q_{t+2:T})$, \ie
+\begin{equation}
+\label{eq:gammat}
+\begin{aligned}
+\gammat_t(i,j) 
+&= \max_{q_{1:t-1,t+2:T}} \p(O_{1:T}, q_{1:t-1}, q_t = s_i, q_{t+1} = s_j, q_{t+2:T} ;\lambda) \\
+&= \left\{ \max_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda) \right\} \p(q_{t+1} = s_j |q_t = s_i) \cdot \p(O_{t+1} |q_{t+1} = s_j) 
+   \left\{ \max_{q_{t+2:T}} \p(O_{t+2:T}, q_{t+2:T} |q_{t+1} = s_j; \lambda) \right\} \\
+&= \alphat_t(i) \cdot a_{ij} \cdot b_j(O_{t+1}) \cdot \betat_{t+1}(j) 
+   ~~~ \text{(by Eq.~\ref{eq:notebasic}, \ref{eq:alphat} and \ref{eq:betat})}.
+\end{aligned}
+\end{equation}
+Similarly, we can fix the state only at time $t$, \ie $q_t = s_i$, 
+and the maximum joint probability is
+\begin{equation}
+\label{eq:gammat0}
+\begin{aligned}
+\gammat_t(i) 
+&= \max_{q_{1:t-1,t+1:T}} \p(O_{1:T}, q_{1:t-1}, q_t = s_i, q_{t+1:T} ;\lambda) \\
+&= \left\{ \max_{q_{1:t-1}} \p(O_{1:t}, q_{1:t-1}, q_t = s_i ;\lambda) \right\}  
+   \left\{ \max_{q_{t+1:T}} \p(O_{t+1:T}, q_{t+1:T} |q_t = s_i; \lambda) \right\} \\
+&= \alphat_t(i) \cdot \betat_t(i) 
+   ~~~ \text{(by Eq.~\ref{eq:notebasic}, \ref{eq:alphat} and \ref{eq:betat})}.
+\end{aligned}
+\end{equation}
+
+Note that the joint probability of state sequence $q_{1:T}$ and observations $O_{1:T}$ is
+\begin{equation}
+\label{eq:jointdef}
+\p(O_{1:T}, q_{1:T} ;\lambda) = \p(q_1) \cdot \p(O_1 |q_1) \left[ \prod_{t=1}^{T-1} \p(q_{t+1} |q_t) \cdot \p(O_{t+1} |q_{t+1}) \right],
+\end{equation}
+and that
+\begin{equation}
+\label{eq:jointp}
+\begin{aligned}
+\frac{\prod_{t=1}^{T-1} \gammat_t(q_t, q_{t+1})} {\prod_{t=2}^{T-1} \gammat_t(q_t)} 
+&= \frac{\prod_{t=1}^{T-1} \alphat_t(q_t) \cdot \p(q_{t+1} |q_t) \cdot \p(O_{t+1} |q_{t+1}) \cdot \betat_{t+1}(q_{t+1})}
+        {\prod_{t=2}^{T-1} \alphat_t(q_t) \cdot \betat_t(q_t)} 
+   ~~~ \text{(by Eq.~\ref{eq:gammat} and \ref{eq:gammat0})} \\
+&= \left[ \prod_{t=1}^{T-1} \p(q_{t+1} |q_t) \cdot \p(O_{t+1} |q_{t+1}) \right]
+   \frac{ \left[ \prod_{t=1}^{T-1} \alphat_t(q_t) \right] \left[ \prod_{t=2}^T \betat_t(q_t) \right] }
+        {\prod_{t=2}^{T-1} \alphat_t(q_t) \cdot \betat_t(q_t)} \\
+&= \left[ \prod_{t=1}^{T-1} \p(q_{t+1} |q_t) \cdot \p(O_{t+1} |q_{t+1}) \right] \alphat_1(q_1) \cdot \betat_T(q_T) \\
+&= \left[ \prod_{t=1}^{T-1} \p(q_{t+1} |q_t) \cdot \p(O_{t+1} |q_{t+1}) \right] \p(q_1) \cdot \p(O_1 |q_1) \cdot 1 
+   ~~~ \text{(by Eq.~\ref{eq:forward-max} and \ref{eq:backward-max})} \\
+%&= \p(q_1) \cdot \p(O_1 |q_1) \left[ \prod_{t=1}^{T-1} \p(q_{t+1} |q_t) \cdot \p(O_{t+1} |q_{t+1}) \right] \\
+&= \p(O_{1:T}, q_{1:t} ;\lambda) ~~~ \text{(by Eq.~\ref{eq:jointdef})}.
+\end{aligned}
+\end{equation}
+
+From Eq.~(\ref{eq:gammat}) and (\ref{eq:gammat0}), we note that 
+\begin{equation}
+\label{eq:maxconsist}
+\max_{q_{t+1}} \gammat_t(q_t, q_{t+1}) = \gammat_t(q_t) 
+~~~ \text{and} ~~~
+\max_{q_t} \gammat_t(q_t, q_{t+1}) = \gammat_{t+1}(q_{t+1}),
+\end{equation}
+which is known as the \emph{max-consistency} property~\cite{nilsson2001sequentially}.
+%and we have the following lemma,
+
+\begin{lemma}
+\label{lm:1}
+Let $E$ be a set of state sequences given by $E = \{\q :q_1 = q_1^*, \dots, q_i = q_i^* \}$, then
+\begin{equation*}
+\max_{\q \in E} \p(O_{1:T}, q_{1:T}) = \frac{\prod_{t=1}^{i-1} \gammat_t(q_t^*, q_{t+1}^*)} {\prod_{t=2}^{i-1} \gammat_t(q_t^*)}.
+\end{equation*}
+\end{lemma}
+
+\begin{proof}
+By Eq.~(\ref{eq:jointp}) we have
+\begin{equation*}
+\max_{\q \in E} \p(O_{1:T}, q_{1:T}) 
+= \max_{\q \in E} \frac{\prod_{t=1}^{T-1} \gammat_t(q_t, q_{t+1})} {\prod_{t=2}^{T-1} \gammat_t(q_t)}  
+= \frac{\prod_{t=1}^{i-1} \gammat_t(q_t^*, q_{t+1}^*)} {\prod_{t=2}^{i-1} \gammat_t(q_t^*)} 
+  \max_{q_{i+1:T}} \frac{\prod_{t=i}^{T-1} \gammat_t(q_t, q_{t+1})} {\prod_{t=i}^{T-1} \gammat_t(q_t)},
+\end{equation*}
+then consider the maximisation term
+\begin{align*}
+\max_{q_{i+1:T}} \frac{\prod_{t=i}^{T-1} \gammat_t(q_t, q_{t+1})} {\prod_{t=i}^{T-1} \gammat_t(q_t)}
+&= \max_{q_{i+1:T-1}} \left\{ \frac{\prod_{t=i}^{T-2} \gammat_t(q_t, q_{t+1})} {\prod_{t=i}^{T-1} \gammat_t(q_t)}
+   \max_{q_{T}} \gammat_{T-1}(q_{T-1}, q_T) \right\} \\
+&= \max_{q_{i+1:T-1}} \left\{ \frac{\prod_{t=i}^{T-2} \gammat_t(q_t, q_{t+1})} {\prod_{t=i}^{T-1} \gammat_t(q_t)}
+   \gammat_{T-1}(q_{T-1}) \right\} 
+   ~~~ \text{(by Eq.~\ref{eq:maxconsist})} \\
+&= \max_{q_{i+1:T-1}} \left\{ \frac{\prod_{t=i}^{T-2} \gammat_t(q_t, q_{t+1})} {\prod_{t=i}^{T-2} \gammat_t(q_t)} \right\}
+ = \max_{q_{i+1:T-2}} \left\{ \frac{\prod_{t=i}^{T-3} \gammat_t(q_t, q_{t+1})} {\prod_{t=i}^{T-2} \gammat_t(q_t)}
+   \max_{q_{T-1}} \gammat_{T-2}(q_{T-2}, q_{T-1}) \right\} \\
+&= \max_{q_{i+1:T-2}} \left\{ \frac{\prod_{t=i}^{T-3} \gammat_t(q_t, q_{t+1})} {\prod_{t=i}^{T-2} \gammat_t(q_t)}
+   \gammat_{T-2}(q_{T-2}) \right\}
+   ~~~ \text{(by Eq.~\ref{eq:maxconsist})} \\
+&= \max_{q_{i+1:T-2}} \left\{ \frac{\prod_{t=i}^{T-3} \gammat_t(q_t, q_{t+1})} {\prod_{t=i}^{T-3} \gammat_t(q_t)} \right\}
+ = \max_{q_{i+1:T-3}} \left\{ \frac{\prod_{t=i}^{T-4} \gammat_t(q_t, q_{t+1})} {\prod_{t=i}^{T-3} \gammat_t(q_t)}
+   \max_{q_{T-2}} \gammat_{T-3}(q_{T-3}, q_{T-2}) \right\} \\
+&= \cdots \\
+&= \max_{q_{i+1:i+2}} \left\{ \frac{\prod_{t=i}^{i+1} \gammat_t(q_t, q_{t+1})} {\prod_{t=i}^{i+1} \gammat_t(q_t)} \right\} \\
+&= \max_{q_{i+1:i+2}} \left\{ \frac{\gammat_i(q_i^*, q_{i+1}) \cdot \gammat_{i+1}(q_{i+1}, q_{i+2})} 
+                                   {\gammat_i(q_i^*) \cdot \gammat_{i+1}(q_{i+1})} \right\}
+ = \max_{q_{i+1}} \left\{ \frac{\gammat_i(q_i^*, q_{i+1})} 
+                               {\gammat_i(q_i^*) \cdot \gammat_{i+1}(q_{i+1})} 
+                          \max_{q_{i+2}} \gammat_{i+1}(q_{i+1}, q_{i+2}) \right\} \\
+&= \max_{q_{i+1}} \left\{ \frac{\gammat_i(q_i^*, q_{i+1})} 
+                               {\gammat_i(q_i^*) \cdot \gammat_{i+1}(q_{i+1})} \gammat_{i+1}(q_{i+1}) \right\}
+   ~~~ \text{(by Eq.~\ref{eq:maxconsist})} \\
+&= \max_{q_{i+1}} \left\{ \frac{\gammat_i(q_i^*, q_{i+1})} {\gammat_i(q_i^*)} \right\} \\
+&= 1 ~~~ \text{(by Eq.~\ref{eq:maxconsist})}
+\end{align*}
+and the result follows.
+\end{proof}

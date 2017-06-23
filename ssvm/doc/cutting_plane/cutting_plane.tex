@@ -1,0 +1,204 @@
+\section{The cutting-plane methods}
+\label{sec:cuttingplane}
+
+The goal of cutting-plane methods is to find/localise a point in a convex \textit{target set} $Z \in \mathbb{R}^n$,
+or determine that $Z$ is empty in some cases. 
+The method does not assume any direct access to the description of $Z$,
+such as the objective and constraint functions in an optimisation problem, except through a \textit{cutting-plane oracle}.
+The method generates a query point $q$ and pass it to the oracle, 
+the oracle either tells us that $q \in Z$ (in which case we are done), or it returns a hyperplane which separates $q$ from $Z$.
+This hyperplane is called a \textit{cutting-plane}, or \textit{cut}, since it eliminates a half-space from our search.
+
+Cutting-plane methods are also known as \textit{localisation} methods. 
+A conceptual description of cutting-plane methods is shown in Algorithm~\ref{alg:cutting-plane}.
+
+
+\begin{algorithm}[htbp]
+\caption{Cutting-plane algorithm}
+\label{alg:cutting-plane}
+\begin{algorithmic}[1]
+\STATE \textbf{Given}: an initial polyhedron $\mathcal{P}_0$ that contains $Z$.
+\STATE $k = 0$
+\REPEAT
+    \STATE Generate a query point $q^{(k+1)}$ in $\mathcal{P}_k$
+    \STATE Query the oracle at $q^{(k+1)}$
+    \IF{~The oracle determines that $q^{(k+1)} \in Z$~}
+        \RETURN $q^{(k+1)}$
+    \ELSIF{~The oracle returns a cutting-plane $a_{k+1}^\top z \le b_{k+1}$~}
+        \STATE Update constraints: $\mathcal{P}_{k+1} = \mathcal{P}_k \cap \{z | a_{k+1}^\top z \le b_{k+1} \}$
+    \ENDIF
+    \STATE $k = k + 1$
+\UNTIL{Convergence or $\mathcal{P}_{k+1} = \emptyset$}
+\end{algorithmic}
+\end{algorithm}
+
+
+\noindent
+For a convex optimisation problem with $m$ constraints,
+
+\begin{equation}
+\label{eq:cvxprob}
+\begin{aligned}
+\min_{z} ~& f_0(z)        & \\
+s.t.~~   ~& f_i(z) \le 0, & i = 1, \dots, m
+\end{aligned} 
+\end{equation}
+where $f_0, \dots, f_m$ are convex and differentiable, the target set $Z$ is the optimal (or $\varepsilon$-suboptimal) set.
+
+Given a query point $q$, the oracle first checks for feasibility.
+If $q$ is not feasible, this means that at least one constraint in problem (\ref{eq:cvxprob}) is violated.
+Suppose constraint $f_j(z) \le 0$ is violated by $q$, then we have $f_j(q) > 0$.
+In addition, as $f_j(z)$ is convex and differentiable, we have the inequality
+\begin{equation}
+\label{eq:funprop}
+f_j(z) \ge f_j(q) + \nabla f_j(q)^\top (z - q),~ j = 0, \dots, m
+\end{equation}
+We conclude that if $f_j(q) + \nabla f_j(q)^\top (z - q) > 0$, then $f_j(z) > 0$, 
+which violated the constraint $f_j(z) \le 0$ in problem (\ref{eq:cvxprob}).
+Thus, any feasible point should satisfy the inequality
+\begin{equation}
+\label{eq:feacut}
+f_j(q) + \nabla f_j(q)^\top (z - q) \le 0.
+\end{equation}
+This is called a \textit{feasibility cut} for problem (\ref{eq:cvxprob}) since it cuts away the half-space 
+$\{z | f_j(q) + \nabla f_j(q)^\top (z - q) > 0 \}$ with infeasible points.
+If more than one constraint is violated by $q$, we can generate a \emph{feasibility cut} for each violated constraint.
+
+On the other hand, if $q$ is feasible, and suppose $\nabla f_0(q) \ne 0$ (otherwise $q$ is optimal and we are done),
+from Equation (\ref{eq:funprop}) we have
+\begin{equation*}
+f_0(z) > f_0(q), \text{~if~} \nabla f_0(q)^\top (z - q) > 0.
+\end{equation*}
+In other words, any point that satisfies inequality $\nabla f_0(q)^\top (z - q) > 0$ has an objective value larger than $f_0(q)$ 
+and hence cannot be optimal.
+It follows that we can form a cutting-plane
+\begin{equation}
+\label{eq:objcut}
+\nabla f_0(q)^\top (z - q) \le 0,
+\end{equation}
+which is called an \textit{objective cut} for problem (\ref{eq:cvxprob}) and 
+it cuts out the half-space $\{z | \nabla f_0(q)^\top (z - q) > 0 \}$ with non-optimal points.
+
+If we keep track of the best (smallest) objective value for all feasible query points during the querying, i.e.,
+$f_\text{best} = f_0(q_\text{best}) = \min\{f_0(q^{(t)}) | q^{(t)} ~\text{is feasible}\}$,
+since the optimal point has an objective value at most $f_\text{best}$, 
+we can cut away the half-space of points $\{z | f_0(z) > f_\text{best} \}$ with objective values greater than $f_\text{best}$, 
+which means we add a constraint $f_0(z) \le f_\text{best}$, and from Equation~(\ref{eq:funprop}), 
+we have a deep objective cut~\cite{boydlocalization},
+\begin{equation}
+\label{eq:deepobjcut}
+f_0(q) + \nabla f_0(q)^\top (z - q) - f_\text{best} \le 0,
+\end{equation}
+where $q$ is the current query point and is feasible. If $q = q_\text{best}$, this cut reduces to the objective cut~(\ref{eq:objcut}).
+
+%If $q$ is feasible and $\nabla f_0(q) = 0$ then $q$ is optimal.
+For non-differentiable problems, the gradients $\nabla f_j(z)$ can generally be replaced by sub-gradients.
+
+
+\subsection{Generate query points}
+\label{sec:query}
+
+We would like to generate a query point $q^{(k+1)}$ in the current polyhedron $\mathcal{P}_{k}$ such that 
+the resulting cut reduces the size of $\mathcal{P}_{k+1}$ as much as possible.
+However, when we query the oracle at point $q^{(k+1)}$, we do not know in which direction the generated cut will be excluded.
+If we measure the informativeness of the $k$-th cut using the volume reduction ratio $\frac{V(\mathcal{P}_{k+1})}{V(\mathcal{P}_{k})}$,
+we seek a point $q^{(k+1)}$ such that, no matter which direction to cut (returned by the oracle), we can obtain a certain guaranteed volume reduction.
+
+
+\subsubsection{Method of Kelley-Cheney-Goldstein}
+\label{sec:kcg}
+
+Given query points $q^{(1)}, \dots, q^{(k)}$, one approach to generate the next query point $q^{(k+1)}$ is solving a linear programming (LP)
+~\cite{wulff2013analytic},
+\begin{equation}
+\label{eq:kcg}
+\begin{aligned}
+\min_{z,\theta} ~& \theta  \\
+s.t.~~   ~& \theta \ge f_0(q^{(i)}) + \nabla f_0(q^{(i)})^\top (z - q^{(i)}),~ \forall i \le k \\
+          & A_k^\top z \le \mathbf{b}_k,
+\end{aligned}
+\end{equation}
+where $A_k^\top z \le \mathbf{b}_k$ are the set of constraints that define polyhedron $\mathcal{P}_k$.
+
+Let $t_i(z) = f_0(q^{(i)}) + \nabla f_0(q^{(i)})^\top (z - q^{(i)})$,
+then $t_i(z)$ is a hyperplane tangent to $f_0(z)$ at point $q^{(i)}$.
+We can rewrite LP (\ref{eq:kcg}) as
+\begin{equation*}
+\begin{aligned}
+\min_{z,\theta} ~& \theta \\
+s.t.~~ ~& \theta \ge \max_{z \in \mathcal{P}_k}~ t_i(z),~ i=1,\dots,k.
+\end{aligned}
+\end{equation*}
+
+Let $z_i^* = \argmax_{z \in \mathcal{P}_k} t_i(z)$,
+it follows that $z_i^*$ is either a vertex or a point lies on an edge of polyhedron $\mathcal{P}_k$
+(this can be shown intuitively when $\mathcal{P}_k$ is a $2$-dimensional region),
+and the optimal solution of LP (\ref{eq:kcg}) is $z^* = \argmax_{z_i} t_i(z_i^*)$,
+it follows that the next query point $q^{(k+1)} = z^*$ is either a vertex or a point lies on an edge of $\mathcal{P}_k$.
+In fact, if we solve LP (\ref{eq:kcg}) using the simplex algorithm, the optimal solution is guaranteed to be a vertex of $\mathcal{P}_k$.
+
+In other words,
+the method of \emph{Kelley-Cheney-Goldstein} is to greedily use the vertex of the current polyhedron $\mathcal{P}_k$ 
+that maximise the convex objective $f_0(z)$ as the next query point.
+
+
+
+\subsubsection{Chebyshev center method}
+\label{sec:chebyshev}
+
+If we rescale the gradients $\nabla f_0(q^{(i)})$ to unit length in problem (\ref{eq:kcg}), 
+it results in finding the center of the largest Euclidean ball that lies inside the current polyhedron $\mathcal{P}_k$~\cite{elzinga1975central},
+in other words, we find the next query point $q^{(k+1)}$ by solving
+\begin{equation}
+\label{eq:chebyshev}
+\begin{aligned}
+\min_{z} ~& \theta  \\
+s.t.~~   ~& \theta \ge f_0(q^{(i)}) + \frac{\nabla f_0(q^{(i)})}{\|\nabla f_0(q^{(i)})\|} ^\top (z - q^{(i)}),~ \forall i \le k \\
+          & A_k^\top z \le \mathbf{b}_k.
+\end{aligned}
+\end{equation}
+
+This variant is called the \emph{Chebyshev center} method, which is shown to have significantly better convergence properties than the method of Kelley-Cheney-Goldstein~\cite{goffin2002convex}.
+
+
+\subsubsection{Analytic center cutting plane method}
+\label{sec:accpm}
+
+Given a linear constraint $a_i^\top z \le b_i$, we define a slack variable $s_i \in \mathbb{R}$ as $s_i = b_i - a_i^\top z$,
+that is, $s_i$ measures how far the current solution is from the constraint.
+The analytic center is defined as the unique maximiser of the function~\cite{wulff2013analytic}
+\begin{equation}
+\label{eq:accpm}
+\argmax_z \prod_i s_i = \argmax_z ~ \sum_{i=1}^k \log(b_i - a_i^\top z) + \sum_{j=1}^m \log(d_j - c_j^\top z),
+\end{equation}
+where we assume constraints $f_j(z) \le 0$ in problem (\ref{eq:cvxprob}) are linear and rewrite them as $c_j^\top z \le d_j$.
+The unique maximiser of (\ref{eq:accpm}) can be efficiently found using Newton iterations~\cite{goffin2002convex}.
+
+The analytic center cutting plane method (ACCPM) chooses the analytic center of polyhedron 
+\begin{equation*}
+\mathcal{P}_k = \{ z | c_j^\top z \le d_j, ~ j=1, \dots, m \text{~and~} a_i^\top z \le b_i, ~ i=1, \dots, k \}
+\end{equation*}
+to query the oracle.
+ACCPM seems to give a good trade-off in terms of simplicity and practical performance~\cite{boydlocalization}.
+
+
+\subsubsection{Center of gravity/Bayes point method}
+\label{sec:cg}
+
+Assume set $\mathcal{C} \subseteq \mathbb{R}^n$ is bounded and has nonempty interior. 
+The center of gravity of $\mathcal{C}$ is defined as
+\begin{equation}
+\textbf{cg}(\mathcal{C}) = \frac{\int_\mathcal{C} z dz}{\int_\mathcal{C} dz}.
+\end{equation}
+
+The center of gravity (CG) method chooses the point $q^{(k+1)} = \textbf{cg}(\mathcal{P}_{k})$ to query the oracle~\cite{louche2015cutting}.
+It turns out that this method has a very good convergence property in terms of the worst-case volume reduction factor,
+in particular, we always have
+\begin{equation}
+\frac{V(\mathcal{P}_{k+1})}{V(\mathcal{P}_{k})} \le 1 - \frac{1}{e} \approx 0.63,
+\end{equation}
+in other words, the volume of the localisation polyhedron is reduced by at least $37\%$ at each iteration,
+and this guarantee is completely independent of all problem parameters, including the dimension $n$.
+However, it is \textit{extremely difficult} to compute the center of gravity of a polyhedron in $\mathbb{R}^n$, described by a set of linear inequalities,
+which makes this method impractical.
+Variants that compute an approximate center of gravity have been developed, and some of these approximations can be used to create a practical CG method~\cite{boydlocalization}.
