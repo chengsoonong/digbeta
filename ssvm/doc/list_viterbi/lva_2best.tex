@@ -67,15 +67,15 @@ We can repeat the above procedure to decompose $\phi_2(\q^*)$, in general, we ha
                \p(O_{t+1} |q_{t+1} = s) \\
           \left[ \max_{q_{t+2:T} \ne q_{t+2:T}^*} \p(q_{t+2:T}, O_{t+2:T} |q_{t+1} = q_{t+1}^*; \lambda) \right]
                \p(q_{t+1} = q_{t+1}^* |q_t = q_t^*) \cdot \p(O_{t+1} |q_{t+1} = q_{t+1}^*)
-        \end{cases}  \forall t \in \{1,\dots,T-1\} \\
+        \end{cases}  \forall t \in \{0,\dots,T-1\} \\
 &= \max \begin{cases}
           \max_{s \ne q_{t+1}^*} \betat_{t+1}(s) \cdot a(q_t^*, s) \cdot b(s, O_{t+1}) \\
           \phi_{t+1}(\q^*) \cdot a(q_t^*, q_{t+1}^*) \cdot b(q_{t+1}^*, O_{t+1})
-        \end{cases}  \forall t \in \{1,\dots,T-1\} \\
+        \end{cases}  \forall t \in \{0,\dots,T-1\} \\
 &= \max \begin{cases}
           \max_{s \ne q_{t+1}^*} \betat_{t+1}(s) \frac{\alphat_{t+1}(s)}         {\alphat_t(q_t^*)} \\
           \phi_{t+1}(\q^*)                       \frac{\alphat_{t+1}(q_{t+1}^*)} {\alphat_t(q_t^*)}
-        \end{cases}  \forall t \in \{1,\dots,T-1\} \\
+        \end{cases}  \forall t \in \{0,\dots,T-1\} \\
 \end{aligned}
 \end{equation*}
 and 
@@ -89,33 +89,83 @@ and
         \end{cases} \\
 &= \max \begin{cases}
            \max_{t \in \{1,\dots,T-1\}} \max_{s \ne q_t^*} \betat_t(s) \cdot \alphat_t(s) \\
-           \max_{s \ne q_{T}^*} \betat_{T-1}(s) \cdot \alphat_{T-1}(q_{T-1}^*)
+           \left[ \max_{s \ne q_{T}^*} \p(q_T = s, O_T |q_{T-1} = q_{T-1}^*; \lambda) \right] \cdot \alphat_{T-1}(q_{T-1}^*)
         \end{cases} \\
 &= \max \begin{cases}
            \max_{t \in \{1,\dots,T-1\}} \max_{s \ne q_t^*} \betat_t(s) \cdot \alphat_t(s) \\
-           \max_{s \ne q_{T}^*} \betat_{T-1}(s) \cdot \alphat_{T-1}(q_{T-1}^*)
-        \end{cases}
+           \max_{s \ne q_{T}^*} 1 \cdot \p(q_T = s |q_{T-1} = q_{T-1}^*) \cdot \p(O_t |q_t = s) \cdot \alphat_{T-1}(q_{T-1}^*)
+        \end{cases} \\
+&= \max \begin{cases}
+           \max_{t \in \{1,\dots,T-1\}} \max_{s \ne q_t^*} \betat_t(s) \cdot \alphat_t(s) \\
+           \max_{s \ne q_{T}^*} \betat_T(s) \cdot \alphat_T(s)
+        \end{cases} \\
+&= \max_{t \in \{1,\dots,T\}} \max_{s \ne q_t^*} \betat_t(s) \cdot \alphat_t(s)
 \end{aligned}
 \end{equation*}
 
-
-
+For the second approach, let 
+\begin{equation*}
+\phit_t(\q^*) = \max_{q_{1:t-1} \ne q_{1:t-1}^*} \p(q_{1:t-1}, q_t = q_t^*, O_{1:t}; \lambda),
+\end{equation*}
+and note that 
+$\phit_{T+1}(\q^*) = \max_{q_{1:T} \ne q_{1:T}^*} \p(q_{1:T}, q_{T+1} = s_{T+1}^*, O_{1:T+1}; \lambda) = \max_{q_{1:T} \ne q_{1:T}^*} \p(q_{1:T}, O_{1:T}; \lambda)$
+since dummy state $q_{T+1}$ is deterministic, and we have 
 \begin{align*}
-&\max_{\q \ne \q^*} \p(q_{1:T}, O_{1:T}; \lambda) \\
-&= \max_{q_{1:T} \ne q_{1:T}^*} \p(q_{1:T}, q_{T+1} = s_{T+1}^*, O_{1:T+1}) \\
-&= \max \left\{
-    \max_{q_{1:T-1}, \, q_T \ne q_T^*} \p(q_{1:T-1}, q_T \ne q_T^*, q_{T+1} = s_{T+1}^*, O_{1:T}), \,
-    \max_{q_{1:T-1} \ne q_{1:T-1}^*, \, q_T = q_T^*} \p(q_{1:T-1}, q_T = q_T^*, q_{T+1} = s_{T+1}^*, O_{1:T+1}) 
-   \right\} \\
-&= \max \left\{
-   \max_{s_i \ne q_T^*} \left\{ \max_{q_{1:T-1}} \p(q_{1:T-1}, q_T = s_i, O_{1:T}) \right\} 
-        \p(s_{T+1}^* |s_i) \p(O_{T+1} | s_{T+1}^*), \,
-   \max_{q_{1:T-1} \ne q_{1:T-1}^*} \p(q_{1:T-1}, q_T = q_T^*, O_{1:T}) \p(s_{T+1}^* |q_{T}^*) \p(O_{T+1} |q_{T+1}^*)
-   \right\} \\
-&= \max \left\{
-   \max_{s_i \ne q_T^*} \alphat_{T}(i)
-        \p(s_{T+1}^* |s_i) \p(O_{T+1} | s_{T+1}^*), \,
-   \max_{q_{1:T-1} \ne q_{1:T-1}^*} \p(q_{1:T-1}, q_T = q_T^*, O_{1:T}) \p(s_{T+1}^* |q_{T}^*) \p(O_{T+1} |q_{T+1}^*)
-   \right\} 
+\phit_{T+1}(\q^*) 
+&= \max_{q_{1:T} \ne q_{1:T}^*} \p(q_{1:T}, O_{1:T}; \lambda) \\
+&= \max \begin{cases}
+          \max_{q_T \ne q_T^*, \, q_{1:T-1}} \p(q_{1:T-1}, q_T \ne q_T^*, O_{1:T}; \lambda) \\
+          \max_{q_T = q_T^*, \, q_{1:T-1} \ne q_{1:T-1}} \p(q_{1:T-1}, q_T = q_T^*, O_{1:T}; \lambda)
+        \end{cases} \\
+&= \max \begin{cases}
+          \max_{s_i \ne q_T^*} \max_{q_{1:T-1}} \p(q_{1:T-1}, q_T = s_i, O_{1:T}; \lambda) \\
+          \max_{q_{1:T-1} \ne q_{1:T-1}^*} \p(q_{1:T-1}, q_T = q_T^*, O_{1:T}; \lambda)
+        \end{cases} \\
+&= \max \begin{cases}
+          \max_{s_i \ne q_T^*} \alphat_T(s_i) \\
+          \phit_T(\q^*)
+        \end{cases} \\
+&= \max \begin{cases}
+          \max_{s_i \ne q_T^*} \alphat_T(s_i) \\
+          \max \begin{cases}
+                 \max_{s_j \ne q_{T-1}^*} \max_{q_{1:T-2}} \p(q_{1:T-2}, q_{T-1} = s_j, O_{1:T-1}; \lambda) \cdot \p(q_T = q_T^* |q_{T-1} = s_j) \cdot \p(O_T |q_T = q_T^*) \\
+                 \max_{q_{1:T-2} \ne q_{1:T-2}^*} \p(q_{1:T-2}, q_{T-1} = q_{T-1}^*, O_{1:T-1}; \lambda) \cdot \p(q_T = q_T^* |q_{T-1} = q_{T-1}^*) \cdot \p(O_T |q_T = q_T^*)
+               \end{cases}
+        \end{cases} \\
+&= \max \begin{cases}
+          \max_{s_i \ne q_T^*} \alphat_T(s_i) \\
+          \max_{s_j \ne q_{T-1}^*} \alphat_{T-1}(s_j) \cdot \betat_{T-1}(s_j) \\
+          \phit_{T-1}(\q^*) \cdot \betat_{T-1}(q_{T-1}^*)
+        \end{cases}
 \end{align*}
-%Let $\delta_T = \max_{\q \ne \q^*} \p(q_{1:T}, O_{1:T}; \lambda)$
+We can repeat the above procedure to decompose $\phit_{T-1}(\q^*)$, in general, we have
+\begin{equation*}
+\begin{aligned}
+\phit_t(\q^*) = \begin{cases}
+                  \max_{s \ne q_{t-1}^*} \alphat_{t-1}(s) \cdot \betat_{t-1}(s) \\
+                  \phit_{t-1}(\q^*) \cdot \betat_{t-1}(q_{t-1}^*)
+                \end{cases}  \forall t \in \{2,\dots,T+1\} \\
+\end{aligned}
+\end{equation*}
+and 
+\begin{align*}
+\phit_{T+1}(\q^*) 
+&= \max_{q_{1:T} \ne q_{1:T}^*} \p(q_{1:T}, O_{1:T}; \lambda) \\
+&= \max \begin{cases}
+          \max_{t \in \{2,\dots,T\}} \max_{s \ne q_t^*} \alphat_t(s) \cdot \betat_t(s) \\
+          \phit_2(\q^*) \cdot \betat_2(q_2^*)
+        \end{cases} \\
+&= \max \begin{cases}
+          \max_{t \in \{2,\dots,T\}} \max_{s \ne q_t^*} \alphat_t(s) \cdot \betat_t(s) \\
+          \left[ \max_{s \ne q_1^*} \p(q_1 = s, q_2 = q_2^*, O_{1:2}; \lambda) \right] \betat_2(q_2^*)
+        \end{cases} \\
+&= \max \begin{cases}
+          \max_{t \in \{2,\dots,T\}} \max_{s \ne q_t^*} \alphat_t(s) \cdot \betat_t(s) \\
+          \max_{s \ne q_1^*} \p(q_1 = s) \cdot \p(O_1 |q_1 = s) \cdot \p(q_2 = q_2^* |q_1 = s) \cdot \p(O_2 |q_2 = q_2^*) \cdot \betat_2(q_2^*)
+        \end{cases} \\
+&= \max \begin{cases}
+          \max_{t \in \{2,\dots,T\}} \max_{s \ne q_t^*} \alphat_t(s) \cdot \betat_t(s) \\
+          \max_{s \ne q_1^*} \alphat_1(s) \cdot \betat_1(s)
+        \end{cases} \\
+&= \max_{t \in \{1,\dots,T\}} \max_{s \ne q_t^*} \alphat_t(s) \cdot \betat_t(s)
+\end{align*}

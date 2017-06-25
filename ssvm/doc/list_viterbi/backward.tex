@@ -92,7 +92,7 @@ the latter can be treated as the Viterbi algorithm works backwards,
 and the/a sequence $q_{1:T}^*$ with highest probability can be identified via \emph{forward}-tracking, and
 \begin{equation}
 \label{eq:beta-sum}
-\beta_t(q_t^*) = \prod_{t'=t}^{T-1} \p(q_{t'+1}^* |q_{t'}^*) \cdot \p(O_{t'+1} |q_{t'+1}^*), \, t = 1,\dots,T\!-\!1
+\betat_t(s_i) = \frac{\p(q_{t+1}^* |s_i)} {\p(q_{t+1}^* |q_t^*)} \prod_{t'=t}^{T-1} \p(q_{t'+1}^* |q_{t'}^*) \cdot \p(O_{t'+1} |q_{t'+1}^*), \, t = 1,\dots,T\!-\!1
 \end{equation}
 
 We also note that by adding a dummy state $q_0 = s_0^*$ at the front of $\q$, with observation $O_0$, 
