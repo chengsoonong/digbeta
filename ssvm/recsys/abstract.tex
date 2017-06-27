@@ -1,4 +1,10 @@
 % !TEX root=main.tex
 
-In recommendation tasks such as trajectory recommendation, it is desirable to avoid revisiting
-a state or location that has already been visited before.
+Trajectory recommendation is the problem of recommending a sequence of places a tourist to a city might enjoy.
+It is strongly desirable for such recommendations to avoid loops, as tourists typically would not wish to revisit the same location.
+Given some learned model that scores sequences, how can we then find the highest-scoring sequence that is loop-free?
+
+This paper studies this problem, with three contributions.
+First, we detail three distinct approaches to the problem -- a heuristic inspired by Christofides' algorithm, list extensions of the Viterbi algorithm, and integer linear programming -- and qualitatively summarise their strengths and weaknesses.
+Second, we explicate how two ostensibly different approaches to the list Viterbi algorithm \citep{seshadri1994list,nilsson2001sequentially} are in fact fundamentally identical.
+Third, we conduct experiments on real-world trajectory recommendation datasets to identify the tradeoffs imposed by each of the three approaches.

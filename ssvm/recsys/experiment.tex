@@ -98,21 +98,22 @@ There is thus a familiar tradeoff between time and accuracy.
 \input{tab_experiment}
 
 \begin{figure*}[!t]
+\begin{minipage}[c]{\textwidth}
+%\begin{figure*}[!t]
 		\centering
 		\includegraphics[width=\textwidth]{top1_inftime.pdf}
 	    \captionof{figure}{Prediction time for three inference algorithms (in milliseconds)}
 	    \label{fig:inftime}
 	    %\captionmoveup\eqmoveup
-\end{figure*}
-\begin{figure*}[!t]
+%\end{figure*}%
+%\begin{figure*}[!t]
 		\centering
 		\includegraphics[width=\textwidth]{heu_lengthdiff.pdf}
 	    \captionof{figure}{The difference between recommendation and required sequence length.}
 	    \label{fig:length-christo}
 	    %\captionmoveup\eqmoveup
-\end{figure*}
-
-\begin{figure*}[!t]
+%\end{figure*}%
+%\begin{figure*}[!t]
 		\centering
 		\includegraphics[width=\textwidth]{metric_d1.pdf}
 		\includegraphics[width=\textwidth]{metric_d2.pdf}
@@ -120,4 +121,6 @@ There is thus a familiar tradeoff between time and accuracy.
 	    \captionof{figure}{Accuracy versus trajectory length.}
 	    \label{fig:acc-vs-length}
 	    %\captionmoveup\eqmoveup
+%\end{figure*}
+\end{minipage}
 \end{figure*}
