@@ -1,118 +1,144 @@
+% !TEX root=main.tex
+
 \begin{table*}[!t]
-\label{tab:f1}
-\caption{F$_1$ score on points}
-\centering
-\begin{tabular}{l|ccc|c} \hline
- & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Viterbi} \\ \hline
-Osaka & $0.638\pm0.039$ & $0.638\pm0.039$ & $0.639\pm0.038$ & $0.622\pm0.040$ \\
-Glasgow & $0.741\pm0.028$ & $0.741\pm0.028$ & $0.721\pm0.030$ & $0.689\pm0.032$ \\
-Toronto & $0.754\pm0.023$ & $0.754\pm0.023$ & $0.696\pm0.027$ & $0.651\pm0.030$ \\
-\hline
-\end{tabular}
+	\caption{F$_1$ score on points.}
+	\centering	
+	\resizebox{0.575\textwidth}{!}{
+	\subfloat[F$_1$ score on points]{	
+	\begin{tabular}{l|ccc|c}
+		\hline
+		 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Viterbi} \\ \hline
+		Osaka & $0.638\pm0.039$ & $0.638\pm0.039$ & $0.639\pm0.038$ & $0.622\pm0.040$ \\
+		Glasgow & $0.741\pm0.028$ & $0.741\pm0.028$ & $0.721\pm0.030$ & $0.689\pm0.032$ \\
+		Toronto & $0.754\pm0.023$ & $0.754\pm0.023$ & $0.696\pm0.027$ & $0.651\pm0.030$ \\
+		\hline
+	\end{tabular}
+	}
+	\label{tab:f1}%
+	}%	
+	%\resizebox{0.45\textwidth}{!}{	
+	\subfloat[Improvement of F$_1$ score on points over \textsc{Viterbi}]{	
+	\begin{tabular}{l|ccc}
+		\hline
+		 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} \\ \hline
+		Osaka & $19.7\%$ & $19.7\%$ & $20.9\%$ \\
+		Glasgow & $38.2\%$ & $38.2\%$ & $23.1\%$ \\
+		Toronto & $50.1\%$ & $50.1\%$ & $21.7\%$ \\
+		\hline
+	\end{tabular}
+	\label{tab:f1-up}%	
+	}
+	%}
 \end{table*}
 
 \begin{table*}[!t]
 \label{tab:f1-diff}
 \caption{F$_1$ score on points of queries that recommendations by \textsc{Viterbi} are \emph{different} from those by \textsc{List Viterbi}.}
 \centering
-\begin{tabular}{l|ccc|c} \hline
- & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Viterbi} \\ \hline
-Osaka & $0.405\pm0.042$ & $0.405\pm0.042$ & $0.408\pm0.038$ & $0.338\pm0.034$ \\
-Glasgow & $0.638\pm0.042$ & $0.638\pm0.042$ & $0.568\pm0.046$ & $0.462\pm0.039$ \\
-Toronto & $0.660\pm0.025$ & $0.661\pm0.025$ & $0.536\pm0.030$ & $0.440\pm0.028$ \\
-\hline
-\end{tabular}
-\end{table*}
-
-\begin{table*}[!t]
-\caption{Improvement of F$_1$ score on points over \textsc{Viterbi}}
-\label{tab:f1-up}
-\centering
-\begin{tabular}{l|ccc} \hline
- & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} \\ \hline
-Osaka & $19.7\%$ & $19.7\%$ & $20.9\%$ \\
-Glasgow & $38.2\%$ & $38.2\%$ & $23.1\%$ \\
-Toronto & $50.1\%$ & $50.1\%$ & $21.7\%$ \\
-\hline
+\begin{tabular}{l|ccc|c}
+	\hline
+	 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Viterbi} \\ \hline
+	Osaka & $0.405\pm0.042$ & $0.405\pm0.042$ & $0.408\pm0.038$ & $0.338\pm0.034$ \\
+	Glasgow & $0.638\pm0.042$ & $0.638\pm0.042$ & $0.568\pm0.046$ & $0.462\pm0.039$ \\
+	Toronto & $0.660\pm0.025$ & $0.661\pm0.025$ & $0.536\pm0.030$ & $0.440\pm0.028$ \\
+	\hline
 \end{tabular}
 \end{table*}
 
 
 \begin{table*}[!t]
-\label{tab:pf1}
-\caption{F$_1$ score on pairs}
-\centering
-\begin{tabular}{l|ccc|c} \hline
- & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Viterbi} \\ \hline
-Osaka & $0.375\pm0.059$ & $0.375\pm0.059$ & $0.373\pm0.059$ & $0.368\pm0.059$ \\
-Glasgow & $0.508\pm0.048$ & $0.506\pm0.048$ & $0.485\pm0.049$ & $0.509\pm0.048$ \\
-Toronto & $0.530\pm0.037$ & $0.530\pm0.037$ & $0.489\pm0.041$ & $0.527\pm0.039$ \\
-\hline
-\end{tabular}
+	%\label{tab:pf1}
+	%\caption{F$_1$ score on pairs}
+	\centering
+	\resizebox{0.575\textwidth}{!}{
+	\subfloat[F$_1$ score on points]{
+	\label{tab:pf1}
+	\begin{tabular}{l|ccc|c}
+		\hline
+		 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Viterbi} \\ \hline
+		Osaka & $0.375\pm0.059$ & $0.375\pm0.059$ & $0.373\pm0.059$ & $0.368\pm0.059$ \\
+		Glasgow & $0.508\pm0.048$ & $0.506\pm0.048$ & $0.485\pm0.049$ & $0.509\pm0.048$ \\
+		Toronto & $0.530\pm0.037$ & $0.530\pm0.037$ & $0.489\pm0.041$ & $0.527\pm0.039$ \\
+		\hline
+	\end{tabular}
+	}
+	}
+	%\end{table*}
+	\subfloat[Improvement of F$_1$ score on pairs over \textsc{Viterbi}]{			
+		%\begin{table*}[!t]
+		%\caption{Improvement of F$_1$ score on pairs over \textsc{Viterbi}}
+		\label{tab:pf1-up}
+		%\centering
+		\begin{tabular}{l|ccc}
+			\hline
+			 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} \\ \hline
+			Osaka & $32.1\%$ & $32.1\%$ & $22.1\%$ \\
+			Glasgow & $1.3\%$ & $-0.2\%$ & $-21.4\%$ \\
+			Toronto & $3.1\%$ & $3.1\%$ & $-24.9\%$ \\
+			\hline
+		\end{tabular}
+		%\end{table*}
+	}
 \end{table*}
 
 \begin{table*}[!t]
-\label{tab:pf1-diff}
-\caption{F$_1$ score on pairs of queries that recommendations by \textsc{Viterbi} are \emph{different} from those by \textsc{List Viterbi}.}
-\centering
-\begin{tabular}{l|ccc|c} \hline
- & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Viterbi} \\ \hline
-Osaka & $0.112\pm0.030$ & $0.112\pm0.030$ & $0.104\pm0.026$ & $0.085\pm0.025$ \\
-Glasgow & $0.342\pm0.056$ & $0.336\pm0.057$ & $0.265\pm0.054$ & $0.337\pm0.058$ \\
-Toronto & $0.321\pm0.023$ & $0.321\pm0.024$ & $0.234\pm0.031$ & $0.312\pm0.035$ \\
-\hline
-\end{tabular}
-\end{table*}
-
-\begin{table*}[!t]
-\caption{Improvement of F$_1$ score on pairs over \textsc{Viterbi}}
-\label{tab:pf1-up}
-\centering
-\begin{tabular}{l|ccc} \hline
- & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} \\ \hline
-Osaka & $32.1\%$ & $32.1\%$ & $22.1\%$ \\
-Glasgow & $1.3\%$ & $-0.2\%$ & $-21.4\%$ \\
-Toronto & $3.1\%$ & $3.1\%$ & $-24.9\%$ \\
-\hline
-\end{tabular}
+	\label{tab:pf1-diff}
+	\caption{F$_1$ score on pairs of queries that recommendations by \textsc{Viterbi} are \emph{different} from those by \textsc{List Viterbi}.}
+	\centering
+	\begin{tabular}{l|ccc|c}
+		\hline
+		 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Viterbi} \\ \hline
+		Osaka & $0.112\pm0.030$ & $0.112\pm0.030$ & $0.104\pm0.026$ & $0.085\pm0.025$ \\
+		Glasgow & $0.342\pm0.056$ & $0.336\pm0.057$ & $0.265\pm0.054$ & $0.337\pm0.058$ \\
+		Toronto & $0.321\pm0.023$ & $0.321\pm0.024$ & $0.234\pm0.031$ & $0.312\pm0.035$ \\
+		\hline
+	\end{tabular}
 \end{table*}
 
 
 \begin{table*}[!t]
-\label{tab:tau}
-\caption{Kendall's $\tau$}
-\centering
-\begin{tabular}{l|ccc|c} \hline
- & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Viterbi} \\ \hline
-Osaka & $0.608\pm0.042$ & $0.610\pm0.042$ & $0.615\pm0.041$ & $0.611\pm0.041$ \\
-Glasgow & $0.709\pm0.031$ & $0.708\pm0.031$ & $0.702\pm0.032$ & $0.702\pm0.032$ \\
-Toronto & $0.714\pm0.026$ & $0.711\pm0.026$ & $0.678\pm0.029$ & $0.681\pm0.029$ \\
-\hline
-\end{tabular}
+	%\label{tab:tau}
+	%\caption{Kendall's $\tau$}
+	\centering
+	\subfloat[Kendall's $\tau$]{
+	\label{tab:tau}
+	\begin{tabular}{l|ccc|c}
+		\hline
+		 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Viterbi} \\ \hline
+		Osaka & $0.608\pm0.042$ & $0.610\pm0.042$ & $0.615\pm0.041$ & $0.611\pm0.041$ \\
+		Glasgow & $0.709\pm0.031$ & $0.708\pm0.031$ & $0.702\pm0.032$ & $0.702\pm0.032$ \\
+		Toronto & $0.714\pm0.026$ & $0.711\pm0.026$ & $0.678\pm0.029$ & $0.681\pm0.029$ \\
+		\hline
+	\end{tabular}
+	}
+	%\begin{table*}[!t]
+	%\caption{Improvement of Kendall's $\tau$ over \textsc{Viterbi}}
+	%\label{tab:tau-up}
+	%\centering
+	\subfloat[Improvement of Kendall's $\tau$ over \textsc{Viterbi}.]{
+	\label{tab:tau-up}
+	\begin{tabular}{l|ccc}
+		\hline
+		 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} \\ \hline
+		Osaka & $-2.3\%$ & $-1.9\%$ & $4.2\%$ \\
+		Glasgow & $5.7\%$ & $5.5\%$ & $1.6\%$ \\
+		Toronto & $14.3\%$ & $13.0\%$ & $-0.8\%$ \\
+		\hline
+	\end{tabular}
+	}
+	%\end{table*}
 \end{table*}
 
 \begin{table*}[!t]
 \label{tab:tau-diff}
 \caption{Kendall's $\tau$ of queries that recommendations by \textsc{Viterbi} are \emph{different} from those by \textsc{List Viterbi}.}
 \centering
-\begin{tabular}{l|ccc|c} \hline
- & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Viterbi} \\ \hline
-Osaka & $0.334\pm0.046$ & $0.335\pm0.046$ & $0.356\pm0.041$ & $0.341\pm0.044$ \\
-Glasgow & $0.560\pm0.051$ & $0.559\pm0.051$ & $0.538\pm0.051$ & $0.530\pm0.049$ \\
-Toronto & $0.583\pm0.029$ & $0.577\pm0.029$ & $0.506\pm0.033$ & $0.510\pm0.033$ \\
-\hline
-\end{tabular}
-\end{table*}
-
-\begin{table*}[!t]
-\caption{Improvement of Kendall's $\tau$ over \textsc{Viterbi}}
-\label{tab:tau-up}
-\centering
-\begin{tabular}{l|ccc} \hline
- & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} \\ \hline
-Osaka & $-2.3\%$ & $-1.9\%$ & $4.2\%$ \\
-Glasgow & $5.7\%$ & $5.5\%$ & $1.6\%$ \\
-Toronto & $14.3\%$ & $13.0\%$ & $-0.8\%$ \\
-\hline
+\begin{tabular}{l|ccc|c}
+	\hline
+	 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Viterbi} \\ \hline
+	Osaka & $0.334\pm0.046$ & $0.335\pm0.046$ & $0.356\pm0.041$ & $0.341\pm0.044$ \\
+	Glasgow & $0.560\pm0.051$ & $0.559\pm0.051$ & $0.538\pm0.051$ & $0.530\pm0.049$ \\
+	Toronto & $0.583\pm0.029$ & $0.577\pm0.029$ & $0.506\pm0.033$ & $0.510\pm0.033$ \\
+	\hline
 \end{tabular}
 \end{table*}

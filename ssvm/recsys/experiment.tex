@@ -1,16 +1,28 @@
+% !TEX root=main.tex
+
+We now address the motivating questions of this work.
+
+\textbf{How important is it to remove loops?}
+
+\textbf{How reliably can Christofides' algorithm get the desired length?}
+
+\textbf{How reliably can Christofides' algorithm predict a good trajectory?}
+
+\textbf{Which of ILP or list Viterbi is faster, and when?}
+
 \input{tab_experiment}
 
-\begin{figure}[!t]
+\begin{figure*}[!t]
 		\centering
 		\includegraphics[width=\textwidth]{top1_inftime.pdf}
 	    \captionof{figure}{Prediction time for three inference algorithms (in milliseconds)}
 	    \label{fig:inftime}
 	    %\captionmoveup\eqmoveup
-\end{figure}
-\begin{figure}[!t]
+\end{figure*}
+\begin{figure*}[!t]
 		\centering
 		\includegraphics[width=\textwidth]{heu_lengthdiff.pdf}
 	    \captionof{figure}{The difference between recommendation and required sequence length.}
 	    \label{fig:inftime}
 	    %\captionmoveup\eqmoveup
-\end{figure}
+\end{figure*}
