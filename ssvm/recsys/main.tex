@@ -5,7 +5,8 @@
 \usepackage{amsmath}
 \usepackage{amsthm}
 %\usepackage{amsfonts}
-\usepackage{mathrsfs}
+%\usepackage{mathrsfs}
+\usepackage[mathscr]{eucal}
 %\usepackage{bm}
 %\usepackage{bbm}
 \usepackage{stmaryrd}
@@ -19,6 +20,7 @@
 \usepackage[english]{babel}
 \usepackage{xcolor}
 \usepackage{graphicx}
+\usepackage{enumerate}
 \graphicspath{{fig/}}   % Location of the graphics files
 
 \DeclareMathOperator*{\argmin}{argmin}
@@ -38,9 +40,13 @@
 \newcommand{\betat}{\tilde{\beta}}
 \newcommand{\gammat}{\tilde{\gamma}}
 
+\newcommand{\XCal}{\mathscr{X}}
+\newcommand{\YCal}{\mathscr{Y}}
+
 \newcommand{\OSf}{\mathsf{O}}
 \newcommand{\SSf}{\mathsf{S}}
 \newcommand{\defEq}{\stackrel{.}{=}}
+%\newcommand{\argmax}{\operatorname{argmax}}
 
 \newcommand{\eg}{e.g.\ }
 \newcommand{\ie}{i.e.\ }
@@ -85,7 +91,7 @@
 }
 \email{dongwoo.kim@anu.edu.au}
 
-\author{Aditya Menon}
+\author{Aditya Krishna Menon}
 \affiliation{%
  \institution{Data61 and The Australian National University}
 }
@@ -158,6 +164,7 @@
 
 %%%%%%%%%
 \section{Christofides' Algorithm}
+\label{sec:christofides}
 \input{christofides}
 
 %%%%%%%%%
@@ -166,16 +173,19 @@
 
 %%%%%%%%%
 \section{Top-k Sequences using List Viterbi}
+\label{sec:viterbi}
 \input{list_viterbi_akm}
 
 %\input{list_viterbi}
 
 %%%%%%%%%
 \section{Empirical comparison}
+\label{sec:experiments}
 \input{experiment}
 
 %%%%%%%%%
 \section{Discussion and Conclusion}
+\label{sec:discussion}
 \input{conclusion}
 
 

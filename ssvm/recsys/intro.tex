@@ -1,12 +1,58 @@
 % !TEX root=main.tex
 
-In recommendation tasks such as trajectory recommendation, it is desirable to avoid revisiting
-a state or location that has already been visited before.
+A burgeoning sub-field of recommendation focusses on travel routes a visitor to a city might enjoy.
+This encompasses at least three distinct problems:
+\begin{enumerate}[(1)]
+	\item ranking \emph{all} points of interest (POIs) in a city in a manner personalised to a visitor (\eg a visitor interested in natural beauty might have {\tt Opera House $\succ$ Darling Harbour $\succ$ The Rocks});
+	\item recommending the \emph{next} location a visitor might enjoy, given the sequence of places they have visited thus far (\eg given {\tt The Rocks$\to$Botanic Gardens}, we might recommend {\tt Hyde Park});
+	%and
+	\item recommending an \emph{entire sequence} of POIs for a visitor, effectively giving them a travel itinerary (\eg {\tt Opera House$\to$Darling Harbour$\to$Chinatown}).
+\end{enumerate}
+Our focus in the present paper is problem setting (3), which we dub ``trajectory recommendation''.
+
+%There are at least two challenges in effectively tackling trajectory recommendation.
+%First,
+A primary challenge in effectively tackling trajectory recommendation is:
+at training time, how can one design a model that can recommend sequences of POIs which are coherent as a \emph{whole}?
+In particular, it may not suffice to merely concatenate a visitors' personalised top ranking POIs into a sequence,
+as this might result in prohibitive travel (e.g.\ {\tt Opera House$\to$Royal National Park}),
+or may suffer from a lack of diversity (e.g.\ we might recommend three restaurants in a row).
+This motivates an inherently structured approach to the problem.
+In recent work, ??? explored the use of structured SVMs as one such approach.
+
+%Second,
+In this paper, we study a different but equally important challenge:
+at prediction time, how can one recommend a sequence that does not have \emph{loops}?
+This is highly desirable because visitors would typically wish to avoid revisiting a POI that has already been visited before.
+In principle, such a problem will not exist if one employs a suitably powerful model during training.
+In practice, one is forced to compromise on model richness owing to computational and sample complexity considerations.
+%As a result, it is of import to design means of overcoming this problem.
+
+More formally, let us suppose that characteristics of a visitor are summarised in some feature space $\XCal$,
+and sequences of a fixed length are represented by a label space $\YCal$.
+Given some affinity model $F \colon \XCal \times \YCal \to \mathbb{R}$ (\eg the output of a structured SVM), the standard inference problem is:
+given a new $\x \in \XCal$, find $\argmax_{\y \in \YCal} F( \x, \y )$.
+However, we now wish to solve a modified problem:
+given a new $\x \in \XCal$, find $\argmax_{\y \in \bar{\YCal}} F( \x, \y )$,
+where $\bar{\YCal}$ comprises all sequences in $\YCal$ that are loop-free.
+
+How can one solve this modified inference problem?
+We study this question with the following contributions:
+\begin{enumerate}
+	\item[(\textbf{C1})] We detail three different approaches to the problem -- a heuristic inspired by Christofides' algorithm, list extensions of the Viterbi algorithm, and integer linear programming -- and qualitatively summarise their strengths and weaknesses.
+	\item[(\textbf{C2})] In the course of our analysis, we explicate how two ostensibly different approaches to the list Viterbi algorithm \citep{seshadri1994list,nilsson2001sequentially} are in fact fundamentally identical.
+	\item[(\textbf{C3})] We conduct experiments on real-world trajectory recommendation datasets to identify the tradeoffs imposed by each of the three approaches.
+\end{enumerate}
+
+The paper is organised as follows:
+Sections \ref{sec:christofides} -- \ref{sec:viterbi} summarise the three distinct approaches;
+Section \ref{sec:experiments} provides empirical comparison of the methods;
+and Section \ref{sec:discussion} gives some additional discussion and directions for future research.
 
 \begin{itemize}
-	\item connect to workshop
-	\item distinguish between next location vs whole trajectory
-	\item define word usage: trajectory, path, walk, sequence, tour, etc.
+	%\item connect to workshop
+	%\item distinguish between next location vs whole trajectory
+	%\item define word usage: trajectory, path, walk, sequence, tour, etc.
 	\item describe relation to travelling salesman, and say why different
-	\item contributions of this paper
+	%\item contributions of this paper
 \end{itemize}
