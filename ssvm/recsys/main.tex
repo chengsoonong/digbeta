@@ -51,19 +51,19 @@
 %\setcopyright{none}
 %\setcopyright{acmcopyright}
 %\setcopyright{acmlicensed}
-%\setcopyright{rightsretained}
+\setcopyright{rightsretained}
 
 % DOI
-%\acmDOI{10.475/123_4}
+\acmDOI{10.475/123_4}
 
 % ISBN
-%\acmISBN{123-4567-24-567/08/06}
+\acmISBN{123-4567-24-567/08/06}
 
-%Conference
-%\acmConference[WOSfDSTOCK'97]{ACM Woodstock conference}{July 1997}{ElPaso, Texas USA} 
-%\acmYear{1997}
-%\copyrightyear{2016}
-%\acmPrice{15.00}
+% Conference
+\acmConference[RecSys '17]{ACM Recommender Systems Conference}{September 2017}{Como, Italy}
+\acmYear{2017}
+\copyrightyear{2017}
+\acmPrice{15.00}
 
 
 \begin{document}
@@ -72,17 +72,41 @@
 %\subtitle{Extended Abstract}
 %\subtitlenote{The full version of the author's guide is available as \texttt{acmart.pdf} document}
 
-%\author{Ben Trovato}
-%\authornote{Dr.~Trovato insisted his name be first.}
-%\orcid{1234-5678-9012}
-%\affiliation{%
+\author{Dawei Chen}
+\affiliation{%
+ \institution{The Australian National University and Data61}
+}
+\email{dawei.chen@data61.csiro.au}
+
+\author{Dongwoo Kim}
+\affiliation{%
+ \institution{The Australian National University}
+}
+\email{dongwoo.kim@anu.edu.au}
+
+\author{Cheng Soon Ong}
+\affiliation{%
+ \institution{Data61 and The Australian National University}
+}
+\email{chengsoon.ong@data61.csiro.au}
+
+\author{Lexing Xie}
+\affiliation{%
+ \institution{The Australian National University and Data61}
+}
+\email{lexing.xie@anu.edu.au}
+
+% \author{Ben Trovato}
+% \authornote{Dr.~Trovato insisted his name be first.}
+% \orcid{1234-5678-9012}
+% \affiliation{%
 %  \institution{Institute for Clarity in Documentation}
 %  \streetaddress{P.O. Box 1212}
 %  \city{Dublin} 
 %  \state{Ohio} 
 %  \postcode{43017-6221}
-%}
-%\email{trovato@corporation.com}
+% }
+% \email{trovato@corporation.com}
 
 %\author{Lars Th{\o}rv{\"a}ld}
 %\authornote{This author is the one who did all the really hard work.}
@@ -134,7 +158,7 @@
 \input{ilp}
 
 %%%%%%%%%
-\section{Top-k Best Sequences using List Viterbi}
+\section{Top-k Sequences using List Viterbi}
 \input{list_viterbi_akm}
 
 %\input{list_viterbi}

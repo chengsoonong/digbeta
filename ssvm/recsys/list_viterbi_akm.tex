@@ -1,15 +1,28 @@
 % !TEX root=main.tex
 
-\begin{itemize}
-    \item use list viterbi to go down top-k best sequences until we find one without loops
-    %\item two versions of serial list viterbi are equivalent
-    \item parallel list viterbi
-\end{itemize}
+% \begin{itemize}
+%     %\item use list viterbi to go down top-k best sequences until we find one without loops
+%     %\item two versions of serial list viterbi are equivalent
+%     %\item parallel list viterbi
+% \end{itemize}
+
+Recall that one uses the Viterbi algorithm for standard inference in a structured prediction model.
+This finds the single highest scoring sequence; unfortunately, it may have loops.
+To find the best sequence without loops, one can apply a \emph{list Viterbi algorithm}
+to find not just the single best sequence,
+but rather the top $K$ best sequences.
+By definition, the first such sequence that is loop free must be the highest scoring sequence that does not have loops.
 
 %
-\subsection{List Viterbi algorithms}
+%\subsection{List Viterbi algorithms}
 
-There are at least two well-known proposals to extend the Viterbi algorithm to the top-$K$ setting.
+At a high level, there are two ways to extend the Viterbi algorithm to the top-$K$ setting.
+The first is to keep track, at each state, of the top $K$ paths that end at this state; these are known as \emph{parallel list Viterbi} algorithms.
+Parallel list Viterbi algorithms date back to at least \citet{Forney:1973}.
+However, they impose a memory burden; further, in our setting it is unknown how many paths will be required, as we do not know how many of the top $K$ sequences have loops.
+
+The second is to more fundamentally modify how one selects paths; these are known as \emph{serial list Viterbi} algorithms.
+Amongst serial list Viterbi algorithms, there are at least two well-known proposals.
 In the signal processing community, \citet{seshadri1994list} proposed an algorithm that keeps track of the ``next best'' sequence terminating at each state in the current list of best sequences.
 In the AI community, \citet{nilsson2001sequentially} (building on the work of \citet{Nilsson:1998} for general graphical models) proposed an algorithm that cleverly partitions the search space into subsets of sequences that share a prefix with the current list of best sequences.
 
