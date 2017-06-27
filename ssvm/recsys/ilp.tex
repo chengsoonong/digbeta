@@ -1,5 +1,6 @@
 % !TEX root=main.tex
 
+\blue{
 We should probably ask Phil Kilby or Hassan about the two or three most popular subtour eliminations
 
 \begin{itemize}
@@ -12,3 +13,27 @@ We should probably ask Phil Kilby or Hassan about the two or three most popular 
   %http://www.or.unc.edu/~pataki/papers/teachtsp.pdf
 
 \end{itemize}
+}
+
+Instead of simply bypassing repeated revisits, 
+we can make use of subtour elimination techniques developped by the TSP research community,
+by formulating the trip recommendation problem with integer linear programming (ILP).
+The additional benefits of this formulation is that fixing the subset of POIs is not required any more,
+we can optimise over all possible subset of POIs using the off-the-shelf ILP solvers.
+In particular, given a starting location $s$ and the required trip length $l$,
+we maximise the desired trip score over all possible subsets with $l$ POIs from the whole set of POIs $\{p_j\}_{j=1}^m$, \ie
+
+\begin{align*}
+\max_{\bu} & \sum_{k=1}^m \w_k^\top \psi_k(\x, p_k) \sum_{j=1}^m u_{jk} +
+             \sum_{j,k=1}^m u_{jk} \w_{jk}^\top \psi_{j, k}(\x, p_j, p_k) \\
+s.t. 
+& \sum_{k=2}^m u_{1k} = 1, \, \sum_{j=2}^m u_{j1} = z_1=0  \\                %\label{eq:cons1} \\
+& \sum_{j=1}^m \sum_{k=1}^m u_{jk} = l-1, \, \sum_{j=1}^m u_{jj}=0  \\      %\label{eq:cons2}
+& \sum_{j=1}^m u_{ji} = z_i + \sum_{k=2}^m u_{ik} \le 1, \, (\forall i \in \{2,\cdots,m\})  \\ %\label{eq:cons3} \\
+& v_j - v_k + 1 \le (m-1) (1-u_{jk}), \, (\forall j,k \in \{2,\cdots,m\})                 %\label{eq:cons4}
+\end{align*}
+where $u_{jk}$ are binary variables that are true if and only if
+we visit $p_k$ immediately after visiting $p_j$,
+and binary variables $z_j$ indicates whether we end up at $p_j$.
+Note that we index POIs such that $s = p_1$ for brevity,
+and we strictly ask for a path that starts from $s$ and travels $l$ distinct POIs.
