@@ -1,14 +1,99 @@
 % !TEX root=main.tex
 
+We are now in a position to empirically compare the three methods discussed above,
+to get a firmer sense of the tradeoffs offered by each.
+
+%
+\subsection{Description of datasets}
+
+We used the trajectory data\footnote{\url{https://bitbucket.org/d-chen/tour-cikm16}}
+extracted from Flickr photos for the cities of Glasgow, Osaka and
+Toronto~\cite{ijcai15,cikm16paper}.
+Each dataset comprises of a
+list of trajectories, being a sequence of points of interest (POI),
+as visited by various Flickr users and recorded by the geotags in photos.
+Table~\ref{tab:data} summarises the profile of each dataset.
+We see that most queries have more than one ground truth, making the sequence recommendation setting relevant. Further, each query has an average of 4-9, and a maximum of 30-60 trajectories (details in supplement).
+In all datasets,
+each user has on average less than two trajectories.
+This makes user-specific recommendation impractical, and also undesirable because
+a user would want different recommendations given different starting locations, and not a static recommendation no matter where she is.
+
+% dataset stats
+\begin{table}[t]
+	\begin{minipage}[t]{\linewidth}
+		\resizebox{\linewidth}{!}{
+		\setlength{\tabcolsep}{4pt} % tweak the space between columns
+		\small
+		\begin{tabular}{lllll|ccc|cc} \hline %{l*{9}{c}} \hline
+		\textbf{Dataset} & \textbf{\#Traj} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#Queries} & \textbf{\#GT=1} & \textbf{\#GT$\in [2,5]$} & \textbf{\#GT$>$5} & \textbf{\#shortTraj} & \textbf{\#longTraj} \\ \hline
+		Glasgow          & 351              & 25              & 219              & 64                 & 23              & 22                      & 19                & 336                     & 15 \\
+		Osaka            & 186              & 26              & 130              & 47                 & 17              & 22                      & 8                 & 178                     & 8  \\
+        Toronto          & 977              & 27              & 454              & 99                 & 30              & 33                      & 36                & 918                     & 59 \\
+		\hline
+		\end{tabular}%
+		}
+		\captionof{table}{Statistics of trajectory datasets.
+        Including the number of trajectories (\#Traj), POIs (\#POIs), users (\#Users), queries (\#Queries);
+        the number of queries with a single (\#GT=1), 2-5 (\#GT$\in$[2,5]), or more than 5 (\#GT$>$5) ground truths;
+        and profile of trajectory length, \ie less than 5 (\#shortTraj) and more than 5 POIs (\#longTraj).
+        }
+		\label{tab:data}
+	\end{minipage}
+\end{table}
+
+%
+\subsection{Experimental protocol}
+
+We compare the three methods described previously ({\sc List Viterbi}, {\sc ILP}, {\sc Heuristic}),
+as well as the standard inference ({\sc Viterbi}).
+
+We evaluate each algorithm using leave-one-query-out cross validation.
+That is, holding out all the relevant trajectories for each query $\x^{(i)}$ (\ie $\{\y^{(i,j)}\}_{j=1}^{n_i}$) in each round.
+The regularisation constant $C$ is tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
+We use three performance measures for POIs, sequences and ordered lists.
+The {\bf F$_1$ score on points}~\cite{ijcai15} computes F$_1$ on the predicted versus seen points
+without considering their relative order.
+The {\bf F$_1$ score on pairs}~\cite{cikm16paper} is proposed to mitigate this by computing F$_1$ on all ordered pairs in the predicted versus ground truth sequence. %%It is 1 iff both sequences agree completely.
+The well-known rank correlation {\bf Kendall's $\tau$}~\cite{agresti2010analysis}
+computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all possible pairs after accounting for ties.%taking care of ties.
+
+
+%
+\subsection{Results and discussion}
+
 We now address the motivating questions of this work.
 
 \textbf{How important is it to remove loops?}
+It is first of interest to establish that removing loops during prediction is in fact important.
+This is confirmed in Tables \ref{tab:f1-master} -- \ref{tab:tau-master},
+where we see that there can be as much as a 50\% improvement in performance over the {\sc Viterbi} baseline.
 
 \textbf{How reliably can Christofides' algorithm get the desired length?}
+A challenge in applying Christofides' algorithm to the trajectory recommendation problem as we have defined it
+is that it may result in a trajectory of the wrong length.
+Figure \ref{fig:length-christo} shows that a significant fraction of queries will have a different length to the target.
 
 \textbf{How reliably can Christofides' algorithm predict a good trajectory?}
+Assuming one can overlook the Christofides' algorithm producing a trajectory of possibly incorrect length,
+it is then of interest as to how well it performs compared to the list Viterbi and ILP methods.
+Tables \ref{tab:f1-master} -- \ref{tab:tau-master} show that the heuristic, while sometimes competitive on the F1 measures, often
+grossly underperforms compared to the more principled approaches.
+
+Interestingly, if Kendall's $\tau$ is the measure of interest, then the heuristic may actually be preferable to these methods.
 
 \textbf{Which of ILP or list Viterbi is faster, and when?}
+The list Viterbi and ILP methods have highly similar accuracy, with the differences owing to ties.
+What about their relative runtimes?
+Figure \ref{fig:inftime} shows that for shorter trajectories, the list Viterbi approach is to be preferred;
+however, for longer trajectories, the ILP approach is faster.
+
+The reason for the list Viterbi to suffer at longer trajectories is simply because this creates an exponential increase in the number of available choices, which must be searched through serially.
+Of interest is that ILP approach has runtime largely independent of the trajectory length.
+This indicates the branch-and-bound as well as cutting plane underpinnings of these solvers are highly scalable.
+
+As a final note, we see that the complexity of the Heuristic is several order of magnitudes less than either of the two more advanced methods at longer trajectories.
+There is thus a familiar tradeoff between time and accuracy.
 
 \input{tab_experiment}
 
@@ -23,7 +108,7 @@ We now address the motivating questions of this work.
 		\centering
 		\includegraphics[width=\textwidth]{heu_lengthdiff.pdf}
 	    \captionof{figure}{The difference between recommendation and required sequence length.}
-	    \label{fig:inftime}
+	    \label{fig:length-christo}
 	    %\captionmoveup\eqmoveup
 \end{figure*}
 
@@ -33,6 +118,6 @@ We now address the motivating questions of this work.
 		\includegraphics[width=\textwidth]{metric_d2.pdf}
 		\includegraphics[width=\textwidth]{metric_d3.pdf}
 	    \captionof{figure}{Accuracy versus trajectory length.}
-	    \label{fig:inftime}
+	    \label{fig:acc-vs-length}
 	    %\captionmoveup\eqmoveup
 \end{figure*}
