@@ -4,10 +4,10 @@
 \usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{amsthm}
-\usepackage{amsfonts}
+%\usepackage{amsfonts}
 \usepackage{mathrsfs}
-\usepackage{bm}
-\usepackage{bbm}
+%\usepackage{bm}
+%\usepackage{bbm}
 \usepackage{stmaryrd}
 \usepackage{algorithm}
 \usepackage{algorithmic}
@@ -37,6 +37,10 @@
 \newcommand{\betat}{\tilde{\beta}}
 \newcommand{\gammat}{\tilde{\gamma}}
 
+\newcommand{\OSf}{\mathsf{O}}
+\newcommand{\SSf}{\mathsf{S}}
+\newcommand{\defEq}{\stackrel{.}{=}}
+
 \newcommand{\eg}{e.g.\ }
 \newcommand{\ie}{i.e.\ }
 \newcommand{\downto}{\,\textbf{downto}\,}
@@ -56,14 +60,14 @@
 %\acmISBN{123-4567-24-567/08/06}
 
 %Conference
-%\acmConference[WOODSTOCK'97]{ACM Woodstock conference}{July 1997}{ElPaso, Texas USA} 
+%\acmConference[WOSfDSTOCK'97]{ACM Woodstock conference}{July 1997}{ElPaso, Texas USA} 
 %\acmYear{1997}
 %\copyrightyear{2016}
 %\acmPrice{15.00}
 
 
 \begin{document}
-\title{SIG Proceedings Paper in LaTeX Format}
+\title{Revisiting revisits in trajectory recommendation}
 %\titlenote{Produces the permission block, and copyright information}
 %\subtitle{Extended Abstract}
 %\subtitlenote{The full version of the author's guide is available as \texttt{acmart.pdf} document}
@@ -104,6 +108,7 @@
 
 
 \begin{abstract}
+\input{abstract}
 \end{abstract}
 
 %
@@ -114,11 +119,34 @@
 
 %\keywords{ACM proceedings, \LaTeX, text tagging}
 
-
 \maketitle
 
-\input{list_viterbi}
+%%%%%%%%%
+\section{Introduction}
+\input{intro}
+
+%%%%%%%%%
+\section{Christofides' Algorithm}
+\input{christofides}
+
+%%%%%%%%%
+\section{Subtour Elimination using Integer Programming}
+\input{ilp}
+
+%%%%%%%%%
+\section{Top-k Best Sequences using List Viterbi}
+\input{list_viterbi_akm}
+
+%\input{list_viterbi}
+
+%%%%%%%%%
+\section{Empirical comparison}
 \input{experiment}
+
+%%%%%%%%%
+\section{Discussion and Conclusion}
+\input{conclusion}
+
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{ref} 
