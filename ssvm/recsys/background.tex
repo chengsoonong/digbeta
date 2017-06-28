@@ -34,10 +34,10 @@ One way to design a trajectory recommender is to find a scoring function $f \col
 %This was the view proposed in~\cite{cikm16paper} where they authors considered an
 %objective function that added two components together: a POI score and a transition score.
 Several choices of $f$ are possible.
-In \citet{cikm16paper}, the authors proposed to use the output of a RankSVM model, combined with a transition score between POIs.
+\citet{cikm16paper} proposed to use the output of a RankSVM model, combined with a transition score between POIs.
 While offering strong performance, this method has a conceptual disadvantage highlighted in the previous section:
 it does not model global cohesion, and thus can lead to solutions such as recommending three restaurants in a row.
-To overcome this, in \citet{Chen:2017}, the authors proposed a structured SVM solution.
+To overcome this, \citet{Chen:2017} proposed a structured SVM solution.
 In the case of a structured SVM with linear potentials, the optimisation in Equation \ref{eqn:argmax} can be solved with the classic Viterbi algorithm.
 
 
