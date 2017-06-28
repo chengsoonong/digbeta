@@ -67,7 +67,7 @@ We see that most queries have more than one ground truth, making the sequence re
 %
 \subsection{Experimental protocol}
 
-We compare the three methods described previously ({\sc List Viterbi}, {\sc ILP}, {\sc Heuristic}),
+We compare the three methods described previously ({\sc List Viterbi}, {\sc ILP}, {\sc LoopElim}),
 as well as the standard inference ({\sc Viterbi}).
 
 We evaluate each algorithm using leave-one-query-out cross validation (LOOCV).
@@ -104,13 +104,13 @@ it is now of interest to establish that removing such loops during prediction is
 This is confirmed in Tables \ref{tab:f1-master} -- \ref{tab:pf1-master},
 where we see that there can be as much as a 50\% improvement in performance over the {\sc Viterbi} baseline.
 
-\textbf{How reliably can {\sc Heuristic} get the desired length?}
-A challenge in applying {\sc Heuristic} to the trajectory recommendation problem as we have defined it
+\textbf{How reliably can {\sc LoopElim} get the desired length?}
+A challenge in applying {\sc LoopElim} to the trajectory recommendation problem as we have defined it
 is that it may result in a trajectory of the wrong length.
 Figure \ref{fig:length-christo} shows that a significant fraction of queries will have a different length to the target.
 
-\textbf{How reliably can {\sc Heuristic} predict a good trajectory?}
-Assuming one can overlook the {\sc Heuristic} producing a trajectory of possibly incorrect length,
+\textbf{How reliably can {\sc LoopElim} predict a good trajectory?}
+Assuming one can overlook the {\sc LoopElim} producing a trajectory of possibly incorrect length,
 it is then of interest as to how well it performs compared to the list Viterbi and ILP methods.
 Tables \ref{tab:f1-master} -- \ref{tab:pf1-master} show that the heuristic, while sometimes competitive on the F1 measures, often
 grossly underperforms compared to the more principled approaches.
@@ -127,7 +127,7 @@ The reason for the list Viterbi to suffer at longer trajectories is simply becau
 Of interest is that ILP approach has runtime largely independent of the trajectory length.
 This indicates the branch-and-bound as well as cutting plane underpinnings of these solvers are highly scalable.
 
-As a final note, we see that the complexity of the Heuristic is several order of magnitudes less than either of the two more advanced methods at longer trajectories.
+As a final note, we see that the complexity of the LoopElim is several order of magnitudes less than either of the two more advanced methods at longer trajectories.
 There is thus a familiar tradeoff between time and accuracy.
 
 \input{tab_experiment}

@@ -8,7 +8,7 @@
 	\subfloat[Raw scores.]{	
 	\begin{tabular}{l|ccccc|c}
 		\hline
-         & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Greedy} & \textsc{Viterbi+BruteForce} & \textsc{Viterbi} \\ \hline
+         & \textsc{List Viterbi} & \textsc{ILP} & \textsc{LoopElim} & \textsc{Greedy} & \textsc{Viterbi+BruteForce} & \textsc{Viterbi} \\ \hline
         Osaka & $0.638\pm0.039$ & $0.638\pm0.039$ & $0.635\pm0.039$ & $0.626\pm0.040$ & $0.635\pm0.039$ & $0.622\pm0.040$ \\
         Glasgow & $0.741\pm0.028$ & $0.741\pm0.028$ & $0.718\pm0.030$ & $0.751\pm0.028$ & $0.718\pm0.030$ & $0.689\pm0.032$ \\
         Toronto & $0.754\pm0.023$ & $0.754\pm0.023$ & $0.699\pm0.027$ & $0.756\pm0.024$ & $0.699\pm0.027$ & $0.651\pm0.030$ \\
@@ -21,7 +21,7 @@
 	\subfloat[Improvement over \textsc{Viterbi}.]{
 	\begin{tabular}{l|ccccc}
 		\hline
-         & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Greedy} & \textsc{Viterbi+BruteForce} \\ \hline
+         & \textsc{List Viterbi} & \textsc{ILP} & \textsc{LoopElim} & \textsc{Greedy} & \textsc{Viterbi+BruteForce} \\ \hline
         Osaka & $2.6\%$ & $2.6\%$ & $2.0\%$ & $0.5\%$ & $2.0\%$ \\
         Glasgow & $7.6\%$ & $7.6\%$ & $4.2\%$ & $9.0\%$ & $4.2\%$ \\
         Toronto & $15.7\%$ & $15.7\%$ & $7.3\%$ & $16.0\%$ & $7.3\%$ \\
@@ -41,7 +41,7 @@
 	\label{tab:pf1}
 	\begin{tabular}{l|ccccc|c}
 		\hline
-         & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Greedy} & \textsc{Viterbi+BruteForce} & \textsc{Viterbi} \\ \hline
+         & \textsc{List Viterbi} & \textsc{ILP} & \textsc{LoopElim} & \textsc{Greedy} & \textsc{Viterbi+BruteForce} & \textsc{Viterbi} \\ \hline
         Osaka & $0.375\pm0.059$ & $0.375\pm0.059$ & $0.369\pm0.059$ & $0.369\pm0.059$ & $0.369\pm0.059$ & $0.364\pm0.060$ \\
         Glasgow & $0.508\pm0.048$ & $0.506\pm0.048$ & $0.480\pm0.049$ & $0.522\pm0.048$ & $0.485\pm0.049$ & $0.461\pm0.050$ \\
         Toronto & $0.529\pm0.037$ & $0.530\pm0.037$ & $0.490\pm0.041$ & $0.543\pm0.038$ & $0.486\pm0.041$ & $0.463\pm0.041$ \\
@@ -54,7 +54,7 @@
 		\label{tab:pf1-up}
 		\begin{tabular}{l|ccccc}
 			\hline
-             & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Greedy} & \textsc{Viterbi+BruteForce} \\ \hline
+             & \textsc{List Viterbi} & \textsc{ILP} & \textsc{LoopElim} & \textsc{Greedy} & \textsc{Viterbi+BruteForce} \\ \hline
             Osaka & $3.0\%$ & $3.0\%$ & $1.4\%$ & $1.4\%$ & $1.4\%$ \\
             Glasgow & $10.1\%$ & $9.7\%$ & $4.1\%$ & $13.1\%$ & $5.1\%$ \\
             Toronto & $14.4\%$ & $14.5\%$ & $5.8\%$ & $17.2\%$ & $5.0\%$ \\
@@ -72,7 +72,7 @@
     \subfloat[Raw scores.]{
 	\begin{tabular}{l|ccccc|c}
 		\hline
-         & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Greedy} & \textsc{Viterbi+BruteForce} & \textsc{Viterbi} \\ \hline
+         & \textsc{List Viterbi} & \textsc{ILP} & \textsc{LoopElim} & \textsc{Greedy} & \textsc{Viterbi+BruteForce} & \textsc{Viterbi} \\ \hline
         Osaka & $0.405\pm0.042$ & $0.405\pm0.042$ & $0.389\pm0.038$ & $0.374\pm0.046$ & $0.389\pm0.038$ & $0.338\pm0.034$ \\
         Glasgow & $0.644\pm0.040$ & $0.644\pm0.040$ & $0.569\pm0.045$ & $0.658\pm0.044$ & $0.569\pm0.045$ & $0.476\pm0.040$ \\
         Toronto & $0.654\pm0.025$ & $0.654\pm0.025$ & $0.540\pm0.030$ & $0.657\pm0.027$ & $0.540\pm0.030$ & $0.443\pm0.028$ \\
@@ -85,7 +85,7 @@
 	\subfloat[Improvement over \textsc{Viterbi}.]{
 	\begin{tabular}{l|ccccc}
 		\hline
-         & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Greedy} & \textsc{Viterbi+BruteForce} \\ \hline
+         & \textsc{List Viterbi} & \textsc{ILP} & \textsc{LoopElim} & \textsc{Greedy} & \textsc{Viterbi+BruteForce} \\ \hline
         Osaka & $19.7\%$ & $19.7\%$ & $15.1\%$ & $10.8\%$ & $15.1\%$ \\
         Glasgow & $35.2\%$ & $35.2\%$ & $19.4\%$ & $38.2\%$ & $19.4\%$ \\
         Toronto & $47.7\%$ & $47.8\%$ & $22.1\%$ & $48.5\%$ & $22.1\%$ \\
@@ -105,7 +105,7 @@
 	\label{tab:pf1-diff}
 	\begin{tabular}{l|ccccc|c}
 		\hline
-         & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Greedy} & \textsc{Viterbi+BruteForce} & \textsc{Viterbi} \\ \hline
+         & \textsc{List Viterbi} & \textsc{ILP} & \textsc{LoopElim} & \textsc{Greedy} & \textsc{Viterbi+BruteForce} & \textsc{Viterbi} \\ \hline
         Osaka & $0.112\pm0.030$ & $0.112\pm0.030$ & $0.088\pm0.026$ & $0.103\pm0.034$ & $0.088\pm0.026$ & $0.067\pm0.020$ \\
         Glasgow & $0.350\pm0.054$ & $0.345\pm0.055$ & $0.261\pm0.047$ & $0.378\pm0.066$ & $0.277\pm0.052$ & $0.201\pm0.039$ \\
         Toronto & $0.317\pm0.023$ & $0.318\pm0.024$ & $0.236\pm0.031$ & $0.352\pm0.032$ & $0.228\pm0.030$ & $0.180\pm0.025$ \\
@@ -118,7 +118,7 @@
 		\label{tab:pf1-diff-up}
 		\begin{tabular}{l|ccccc}
 			\hline
-             & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Greedy} & \textsc{Viterbi+BruteForce} \\ \hline
+             & \textsc{List Viterbi} & \textsc{ILP} & \textsc{LoopElim} & \textsc{Greedy} & \textsc{Viterbi+BruteForce} \\ \hline
             Osaka & $68.2\%$ & $68.2\%$ & $32.7\%$ & $54.5\%$ & $32.7\%$ \\
             Glasgow & $73.9\%$ & $71.4\%$ & $29.9\%$ & $88.1\%$ & $37.8\%$ \\
             Toronto & $76.0\%$ & $76.5\%$ & $30.9\%$ & $95.0\%$ & $26.5\%$ \\
