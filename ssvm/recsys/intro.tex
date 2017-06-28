@@ -3,7 +3,7 @@
 A burgeoning sub-field of citizen-centric recommendation focusses on suggesting travel routes in a city that a tourist might enjoy.
 This goal encompasses at least three distinct problems:
 \begin{enumerate}[(1)]
-	\item ranking \emph{all} points of interest (POIs) in a city in a manner personalised to a tourist (\eg a tourist interested in scenic views might have {\tt Opera House $\succ$ Darling Harbour $\succ$ The Rocks}) \citep{shi2011personalized,lian2014geomf,hsieh2014mining,yuan2014graph};
+	\item ranking \emph{all} points of interest (POIs) in a city in a manner personalised to a tourist (\eg a tourist to Sydney interested in scenic views might have {\tt Opera House $\succ$ Darling Harbour $\succ$ The Rocks}) \citep{shi2011personalized,lian2014geomf,hsieh2014mining,yuan2014graph};
 	\item recommending the \emph{next} location a tourist might enjoy, given the sequence of places they have visited thus far (\eg given {\tt The Rocks$\to$Botanic Gardens}, we might recommend {\tt Hyde Park}) \citep{fpmc10,ijcai13,zhang2015location};
 	%and
 	\item recommending an \emph{entire sequence} of POIs for a tourist, effectively giving them a travel itinerary (\eg {\tt Opera House$\to$Darling Harbour$\to$Chinatown}) \citep{lu2010photo2trip,ijcai15,lu2012personalized,gioniswsdm14,chen2015tripplanner}.
@@ -17,18 +17,18 @@ at training time, how can one design a model that can recommend sequences of POI
 Merely concatenating a tourists' personalised top ranking POIs into a sequence
 might result in prohibitive travel (e.g.\ {\tt Opera House$\to$Royal National Park}),
 or may suffer from a lack of diversity (e.g.\ we might recommend three restaurants in a row).
-This motivates an inherently structured approach to the problem.
-In recent work, \citet{Chen:2017} explored the use of structured SVMs as one such approach, and showed that this outperforms POI ranking approaches. %as well as Markov model approaches.
+This motivates approaches that ensure \emph{global cohesion} of the predicted sequence.
+In recent work, \citet{Chen:2017} showed that structured SVMs are one such viable approach which outperform POI ranking approaches. %as well as Markov model approaches.
 
-In this paper, we study a distinct but related challenge:
+In this paper, we focus on a distinct but related challenge:
 at prediction time, how can one recommend a sequence that does not have \emph{loops}?
 This is desirable because tourists would typically wish to avoid revisiting a POI that has already been visited before.
 In principle, such a problem will not exist if one employs a suitably powerful model during training.
 In practice, one is forced to compromise on model richness owing to computational and sample complexity considerations.
 %As a result, it is of import to design means of overcoming this problem.
-
-How can one solve this modified inference problem?
-We study this question with the following contributions:
+%How can one solve this modified inference problem?
+%We study this question with the following contributions:
+We thus study this challenge, with the following contributions:
 \begin{enumerate}
 	\item[(\textbf{C1})] We detail three different approaches to the problem -- 
 	%a heuristic inspired by Christofides' algorithm,
@@ -39,9 +39,12 @@ We study this question with the following contributions:
 	\item[(\textbf{C3})] We conduct experiments on real-world trajectory recommendation datasets to identify the tradeoffs imposed by each of the three approaches.
 \end{enumerate}
 Overall, we find that
-all methods offer performance improvements over na\"{i}vely predicting a sequence with loops;
-Christofides' algorithm is at least an order of magnitude faster than the other methods, but with a significant sacrifice in accuracy;
-and that the list Viterbi is faster than the ILP for short trajectories, but the ILP is superior for longer trajectories.
+all methods offer performance improvements over na\"{i}vely predicting a sequence with loops,
+but that
+a greedy graph-based heuristic offers excellent performance and runtime.
+We thus recommend its use over the more complicated integer programming and list Viterbi inference procedures.
+%Christofides' algorithm is at least an order of magnitude faster than the other methods, but with a significant sacrifice in accuracy;
+%and that the list Viterbi is faster than the ILP for short trajectories, but the ILP is superior for longer trajectories.
 
 %The paper is organised as follows:
 % In the sequel,

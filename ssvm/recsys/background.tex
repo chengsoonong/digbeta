@@ -45,7 +45,7 @@ In the case of a structured SVM with pairwise potentials, the optimisation in Eq
 %
 \subsection{Path recommendation}
 
-We argue that the above is incomplete for a simple reason:
+We argue that the above problem definition is incomplete for a simple reason:
 in most cases, a tourist will not want to revisit the same POI.
 That is, we argue that what is needed is to recommend a \emph{path}, \ie a trajectory that does not have any repeated POIs.
 Let $\thickbar{\YCal} \subset \YCal$ be the set of all possible paths,
@@ -59,16 +59,15 @@ We now wish to construct a path recommender $r \colon \XCal \to \thickbar{\YCal}
 Equation \ref{eqn:argmax-path} takes us beyond the realm of the standard Viterbi algorithm, as the top-scoring sequence in Equation \ref{eqn:argmax} may well have a loop.
 There are now two distinct modes of attack available:
 \begin{enumerate}
-	\item seek an approximate solution to the problem.
-	This can be done by applying heuristics that remove loops present in the standard Viterbi solution,
+	\item seek an approximate solution to the problem,
+	via heuristics that remove loops present in the standard Viterbi solution,
 	or by greedily constructing a loop-free solution.
 
-	\item seek an exact solution to the problem.
-	There are at least two ways to do this:
+	\item seek an exact solution to the problem,
 	via top-$K$ extensions of the Viterbi algorithm (known as list Viterbi algorithms),
-	or via integer linear programming formulations.
+	or integer linear programming formulations.
 \end{enumerate}
-We now detail the possible algorithms in more detail.
+We now detail these possible approaches in more detail.
 Figure \ref{fig:schematics} gives a schematic overview of these algorithms.
 
 \tikzstyle{state}=[shape=circle,draw=blue!50,fill=blue!20]
@@ -78,21 +77,21 @@ Figure \ref{fig:schematics} gives a schematic overview of these algorithms.
 \tikzstyle{observation}=[shape=rectangle,draw=orange!50,fill=orange!20]
 \tikzstyle{hiddenObservation}=[shape=rectangle,draw=gray!50,fill=gray!20,dashed]
 \tikzstyle{lightedge}=[<-,thin]
-\tikzstyle{mainstate}=[state,thick]
-\tikzstyle{mainedge}=[<-,thick]
+\tikzstyle{mainstate}=[state,ultra thick]
+\tikzstyle{mainedge}=[<-,ultra thick]
 
 \begin{figure*}[!h]
     \centering
     %\subfloat[Original prediction with loop (dashed).]{
-    \subfloat[Method {\sc Greedy}.]{
+    \subfloat[{\sc Greedy} (\S\ref{sec:greedy}).]{
     \begin{tikzpicture}[baseline=(s1.base)]
         % first-best
         \node[specialState] (s1) at (0,0)  {$1$};
 
         %\node[hiddenState] (s2) at (1,1.5)  {$2$};
-        \node[hiddenState] (s3) at (1,1)  {$3$};
+        \node[hiddenState]  (s3) at (1,1)  {$3$};
         \node[specialState] (s4) at (1,0)    {$2$};
-        \node[hiddenState] (s5) at (1,-1) {$4$};
+        \node[hiddenState]  (s5) at (1,-1) {$4$};
         %\node[hiddenState] (s6) at (1,-1.5)  {$6$};
 
         \node[draw=none] (s40) at (2,1)  {};
@@ -103,34 +102,34 @@ Figure \ref{fig:schematics} gives a schematic overview of these algorithms.
 
         %\draw [->,ultra thin] (s1) to (s2);
         \draw [->,ultra thin] (s1) to (s3);
-        \draw [->,thick] (s1) to (s4);
+        \draw [->,ultra thick] (s1) to (s4);
         \draw [->,ultra thin] (s1) to (s5);
         %\draw [->,ultra thin] (s1) to (s6);
 
         \draw [->,ultra thin] (s4) to (s40);
-        \draw [->,ultra thin] (s4) to (s41);
+        \draw [->,ultra thin] (s4) to (s41) node [draw=none] at (1.625,0) {$/$};
         \draw [->,ultra thin] (s4) to (s42);
     \end{tikzpicture}
     }%   
     \qquad    
-    \resizebox{0.4\textwidth}{!}{
-    \subfloat[Method {\sc LoopElim}.]{
+    %\resizebox{0.2\textwidth}{!}{
+    \subfloat[{\sc LoopElim} (\S\ref{sec:loop-elim}).]{
     \begin{tikzpicture}[baseline=(s0.base)]
         % states
-        \node[state] (s0) at (-2,2) {$1$};
-        \node[state] (s1) at (0,2) {$2$}
-            edge [<-] (s0);
-        \node[state] (s2) at (2,2) {$3$}
-            edge [<-] (s1);
-        \node[state] (s3) at (4,2) {$4$}
-            edge [<-] (s2);
-        \draw [<-,dashed,bend right] (s1) to [looseness=1.25] (s3);
+        \node[state] (s0) at (0,0) {$1$};
+        \node[state] (s1) at (1,0) {$2$}
+            edge [<-,ultra thick] (s0);
+        \node[state] (s2) at (2,0) {$3$}
+            edge [<-,ultra thick] (s1);
+        \node[state] (s3) at (3,0) {$4$}
+            edge [<-,ultra thick] (s2);
+        \draw [<-,dashed,bend right] (s1) to [looseness=1.25] (s3) node[sloped,draw=none] at (2,-0.45) {$/$};
 
-        \node[draw=none] at (0,1)  {};
+        \node[draw=none] at (0,-1.15)  {};
     \end{tikzpicture}
-    }
+    %}
     }%
-    %\qquad
+    \qquad
     % \subfloat[Modified prediction with loop removed.]{
     % \begin{tikzpicture}[baseline=(s0.base)]
     %     % states
@@ -143,10 +142,9 @@ Figure \ref{fig:schematics} gives a schematic overview of these algorithms.
     %         edge [<-] (s2);
     %     \draw [color=white,dashed,bend right] (s1) to [looseness=1.25] (s3);            
     % \end{tikzpicture}
-    % }    
-
-    \resizebox{0.2\textwidth}{!}{
-    \subfloat[Method {\sc ILP}.]{
+    % }
+    %\resizebox{0.2\textwidth}{!}{
+    \subfloat[{\sc ILP} (\S\ref{sec:ilp}).]{
     \begin{tikzpicture}[baseline=(s1.base)]
         % first-best
         \node[specialState] (s1) at (0,0)  {$1$};
@@ -158,7 +156,7 @@ Figure \ref{fig:schematics} gives a schematic overview of these algorithms.
 
         %\node[draw=none] (juka) at (0,-1.5)  {};
 
-        \draw [->,thick] (s1) to (s2);
+        \draw [->,ultra thick] (s1) to (s2);
         \draw [->,ultra thin] (s1) to (s3);
         \draw [->,ultra thin] (s1) to (s4);
         \draw [->,ultra thin] (s1) to (s5);
@@ -167,7 +165,7 @@ Figure \ref{fig:schematics} gives a schematic overview of these algorithms.
         \draw [->,ultra thin] (s2) to (s1);
         \draw [->,ultra thin] (s2) to (s3);
         \draw [->,ultra thin] (s2) to (s4);
-        \draw [->,thick] (s2) to (s5);
+        \draw [->,ultra thick] (s2) to (s5);
         \draw [->,ultra thin] (s2) to (s6);    
 
         \draw [->,ultra thin] (s3) to (s1);
@@ -186,7 +184,7 @@ Figure \ref{fig:schematics} gives a schematic overview of these algorithms.
         \draw [->,ultra thin] (s5) to (s3);
         \draw [->,ultra thin] (s5) to (s4);
         \draw [->,ultra thin] (s5) to (s1);
-        \draw [->,thick] (s5) to (s6);    
+        \draw [->,ultra thick] (s5) to (s6);    
 
         \draw [->,ultra thin] (s6) to (s2);
         \draw [->,ultra thin] (s6) to (s3);
@@ -194,32 +192,38 @@ Figure \ref{fig:schematics} gives a schematic overview of these algorithms.
         \draw [->,ultra thin] (s6) to (s5);
         \draw [->,ultra thin] (s6) to (s1);                    
     \end{tikzpicture}
-    }
+    %}
     }%
     \qquad
-    \subfloat[Method {\sc List Viterbi}.]{
+    \subfloat[{\sc List Viterbi} (\S\ref{sec:viterbi}).]{
     \begin{tikzpicture}[baseline=(s1.base)]
         % first-best
-        \node[state] (s1) at (0,2)  {$s^*_1$};
-        \node[state] (s2) at (2,2)  {$s^*_2$}            
+        \node[state] (s1) at (0,0)  {$1$};
+        \node[state] (s2) at (1,0)  {$2$}            
             edge [<-] (s1);
-        \node[state] (s3) at (4,2)  {$s^*_3$}            
-            edge [<-] (s2);
 
-        \node[hiddenState] (ss1) at (0,1) {{$s^{**}_{1}$}};                            
-        \node[hiddenState] (ss2) at (2,1) {{$s^{**}_{2}$}}
-            edge [<-,decorate,decoration={snake}] (ss1);                            
-        \node[hiddenState] (ss3) at (4,1) {{$s^{**}_{3}$}}
-            edge [<-,decorate,decoration={snake}] (ss2); 
+        \node[specialState] (ss1) at (0,-1) {{${5}$}};                            
+        \node[specialState] (ss2) at (1,-1) {{${6}$}}
+            edge [<-,ultra thick,decorate,decoration={snake}] (ss1);
 
-        \node[specialState] (s4) at (6,2) {$s^*_4$}
-            edge [<-] (s3)
-            edge [<-,decorate,decoration={snake}] (ss3);
+        \node[specialState] (s3) at (2,0)  {$3$}            
+            edge [<-] (s2)
+            edge [<-,ultra thick,decorate,decoration={snake}] (ss2);
+
+        \node[specialState] (s4) at (3,0) {$4$}
+            edge [<-,ultra thick] (s3);
+
+        %\draw [<-,dashed,bend left] (s2) to [looseness=1.25] (s4); 
     \end{tikzpicture}
     }
     
     %\caption{Example of heuristically removing loops. The nodes are numbered by the POI, with edges denoting order in the sequence. While the modified prediction removes the loop in the original sequence, it is necessarily at the expense of returning a path with fewer number of POIs.}
-    \caption{Schematics of different algorithms to return a loop-free prediction.}
+    \caption{Schematics of different algorithms to return a loop-free prediction.
+    {\sc Greedy} selects POIs one at a time, so as to locally maximise the sub-sequence score while ensuring we do not repeat POIs;
+    {\sc LoopElim} removes the loop from the Viterbi solution, possibly returning a path of shorter length than requested;
+    {\sc ILP} solves an integer linear program to find the optimal sequence of length $l$ in a complete graph over POIs;
+    {\sc ListViterbi} finds the point where the second best sequence merges with the first best (standard Viterbi) sequence.
+    }
     \label{fig:schematics}
 \end{figure*}
 
@@ -233,62 +237,3 @@ Figure \ref{fig:schematics} gives a schematic overview of these algorithms.
 % 	%\item contributions of this paper
 % \end{itemize}
 % }
-
-% Now, our training set of historical trajectories may be written as
-% $\{ ( \x^{(i)}, \{ \y^{(i,j)} \}_{j=1}^{n_i} ) \}_{i=1}^{n}$,
-% where each $\x^{(i)}$ is a distinct query
-% with $\{ \y^{(i,j)} \}_{j=1}^{n_i}$ the corresponding \emph{set} of observed trajectories.
-% Note that we expect most queries to have several distinct trajectories;
-% minimally,
-% for example,
-% there may be two nearby POIs that are visited in interchangeable order by different travellers.
-% We are also interested in predicting paths $\y$, since it is unlikely a user will want to visit the same location twice.
-
-% Let us suppose that characteristics of a tourist are summarised in some feature space $\XCal$,
-% and sequences of a fixed length are represented by a label space $\YCal$.
-% Given some affinity model $F \colon \XCal \times \YCal \to \mathbb{R}$ (\eg the output of a structured SVM), the standard inference problem is:
-% given a new $\x \in \XCal$, find $\argmax_{\y \in \YCal} F( \x, \y )$.
-% In the case of a structured SVM with pairwise potentials, this can be solved with the classic Viterbi algorithm.
-
-
-% Consider the following general
-% \emph{structured recommendation} problem:
-% given an input query $\x \in \XCal$ (representing \eg a location, or some ``seed'' song)
-% we wish to recommend one or more \emph{structured outputs} $\y \in \YCal$ (representing \eg a sequence of locations, or songs)
-% according to a learned \emph{score function} $f(\x,\y)$.
-% To learn $f$,
-% we are provided as input a training set
-% $\{ ( \x^{(i)}, \{ \y^{(i,j)} \}_{j=1}^{n_i} ) \}_{i=1}^{n}$,
-% comprising a collection of inputs $\x^{(i)}$ with an associated \emph{set} of $n_i$ output structures $\{ \y^{(i,j)} \}_{j=1}^{n_i}$.
-
-% For this work, we assume the output $\y$ is a \emph{sequence} of $l$ points, denoted $y_{1:l}$
-% where each $y_i$ belongs to some fixed set (\eg places of interest in a city, or a collection of songs).
-% We call the resulting specialisation the \emph{sequence recommendation} problem,
-% and this shall be our primary interest in this paper.
-% In many settings, one further requires the sequences to be \emph{paths}, \ie not contain any repetitions.
-
-% Existing approaches treat the problem as one of determining a score for the intrinsic appeal of each POI.
-% For example, a RankSVM model
-% which
-% learns to predict whether a POI is likely to appear ahead of another POI in a trajectory corresponding to some query~\cite{cikm16paper}.
-% Formally,
-% from the given set of trajectories
-% we derive a training set
-% $\{ ( \x^{(i)}, \mathbf{r}^{(i)} ) \}_{i = 1}^n$,
-% where for each trajectory query $\x^{(i)}$ there is a list of ranked POI pairs
-% $\mathbf{r}^{(i)} \subseteq \PCal \times \PCal$
-% such that
-% $(p, p') \in \mathbf{r}^{(i)}$
-% iff
-% POI $p$ appears more times than POI $p'$ in all trajectories associated with $\x^{(i)}$. %according to some notion.
-% The training objective is then
-% \begin{align}
-% \resizebox{0.7\linewidth}{!}{$\displaystyle
-% \displaystyle \min_{\w} ~\frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathbf{r}^{(i)}}
-% \ell\left( \w^\top ( \Psi( \x^{(i)}, p ) - \Psi( \x^{(i)}, p' ) ) \right),
-% $} \label{eq:ranksvm}
-% \end{align}
-% for
-% feature mapping $\Psi$,
-% regularisation strength $C$ % > 0$,
-% and squared hinge loss $\ell( v ) = \max( 0, 1 - v )^2$.

@@ -1,12 +1,26 @@
 % !TEX root=main.tex
 
 We formalised the problem of eliminating loops when recommending trajectories to visitors in a city,
-and surveyed three distinct approaches to the problem -- a heuristic inspired by Christofides' algorithm, list extensions of the Viterbi algorithm, and integer linear programming.
-Through experiments on real-world datasets, 
-Overall, we find that
-all methods offer performance improvements over na\"{i}vely predicting a sequence with loops;
-Christofides' algorithm is at least an order of magnitude faster than the other methods, but with a significant sacrifice in accuracy;
-and that the list Viterbi is faster than the ILP for short trajectories, but the ILP is superior for longer trajectories.
+and surveyed three distinct approaches to the problem --
+%a heuristic inspired by Christofides' algorithm, list extensions of the Viterbi algorithm, and integer linear programming.
+graph-based heuristics,
+list extensions of the Viterbi algorithm,
+and integer linear programming.
+We explicated how two ostensibly different approaches to the list Viterbi algorithm \citep{seshadri1994list,nilsson2001sequentially} are in fact fundamentally identical.
+
+Through experiments on real-world datasets,
+we found that
+a greedy graph-based heuristic offers excellent performance with only mild computational overhead over standard inference procedures.
+We thus recommend its use over the more complicated integer programming and list Viterbi inference procedures.
+
+% {\color{red}
+% Could talk about difficulty of extending greedy algorithm to top $10$ setting,
+% although that's what beam search would do.
+% }
+
+% all methods offer performance improvements over na\"{i}vely predicting a sequence with loops;
+% Christofides' algorithm is at least an order of magnitude faster than the other methods, but with a significant sacrifice in accuracy;
+% and that the list Viterbi is faster than the ILP for short trajectories, but the ILP is superior for longer trajectories.
 
 The basic idea of modifying the standard Viterbi inference problem (Equation \ref{eqn:argmax}) has other applications, such
 as ensuring diversity in the predicted ranking.

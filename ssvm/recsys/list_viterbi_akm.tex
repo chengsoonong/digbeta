@@ -6,26 +6,29 @@
 %     %\item parallel list viterbi
 % \end{itemize}
 
-Recall that one uses the Viterbi algorithm for standard inference in a structured prediction model.
-This finds the single highest scoring sequence, which may have loops.
+Recall that for a structured SVM model,
+the Viterbi algorithm %for standard inference in a structured prediction model.
+%This
+finds the best scoring sequence, which may have loops.
 To find the best sequence without loops, one can apply a \emph{list Viterbi algorithm}
 to find not just the single best sequence,
 but rather the top $K$ best sequences.
 By definition, the first such sequence that is loop free must be the highest scoring sequence that does not have loops.
-We detail existing approaches to this problem.
+We detail existing approaches to solving the list Viterbi problem.
 
 %
 \subsection{Parallel and serial list Viterbi algorithms}
 
 At a high level, there are two approaches to extend the Viterbi algorithm to the top-$K$ setting.
-The first approach is to keep track, at each state, of the top $K$ paths that end at this state; these are known as \emph{parallel list Viterbi} algorithms.
+The first approach is to keep track, at each state, of the top $K$ sub-sequences that end at this state; these are known as \emph{parallel list Viterbi} algorithms.
 Such algorithms date back to at least \citet{Forney:1973},
 but have the disadvantage of imposing a non-trivial memory burden.
-Further, they are not applicable as-is in our setting, as we do \emph{not} know in advance what value of $K$ is suitable,
-since we do not the position of the best loop-free sequence.
+Further, they are not applicable as-is in our setting:
+we do \emph{not} know in advance what value of $K$ is suitable,
+since we do not know the position of the best loop-free sequence.
 
 The second approach is to more fundamentally modify how one selects paths; these are known as \emph{serial list Viterbi} algorithms.
-Amongst serial list Viterbi algorithms, there are at least two well-known proposals.
+Amongst serial list Viterbi algorithms, there are at least two well-known proposals in the context of hidden Markov models (HMMs).
 In the signal processing community, \citet{seshadri1994list} proposed an algorithm that keeps track of the ``next best'' sequence terminating at each state in the current list of best sequences.
 In the AI community, \citet{nilsson2001sequentially} (building on the work of \citet{Nilsson:1998} for general graphical models) proposed an algorithm that cleverly partitions the search space into subsets of sequences that share a prefix with the current list of best sequences.
 While derived in different communities, these two algorithms are in fact only superficially different, as we now see.
@@ -33,12 +36,12 @@ While derived in different communities, these two algorithms are in fact only su
 %
 \subsection{Relating serial list Viterbi algorithms}
 
-The connection between the existing list Viterbi algorithms is easiest to see in the case of finding the second best sequence.
-Suppose we have a hidden Markov model with states $\SSf_{t}$, observations $\OSf_{t}$, transition probabilities $a_{ij} = \Pr( \SSf_{t+1} = j \mid \SSf_t = i )$, and emission probabilities $b_{ik} = \Pr( \OSf_{t} = k \mid \SSf_t = i )$.
+The connection between the existing list Viterbi algorithms is easiest to see in the case of finding the second best sequence for an HMM.
+Suppose we have an HMM with states $\SSf_{t}$, observations $\OSf_{t}$, transition probabilities $a_{ij} = \Pr( \SSf_{t+1} = j \mid \SSf_t = i )$, and emission probabilities $b_{ik} = \Pr( \OSf_{t} = k \mid \SSf_t = i )$.
 Suppose $s^*_{1:T}$ is the most likely sequence given observations $\OSf_{1:T}$,
 $\delta_{j, t}$ is the value of the best sequence up till position $t$ ending at state $j$ as computed by the Viterbi algorithm,
-$\delta_{j, t} \defEq \max_{\SSf_{1:t - 1}} \Pr( \SSf_{1:t - 1}, \SSf_t = j, \OSf_{1:t} )$
-and our interest is in finding the second best sequence, with value
+%$\delta_{j, t} \defEq \max_{\SSf_{1:t - 1}} \Pr( \SSf_{1:t - 1}, \SSf_t = j, \OSf_{1:t} )$
+and our interest is in finding the second best sequence given observations $\OSf_{1:T}$, with value
 $$ M \defEq \max_{\SSf_{1:T} \neq s^*_{1 : T}}{\Pr( \SSf_{1:T}, \OSf_{1:T} )}. $$
 To do so, \citet{seshadri1994list} proposed the recurrence
 \begin{equation}

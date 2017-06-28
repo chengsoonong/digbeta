@@ -7,7 +7,7 @@ Specifically, if the Viterbi solution is $( y_1, \ldots, y_l )$,
 and $i$ is the first index where $y_i$ already appears in the subsequence $( y_1, \ldots, y_{i-1} )$,
 then simply return the subsequence $( y_1, \ldots, y_{i-1} )$.
 
-The above algorithm is guaranteed to return a path,
+This algorithm is appealing in its simplicity,
 but has at least two detrimental features.
 First, it is unclear what performance guarantee this method brings.
 Second, it returns a solution that violates the length constraint of the trajectory recommendation problem.

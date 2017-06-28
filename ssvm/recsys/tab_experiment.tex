@@ -1,11 +1,12 @@
 % !TEX root=main.tex
 
-\begin{table*}[!t]
+\begin{table*}[t]
 	\caption{Point F$_1$ cross-validation scores.}
 	\label{tab:f1-master}
-	\centering	
+	\centering
+	\vspace{-\baselineskip}
 	\resizebox{0.575\textwidth}{!}{
-	\subfloat[Raw scores.]{	
+	\subfloat[Raw scores.]{		
 	\begin{tabular}{l|cccc|c}
 		\hline
          & \textsc{List Viterbi} & \textsc{ILP} & \textsc{LoopElim} & \textsc{Greedy} & \textsc{Viterbi} \\ \hline
@@ -32,10 +33,11 @@
 	}
 \end{table*}
 
-\begin{table*}[!t]
+\begin{table*}[t]
 	\caption{Pair F$_1$ cross-validation scores.}
 	\label{tab:pf1-master}	
 	\centering
+	\vspace{-\baselineskip}
 	\resizebox{0.575\textwidth}{!}{
 	\subfloat[Raw scores.]{
 	\label{tab:pf1}
@@ -64,10 +66,11 @@
 	}
 \end{table*}
 
-\begin{table*}[!t]
+\begin{table*}[t]
     \caption{Point F$_1$ cross-validation scores of queries where {\sc Viterbi} recommendation has a loop.}
     \label{tab:f1-diff}
 	\centering	
+	\vspace{-\baselineskip}
 	\resizebox{0.575\textwidth}{!}{
     \subfloat[Raw scores.]{
 	\begin{tabular}{l|cccc|c}
@@ -96,10 +99,11 @@
 	}
 \end{table*}
 
-\begin{table*}[!t]
+\begin{table*}[t]
 	\caption{Pair F$_1$ cross-validation scores of queries where {\sc Viterbi} recommendation has a loop.}
 	\label{tab:pf1-diff}
 	\centering
+	\vspace{-\baselineskip}
 	\resizebox{0.575\textwidth}{!}{
 	\subfloat[Raw scores.]{
 	\label{tab:pf1-diff}
