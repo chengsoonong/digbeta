@@ -17,37 +17,45 @@ We detail existing approaches to this problem.
 %
 \subsection{Parallel and serial list Viterbi algorithms}
 
-At a high level, there are two ways to extend the Viterbi algorithm to the top-$K$ setting.
-The first is to keep track, at each state, of the top $K$ paths that end at this state; these are known as \emph{parallel list Viterbi} algorithms.
-Parallel list Viterbi algorithms date back to at least \citet{Forney:1973}.
-However, they impose a memory burden; further, in our setting it is unknown how many paths will be required, as we do not know how many of the top $K$ sequences have loops.
+At a high level, there are two approaches to extend the Viterbi algorithm to the top-$K$ setting.
+The first approach is to keep track, at each state, of the top $K$ paths that end at this state; these are known as \emph{parallel list Viterbi} algorithms.
+Such algorithms date back to at least \citet{Forney:1973},
+but have the disadvantage of imposing a non-trivial memory burden.
+Further, they are not applicable as-is in our setting, as we do \emph{not} know in advance what value of $K$ is suitable,
+since we do not the position of the best loop-free sequence.
 
-The second is to more fundamentally modify how one selects paths; these are known as \emph{serial list Viterbi} algorithms.
+The second approach is to more fundamentally modify how one selects paths; these are known as \emph{serial list Viterbi} algorithms.
 Amongst serial list Viterbi algorithms, there are at least two well-known proposals.
 In the signal processing community, \citet{seshadri1994list} proposed an algorithm that keeps track of the ``next best'' sequence terminating at each state in the current list of best sequences.
 In the AI community, \citet{nilsson2001sequentially} (building on the work of \citet{Nilsson:1998} for general graphical models) proposed an algorithm that cleverly partitions the search space into subsets of sequences that share a prefix with the current list of best sequences.
-
+While derived in different communities, these two algorithms are in fact only superficially different, as we now see.
 
 %
 \subsection{Relating serial list Viterbi algorithms}
 
-While derived in different communities, the two serial list Viterbi approaches are in fact only superficially different.
-This is easiest to see in the case of finding the second best sequence.
+The connection between the existing list Viterbi algorithms is easiest to see in the case of finding the second best sequence.
 Suppose we have a hidden Markov model with states $\SSf_{t}$, observations $\OSf_{t}$, transition probabilities $a_{ij} = \Pr( \SSf_{t+1} = j \mid \SSf_t = i )$, and emission probabilities $b_{ik} = \Pr( \OSf_{t} = k \mid \SSf_t = i )$.
-Suppose $s^*$ is the most likely sequence given observations $\OSf_{1:T}$,
+Suppose $s^*_{1:T}$ is the most likely sequence given observations $\OSf_{1:T}$,
+$\delta_{j, t}$ is the value of the best sequence up till position $t$ ending at state $j$ as computed by the Viterbi algorithm,
+$\delta_{j, t} \defEq \max_{\SSf_{1:t - 1}} \Pr( \SSf_{1:t - 1}, \SSf_t = j, \OSf_{1:t} )$
 and our interest is in finding the second best sequence, with value
 $$ M \defEq \max_{\SSf_{1:T} \neq s^*_{1 : T}}{\Pr( \SSf_{1:T}, \OSf_{1:T} )}. $$
-To do, \citet{seshadri1994list} proposed the recurrence
-\begin{align*}
-	M &= \bar{\delta}_{T+1} \\
-    (\forall t > 0) \, \bar{\delta}_t &= 
-    \max
-    \begin{cases}
-    \max_{i \neq s^*_{t-1}} \delta(i, t-1) \cdot a( i, s^*_{t} ) \cdot b( s^*_{t}, \OSf_{t} ) \\
-    \bar{\delta}_{t - 1} \cdot a( s^*_{t - 1}, s^*_{t} ) \cdot b( s^*_{t}, \OSf_{t} )
-    \end{cases} \\
-    \bar{\delta}_0 &= 0.
-\end{align*}
+To do so, \citet{seshadri1994list} proposed the recurrence
+\begin{equation}
+    \label{eqn:att-recurrence}
+    \begin{aligned}
+        M &= \bar{\delta}_{T+1} \\
+        %(\forall t > 0) \,
+        \bar{\delta}_t &= 
+        \indicator{t > 0} \cdot
+        \max
+        \begin{cases}
+        \max_{i \neq s^*_{t-1}} \delta(i, t-1) \cdot a( i, s^*_{t} ) \cdot b( s^*_{t}, \OSf_{t} ) \\
+        \bar{\delta}_{t - 1} \cdot a( s^*_{t - 1}, s^*_{t} ) \cdot b( s^*_{t}, \OSf_{t} ).
+        \end{cases}% \\
+        %\bar{\delta}_0 &= 0.
+    \end{aligned}    
+\end{equation}
 Intuitively, $\bar{\delta}_t$ finds the value of the second best sequence that merges with the best sequence by at least time $t$.
 On the other hand, \citet{nilsson2001sequentially} proposed to find
 \begin{align*}
@@ -56,7 +64,7 @@ On the other hand, \citet{nilsson2001sequentially} proposed to find
 \end{align*}
 Intuitively, $\widehat{\rho}_t$ finds the value of the second best sequence that first deviates from the best sequence exactly at time $t$.
 
-To connect the two approaches, observe that we can unroll the previous recurrence to give
+To connect the two approaches, observe that we can unroll the recurrence in Equation \ref{eqn:att-recurrence} to give
 \begin{align*}
 	M &= \max_t \widehat{\mu}_t \\
 	\widehat{\mu}_{t} &\defEq \prod_{k = 1}^t a( s^*_{k-1}, s^*_{k} ) \cdot b( s^*_{k}, \OSf_{k} ) \cdot \max_{i \neq s^*_{t}} \delta(i, t) \cdot a( i, s^*_{t+1} ) \cdot b( s^*_{t+1}, \OSf_{t+1} ) \\
