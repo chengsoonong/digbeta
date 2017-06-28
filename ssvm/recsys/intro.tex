@@ -14,15 +14,15 @@ Our focus in the present paper is problem setting (3), which we dub ``trajectory
 %First,
 Effectively tackling trajectory recommendation poses a challenge:
 at training time, how can one design a model that can recommend sequences of POIs which are coherent as a \emph{whole}?
-In particular, it may not suffice to merely concatenate a tourists' personalised top ranking POIs into a sequence,
-as this might result in prohibitive travel (e.g.\ {\tt Opera House$\to$Royal National Park}),
+Merely concatenating a tourists' personalised top ranking POIs into a sequence
+might result in prohibitive travel (e.g.\ {\tt Opera House$\to$Royal National Park}),
 or may suffer from a lack of diversity (e.g.\ we might recommend three restaurants in a row).
 This motivates an inherently structured approach to the problem.
 In recent work, \citet{Chen:2017} explored the use of structured SVMs as one such approach, and showed that this outperforms POI ranking approaches. %as well as Markov model approaches.
 
 In this paper, we study a distinct but related challenge:
 at prediction time, how can one recommend a sequence that does not have \emph{loops}?
-This is highly desirable because tourists would typically wish to avoid revisiting a POI that has already been visited before.
+This is desirable because tourists would typically wish to avoid revisiting a POI that has already been visited before.
 In principle, such a problem will not exist if one employs a suitably powerful model during training.
 In practice, one is forced to compromise on model richness owing to computational and sample complexity considerations.
 %As a result, it is of import to design means of overcoming this problem.
@@ -30,7 +30,11 @@ In practice, one is forced to compromise on model richness owing to computationa
 How can one solve this modified inference problem?
 We study this question with the following contributions:
 \begin{enumerate}
-	\item[(\textbf{C1})] We detail three different approaches to the problem -- a heuristic inspired by Christofides' algorithm, list extensions of the Viterbi algorithm, and integer linear programming -- and qualitatively summarise their strengths and weaknesses.
+	\item[(\textbf{C1})] We detail three different approaches to the problem -- 
+	%a heuristic inspired by Christofides' algorithm,
+	graph-based heuristics,
+	list extensions of the Viterbi algorithm, and integer linear programming
+	-- and qualitatively summarise their strengths and weaknesses.
 	\item[(\textbf{C2})] In the course of our analysis, we explicate how two ostensibly different approaches to the list Viterbi algorithm \citep{seshadri1994list,nilsson2001sequentially} are in fact fundamentally identical.
 	\item[(\textbf{C3})] We conduct experiments on real-world trajectory recommendation datasets to identify the tradeoffs imposed by each of the three approaches.
 \end{enumerate}
@@ -40,8 +44,8 @@ Christofides' algorithm is at least an order of magnitude faster than the other 
 and that the list Viterbi is faster than the ILP for short trajectories, but the ILP is superior for longer trajectories.
 
 %The paper is organised as follows:
-In the sequel,
-Section \ref{sec:background} formalises the problem setting;
-Sections \ref{sec:christofides} -- \ref{sec:viterbi} summarise the three distinct approaches;
-Section \ref{sec:experiments} provides empirical comparison of the methods;
-and Section \ref{sec:discussion} gives some additional discussion and directions for future research.
+% In the sequel,
+% Section \ref{sec:background} formalises the problem setting;
+% Sections \ref{sec:christofides} -- \ref{sec:viterbi} summarise the three distinct approaches;
+% Section \ref{sec:experiments} provides empirical comparison of the methods;
+% and Section \ref{sec:discussion} gives some additional discussion and directions for future research.
