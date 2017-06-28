@@ -1,9 +1,9 @@
 % !TEX root=main.tex
 
-A burgeoning sub-field of recommendation focusses on travel routes a tourist to a city might enjoy.
-This encompasses at least three distinct problems:
+A burgeoning sub-field of citizen-centric recommendation focusses on suggesting travel routes in a city that a tourist might enjoy.
+This goal encompasses at least three distinct problems:
 \begin{enumerate}[(1)]
-	\item ranking \emph{all} points of interest (POIs) in a city in a manner personalised to a tourist (\eg a tourist interested in natural beauty might have {\tt Opera House $\succ$ Darling Harbour $\succ$ The Rocks}) \citep{shi2011personalized,lian2014geomf,hsieh2014mining,yuan2014graph};
+	\item ranking \emph{all} points of interest (POIs) in a city in a manner personalised to a tourist (\eg a tourist interested in scenic views might have {\tt Opera House $\succ$ Darling Harbour $\succ$ The Rocks}) \citep{shi2011personalized,lian2014geomf,hsieh2014mining,yuan2014graph};
 	\item recommending the \emph{next} location a tourist might enjoy, given the sequence of places they have visited thus far (\eg given {\tt The Rocks$\to$Botanic Gardens}, we might recommend {\tt Hyde Park}) \citep{fpmc10,ijcai13,zhang2015location};
 	%and
 	\item recommending an \emph{entire sequence} of POIs for a tourist, effectively giving them a travel itinerary (\eg {\tt Opera House$\to$Darling Harbour$\to$Chinatown}) \citep{lu2010photo2trip,ijcai15,lu2012personalized,gioniswsdm14,chen2015tripplanner}.
@@ -12,29 +12,20 @@ Our focus in the present paper is problem setting (3), which we dub ``trajectory
 
 %There are at least two challenges in effectively tackling trajectory recommendation.
 %First,
-Effectively tackling trajectory recommendation poses a primary challenge:
+Effectively tackling trajectory recommendation poses a challenge:
 at training time, how can one design a model that can recommend sequences of POIs which are coherent as a \emph{whole}?
 In particular, it may not suffice to merely concatenate a tourists' personalised top ranking POIs into a sequence,
 as this might result in prohibitive travel (e.g.\ {\tt Opera House$\to$Royal National Park}),
 or may suffer from a lack of diversity (e.g.\ we might recommend three restaurants in a row).
 This motivates an inherently structured approach to the problem.
-In recent work, \citet{Chen:2017} explored the use of structured SVMs as one such approach, and showed that this outperforms POI ranking approaches, as well as Markov model approaches.
+In recent work, \citet{Chen:2017} explored the use of structured SVMs as one such approach, and showed that this outperforms POI ranking approaches. %as well as Markov model approaches.
 
-%Second,
 In this paper, we study a distinct but related challenge:
 at prediction time, how can one recommend a sequence that does not have \emph{loops}?
 This is highly desirable because tourists would typically wish to avoid revisiting a POI that has already been visited before.
 In principle, such a problem will not exist if one employs a suitably powerful model during training.
 In practice, one is forced to compromise on model richness owing to computational and sample complexity considerations.
 %As a result, it is of import to design means of overcoming this problem.
-
-More formally, let us suppose that characteristics of a tourist are summarised in some feature space $\XCal$,
-and sequences of a fixed length are represented by a label space $\YCal$.
-Given some affinity model $F \colon \XCal \times \YCal \to \mathbb{R}$ (\eg the output of a structured SVM), the standard inference problem is:
-given a new $\x \in \XCal$, find $\argmax_{\y \in \YCal} F( \x, \y )$.
-However, we now wish to solve a modified problem:
-given a new $\x \in \XCal$, find $\argmax_{\y \in \bar{\YCal}} F( \x, \y )$,
-where $\bar{\YCal}$ comprises all sequences in $\YCal$ that are loop-free.
 
 How can one solve this modified inference problem?
 We study this question with the following contributions:
@@ -43,18 +34,14 @@ We study this question with the following contributions:
 	\item[(\textbf{C2})] In the course of our analysis, we explicate how two ostensibly different approaches to the list Viterbi algorithm \citep{seshadri1994list,nilsson2001sequentially} are in fact fundamentally identical.
 	\item[(\textbf{C3})] We conduct experiments on real-world trajectory recommendation datasets to identify the tradeoffs imposed by each of the three approaches.
 \end{enumerate}
+Overall, we find that
+all methods offer performance improvements over na\"{i}vely predicting a sequence with loops;
+Christofides' algorithm is at least an order of magnitude faster than the other methods, but with a significant sacrifice in accuracy;
+and that the list Viterbi is faster than the ILP for short trajectories, but the ILP is superior for longer trajectories.
 
-The paper is organised as follows:
+%The paper is organised as follows:
+In the sequel,
+Section \ref{sec:background} formalises the problem setting;
 Sections \ref{sec:christofides} -- \ref{sec:viterbi} summarise the three distinct approaches;
 Section \ref{sec:experiments} provides empirical comparison of the methods;
 and Section \ref{sec:discussion} gives some additional discussion and directions for future research.
-
-{\color{red!75}
-\begin{itemize}
-	%\item connect to workshop
-	%\item distinguish between next location vs whole trajectory
-	%\item define word usage: trajectory, path, walk, sequence, tour, etc.
-	\item describe relation to travelling salesman, and say why different
-	%\item contributions of this paper
-\end{itemize}
-}

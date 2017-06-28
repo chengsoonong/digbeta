@@ -30,11 +30,12 @@ While derived in different communities, the two approaches are in fact only supe
 This is easiest to see in the case of finding the second best sequence.
 Suppose we have a hidden Markov model with states $\SSf_{t}$, observations $\OSf_{t}$, transition probabilities $a_{ij} = \Pr( \SSf_{t+1} = j \mid \SSf_t = i )$, and emission probabilities $b_{ik} = \Pr( \OSf_{t} = k \mid \SSf_t = i )$.
 Suppose $s^*$ is the most likely sequence given observations $\OSf_{1:T}$,
-and our interest is in finding the second best sequence.
+and our interest is in finding the second best sequence, with value
+$$ M \defEq \max_{\SSf_{1:T} \neq s^*_{1 : T}}{\Pr( \SSf_{1:T}, \OSf_{1:T} )}. $$
 To do, \citet{seshadri1994list} proposed the recurrence
 \begin{align*}
-	\max_{\SSf_{1:T} \neq s^*_{1 : T}}{\Pr( \SSf_{1:T}, \OSf_{1:T} )} &= \bar{\delta}_{T+1} \\
-    (\forall t \in \{ 1, \ldots, T + 1 \}) \, \bar{\delta}_t &= 
+	M &= \bar{\delta}_{T+1} \\
+    (\forall t > 0) \, \bar{\delta}_t &= 
     \max
     \begin{cases}
     \max_{i \neq s^*_{t-1}} \delta(i, t-1) \cdot a( i, s^*_{t} ) \cdot b( s^*_{t}, \OSf_{t} ) \\
@@ -45,14 +46,14 @@ To do, \citet{seshadri1994list} proposed the recurrence
 Intuitively, $\bar{\delta}_t$ finds the value of the second best sequence that merges with the best sequence by at least time $t$.
 On the other hand, \citet{nilsson2001sequentially} proposed to find
 \begin{align*}
-	\max_{\SSf_{1:T} \neq s^*_{1 : T}}{\Pr( \SSf_{1:T}, \OSf_{1:T} )} &= \max_t \widehat{\rho}_t \\
+	M &= \max_t \widehat{\rho}_t \\
 	\widehat{\rho}_{t} &\defEq \max_{i \neq s^*_{t}} \max_{S_{t+1:T}} {\Pr( \SSf_{1:t-1} = s^*_{1:t-1}, \SSf_t = i, \SSf_{t+1:T}, \OSf_{1:T} )}.
 \end{align*}
 Intuitively, $\widehat{\rho}_t$ finds the value of the second best sequence that first deviates from the best sequence exactly at time $t$.
 
 To connect the two approaches, observe that we can unroll the previous recurrence to give
 \begin{align*}
-	\max_{\SSf_{1:T} \neq s^*_{1 : T}}{\Pr( \SSf_{1:T}, \OSf_{1:T} )} &= \max_t \widehat{\mu}_t \\
+	M &= \max_t \widehat{\mu}_t \\
 	\widehat{\mu}_{t} &\defEq \prod_{k = 1}^t a( s^*_{k-1}, s^*_{k} ) \cdot b( s^*_{k}, \OSf_{k} ) \cdot \max_{i \neq s^*_{t}} \delta(i, t) \cdot a( i, s^*_{t+1} ) \cdot b( s^*_{t+1}, \OSf_{t+1} ) \\
 	&= \max_{i \neq s^*_{t}} \max_{S_{1:t-1}} {\Pr( \SSf_{1:t}, \SSf_t = i, \SSf_{t+1:T} = s^*_{t+1:T}, \OSf_{1:T} )}.
 \end{align*}

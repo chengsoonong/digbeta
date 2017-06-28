@@ -8,3 +8,8 @@ This paper studies this problem, with three contributions.
 First, we detail three distinct approaches to the problem -- a heuristic inspired by Christofides' algorithm, list extensions of the Viterbi algorithm, and integer linear programming -- and qualitatively summarise their strengths and weaknesses.
 Second, we explicate how two ostensibly different approaches to the list Viterbi algorithm \citep{seshadri1994list,nilsson2001sequentially} are in fact fundamentally identical.
 Third, we conduct experiments on real-world trajectory recommendation datasets to identify the tradeoffs imposed by each of the three approaches.
+
+Overall, we find that
+all methods offer performance improvements over na\"{i}vely predicting a sequence with loops;
+Christofides' algorithm is at least an order of magnitude faster than the other methods, but with a significant sacrifice in accuracy;
+and that the list Viterbi is faster than the ILP for short trajectories, but the ILP is superior for longer trajectories.
