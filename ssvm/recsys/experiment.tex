@@ -1,7 +1,7 @@
 % !TEX root=main.tex
 
-We are now in a position to empirically compare the three methods discussed above,
-to get a firmer sense of the tradeoffs offered by each.
+We are now in a position to empirically compare the methods discussed above,
+to get a firmer sense of their tradeoffs.
 
 %
 \subsection{Description of datasets}
@@ -14,29 +14,51 @@ list of trajectories, being a sequence of points of interest (POI),
 as visited by various Flickr users and recorded by the geotags in photos.
 Table~\ref{tab:data} summarises the profile of each dataset.
 We see that most queries have more than one ground truth, making the sequence recommendation setting relevant. Further, each query has an average of 4-9, and a maximum of 30-60 trajectories (details in supplement).
-In all datasets,
-each user has on average less than two trajectories.
-This makes user-specific recommendation impractical, and also undesirable because
-a user would want different recommendations given different starting locations, and not a static recommendation no matter where she is.
+
+% In all datasets,
+% each user has on average less than two trajectories.
+% This makes user-specific recommendation impractical, and also undesirable because
+% a user would want different recommendations given different starting locations, and not a static recommendation no matter where she is.
 
 % dataset stats
+% \begin{table}[t]
+% 	\begin{minipage}[t]{\linewidth}
+% 		\resizebox{\linewidth}{!}{
+% 		\setlength{\tabcolsep}{4pt} % tweak the space between columns
+% 		\small
+% 		\begin{tabular}{lllll|ccc|cc} \hline %{l*{9}{c}} \hline
+% 		\textbf{Dataset} & \textbf{\#Traj} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#Queries} & \textbf{\#GT=1} & \textbf{\#GT$\in [2,5]$} & \textbf{\#GT$>$5} & \textbf{\#shortTraj} & \textbf{\#longTraj} \\ \hline
+% 		Glasgow          & 351              & 25              & 219              & 64                 & 23              & 22                      & 19                & 336                     & 15 \\
+% 		Osaka            & 186              & 26              & 130              & 47                 & 17              & 22                      & 8                 & 178                     & 8  \\
+%         Toronto          & 977              & 27              & 454              & 99                 & 30              & 33                      & 36                & 918                     & 59 \\
+% 		\hline
+% 		\end{tabular}%
+% 		}
+% 		\captionof{table}{Statistics of trajectory datasets.
+%         Including the number of trajectories (\#Traj), POIs (\#POIs), users (\#Users), queries (\#Queries);
+%         the number of queries with a single (\#GT=1), 2-5 (\#GT$\in$[2,5]), or more than 5 (\#GT$>$5) ground truths;
+%         and profile of trajectory length, \ie less than 5 (\#shortTraj) and more than 5 POIs (\#longTraj).
+%         }
+% 		\label{tab:data}
+% 	\end{minipage}
+% \end{table}
+
 \begin{table}[t]
 	\begin{minipage}[t]{\linewidth}
 		\resizebox{\linewidth}{!}{
 		\setlength{\tabcolsep}{4pt} % tweak the space between columns
 		\small
-		\begin{tabular}{lllll|ccc|cc} \hline %{l*{9}{c}} \hline
-		\textbf{Dataset} & \textbf{\#Traj} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#Queries} & \textbf{\#GT=1} & \textbf{\#GT$\in [2,5]$} & \textbf{\#GT$>$5} & \textbf{\#shortTraj} & \textbf{\#longTraj} \\ \hline
-		Glasgow          & 351              & 25              & 219              & 64                 & 23              & 22                      & 19                & 336                     & 15 \\
-		Osaka            & 186              & 26              & 130              & 47                 & 17              & 22                      & 8                 & 178                     & 8  \\
-        Toronto          & 977              & 27              & 454              & 99                 & 30              & 33                      & 36                & 918                     & 59 \\
+		\begin{tabular}{llll|cc} \hline %{l*{9}{c}} \hline
+		\textbf{Dataset} & \textbf{\#Traj} & \textbf{\#POIs}  & \textbf{\#Queries}  & \textbf{\#ShortTraj} & \textbf{\#LongTraj} \\ \hline
+		Glasgow          & 351              & 25              & 64                 & 336                     & 15 \\
+		Osaka            & 186              & 26              & 47                 & 178                     & 8  \\
+        Toronto          & 977              & 27              & 99                 & 918                     & 59 \\
 		\hline
 		\end{tabular}%
 		}
 		\captionof{table}{Statistics of trajectory datasets.
-        Including the number of trajectories (\#Traj), POIs (\#POIs), users (\#Users), queries (\#Queries);
-        the number of queries with a single (\#GT=1), 2-5 (\#GT$\in$[2,5]), or more than 5 (\#GT$>$5) ground truths;
-        and profile of trajectory length, \ie less than 5 (\#shortTraj) and more than 5 POIs (\#longTraj).
+        Including the number of trajectories (\#Traj), POIs (\#POIs), queries (\#Queries);
+        and the number of trajectories with length less than 5 (\#ShortTraj) and more than 5 POIs (\#LongTraj).
         }
 		\label{tab:data}
 	\end{minipage}
@@ -48,15 +70,15 @@ a user would want different recommendations given different starting locations, 
 We compare the three methods described previously ({\sc List Viterbi}, {\sc ILP}, {\sc Heuristic}),
 as well as the standard inference ({\sc Viterbi}).
 
-We evaluate each algorithm using leave-one-query-out cross validation.
+We evaluate each algorithm using leave-one-query-out cross validation (LOOCV).
 That is, holding out all the relevant trajectories for each query $\x^{(i)}$ (\ie $\{\y^{(i,j)}\}_{j=1}^{n_i}$) in each round.
 The regularisation constant $C$ is tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
 We use three performance measures for POIs, sequences and ordered lists.
 The {\bf F$_1$ score on points}~\cite{ijcai15} computes F$_1$ on the predicted versus seen points
 without considering their relative order.
 The {\bf F$_1$ score on pairs}~\cite{cikm16paper} is proposed to mitigate this by computing F$_1$ on all ordered pairs in the predicted versus ground truth sequence. %%It is 1 iff both sequences agree completely.
-The well-known rank correlation {\bf Kendall's $\tau$}~\cite{agresti2010analysis}
-computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all possible pairs after accounting for ties.%taking care of ties.
+%The well-known rank correlation {\bf Kendall's $\tau$}~\cite{agresti2010analysis}
+%computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all possible pairs after accounting for ties.%taking care of ties.
 
 
 %
@@ -66,9 +88,15 @@ We now address the motivating questions of this work.
 
 \textbf{How often does the top-scoring sequence have loops?}
 It is first of interest to determine that the top-scoring sequence for the underlying SSVM model does in fact often contain loops.
-We find that on the Osaka and Glasgow datasets, the top-scoring sequence for ???\% and ???\% respectively of all queries have loops.
-On the larger Toronto dataset, this number is ???\%.
+We find that on the (Osaka, Glasgow, Toronto) datasets, the top-scoring sequence for (23.9\%, 31.2\%, 48.5\%) respectively of all queries have loops.
 This confirms that with longer trajectories, even a powerful structured model cannot escape the problem of predicting sequences with loops.
+
+% Osaka percentage of predictions with loops:
+% 11 / 46 = 23.9\% \\
+% Glasgow percentage of predictions with loops:
+% 20 / 64 = 31.2\% \\
+% Toronto percentage of predictions with loops:
+% 48 / 99 = 48.5\% 
 
 \textbf{How important is it to remove loops?}
 Having confirmed that loops in the top-scoring sequence are an issue,
@@ -76,18 +104,18 @@ it is now of interest to establish that removing such loops during prediction is
 This is confirmed in Tables \ref{tab:f1-master} -- \ref{tab:pf1-master},
 where we see that there can be as much as a 50\% improvement in performance over the {\sc Viterbi} baseline.
 
-\textbf{How reliably can Christofides' algorithm get the desired length?}
-A challenge in applying Christofides' algorithm to the trajectory recommendation problem as we have defined it
+\textbf{How reliably can {\sc Heuristic} get the desired length?}
+A challenge in applying {\sc Heuristic} to the trajectory recommendation problem as we have defined it
 is that it may result in a trajectory of the wrong length.
 Figure \ref{fig:length-christo} shows that a significant fraction of queries will have a different length to the target.
 
-\textbf{How reliably can Christofides' algorithm predict a good trajectory?}
-Assuming one can overlook the Christofides' algorithm producing a trajectory of possibly incorrect length,
+\textbf{How reliably can {\sc Heuristic} predict a good trajectory?}
+Assuming one can overlook the {\sc Heuristic} producing a trajectory of possibly incorrect length,
 it is then of interest as to how well it performs compared to the list Viterbi and ILP methods.
-Tables \ref{tab:f1-master} -- \ref{tab:tau-master} show that the heuristic, while sometimes competitive on the F1 measures, often
+Tables \ref{tab:f1-master} -- \ref{tab:pf1-master} show that the heuristic, while sometimes competitive on the F1 measures, often
 grossly underperforms compared to the more principled approaches.
 
-Interestingly, if Kendall's $\tau$ is the measure of interest, then the heuristic may actually be preferable to these methods.
+%Interestingly, if Kendall's $\tau$ is the measure of interest, then the heuristic may actually be preferable to these methods.
 
 \textbf{Which of ILP or list Viterbi is faster, and when?}
 The list Viterbi and ILP methods have highly similar accuracy, with the differences owing to ties.
@@ -124,9 +152,9 @@ There is thus a familiar tradeoff between time and accuracy.
 %\begin{figure*}[!t]
 		\quad
 		\centering
-		\includegraphics[width=\textwidth]{metric_d1.pdf}
-		\includegraphics[width=\textwidth]{metric_d2.pdf}
-		\includegraphics[width=\textwidth]{metric_d3.pdf}
+		\includegraphics[width=\textwidth]{metrics.pdf}
+		% \includegraphics[width=\textwidth]{metric_d2.pdf}
+		% \includegraphics[width=\textwidth]{metric_d3.pdf}
 	    \captionof{figure}{Accuracy versus trajectory length.}
 	    \label{fig:acc-vs-length}
 	    %\captionmoveup\eqmoveup

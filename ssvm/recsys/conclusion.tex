@@ -1,9 +1,22 @@
 % !TEX root=main.tex
 
-{\color{red!75}
-\begin{itemize}
-	\item Learning
-	\item diversity, MMR
-	\item See whether any of the workshop topics might have problems that this paper applies.
-\end{itemize}
-}
+We formalised the problem of eliminating loops when recommending trajectories to visitors in a city,
+and surveyed three distinct approaches to the problem -- a heuristic inspired by Christofides' algorithm, list extensions of the Viterbi algorithm, and integer linear programming.
+Through experiments on real-world datasets, 
+Overall, we find that
+all methods offer performance improvements over na\"{i}vely predicting a sequence with loops;
+Christofides' algorithm is at least an order of magnitude faster than the other methods, but with a significant sacrifice in accuracy;
+and that the list Viterbi is faster than the ILP for short trajectories, but the ILP is superior for longer trajectories.
+
+The basic idea of modifying the standard Viterbi inference problem (Equation \ref{eqn:argmax}) has other applications, such
+as ensuring diversity in the predicted ranking.
+Such problems have been studied in different contexts such as information retrieval \citep{Carbonell:1998} and computer vision \citep{Park:2011},
+and would be interesting for further study in trajectory recommendation.
+
+% {\color{red!75}
+% \begin{itemize}
+% 	\item Learning
+% 	\item diversity, MMR
+% 	\item See whether any of the workshop topics might have problems that this paper applies.
+% \end{itemize}
+% }

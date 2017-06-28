@@ -1,7 +1,12 @@
 % !TEX root=main.tex
 
+We now formalise the problem of interest.
+
+%
+\subsection{Trajectory recommendation}
+
 Fix some set $\PCal$ of points-of-interest (POIs) in a city.
-A \emph{trajectory} is any sequence of POIs, possibly containing loops (repeated POIs).
+A \emph{trajectory}\footnote{In graph theory, this is also referred to as a walk.} is any sequence of POIs, possibly containing loops (repeated POIs).
 In the \emph{trajectory recommendation} problem, we are given as input a training set of trajectories visited by travellers in the city.
 From this, we wish to design a \emph{trajectory recommender}, which accepts a
 \emph{trajectory query} $\mathbf{x} = (s, l)$, comprising a start POI $s \in \PCal$, and trip length $l \!>\! 1$ (\ie the desired number of POIs, including $s$),
@@ -10,11 +15,11 @@ and produces one or more sequences of POIs that conform to the query.
 Formally, let $\XCal \defEq \PCal \times \{ 2, 3, \ldots \}$ be the set of possible queries,
 $\YCal \defEq \bigcup_{l = 2}^\infty \PCal^l$ be the set of all possible trajectories,
 and for fixed $\x \in \XCal$, $\YCal_{\x} \subset \YCal$ be the set of trajectories that conform to the constraints imposed by $\mathbf{x}$.
-Then, the {trajectory recommendation} problem is:
+Then, the {trajectory recommendation} problem has:
 
 \
 
-{\sc Input}: training set $\{ ( \x^{(i)}, \y^{(i)} ) \}_{i = 1}^n$ %$\{ ( \x^{(i)}, \{ \y^{(i,j)} \}_{j=1}^{n_i} ) \}_{i=1}^{n}$ of historical trajectories
+{\sc Input}: training set $\left\{ \left( \x^{(i)}, \y^{(i)} \right) \right\}_{i = 1}^n$ %$\{ ( \x^{(i)}, \{ \y^{(i,j)} \}_{j=1}^{n_i} ) \}_{i=1}^{n}$ of historical trajectories
 
 {\sc Output}: a trajectory recommender $r \colon \XCal \to \YCal$ 
 
@@ -35,19 +40,45 @@ it does not model global cohesion, and thus can lead to solutions such as recomm
 To overcome this, in \citet{Chen:2017}, the authors proposed a structured SVM solution.
 In the case of a structured SVM with linear potentials, the optimisation in Equation \ref{eqn:argmax} can be solved with the classic Viterbi algorithm.
 
-However, we now wish to solve a modified problem:
-given a new $\x \in \XCal$, find $\argmax_{\y \in \bar{\YCal}} F( \x, \y )$,
-where $\bar{\YCal}$ comprises all sequences in $\YCal$ that are loop-free.
 
-{\color{red!75}
-\begin{itemize}
-	%\item connect to workshop
-	%\item distinguish between next location vs whole trajectory
-	%\item define word usage: trajectory, path, walk, sequence, tour, etc.
-	\item describe relation to travelling salesman, and say why different
-	%\item contributions of this paper
-\end{itemize}
-}
+%
+\subsection{Path recommendation}
+
+We argue that the above is incomplete for a simple reason:
+in most cases, a tourist will not want to revisit the same POI.
+That is, we argue that what is needed is to recommend a \emph{path}, \ie a trajectory that does not have any repeated POIs.
+Let $\thickbar{\YCal} \subset \YCal$ be the set of all possible paths,
+and for fixed $\x \in \XCal$, let $\thickbar{\YCal}_{\x} \subset \thickbar{\YCal}$ be the set of paths that conform to the constraints imposed by $\mathbf{x}$.
+We now wish to construct a path recommender $r \colon \XCal \to \thickbar{\YCal}$ via
+\begin{equation}
+	\label{eqn:argmax-path}
+	r( x ) \defEq \argmax_{\mathbf{y} \in \thickbar{\YCal}_x}~f(\mathbf{x}, \mathbf{y}).
+\end{equation}
+
+Equation \ref{eqn:argmax-path} takes us beyond the realm of the standard Viterbi algorithm, as the top-scoring sequence in Equation \ref{eqn:argmax} may well have a loop.
+There are now two distinct modes of attack available:
+\begin{enumerate}
+	\item seek an approximate solution to the problem, building on the standard Viterbi solution.
+	This can be achieved by graph-based heuristics that attempt to remove the loops present in this solution.
+
+	\item seek an exact solution to the problem.
+	There are at least two ways to do this:
+	via top-$K$ extensions of the Viterbi algorithm (known as list Viterbi algorithms),
+	or via integer linear programming formulations.
+\end{enumerate}
+
+We now detail the above options in more detail.
+
+
+% {\color{red!75}
+% \begin{itemize}
+% 	%\item connect to workshop
+% 	%\item distinguish between next location vs whole trajectory
+% 	%\item define word usage: trajectory, path, walk, sequence, tour, etc.
+% 	\item describe relation to travelling salesman, and say why different
+% 	%\item contributions of this paper
+% \end{itemize}
+% }
 
 % Now, our training set of historical trajectories may be written as
 % $\{ ( \x^{(i)}, \{ \y^{(i,j)} \}_{j=1}^{n_i} ) \}_{i=1}^{n}$,

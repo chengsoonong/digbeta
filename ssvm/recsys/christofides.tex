@@ -1,23 +1,68 @@
 % !TEX root=main.tex
 
-\blue{How to use results from travelling salesman for trajectory recommendation?} 
+%\blue{How to use results from travelling salesman for trajectory recommendation?} 
 
-\noindent
+%\noindent
 The problem of recommending a trip over a set of POIs can be reduced to the classic travelling salesman problem (TSP)
 if every POI is restricted to visit once.
 However, in practice, we normally only visit a subset of these POIs,
 which means results of TSP cannot be trivially used unless the subset of POIs is fixed.
 
-\noindent
-\blue{Not obvious how to directly use Christofides? Do we just find double visits and bypass?} 
+%\noindent
+%\blue{Not obvious how to directly use Christofides? Do we just find double visits and bypass?} 
 %https://research.googleblog.com/2016/09/the-280-year-old-algorithm-inside.html
 
-\noindent
-One well-known heuristic to approximately solve the TSP is the Christofides algorithm which finds a circuit that cost at most 1.5 times
-of the optimal solution, by constructing a minimum spanning tree and matching certain nodes, 
+%\noindent
+One well-known heuristic to approximately solve the TSP is the Christofides algorithm \citep{Christofides:1976}.
+This algorithm finds a circuit that cost at most 1.5 times
+of the optimal TSP solution, by constructing a minimum spanning tree and matching certain nodes, 
 building the solution by simply bypassing repeated nodes.
-Inspired by this, and recall that the recommended trips by the classic Viterbi algorithm cannot avoid repeated visits,
+
+Inspired by this, and recalling that the recommended trips by the classic Viterbi algorithm cannot avoid repeated visits,
 we can first request a longer sequence using Viterbi and then skip repeated visits to form a trip, 
 we keep asking for sequence with different length, until we cannot improve the resulting trip (with respect to the required length).
 This algorithm is denoted as \textsc{Heuristic} in experiment.
 
+\tikzstyle{state}=[shape=circle,draw=blue!50,fill=blue!20]
+\tikzstyle{state2}=[shape=circle,draw=purple!50,fill=purple!20]
+\tikzstyle{hiddenState}=[shape=circle,draw=gray!50,fill=gray!20,dashed]
+\tikzstyle{specialState}=[shape=circle,double=red,draw=blue!50,fill=blue!20,dashed]
+\tikzstyle{observation}=[shape=rectangle,draw=orange!50,fill=orange!20]
+\tikzstyle{hiddenObservation}=[shape=rectangle,draw=gray!50,fill=gray!20,dashed]
+\tikzstyle{lightedge}=[<-,thin]
+\tikzstyle{mainstate}=[state,thick]
+\tikzstyle{mainedge}=[<-,thick]
+
+\begin{figure*}[!h]
+    \centering
+    \subfloat[Original prediction with loop (dashed).]{
+    \begin{tikzpicture}[baseline=(s0.base)]
+        % states
+        \node[state] (s0) at (-2,2) {$1$};
+        \node[state] (s1) at (0,2) {$2$}
+            edge [<-] (s0);
+        \node[state] (s2) at (2,2) {$3$}
+            edge [<-] (s1);
+        \node[state] (s3) at (4,2) {$4$}
+            edge [<-] (s2);
+        \draw [<-,dashed,bend right] (s1) to [looseness=1.25] (s3);
+    \end{tikzpicture}
+    }%
+    \quad
+    \subfloat[Modified prediction with loop removed.]{
+    \begin{tikzpicture}[baseline=(s0.base)]
+        % states
+        \node[state] (s0) at (-2,2) {$1$};
+        \node[state] (s1) at (0,2) {$2$}
+            edge [<-] (s0);
+        \node[state] (s2) at (2,2) {$3$}
+            edge [<-] (s1);
+        \node[state] (s3) at (4,2) {$4$}
+            edge [<-] (s2);
+        \draw [color=white,dashed,bend right] (s1) to [looseness=1.25] (s3);            
+    \end{tikzpicture}
+    }
+    
+    \caption{Example of heuristically removing loops. The nodes are numbered by the POI, with edges denoting order in the sequence. While the modified prediction removes the loop in the original sequence, it is necessarily at the expense of returning a path with fewer number of POIs.}
+    \label{fig:heuristic}
+\end{figure*}

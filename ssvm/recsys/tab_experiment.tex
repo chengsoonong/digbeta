@@ -1,13 +1,7 @@
 % !TEX root=main.tex
-Osaka percentage of predictions with loops:
-11 / 46 = 23.9\% \\
-Glasgow percentage of predictions with loops:
-20 / 64 = 31.2\% \\
-Toronto percentage of predictions with loops:
-48 / 99 = 48.5\% 
 
 \begin{table*}[!t]
-	\caption{F$_1$ score on points.}
+	\caption{Point F$_1$ cross-validation scores.}
 	\label{tab:f1-master}
 	\centering	
 	\resizebox{0.575\textwidth}{!}{
@@ -38,7 +32,7 @@ Toronto percentage of predictions with loops:
 \end{table*}
 
 \begin{table*}[!t]
-	\caption{F$_1$ score on pairs.}
+	\caption{Pair F$_1$ cross-validation scores.}
 	\label{tab:pf1-master}	
 	\centering
 	\resizebox{0.575\textwidth}{!}{
@@ -68,7 +62,7 @@ Toronto percentage of predictions with loops:
 \end{table*}
 
 \begin{table*}[!t]
-    \caption{F$_1$ score on points of queries that recommendations by \textsc{Viterbi} are \emph{different} from those by \textsc{List Viterbi}.}
+    \caption{Point F$_1$ cross-validation scores of queries where {\sc Viterbi} recommendation has a loop.}
     \label{tab:f1-diff}
 	\centering	
 	\resizebox{0.575\textwidth}{!}{
@@ -98,7 +92,7 @@ Toronto percentage of predictions with loops:
 \end{table*}
 
 \begin{table*}[!t]
-	\caption{F$_1$ score on pairs of queries that recommendations by \textsc{Viterbi} are \emph{different} from those by \textsc{List Viterbi}.}
+	\caption{Pair F$_1$ cross-validation scores of queries where {\sc Viterbi} recommendation has a loop.}
 	\label{tab:pf1-diff}
 	\centering
 	\resizebox{0.575\textwidth}{!}{

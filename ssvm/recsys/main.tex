@@ -21,6 +21,11 @@
 \usepackage{xcolor}
 \usepackage{graphicx}
 \usepackage{enumerate}
+\usepackage{accents}
+
+\usepackage{tikz}
+\usetikzlibrary{calc,fit,shapes,decorations.pathmorphing}
+
 \graphicspath{{fig/}}   % Location of the graphics files
 
 \DeclareMathOperator*{\argmin}{argmin}
@@ -48,6 +53,8 @@
 \newcommand{\SSf}{\mathsf{S}}
 \newcommand{\defEq}{\stackrel{.}{=}}
 %\newcommand{\argmax}{\operatorname{argmax}}
+
+\newcommand\thickbar[1]{\accentset{\rule{.4em}{.8pt}}{#1}}
 
 \newcommand{\eg}{e.g.\ }
 \newcommand{\ie}{i.e.\ }
@@ -165,12 +172,12 @@
 \input{intro}
 
 %%%%%%%%%
-\section{Trajectory recommendation: formally}
+\section{Trajectory and path recommendation}
 \label{sec:background}
 \input{background}
 
 %%%%%%%%%
-\section{Christofides' Algorithm}
+\section{Heuristic loop elimination}
 \label{sec:christofides}
 \input{christofides}
 

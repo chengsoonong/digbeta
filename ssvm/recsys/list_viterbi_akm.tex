@@ -7,14 +7,15 @@
 % \end{itemize}
 
 Recall that one uses the Viterbi algorithm for standard inference in a structured prediction model.
-This finds the single highest scoring sequence; unfortunately, it may have loops.
+This finds the single highest scoring sequence, which may have loops.
 To find the best sequence without loops, one can apply a \emph{list Viterbi algorithm}
 to find not just the single best sequence,
 but rather the top $K$ best sequences.
 By definition, the first such sequence that is loop free must be the highest scoring sequence that does not have loops.
+We detail existing approaches to this problem.
 
 %
-%\subsection{List Viterbi algorithms}
+\subsection{Parallel and serial list Viterbi algorithms}
 
 At a high level, there are two ways to extend the Viterbi algorithm to the top-$K$ setting.
 The first is to keep track, at each state, of the top $K$ paths that end at this state; these are known as \emph{parallel list Viterbi} algorithms.
@@ -26,7 +27,11 @@ Amongst serial list Viterbi algorithms, there are at least two well-known propos
 In the signal processing community, \citet{seshadri1994list} proposed an algorithm that keeps track of the ``next best'' sequence terminating at each state in the current list of best sequences.
 In the AI community, \citet{nilsson2001sequentially} (building on the work of \citet{Nilsson:1998} for general graphical models) proposed an algorithm that cleverly partitions the search space into subsets of sequences that share a prefix with the current list of best sequences.
 
-While derived in different communities, the two approaches are in fact only superficially different.
+
+%
+\subsection{Relating serial list Viterbi algorithms}
+
+While derived in different communities, the two serial list Viterbi approaches are in fact only superficially different.
 This is easiest to see in the case of finding the second best sequence.
 Suppose we have a hidden Markov model with states $\SSf_{t}$, observations $\OSf_{t}$, transition probabilities $a_{ij} = \Pr( \SSf_{t+1} = j \mid \SSf_t = i )$, and emission probabilities $b_{ik} = \Pr( \OSf_{t} = k \mid \SSf_t = i )$.
 Suppose $s^*$ is the most likely sequence given observations $\OSf_{1:T}$,
