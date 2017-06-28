@@ -1,4 +1,10 @@
 % !TEX root=main.tex
+Osaka percentage of predictions with loops:
+11 / 46 = 23.9\% \\
+Glasgow percentage of predictions with loops:
+20 / 64 = 31.2\% \\
+Toronto percentage of predictions with loops:
+48 / 99 = 48.5\% 
 
 \begin{table*}[!t]
 	\caption{F$_1$ score on points.}
@@ -41,9 +47,9 @@
 	\begin{tabular}{l|ccc|c}
 		\hline
 		 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Viterbi} \\ \hline
-        Osaka & $0.375\pm0.059$ & $0.375\pm0.059$ & $0.369\pm0.059$ & $0.368\pm0.059$ \\
-        Glasgow & $0.508\pm0.048$ & $0.506\pm0.048$ & $0.480\pm0.049$ & $0.509\pm0.048$ \\
-        Toronto & $0.530\pm0.037$ & $0.530\pm0.037$ & $0.490\pm0.041$ & $0.527\pm0.039$ \\
+        Osaka & $0.375\pm0.059$ & $0.375\pm0.059$ & $0.369\pm0.059$ & $0.364\pm0.060$ \\
+        Glasgow & $0.508\pm0.048$ & $0.506\pm0.048$ & $0.480\pm0.049$ & $0.461\pm0.050$ \\
+        Toronto & $0.529\pm0.037$ & $0.530\pm0.037$ & $0.490\pm0.041$ & $0.463\pm0.041$ \\
 		\hline
 	\end{tabular}
 	}
@@ -53,50 +59,13 @@
 		\begin{tabular}{l|ccc}
 			\hline
 			 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} \\ \hline
-            Osaka & $1.8\%$ & $1.8\%$ & $0.2\%$ \\
-            Glasgow & $-0.2\%$ & $-0.6\%$ & $-5.7\%$ \\
-            Toronto & $0.5\%$ & $0.5\%$ & $-7.0\%$ \\
+            Osaka & $3.0\%$ & $3.0\%$ & $1.4\%$ \\
+            Glasgow & $10.1\%$ & $9.7\%$ & $4.1\%$ \\
+            Toronto & $14.4\%$ & $14.5\%$ & $5.8\%$ \\
 			\hline
 		\end{tabular}
 	}
 \end{table*}
-
-
-% \begin{table*}[!t]
-% 	%\label{tab:tau}
-% 	%\caption{Kendall's $\tau$}
-% 	\caption{Kendall's $\tau$ on pairs.}
-% 	\label{tab:tau-master}		
-% 	\centering
-% 	\subfloat[Raw scores.]{
-% 	\label{tab:tau}
-% 	\begin{tabular}{l|ccc|c}
-% 		\hline
-% 		 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Viterbi} \\ \hline
-%         Osaka & $0.608\pm0.042$ & $0.610\pm0.042$ & $0.611\pm0.041$ & $0.611\pm0.041$ \\
-%         Glasgow & $0.709\pm0.031$ & $0.708\pm0.031$ & $0.703\pm0.032$ & $0.702\pm0.032$ \\
-%         Toronto & $0.714\pm0.026$ & $0.711\pm0.026$ & $0.684\pm0.029$ & $0.681\pm0.029$ \\
-% 		\hline
-% 	\end{tabular}
-% 	}
-% 	%\begin{table*}[!t]
-% 	%\caption{Improvement of Kendall's $\tau$ over \textsc{Viterbi}}
-% 	%\label{tab:tau-up}
-% 	%\centering
-% 	\subfloat[Improvement over \textsc{Viterbi}.]{
-% 	\label{tab:tau-up}
-% 	\begin{tabular}{l|ccc}
-% 		\hline
-% 		 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} \\ \hline
-%         Osaka & $-0.5\%$ & $-0.2\%$ & $-0.1\%$ \\
-%         Glasgow & $1.0\%$ & $0.9\%$ & $0.2\%$ \\
-%         Toronto & $4.7\%$ & $4.3\%$ & $0.3\%$ \\
-% 		\hline
-% 	\end{tabular}
-% 	}
-% 	%\end{table*}
-% \end{table*}
-
 
 \begin{table*}[!t]
     \caption{F$_1$ score on points of queries that recommendations by \textsc{Viterbi} are \emph{different} from those by \textsc{List Viterbi}.}
@@ -138,9 +107,9 @@
 	\begin{tabular}{l|ccc|c}
 		\hline
 		 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Viterbi} \\ \hline
-        Osaka & $0.112\pm0.030$ & $0.112\pm0.030$ & $0.088\pm0.026$ & $0.085\pm0.025$ \\
-        Glasgow & $0.350\pm0.054$ & $0.345\pm0.055$ & $0.261\pm0.047$ & $0.354\pm0.057$ \\
-        Toronto & $0.318\pm0.023$ & $0.318\pm0.024$ & $0.236\pm0.031$ & $0.313\pm0.035$ \\
+        Osaka & $0.112\pm0.030$ & $0.112\pm0.030$ & $0.088\pm0.026$ & $0.067\pm0.020$ \\
+        Glasgow & $0.350\pm0.054$ & $0.345\pm0.055$ & $0.261\pm0.047$ & $0.201\pm0.039$ \\
+        Toronto & $0.317\pm0.023$ & $0.318\pm0.024$ & $0.236\pm0.031$ & $0.180\pm0.025$ \\
 		\hline
 	\end{tabular}
 	}
@@ -150,38 +119,10 @@
 		\begin{tabular}{l|ccc}
 			\hline
 			 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} \\ \hline
-            Osaka & $32.1\%$ & $32.1\%$ & $4.3\%$ \\
-            Glasgow & $-1.1\%$ & $-2.6\%$ & $-26.1\%$ \\
-            Toronto & $1.8\%$ & $1.9\%$ & $-24.4\%$ \\
+            Osaka & $68.2\%$ & $68.2\%$ & $32.7\%$ \\
+            Glasgow & $73.9\%$ & $71.4\%$ & $29.9\%$ \\
+            Toronto & $76.0\%$ & $76.5\%$ & $30.9\%$ \\
 			\hline
 		\end{tabular}
 	}
 \end{table*}
-
-% \begin{table*}[!t]
-%     \caption{Kendall's $\tau$ of queries that recommendations by \textsc{Viterbi} are \emph{different} from those by \textsc{List Viterbi}.}
-%     \label{tab:tau-diff}
-% 	\centering
-%     \subfloat[Raw scores.]{
-%     \label{tab:tau-diff}
-% 	\begin{tabular}{l|ccc|c}
-% 		\hline
-% 		 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} & \textsc{Viterbi} \\ \hline
-%         Osaka & $0.334\pm0.046$ & $0.335\pm0.046$ & $0.339\pm0.042$ & $0.341\pm0.044$ \\
-%         Glasgow & $0.568\pm0.049$ & $0.567\pm0.049$ & $0.551\pm0.050$ & $0.546\pm0.049$ \\
-%         Toronto & $0.578\pm0.029$ & $0.572\pm0.029$ & $0.516\pm0.033$ & $0.512\pm0.033$ \\
-% 		\hline
-% 	\end{tabular}
-% 	}
-% 	\subfloat[Improvement over \textsc{Viterbi}.]{
-% 	\label{tab:tau-diff-up}
-% 	\begin{tabular}{l|ccc}
-% 		\hline
-% 		 & \textsc{List Viterbi} & \textsc{ILP} & \textsc{Heuristic} \\ \hline
-%         Osaka & $-2.3\%$ & $-1.9\%$ & $-0.8\%$ \\
-%         Glasgow & $4.0\%$ & $3.8\%$ & $0.8\%$ \\
-%         Toronto & $13.0\%$ & $11.8\%$ & $0.9\%$ \\
-% 		\hline
-% 	\end{tabular}
-% 	}
-% \end{table*}
