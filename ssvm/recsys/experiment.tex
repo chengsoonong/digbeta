@@ -64,9 +64,16 @@ computes the ratio of concordant (correctly ranked) pairs minus discordant pairs
 
 We now address the motivating questions of this work.
 
+\textbf{How often does the top-scoring sequence have loops?}
+It is first of interest to determine that the top-scoring sequence for the underlying SSVM model does in fact often contain loops.
+We find that on the Osaka and Glasgow datasets, the top-scoring sequence for ???\% and ???\% respectively of all queries have loops.
+On the larger Toronto dataset, this number is ???\%.
+This confirms that with longer trajectories, even a powerful structured model cannot escape the problem of predicting sequences with loops.
+
 \textbf{How important is it to remove loops?}
-It is first of interest to establish that removing loops during prediction is in fact important.
-This is confirmed in Tables \ref{tab:f1-master} -- \ref{tab:tau-master},
+Having confirmed that loops in the top-scoring sequence are an issue,
+it is now of interest to establish that removing such loops during prediction is in fact important.
+This is confirmed in Tables \ref{tab:f1-master} -- \ref{tab:pf1-master},
 where we see that there can be as much as a 50\% improvement in performance over the {\sc Viterbi} baseline.
 
 \textbf{How reliably can Christofides' algorithm get the desired length?}
@@ -107,6 +114,7 @@ There is thus a familiar tradeoff between time and accuracy.
 	    %\captionmoveup\eqmoveup
 %\end{figure*}%
 %\begin{figure*}[!t]
+		\quad
 		\centering
 		\includegraphics[width=\textwidth]{heu_lengthdiff.pdf}
 	    \captionof{figure}{The difference between recommendation and required sequence length.}
@@ -114,6 +122,7 @@ There is thus a familiar tradeoff between time and accuracy.
 	    %\captionmoveup\eqmoveup
 %\end{figure*}%
 %\begin{figure*}[!t]
+		\quad
 		\centering
 		\includegraphics[width=\textwidth]{metric_d1.pdf}
 		\includegraphics[width=\textwidth]{metric_d2.pdf}
