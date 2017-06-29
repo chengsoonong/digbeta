@@ -19,8 +19,12 @@ This algorithm is appealing in its simplicity,
 but has at least two drawbacks.
 First, it makes the questionable assumption that Equation \ref{eqn:argmax-path} is solvable from the standard Viterbi solution alone.
 Second, the solution violates the length constraint of the path recommendation problem.
-As a remedy, we can request the Viterbi algorithm to return a sequence of longer length $l' > l$;
-however, there is no clear means of choosing $l'$ so that the result is exactly of length $l$.
+As a remedy,
+we can request the Viterbi algorithm to return a sequence of longer length
+%$l' > l$;
+%however, there is no clear means of choosing $l'$ so that the result is exactly of length $l$.
+%We can thus run the algorithm for each
+$l' \in \{ l, l + 1, \ldots, |\PCal| \}$, and pick the (smallest) $l'$ for which the predicted length is closest to $l$.
 
 % Second, if we restrict attention to the POIs $\{ y_1, \ldots, y_{i-1} \}$, it is unclear whether the original ordering of the subsequence is optimal.
 % The second point can be remedied, as we now see.

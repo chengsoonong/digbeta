@@ -1,9 +1,9 @@
 % !TEX root=main.tex
 
-We are now in a position to empirically compare the methods discussed above,
+We now empirically compare the methods discussed above,
 to get a firmer sense of their tradeoffs.
-Our experiments focus on path recommendation tasks where a structured SVM is learned to score sequences per \citet{Chen:2017}.
-We then employ each of the methods described above to (approximately) solve the inference problem of Equation \ref{eqn:argmax-path}.
+We focus on path recommendation tasks where a structured SVM is learned to score sequences per \citet{Chen:2017}.
+We then employ each of the above methods to (approximately) solve the inference problem of Equation \ref{eqn:argmax-path}.
 
 %
 \subsection{Experimental setup}
@@ -69,10 +69,16 @@ Table~\ref{tab:data} summarises the statistics of each dataset.
 %
 %\subsection{Experimental protocol}
 
-We compare the aforementioned inference methods for Equation \ref{eqn:argmax-path} ({\sc LoopElim}, {\sc Greedy}, {\sc ILP}, {\sc List Viterbi})
-to standard inference ({\sc Viterbi}), which may produce loops.
+To produce a recommendation,
+we use 
+the aforementioned inference methods (named {\sc LoopElim(++)}, {\sc Greedy}, {\sc ILP}, {\sc List Viterbi})
+as well as
+standard inference ({\sc Viterbi}).
+{\sc LoopElim} processes the Viterbi solution for the query length $l$,
+while {\sc LoopElim++} processes the solutions for all longer lengths $l'$, as described in \S\ref{sec:loop-elim}.
 %For all methods, we provide as input a structured SVM (SSVM) model trained as per \citet{Chen:2017}.
-We evaluate each algorithm using leave-one-query-out cross validation (LOOCV),
+
+We evaluate each algorithm using leave-one-query-out cross validation,
 \ie in each round, we hold out all trajectories for a distinct query $\x$ in the dataset.
 %The regularisation constant $C$ is tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
 To measure performance,
@@ -102,29 +108,35 @@ This is indeed so: we find that on the ({\tt Osaka}, {\tt Glasgow}, {\tt Toronto
 Having confirmed that loops in the top-scoring sequence are an issue,
 it is now of interest to establish that removing such loops during prediction is in fact important.
 This is confirmed in Tables \ref{tab:f1-master} -- \ref{tab:pf1-master},
-where we see that there can be as much as a 17\% improvement in performance over the {\sc Viterbi} baseline.
+where we see that there can be as much as a \textbf{17\%} improvement in performance over the {\sc Viterbi} baseline.
+These improvements are over all queries, including those where the {\sc Viterbi} algorithm does not have loops.
+Restricting to those queries where there are loops,
+Tables \ref{tab:f1-diff-up} -- \ref{tab:pf1-diff-up}
+show that the improvements are dramatic, being as high as \textbf{50\%}.
 
-The above improvements are aggregated over all queries, including those where the {\sc Viterbi} algorithm does not have loops.
-Restricting to those queries where this is not the case,
-Tables \ref{tab:f1-diff-up} -- \ref{tab:pf1-diff-up},
-show that the improvements are dramatic, being as high as 50\%.
+\textbf{How reliably can {\sc LoopElim(++)} get the desired length?}
+Recall that
+{\sc LoopElim} and its {\sc LoopElim++} variant
+may result in a path of the wrong length.
+Figure \ref{fig:length-christo} shows that for a significant fraction of queries,
+these algorithms
+will output a different length path to that specified in the query,
+and are thus not suitable if we strictly enforce a length constraint.
+Of the two, {\sc LoopElim++} outputs more trajectories of the correct length, as per design.
 
-\textbf{How reliably can {\sc LoopElim} get the desired length?}
-A challenge in applying {\sc LoopElim} to path recommendation
-is that it may result in a path of the wrong length.
-Figure \ref{fig:length-christo} shows that for a significant fraction of queries, this algorithm will output a different length path to that specified in the query.
-
-\textbf{How reliably can {\sc LoopElim} predict a good path?}
-Assuming one can overlook the {\sc LoopElim} producing a path of possibly incorrect length,
-it is then of interest as to how well it performs compared to the list Viterbi and ILP methods.
-Tables \ref{tab:f1-master} -- \ref{tab:pf1-master} show that the heuristic, while sometimes competitive on the F1 measures, often
+\textbf{How reliably can {\sc LoopElim(++)} predict a good path?}
+Assuming one can overlook {\sc LoopElim(++)} producing a path of possibly incorrect length,
+it is of interest as to how well
+they perform.
+Tables \ref{tab:f1-master} -- \ref{tab:pf1-master} show that the heuristic, while sometimes competitive, often
 grossly underperforms compared to the exact {\sc ILP} and {\sc ListViterbi} approaches.
 (Being exact, the latter methods have nearly identical accuracy, with occasional differences owing to ties.)
+A curious fact is that {\sc LoopElim++}, while producing paths of length closer to the original, actually performs \emph{worse} than the na\"{i}ve {\sc LoopElim}.
 
 %Interestingly, if Kendall's $\tau$ is the measure of interest, then the heuristic may actually be preferable to these methods.
 
 \textbf{How reliably can {\sc Greedy} predict a good path?}
-Unlike {\sc LoopElim}, the {\sc Greedy} method is guaranteed to produce a path of the correct length.
+Unlike {\sc LoopElim(++)}, the {\sc Greedy} method is guaranteed to produce a path of the correct length.
 Perhaps surprisingly, it also performs very well compared to the list Viterbi and ILP methods, 
 offering significant improvements over these methods on the larger {\tt Glasgow} and {\tt Toronto} datasets,
 while being competitive on the smaller {\tt Osaka} dataset.
@@ -144,7 +156,7 @@ Of further interest is that the {\sc Greedy} heuristic remains dominant for long
 
 
 \textbf{How fast are the various methods?}
-As expected, the heuristic {\sc LoopElim} and {\sc Greedy} algorithms have the fastest runtime, being on the order of milliseconds per query even for long trajectories (Figure \ref{fig:inftime}).
+As expected, the heuristic {\sc LoopElim(++)} and {\sc Greedy} algorithms have the fastest runtime, being on the order of milliseconds per query even for long trajectories (Figure \ref{fig:inftime}).
 The {\sc Greedy} algorithm is the faster of the two, as it does not even require running the standard Viterbi algorithm.
 
 The exact methods are comparatively slower, especially for medium length trajectories.
@@ -167,7 +179,7 @@ Thus, for recommending paths, we recommend this algorithm.
 % Of interest is that ILP approach has runtime largely independent of the trajectory length.
 % This indicates the branch-and-bound as well as cutting plane underpinnings of these solvers are highly scalable.
 
-% As a final note, we see that the complexity of the LoopElim is several order of magnitudes less than either of the two more advanced methods at longer trajectories.
+% As a final note, we see that the complexity of the LoopElim(++) is several order of magnitudes less than either of the two more advanced methods at longer trajectories.
 % There is thus a familiar tradeoff between time and accuracy.
 
 % \begin{figure*}[t]
@@ -176,7 +188,7 @@ Thus, for recommending paths, we recommend this algorithm.
 		\quad
 		\centering
 		\includegraphics[width=0.95\textwidth]{heu_lengthdiff.pdf}
-	    \captionof{figure}{Absolute difference between recommended and required sequence length for {\sc LoopElim}.}
+	    \captionof{figure}{Absolute difference between recommended and required sequence length for {\sc LoopElim(++)}.}
 	    \label{fig:length-christo}
 	    %\captionmoveup\eqmoveup
 \end{figure*}%
