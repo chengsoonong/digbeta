@@ -44,8 +44,10 @@ Overall, we find that
 all methods offer performance improvements over na\"{i}vely predicting a sequence with loops,
 but that
 a greedy graph-based heuristic offers excellent performance and runtime.
-We thus recommend its use over the more computationally demanding integer programming and list Viterbi algorithms. 
-Nonetheless, that effective learning of trajectory recommendation models currently require list Viterbi algorithms for loss-augmented inference \cite{Chen:2017}.
+We thus recommend its use
+for removing loops at prediction time
+over the more computationally demanding integer programming and list Viterbi algorithms. 
+%Nonetheless, that effective learning of trajectory recommendation models currently require list Viterbi algorithms for loss-augmented inference \cite{Chen:2017}.
 %Christofides' algorithm is at least an order of magnitude faster than the other methods, but with a significant sacrifice in accuracy;
 %and that the list Viterbi is faster than the ILP for short trajectories, but the ILP is superior for longer trajectories.
 

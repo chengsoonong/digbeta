@@ -41,8 +41,12 @@ Several choices of $f$ are possible.
 \citet{cikm16paper} proposed to use $f$ given by a RankSVM model. %, combined with a transition score between POIs.
 While offering strong performance, this has a conceptual disadvantage highlighted in the previous section:
 it does not model global cohesion, and could result in solutions such as recommending three restaurants in a row.
-To overcome this, \citet{Chen:2017} proposed to use $f$ given by a structured SVM (SSVM).
-In the case of an SSVM with pairwise potentials, the optimisation in Equation \ref{eqn:argmax} can be solved with the classic Viterbi algorithm.
+
+To overcome this, \citet{Chen:2017} proposed to use $f$ given by a structured SVM (SSVM),
+wherein $f( \x, \y ) = \mathbf{w}^T \Phi( \x, \y )$ for a suitable feature mapping $\Phi$.
+%In the case of an SSVM with pairwise potentials,
+When this feature mapping decomposes into terms that depend only on adjacent elements in the sequence $\y$ (akin to a linear-chain conditional random field),
+the optimisation in Equation \ref{eqn:argmax} can be solved with the classic Viterbi algorithm.
 
 \input{schematic}
 
@@ -59,7 +63,7 @@ We now wish to construct a \emph{path recommender} $r \colon \XCal \to \thickbar
 	\label{eqn:argmax-path}
 	r( x ) \defEq \argmax_{\y \in \thickbar{\YCal}_x}~f(\x, \y).
 \end{equation}
-For $f$ given by an SSVM, Equation \ref{eqn:argmax-path} requires we depart from the standard Viterbi algorithm, as the sequence in Equation \ref{eqn:argmax} may well have a loop.
+For $f$ given by an SSVM, Equation \ref{eqn:argmax-path} requires we depart from the standard Viterbi algorithm, as the sequence in Equation \ref{eqn:argmax} may well have a loop.\footnote{In SSVMs, this issue also arises during training \citep{Chen:2017}, but we focus here only on the prediction problem. See \S\ref{sec:discussion} for additional comments.}
 There are two distinct modes of attack available:
 \begin{enumerate}
 	\item seek an approximate solution to the problem,
@@ -71,7 +75,11 @@ There are two distinct modes of attack available:
 	via integer linear programming,
 	or top-$K$ extensions of the Viterbi algorithm. %(known as list Viterbi algorithms).
 \end{enumerate}
-We now detail these possible approaches in more detail.
+While \citet{Chen:2017} suggested the latter exact approaches, they did not formally compare their performance either qualitatively or quantitatively;
+they did not detail the different top-$K$ extensions of the Viterbi algorithm and the connections thereof;
+and they did not consider approximate approaches.
+
+In the sequel, we thus detail the above approaches in more detail.
 Figure \ref{fig:schematics} gives a schematic overview of these algorithms.
 
 
