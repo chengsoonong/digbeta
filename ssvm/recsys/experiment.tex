@@ -128,10 +128,10 @@ Of the two, {\sc LoopElim++} outputs more trajectories of the correct length, as
 Assuming one can overlook {\sc LoopElim(++)} producing a path of possibly incorrect length,
 it is of interest as to how well
 they perform.
-Tables \ref{tab:f1-master} -- \ref{tab:pf1-master} show that the heuristic, while sometimes competitive, often
+Tables \ref{tab:f1-master} -- \ref{tab:pf1-master} show that the heuristic often
 grossly underperforms compared to the exact {\sc ILP} and {\sc ListViterbi} approaches.
 (Being exact, the latter methods have nearly identical accuracy, with occasional differences owing to ties.)
-A curious fact is that {\sc LoopElim++}, while producing paths of length closer to the original, actually performs \emph{worse} than the na\"{i}ve {\sc LoopElim}.
+Curiously, {\sc LoopElim++}, while producing paths of length closer to the original, actually performs \emph{worse} than the na\"{i}ve {\sc LoopElim} on the larger {\tt Toronto} dataset.
 
 %Interestingly, if Kendall's $\tau$ is the measure of interest, then the heuristic may actually be preferable to these methods.
 
@@ -156,8 +156,9 @@ Of further interest is that the {\sc Greedy} heuristic remains dominant for long
 
 
 \textbf{How fast are the various methods?}
-As expected, the heuristic {\sc LoopElim(++)} and {\sc Greedy} algorithms have the fastest runtime, being on the order of milliseconds per query even for long trajectories (Figure \ref{fig:inftime}).
+As expected, the heuristic {\sc LoopElim} and {\sc Greedy} algorithms have the fastest runtime, being on the order of milliseconds per query even for long trajectories (Figure \ref{fig:inftime}).
 The {\sc Greedy} algorithm is the faster of the two, as it does not even require running the standard Viterbi algorithm.
+The {\sc LoopElim++} variant is much slower than {\sc LoopElim}, as it needs to perform the Viterbi calculation multiple times.
 
 The exact methods are comparatively slower, especially for medium length trajectories.
 Amongst these methods, for shorter trajectories, the list Viterbi approach is to be preferred;

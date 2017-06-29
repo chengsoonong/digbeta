@@ -44,7 +44,7 @@ via \citep{Chen:2017}
 	            \sum_{j,k=1}^m u_{jk} \cdot \beta( p_j, p_k ) \\
 	s.t. 
 	& \sum_{k=2}^m u_{1k} = 1, \, z(\bu)_1 = 0, z(\bu)_i \in \{ 0, 1 \} \, &&(\forall i \in \{2,\cdots,m\}) \\
-	& \sum_{j=1}^m \sum_{k=1}^m u_{jk} = l-1, \, \sum_{j=1}^m u_{jj} = 0, \, \sum_{j=1}^m u_{ji} \leq 1 \, &&(\forall i \in \{2,\cdots,m\}) \\
+	& \sum_{j,k=1}^m u_{jk} = l-1, \, \sum_{j=1}^m u_{jj} = 0, \, \sum_{j=1}^m u_{ji} \leq 1 \, &&(\forall i \in \{2,\cdots,m\}) \\
 	& v_j - v_k + 1 \le (m-1) (1-u_{jk}) \, &&(\forall j,k \in \{2,\cdots,m\}).
 	\end{align*}
 \end{minipage}
@@ -65,5 +65,5 @@ By reading off the values of $u_{jk}$, we can determine the predicted sequence.
 
 The above ILP implicitly solves both the problem of selecting the set of $l$ POIs to recommend,
 and the problem of ordering them.
-We could fix the set of POIs to recommend, \eg by using the POIs in the Viterbi solution, and then use find the optimal ordering of these nodes.
+We could fix the set of POIs to recommend, \eg by using the POIs in the Viterbi solution, and then find the optimal ordering of these nodes.
 However, we have found such an approach to have only modest improvement over the loop elimination heuristic of the previous section, which also builds upon the Viterbi solution.
