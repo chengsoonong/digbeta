@@ -37,15 +37,16 @@ While derived in different communities, these two algorithms are in fact only su
 %
 \subsection{Relating serial list Viterbi algorithms}
 
-The connection between the existing list Viterbi algorithms is easiest to see in the case of finding the second-best sequence for an HMM.
-Suppose we have an HMM with states $\SSf_{t}$, observations $\OSf_{t}$, transition probabilities $a_{ij} = \Pr( \SSf_{t+1} = j \mid \SSf_t = i )$, and emission probabilities $b_{ik} = \Pr( \OSf_{t} = k \mid \SSf_t = i )$.
-Suppose $s^*_{1:T}$ is the most likely length $T$ sequence given observations $\OSf_{1:T}$,
-$\delta_{j, t}$ is the value of the best sequence up till position $t$ ending at state $j$ as computed by the Viterbi algorithm,
+The connection between the two list Viterbi algorithms is easiest to see when finding the second-best sequence for an HMM.
+Suppose we have an HMM with states $\SSf_{t}$, observations $\OSf_{t}$, transitions $a_{ij} = \Pr( \SSf_{t+1} = j \mid \SSf_t = i )$, and emissions $b_{ik} = \Pr( \OSf_{t} = k \mid \SSf_t = i )$.
+Suppose $s^*_{1:T}$ is the most likely length $T$ sequence given observations $\OSf_{1:T}$, and
+$\delta_{j, t}$ is the value of the best sequence up till position $t$ ending at state $j$ as computed by the Viterbi algorithm.
 %$\delta_{j, t} \defEq \max_{\SSf_{1:t - 1}} \Pr( \SSf_{1:t - 1}, \SSf_t = j, \OSf_{1:t} )$
-and our interest is in finding the second-best sequence given observations $\OSf_{1:T}$, with value
-$ M \defEq \max_{\SSf_{1:T} \neq s^*_{1 : T}}{\Pr( \SSf_{1:T}, \OSf_{1:T} )}. $
 
-\citet{seshadri1994list} proposed to find $M$ via a recurrence reminiscent of the standard Viterbi algorithm,
+Our interest is in finding the second-best sequence %given observations $\OSf_{1:T}$,
+with value
+$ M \defEq \max_{\SSf_{1:T} \neq s^*_{1 : T}}{\Pr( \SSf_{1:T}, \OSf_{1:T} )}. $
+\citet{seshadri1994list} proposed to find $M$ via a Viterbi-like recurrence,
 \begin{equation}
     \label{eqn:att-recurrence}
     \begin{aligned}
@@ -62,7 +63,8 @@ $ M \defEq \max_{\SSf_{1:T} \neq s^*_{1 : T}}{\Pr( \SSf_{1:T}, \OSf_{1:T} )}. $
     \end{aligned}    
 \end{equation}
 Intuitively, $\bar{\delta}_t$ finds the value of the second-best sequence that merges with the best sequence by at least time $t$.
-On the other hand, \citet{nilsson2001sequentially} proposed to find $M$ via
+
+\citet{nilsson2001sequentially} proposed to find $M$ via another way,
 \begin{align*}
 	M &= \max_t \widehat{\rho}_t \\
 	\widehat{\rho}_{t} &\defEq \max_{i \neq s^*_{t}} \max_{S_{t+1:T}} {\Pr( \SSf_{1:t-1} = s^*_{1:t-1}, \SSf_t = i, \SSf_{t+1:T}, \OSf_{1:T} )}.
@@ -79,3 +81,8 @@ To connect the two approaches, observe that by unrolling the recurrence in Equat
 \end{align*}
 i.e., the same quantities are computed, except that the former fixes the suffix of the candidate sequence, while the latter fixes the prefix.
 A similar analysis holds in the case of finding the $K$th best sequence.
+
+The complexity of either of the above algorithms is $\mathscr{O}( l \cdot |\PCal|^2 + l \cdot |\PCal| \cdot K + l \cdot K \cdot \log( l \cdot K ) )$ \citep{nilsson2001sequentially}.
+This is tractable, but we emphasise that the smallest $K$ guaranteeing we obtain a path is unknown \emph{a-priori}.
+% informally, we expect the required $K$ to be larger as the length $l$ increases,
+% since here the search space grows exponentially.

@@ -26,7 +26,6 @@ Nonetheless, we may take inspiration from methods to solve the TSP to attack our
 In particular, 
 we can formulate the trip recommendation problem as an \emph{integer linear program} (\emph{ILP}),
 as often done for the TSP \citep{opt98}.
-An off-the-shelf solver (\eg {\tt Gurobi}) may be used on the ILP.
 % Instead of simply bypassing repeated revisits, 
 % we can make use of subtour elimination techniques developped by the TSP research community,
 % by formulating the trip recommendation problem with integer linear programming (ILP).
@@ -52,8 +51,8 @@ via \citep{Chen:2017}
 
 \vspace{0.5\baselineskip}
 
-Here, we index POIs such that $s = p_1$ for brevity,
-and we strictly ask for a path that starts from $s$ and travels $l$ distinct POIs.
+Here, we index POIs such that $s = p_1$ for brevity.
+%and we strictly ask for a path that starts from $s$ and travels $l$ distinct POIs.
 The binary $u_{jk}$ are true iff
 we visit $p_k$ immediately after visiting $p_j$;
 the integer $v_j$ track the rank of $p_j$;
@@ -63,7 +62,12 @@ The constraints ensure we output a path of exactly $l$ POIs;
 the last constraint in particular ensures we do not have (disjoint) cycles, as per \citet{Miller:1960}.
 By reading off the values of $u_{jk}$, we can determine the predicted sequence.
 
+An off-the-shelf solver (\eg {\tt Gurobi}) may be used on the ILP.
+While ILPs have worst case exponential complexity,
+such solvers are highly optimised and thus make many problem instances tractable.
+
 The above ILP implicitly solves both the problem of selecting the set of $l$ POIs to recommend,
 and the problem of ordering them.
 We could fix the set of POIs to recommend, \eg by using the POIs in the Viterbi solution, and then find the optimal ordering of these nodes.
-However, we have found such an approach to have only modest improvement over the loop elimination heuristic of the previous section, which also builds upon the Viterbi solution.
+However, we have found this to have only modest improvement over the loop elimination heuristic of the previous section.
+%which also builds upon the Viterbi solution.
