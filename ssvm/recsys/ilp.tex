@@ -15,7 +15,7 @@
 % \end{itemize}
 % }
 
-One exact approach to solve Equation \ref{eqn:att-recurrence}
+One exact approach to solve Equation \ref{eqn:argmax-path}
 relies on the observation that
 it bears similarity to the classical travelling salesman problem (TSP).
 Indeed, if the length $l = |\PCal|$, so that every POI is restricted to be visit once,
@@ -26,14 +26,16 @@ This means the problem is not a vanilla instance of TSP.
 Nonetheless, we may take inspiration from methods to solve the TSP to attack our problem.
 In particular, 
 we can formulate the trip recommendation problem as an \emph{integer linear program} (\emph{ILP}),
-which can be solved with an off-the-shelf solver (\eg {\tt Gurobi}) \citep{opt98}.
+as often done for the TSP \citep{opt98}.
+An off-the-shelf solver (\eg {\tt Gurobi}) may be used on the ILP.
 % Instead of simply bypassing repeated revisits, 
 % we can make use of subtour elimination techniques developped by the TSP research community,
 % by formulating the trip recommendation problem with integer linear programming (ILP).
 %The additional benefits of this formulation is that fixing the subset of POIs is not required any more,
 %we can optimise over all possible subset of POIs using the off-the-shelf ILP solvers.
 Formally, given a starting location $s$ and the required trip length $l$,
-we maximise the desired trip score over all possible subsets with $l$ POIs from the whole set of POIs $\{p_j\}_{j=1}^m$
+%we maximise the desired trip score over all possible subsets with $l$ POIs from the whole set of POIs $\{p_j\}_{j=1}^m$
+we find the best possible path
 by solving
 \begin{align*}
 %\max_{\bu} & \sum_{k=1}^m \w_k^\top \psi_k(\x, p_k) \sum_{j=1}^m u_{jk} +
@@ -55,5 +57,5 @@ and we strictly ask for a path that starts from $s$ and travels $l$ distinct POI
 
 The above ILP implicitly solves both the problem of selecting the set of $l$ POIs to recommend,
 and the problem of ordering them.
-We could fix the set of POIs to recommend, \eg by using the POIs in the Viterbi solution;
-however, we have found such an approach to have only modest improvement over the loop elimination heuristic of the previous section, which also builds upon the Viterbi solution.
+We could fix the set of POIs to recommend, \eg by using the POIs in the Viterbi solution, and then use find the optimal ordering of these nodes.
+However, we have found such an approach to have only modest improvement over the loop elimination heuristic of the previous section, which also builds upon the Viterbi solution.

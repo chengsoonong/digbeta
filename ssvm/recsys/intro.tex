@@ -16,14 +16,14 @@ Effectively tackling trajectory recommendation poses a challenge:
 at training time, how can one design a model that can recommend sequences of POIs which are coherent as a \emph{whole}?
 Merely concatenating a tourists' personalised top ranking POIs into a sequence
 might result in prohibitive travel (e.g.\ {\tt Opera House$\to$Royal National Park}),
-or may suffer from a lack of diversity (e.g.\ we might recommend three restaurants in a row).
+or unacceptably homogeneous results (e.g.\ we might recommend three restaurants in a row).
 This motivates approaches that ensure \emph{global cohesion} of the predicted sequence.
 In recent work, \citet{Chen:2017} showed that structured SVMs are one such viable approach which outperform POI ranking approaches. %as well as Markov model approaches.
 
 In this paper, we focus on a distinct but related challenge:
 at prediction time, how can one recommend a sequence that does not have \emph{loops}?
 This is desirable because tourists would typically wish to avoid revisiting a POI that has already been visited before.
-In principle, such a problem will not exist if one employs a suitably powerful model during training.
+In principle, this problem will not exist if, at training time, one employs a suitably rich model which learns to suppress sequences with loops.
 In practice, one is forced to compromise on model richness owing to computational and sample complexity considerations.
 %As a result, it is of import to design means of overcoming this problem.
 %How can one solve this modified inference problem?

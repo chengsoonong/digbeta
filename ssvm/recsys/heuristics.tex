@@ -10,21 +10,21 @@ Here, the score $f(\mathbf{x}, \mathbf{y})$ can be decomposed as
 	f(\mathbf{x}, \mathbf{y}) = \sum_{k = 1}^{|\mathbf{y}|} \alpha( y_k ) + \sum_{k = 1}^{|\mathbf{y}| - 1} \beta( y_k, y_{k+1} )
 \end{equation}
 for suitable unary and pairwise potentials $\alpha, \beta$.
-Consequently, we can imagine a complete graph where the nodes are POIs, each node $p \in \PCal$ has a score $\alpha( p )$, and each edge $(p, p') \in \PCal^2$ has a score $\beta( p, p' )$.
-Then, Equation \ref{eqn:argmax-path} is equivalently a problem of selecting $l$ nodes such that
-the total sum of node and edge scores in the selection maximises Equation \ref{eqn:f-ssvm}.
+Consider then a complete graph where the nodes are POIs, each node $p \in \PCal$ has a score $\alpha( p )$, and each edge $(p, p') \in \PCal^2$ has a score $\beta( p, p' )$.
+Then, Equation \ref{eqn:argmax-path} is equivalently a problem of selecting $l$ nodes whose
+total sum of node and edge scores maximises Equation \ref{eqn:f-ssvm}.
 % This points to a natural means of approximation: solve this selection problem greedily, or fix the set of nodes and only solve the ordering problem.
 %the following selection problem:
 %$$	r( x ) = \argmax_{\mathbf{y} \in \thickbar{\YCal}_x}~\sum_{k = 1}^{|\mathbf{y}|} \alpha( y_k ) + \sum_{j, k = 1}^{|\mathbf{y}|} \beta( y_k, y_j ). $$
 We now look at ways of approximately solving this selection problem.
 
-\subsection{Greedy path discovery}
-\label{sec:greedy}
-\input{greedy}
-
 \subsection{Heuristic loop elimination}
 \label{sec:loop-elim}
 \input{loop-elim}
+
+\subsection{Greedy path discovery}
+\label{sec:greedy}
+\input{greedy}
 
 % \subsection{Heuristic subtour elimination}
 % \label{sec:christofides}

@@ -3,11 +3,13 @@
 In light of the graph-based view, a natural approach to solving Equation \ref{eqn:argmax-path} is a greedy algorithm.
 Suppose we have already determined a partial path comprising distinct POIs $y_1, \ldots, y_k$.
 Then, we can select the next candidate POI $y_{k + 1}$ as
-the node whose combined node- and edge-score is maximum,
-subject to the constraint that the node is distinct from all other nodes in the path;
+the node
+that iteratively optimises Equation \ref{eqn:f-ssvm},
+%whose combined node- and edge-score is maximum,
+subject to the constraint that it is distinct from all other nodes in the current path;
 formally, we can pick
 %the node whose combined node score $\alpha( y_{k + 1} )$ and
 %transition score $\beta( y_{k}, y_{k + 1} )$
 $$ y_{k + 1} = \argmax_{p \in \PCal - \{ y_1, \ldots, y_k \}} \alpha( p ) + \beta( y_k, p ). $$
-This algorithm has the advantage of being highly efficient.
+This algorithm has the advantage of being highly efficient: it has $O(l \cdot | \PCal |)$ complexity for an input query $\x = (s, l)$.
 However, it is unclear what theoretical performance guarantees it offers.

@@ -7,14 +7,15 @@ We now formalise the problem of interest.
 
 Fix some set $\PCal$ of points-of-interest (POIs) in a city.
 A \emph{trajectory}\footnote{In graph theory, this is also referred to as a walk.} is any sequence of POIs, possibly containing loops (repeated POIs).
-In the \emph{trajectory recommendation} problem, we are given as input a training set of trajectories visited by travellers in the city.
+In the \emph{trajectory recommendation} problem, we are given as input a training set of historical visitors' trajectories.
 From this, we wish to design a \emph{trajectory recommender}, which accepts a
-\emph{trajectory query} $\mathbf{x} = (s, l)$, comprising a start POI $s \in \PCal$, and trip length $l \!>\! 1$ (\ie the desired number of POIs, including $s$),
-and produces one or more sequences of POIs that conform to the query.
+\emph{trajectory query} $\x = (s, l)$, comprising a start POI $s \in \PCal$, and trip length $l \!>\! 1$, %(\ie the desired number of POIs, including $s$),
+and produces one or more sequences of $l$ POIs starting from $s$. %that conform to the query.
 
 Formally, let $\XCal \defEq \PCal \times \{ 2, 3, \ldots \}$ be the set of possible queries,
 $\YCal \defEq \bigcup_{l = 2}^\infty \PCal^l$ be the set of all possible trajectories,
-and for fixed $\x \in \XCal$, $\YCal_{\x} \subset \YCal$ be the set of trajectories that conform to the constraints imposed by $\mathbf{x}$.
+and for fixed $\x \in \XCal$, $\YCal_{\x} \subset \YCal$ be the set of trajectories that conform to the constraints imposed by $\x$
+\ie if $\x = (s, l)$ then $\YCal_{\x} = \PCal^l$.
 Then, the {trajectory recommendation} problem has:
 
 \vspace{0.5\baselineskip}
@@ -26,46 +27,46 @@ Then, the {trajectory recommendation} problem has:
 
 \vspace{0.5\baselineskip}
 
-One way to design a trajectory recommender is to find a scoring function $f \colon \XCal \times \YCal \to \mathbb{R}$, and let
+One way to design a trajectory recommender is to find a (query, trajectory) affinity function $f \colon \XCal \times \YCal \to \mathbb{R}$, and let
 \begin{equation}
 	\label{eqn:argmax}
-	r( x ) \defEq \argmax_{\mathbf{y} \in \YCal_x}~f(\mathbf{x}, \mathbf{y}).
+	r( x ) \defEq \argmax_{\y \in \YCal_x}~f(\x, \y).
 \end{equation}
-%In particular, $\mathbf{y} = (s,~ y_2, \dots, y_l)$ is a trajectory with $l$ POIs. %, which has no sub-tours. %i.e. $y_j \ne y_k$ if $j \ne k$.
+%In particular, $\y = (s,~ y_2, \dots, y_l)$ is a trajectory with $l$ POIs. %, which has no sub-tours. %i.e. $y_j \ne y_k$ if $j \ne k$.
 %This was the view proposed in~\cite{cikm16paper} where they authors considered an
 %objective function that added two components together: a POI score and a transition score.
 Several choices of $f$ are possible.
-\citet{cikm16paper} proposed to use the output of a RankSVM model, combined with a transition score between POIs.
+\citet{cikm16paper} proposed to use $f$ given by a RankSVM model, combined with a transition score between POIs.
 While offering strong performance, this method has a conceptual disadvantage highlighted in the previous section:
 it does not model global cohesion, and thus can lead to solutions such as recommending three restaurants in a row.
-To overcome this, \citet{Chen:2017} proposed a structured SVM solution.
-In the case of a structured SVM with pairwise potentials, the optimisation in Equation \ref{eqn:argmax} can be solved with the classic Viterbi algorithm.
+To overcome this, \citet{Chen:2017} proposed to use $f$ given by a structured SVM (SSVM).
+In the case of an SSVM with pairwise potentials, the optimisation in Equation \ref{eqn:argmax} can be solved with the classic Viterbi algorithm.
 
 
 %
 \subsection{Path recommendation}
 
-We argue that the above problem definition is incomplete for a simple reason:
+We argue that the definition of trajectory recommendation is incomplete for a simple reason:
 in most cases, a tourist will not want to revisit the same POI.
-That is, we argue that what is needed is to recommend a \emph{path}, \ie a trajectory that does not have any repeated POIs.
+We argue that what is needed is to recommend a \emph{path}, \ie a trajectory that does not have any repeated POIs.
 Let $\thickbar{\YCal} \subset \YCal$ be the set of all possible paths,
-and for fixed $\x \in \XCal$, let $\thickbar{\YCal}_{\x} \subset \thickbar{\YCal}$ be the set of paths that conform to the constraints imposed by $\mathbf{x}$.
-We now wish to construct a path recommender $r \colon \XCal \to \thickbar{\YCal}$ via
+and for fixed $\x \in \XCal$, let $\thickbar{\YCal}_{\x} \subset \thickbar{\YCal}$ be the set of paths that conform to the constraints imposed by $\x$.
+We now wish to construct a \emph{path recommender} $r \colon \XCal \to \thickbar{\YCal}$ via
 \begin{equation}
 	\label{eqn:argmax-path}
-	r( x ) \defEq \argmax_{\mathbf{y} \in \thickbar{\YCal}_x}~f(\mathbf{x}, \mathbf{y}).
+	r( x ) \defEq \argmax_{\y \in \thickbar{\YCal}_x}~f(\x, \y).
 \end{equation}
-
-Equation \ref{eqn:argmax-path} takes us beyond the realm of the standard Viterbi algorithm, as the top-scoring sequence in Equation \ref{eqn:argmax} may well have a loop.
-There are now two distinct modes of attack available:
+For $f$ given by an SSVM, Equation \ref{eqn:argmax-path} requires we depart from the standard Viterbi algorithm, as the sequence in Equation \ref{eqn:argmax} may well have a loop.
+There are two distinct modes of attack available:
 \begin{enumerate}
 	\item seek an approximate solution to the problem,
-	via heuristics that remove loops present in the standard Viterbi solution,
-	or by greedily constructing a loop-free solution.
+	via heuristics that exploit a graph view of Equation \ref{eqn:argmax-path}.
+	%that remove loops present in the standard Viterbi solution,
+	%or by greedily constructing a loop-free solution.
 
 	\item seek an exact solution to the problem,
-	via top-$K$ extensions of the Viterbi algorithm (known as list Viterbi algorithms),
-	or integer linear programming formulations.
+	via integer linear programming,
+	or top-$K$ extensions of the Viterbi algorithm. %(known as list Viterbi algorithms).
 \end{enumerate}
 We now detail these possible approaches in more detail.
 Figure \ref{fig:schematics} gives a schematic overview of these algorithms.
@@ -82,6 +83,24 @@ Figure \ref{fig:schematics} gives a schematic overview of these algorithms.
 
 \begin{figure*}[!h]
     \centering
+    %\resizebox{0.2\textwidth}{!}{
+    \subfloat[{\sc LoopElim} (\S\ref{sec:loop-elim}).]{
+    \begin{tikzpicture}[baseline=(s0.base)]
+        % states
+        \node[state] (s0) at (0,0) {$1$};
+        \node[state] (s1) at (1,0) {$2$}
+            edge [<-,ultra thick] (s0);
+        \node[state] (s2) at (2,0) {$3$}
+            edge [<-,ultra thick] (s1);
+        \node[state] (s3) at (3,0) {$4$}
+            edge [<-,ultra thick] (s2);
+        \draw [<-,dashed,bend right] (s1) to [looseness=1.25] (s3) node[sloped,draw=none] at (2,-0.45) {$/$};
+
+        \node[draw=none] at (0,-1.15)  {};
+    \end{tikzpicture}
+    %}
+    }%
+    \qquad    
     %\subfloat[Original prediction with loop (dashed).]{
     \subfloat[{\sc Greedy} (\S\ref{sec:greedy}).]{
     \begin{tikzpicture}[baseline=(s1.base)]
@@ -111,24 +130,6 @@ Figure \ref{fig:schematics} gives a schematic overview of these algorithms.
         \draw [->,ultra thin] (s4) to (s42);
     \end{tikzpicture}
     }%   
-    \qquad    
-    %\resizebox{0.2\textwidth}{!}{
-    \subfloat[{\sc LoopElim} (\S\ref{sec:loop-elim}).]{
-    \begin{tikzpicture}[baseline=(s0.base)]
-        % states
-        \node[state] (s0) at (0,0) {$1$};
-        \node[state] (s1) at (1,0) {$2$}
-            edge [<-,ultra thick] (s0);
-        \node[state] (s2) at (2,0) {$3$}
-            edge [<-,ultra thick] (s1);
-        \node[state] (s3) at (3,0) {$4$}
-            edge [<-,ultra thick] (s2);
-        \draw [<-,dashed,bend right] (s1) to [looseness=1.25] (s3) node[sloped,draw=none] at (2,-0.45) {$/$};
-
-        \node[draw=none] at (0,-1.15)  {};
-    \end{tikzpicture}
-    %}
-    }%
     \qquad
     % \subfloat[Modified prediction with loop removed.]{
     % \begin{tikzpicture}[baseline=(s0.base)]
