@@ -49,24 +49,21 @@ Table~\ref{tab:data} summarises the statistics of each dataset.
 
 \begin{table}[t]
 	%\begin{minipage}[t]{\linewidth}
-		\resizebox{\linewidth}{!}{
+		%\resizebox{\linewidth}{!}{
 		\setlength{\tabcolsep}{4pt} % tweak the space between columns
 		\small
-		\begin{tabular}{llll|cc} \hline %{l*{9}{c}} \hline
-		\textbf{Dataset} & \textbf{\#Traj} & \textbf{\#POIs}  & \textbf{\#Queries}  & \textbf{\#ShortTraj} & \textbf{\#LongTraj} \\ \hline
-		{\tt Glasgow}          & 351              & 25              & 64                 & 336                     & 15 \\
-		{\tt Osaka}            & 186              & 26              & 47                 & 178                     & 8  \\
-        {\tt Toronto}          & 977              & 27              & 99                 & 918                     & 59 \\
+		\begin{tabular}{llll} \hline %{l*{9}{c}} \hline
+		\textbf{Dataset} & \textbf{\# Traj} & \textbf{\# POIs}  & \textbf{\# Queries} \\ \hline
+		{\tt Glasgow}          & 351              & 25              & 64 \\
+		{\tt Osaka}            & 186              & 26              & 47 \\
+        {\tt Toronto}          & 977              & 27              & 99 \\
 		\hline
 		\end{tabular}%
-		}
-		\captionof{table}{Statistics of trajectory datasets.
-        Including the number of trajectories (\#Traj), POIs (\#POIs), queries (\#Queries);
-        and the number of trajectories with length less than 5 (\#ShortTraj) and more than 5 POIs (\#LongTraj).
-        }
+		%}
+		\captionof{table}{Statistics of trajectory datasets: the number of trajectories (\# Traj), POIs (\# POIs), queries (\# Queries).}
 		\label{tab:data}
 	%\end{minipage}
-	\vspace{-1.75\baselineskip}
+	\vspace{-2\baselineskip}
 \end{table}
 
 %
