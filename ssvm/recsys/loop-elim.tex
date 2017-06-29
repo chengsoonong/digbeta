@@ -1,13 +1,13 @@
 % !TEX root=main.tex
 
 %An even simpler approach than the above greedy strategy is the following:
-Perhaps the simplest approximate solution to Equation \ref{eqn:argmax-path} is to simply remove the first loop occurring in the standard Viterbi solution (Equation \ref{eqn:argmax}).
+Perhaps the simplest approximate solution to Equation \ref{eqn:argmax-path} is to merely remove the first loop occurring in the standard Viterbi solution (Equation \ref{eqn:argmax}).
 Specifically, if the Viterbi solution is $( y_1, \ldots, y_l )$,
 and $i$ is the first index where $y_i$ already appears in the subsequence $( y_1, \ldots, y_{i-1} )$,
 then simply return the subsequence $( y_1, \ldots, y_{i-1} )$.
 
 From a graph perspective, this approach makes the directed sub-graph induced by the Viterbi solution acyclic
-by simply breaking the first cycle-inducing edge.
+by breaking the first cycle-inducing edge.
 This is sensible if sequences never escape the first cycle, \ie after the first repeated POI, there is no new POI.
 We have indeed found this to be the case in our problem; %(perhaps owing to cycles being induced by dominant edge scores).
 more generally, %for sequences %such as $(1,2,1,3)$

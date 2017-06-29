@@ -15,13 +15,12 @@
 % \end{itemize}
 % }
 
-One exact approach to solve Equation \ref{eqn:argmax-path}
-relies on the observation that
-it bears similarity to the classical travelling salesman problem (TSP).
+One way to exactly solve Equation \ref{eqn:argmax-path}
+is to observe its similarity to the classical travelling salesman problem (TSP).
 Indeed, if the length $l = |\PCal|$, so that every POI is restricted to be visit once,
 then we exactly get the TSP problem;
-however, for smaller $l$, we require visiting only a \emph{subset} of POIs.
-This means the problem is not a vanilla instance of TSP.
+however, for smaller $l$, we require visiting only a \emph{subset} of POIs,
+which is not a vanilla instance of TSP.
 
 Nonetheless, we may take inspiration from methods to solve the TSP to attack our problem.
 In particular, 
@@ -53,9 +52,9 @@ via \citep{Chen:2017}
 
 \vspace{0.5\baselineskip}
 
-Here, $u_{jk}$ are binary variables that are true if and only if
+Here, the binary $u_{jk}$ are true iff
 we visit $p_k$ immediately after visiting $p_j$;
-$v_j$ are integer variables that track the rank of $p_j$;
+the integer $v_j$ track the rank of $p_j$;
 %The binary variables $z_j$ indicate whether we end up at $p_j$.
 and $z(\bu)_i \defEq \sum_{j=1}^m u_{ji} - \sum_{k=1}^m u_{ik}$ indicates whether we end up at $p_i$.
 The constraints merely ensure we output a (non-disjoint) path of exactly $l$ POIs.
