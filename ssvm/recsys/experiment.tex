@@ -145,7 +145,9 @@ while being competitive on the smaller {\tt Osaka} dataset.
 \textbf{How does trajectory length influence accuracy?}
 The above analyses the accuracy over all queries, and over queries where {\sc Viterbi} outputs a loop.
 It is of interest to partition the set queries based on the length of the requested trajectory.
-Intuitively, we expect that the longer the requested trajectory, the less accurate all methods will fare; this is because with longer trajectories, we are searching over an exponentially larger space.
+Intuitively, we expect that the longer the requested trajectory, the less accurate all methods will fare; this is because longer trajectories imply an 
+exponentially larger space.
+(Indeed, on {\tt Toronto}, for a query with length 13, the first \textbf{10 million} sequences have loops!)
 
 Figure \ref{fig:acc-vs-length} confirms this intuition:
 on all datasets, and for all methods,
