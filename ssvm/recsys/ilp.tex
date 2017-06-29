@@ -36,21 +36,29 @@ An off-the-shelf solver (\eg {\tt Gurobi}) may be used on the ILP.
 Formally, given a starting location $s$ and the required trip length $l$,
 %we maximise the desired trip score over all possible subsets with $l$ POIs from the whole set of POIs $\{p_j\}_{j=1}^m$
 we find the best possible path
-by solving
-\begin{align*}
-%\max_{\bu} & \sum_{k=1}^m \w_k^\top \psi_k(\x, p_k) \sum_{j=1}^m u_{jk} +
-%             \sum_{j,k=1}^m u_{jk} \w_{jk}^\top \psi_{j, k}(\x, p_j, p_k) \\
-\max_{\bu} & \sum_{k=1}^m \alpha( p_k ) \cdot \sum_{j=1}^m u_{jk} +
-            \sum_{j,k=1}^m u_{jk} \cdot \beta( p_j, p_k ) \\
-s.t. 
-& \sum_{k=2}^m u_{1k} = 1, \, \sum_{j=2}^m u_{j1} = z_1=0  \\                %\label{eq:cons1} \\
-& \sum_{j=1}^m \sum_{k=1}^m u_{jk} = l-1, \, \sum_{j=1}^m u_{jj}=0  \\      %\label{eq:cons2}
-& \sum_{j=1}^m u_{ji} = z_i + \sum_{k=2}^m u_{ik} \le 1, \, (\forall i \in \{2,\cdots,m\})  \\ %\label{eq:cons3} \\
-& v_j - v_k + 1 \le (m-1) (1-u_{jk}), \, (\forall j,k \in \{2,\cdots,m\}).                 %\label{eq:cons4}
-\end{align*}
+via \citep{Chen:2017}
+
+\resizebox{0.9625\linewidth}{!}{
+\begin{minipage}{0.9625\linewidth}
+	\begin{align*}
+	\max_{\bu, \mathbf{v}} & \sum_{k=1}^m \alpha( p_k ) \cdot \sum_{j=1}^m u_{jk} +
+	            \sum_{j,k=1}^m u_{jk} \cdot \beta( p_j, p_k ) \\
+	s.t. 
+	& \sum_{k=2}^m u_{1k} = 1, \, z(\bu)_1 = 0, z(\bu)_i \in \{ 0, 1 \} \, &&(\forall i \in \{2,\cdots,m\}) \\
+	& \sum_{j=1}^m \sum_{k=1}^m u_{jk} = l-1, \, \sum_{j=1}^m u_{jj} = 0, \, \sum_{j=1}^m u_{ji} \leq 1 \, &&(\forall i \in \{2,\cdots,m\}) \\
+	& v_j - v_k + 1 \le (m-1) (1-u_{jk}), \, &&(\forall j,k \in \{2,\cdots,m\}).
+	\end{align*}
+\end{minipage}
+}
+
+\vspace{0.5\baselineskip}
+
 Here, $u_{jk}$ are binary variables that are true if and only if
-we visit $p_k$ immediately after visiting $p_j$,
-and binary variables $z_j$ indicate whether we end up at $p_j$.
+we visit $p_k$ immediately after visiting $p_j$;
+$v_j$ are integer variables that track the rank of $p_j$;
+%The binary variables $z_j$ indicate whether we end up at $p_j$.
+and $z(\bu)_i \defEq \sum_{j=1}^m u_{ji} - \sum_{k=1}^m u_{ik}$ indicates whether we end up at $p_i$.
+The constraints merely ensure we output a (non-disjoint) path of exactly $l$ POIs.
 By reading off the values of $u_{jk}$, we can thus determine the predicted sequence.
 Note that we index POIs such that $s = p_1$ for brevity,
 and we strictly ask for a path that starts from $s$ and travels $l$ distinct POIs.

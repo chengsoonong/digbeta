@@ -6,11 +6,10 @@
 %     %\item parallel list viterbi
 % \end{itemize}
 
-Recall that for a structured SVM model,
-the Viterbi algorithm %for standard inference in a structured prediction model.
+The Viterbi algorithm %for standard inference in a structured prediction model.
 %This
-finds the best scoring sequence, which may have loops.
-To find the best sequence without loops, one can apply a \emph{list Viterbi algorithm}
+finds the best scoring sequence in Equation \ref{eqn:argmax}, which may have loops.
+To find the best sequence without loops in Equation \ref{eqn:argmax-path}, one can apply a \emph{list Viterbi algorithm}
 to find not just the single best sequence,
 but rather the top $K$ best sequences.
 By definition, the first such sequence that is loop free must be the highest scoring sequence that does not have loops.
@@ -30,7 +29,9 @@ since we do not know the position of the best loop-free sequence.
 The second approach is to more fundamentally modify how one selects paths; these are known as \emph{serial list Viterbi} algorithms.
 Amongst serial list Viterbi algorithms, there are at least two well-known proposals in the context of hidden Markov models (HMMs).
 In the signal processing community, \citet{seshadri1994list} proposed an algorithm that keeps track of the ``next best'' sequence terminating at each state in the current list of best sequences.
-In the AI community, \citet{nilsson2001sequentially} (building on the work of \citet{Nilsson:1998} for general graphical models) proposed an algorithm that cleverly partitions the search space into subsets of sequences that share a prefix with the current list of best sequences.
+In the AI community, \citet{nilsson2001sequentially}
+%(building on the work of \citet{Nilsson:1998} for general graphical models)
+proposed an algorithm that cleverly partitions the search space into subsets of sequences that share a prefix with the current list of best sequences.
 While derived in different communities, these two algorithms are in fact only superficially different, as we now see.
 
 %
@@ -38,12 +39,13 @@ While derived in different communities, these two algorithms are in fact only su
 
 The connection between the existing list Viterbi algorithms is easiest to see in the case of finding the second best sequence for an HMM.
 Suppose we have an HMM with states $\SSf_{t}$, observations $\OSf_{t}$, transition probabilities $a_{ij} = \Pr( \SSf_{t+1} = j \mid \SSf_t = i )$, and emission probabilities $b_{ik} = \Pr( \OSf_{t} = k \mid \SSf_t = i )$.
-Suppose $s^*_{1:T}$ is the most likely sequence given observations $\OSf_{1:T}$,
+Suppose $s^*_{1:T}$ is the most likely length $T$ sequence given observations $\OSf_{1:T}$,
 $\delta_{j, t}$ is the value of the best sequence up till position $t$ ending at state $j$ as computed by the Viterbi algorithm,
 %$\delta_{j, t} \defEq \max_{\SSf_{1:t - 1}} \Pr( \SSf_{1:t - 1}, \SSf_t = j, \OSf_{1:t} )$
 and our interest is in finding the second best sequence given observations $\OSf_{1:T}$, with value
-$$ M \defEq \max_{\SSf_{1:T} \neq s^*_{1 : T}}{\Pr( \SSf_{1:T}, \OSf_{1:T} )}. $$
-To do so, \citet{seshadri1994list} proposed the recurrence
+$ M \defEq \max_{\SSf_{1:T} \neq s^*_{1 : T}}{\Pr( \SSf_{1:T}, \OSf_{1:T} )}. $
+
+\citet{seshadri1994list} proposed to find $M$ via a recurrence similar to the standard Viterbi algorithm,
 \begin{equation}
     \label{eqn:att-recurrence}
     \begin{aligned}
@@ -60,17 +62,19 @@ To do so, \citet{seshadri1994list} proposed the recurrence
     \end{aligned}    
 \end{equation}
 Intuitively, $\bar{\delta}_t$ finds the value of the second best sequence that merges with the best sequence by at least time $t$.
-On the other hand, \citet{nilsson2001sequentially} proposed to find
+On the other hand, \citet{nilsson2001sequentially} proposed to find $M$ more directly via
 \begin{align*}
 	M &= \max_t \widehat{\rho}_t \\
 	\widehat{\rho}_{t} &\defEq \max_{i \neq s^*_{t}} \max_{S_{t+1:T}} {\Pr( \SSf_{1:t-1} = s^*_{1:t-1}, \SSf_t = i, \SSf_{t+1:T}, \OSf_{1:T} )}.
 \end{align*}
 Intuitively, $\widehat{\rho}_t$ finds the value of the second best sequence that first deviates from the best sequence exactly at time $t$.
+\citet{nilsson2001sequentially} propose to compute $\widehat{\rho}_{t}$ via the forward-backward values $\eta_{i, j, t} \defEq \max_{\SSf \colon S_{t - 1} = i, \SSf_{t} = j} \Pr( \SSf_{1:T}, \OSf_{1:T} )$,
+which in turn can be computed from the ``backward'' analogue of $\delta$.
 
-To connect the two approaches, observe that we can unroll the recurrence in Equation \ref{eqn:att-recurrence} to give
+To connect the two approaches, observe that by unrolling the recurrence in Equation \ref{eqn:att-recurrence}, and definition of $\delta$, we have
 \begin{align*}
 	M &= \max_t \widehat{\mu}_t \\
 	\widehat{\mu}_{t} &\defEq \prod_{k = 1}^t a( s^*_{k-1}, s^*_{k} ) \cdot b( s^*_{k}, \OSf_{k} ) \cdot \max_{i \neq s^*_{t}} \delta(i, t) \cdot a( i, s^*_{t+1} ) \cdot b( s^*_{t+1}, \OSf_{t+1} ) \\
-	&= \max_{i \neq s^*_{t}} \max_{S_{1:t-1}} {\Pr( \SSf_{1:t}, \SSf_t = i, \SSf_{t+1:T} = s^*_{t+1:T}, \OSf_{1:T} )}.
+	&= \max_{i \neq s^*_{t}} \max_{S_{1:t-1}} {\Pr( \SSf_{1:t}, \SSf_t = i, \SSf_{t+1:T} = s^*_{t+1:T}, \OSf_{1:T} )};
 \end{align*}
-That is, the quantities being computed are the same, except that in the former we fix the suffix of the candidate sequence, while in the latter we fix the prefix.
+i.e., the same quantities are computed, except that the former fixes the suffix of the candidate sequence, while the latter fixes the prefix.

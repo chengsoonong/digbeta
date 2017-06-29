@@ -10,7 +10,7 @@ We explicated how two ostensibly different approaches to the list Viterbi algori
 
 Through experiments on real-world datasets,
 we found that
-a greedy graph-based heuristic offers excellent performance with only mild computational overhead over standard inference procedures.
+a greedy graph-based heuristic offers excellent performance and runtime.
 We thus recommend its use over the more complicated integer programming and list Viterbi inference procedures.
 
 % {\color{red}
@@ -22,7 +22,10 @@ We thus recommend its use over the more complicated integer programming and list
 % Christofides' algorithm is at least an order of magnitude faster than the other methods, but with a significant sacrifice in accuracy;
 % and that the list Viterbi is faster than the ILP for short trajectories, but the ILP is superior for longer trajectories.
 
-The basic idea of modifying the standard Viterbi inference problem (Equation \ref{eqn:argmax}) has other applications, such
+As future work, it is of interest to extend the greedy algorithm to the top-$K$ evaluation setting of \citet{Chen:2017}, wherein the recommender produces a \emph{list} of paths to be considered.
+A natural strategy would be to augment the algorithm with a beam search.
+
+Further, the basic idea of modifying the standard Viterbi inference problem (Equation \ref{eqn:argmax}) has other applications, such
 as ensuring diversity in the predicted ranking.
 Such problems have been studied in different contexts such as information retrieval \citep{Carbonell:1998} and computer vision \citep{Park:2011},
 and would be interesting for further study in trajectory recommendation.

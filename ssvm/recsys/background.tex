@@ -103,31 +103,33 @@ Figure \ref{fig:schematics} gives a schematic overview of these algorithms.
     \qquad    
     %\subfloat[Original prediction with loop (dashed).]{
     \subfloat[{\sc Greedy} (\S\ref{sec:greedy}).]{
-    \begin{tikzpicture}[baseline=(s1.base)]
+    \begin{tikzpicture}[baseline=(s12.base)]
         % first-best
-        \node[specialState] (s1) at (0,0)  {$1$};
+        \node[specialState] (s11) at (0,1)  {$1$};
+        \node[hiddenState]  (s12) at (0,0)  {$2$};
+        \node[hiddenState]  (s13) at (0,-1) {$3$};        
 
         %\node[hiddenState] (s2) at (1,1.5)  {$2$};
-        \node[hiddenState]  (s3) at (1,1)  {$3$};
-        \node[specialState] (s4) at (1,0)    {$2$};
-        \node[hiddenState]  (s5) at (1,-1) {$4$};
+        \node[hiddenState]  (s21) at (1,1)  {$1$};
+        \node[specialState] (s22) at (1,0)  {$2$};
+        \node[hiddenState]  (s23) at (1,-1) {$3$};
         %\node[hiddenState] (s6) at (1,-1.5)  {$6$};
 
-        \node[draw=none] (s40) at (2,1)  {};
-        \node[draw=none] (s41) at (2,0)     {};
-        \node[draw=none] (s42) at (2,-1) {};
+        \node[draw=none] (s32) at (2,1)  {};
+        \node[draw=none] (s31) at (2,0)  {};
+        \node[draw=none] (s33) at (2,-1) {};
 
         \node[draw=none] (s411) at (2.25,0)     {$\ldots$};
 
         %\draw [->,ultra thin] (s1) to (s2);
-        \draw [->,ultra thin] (s1) to (s3);
-        \draw [->,ultra thick] (s1) to (s4);
-        \draw [->,ultra thin] (s1) to (s5);
+        \draw [->,dashed]      (s11) to (s21) node [draw=none] at (0.5,1) {$/$};
+        \draw [->,ultra thick] (s11) to (s22);
+        \draw [->,ultra thin]  (s11) to (s23);
         %\draw [->,ultra thin] (s1) to (s6);
 
-        \draw [->,ultra thin] (s4) to (s40);
-        \draw [->,ultra thin] (s4) to (s41) node [draw=none] at (1.625,0) {$/$};
-        \draw [->,ultra thin] (s4) to (s42);
+        \draw [->,dashed] (s22) to (s32) node [draw=none] at (1.5,0.5) {$/$};
+        \draw [->,dashed] (s22) to (s31) node [draw=none] at (1.5,0)     {$/$};
+        \draw [->,ultra thin] (s22) to (s33);
     \end{tikzpicture}
     }%   
     \qquad
@@ -199,8 +201,8 @@ Figure \ref{fig:schematics} gives a schematic overview of these algorithms.
     \subfloat[{\sc List Viterbi} (\S\ref{sec:viterbi}).]{
     \begin{tikzpicture}[baseline=(s1.base)]
         % first-best
-        \node[state] (s1) at (0,0)  {$1$};
-        \node[state] (s2) at (1,0)  {$2$}            
+        \node[hiddenState] (s1) at (0,0)  {$1$};
+        \node[hiddenState] (s2) at (1,0)  {$2$}            
             edge [<-] (s1);
 
         \node[specialState] (ss1) at (0,-1) {{${5}$}};                            

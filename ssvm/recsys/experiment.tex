@@ -2,18 +2,22 @@
 
 We are now in a position to empirically compare the methods discussed above,
 to get a firmer sense of their tradeoffs.
+Our experiments focus on path recommendation tasks where a structured SVM is learned (per \citet{Chen:2017}) to score sequences.
+We then employ each of the methods described above to (approximately) solve the inference problem of Equation \ref{eqn:argmax-path}.
 
 %
-\subsection{Description of datasets}
+\subsection{Experimental setup}
 
-We used the trajectory data\footnote{\url{https://bitbucket.org/d-chen/tour-cikm16}}
-extracted from Flickr photos for the cities of Glasgow, Osaka and
-Toronto~\cite{ijcai15,cikm16paper}.
+Following \citet{cikm16paper,Chen:2017},
+we work with
+data
+extracted from Flickr photos for the cities of {\tt Glasgow}, {\tt Osaka} and
+{\tt Toronto}~\cite{ijcai15,cikm16paper}.
 Each dataset comprises of a
 list of trajectories as visited by various Flickr users and recorded by the geotags in photos.
 Table~\ref{tab:data} summarises the profile of each dataset.
-We see that %most queries have more than one ground truth, making the sequence recommendation setting relevant. Further,
-each query has an average of 4-9, and a maximum of 30-60 trajectories.
+% We see that %most queries have more than one ground truth, making the sequence recommendation setting relevant. Further,
+% each query has an average of 4-9, and a maximum of 30-60 trajectories.
 
 % In all datasets,
 % each user has on average less than two trajectories.
@@ -28,9 +32,9 @@ each query has an average of 4-9, and a maximum of 30-60 trajectories.
 % 		\small
 % 		\begin{tabular}{lllll|ccc|cc} \hline %{l*{9}{c}} \hline
 % 		\textbf{Dataset} & \textbf{\#Traj} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#Queries} & \textbf{\#GT=1} & \textbf{\#GT$\in [2,5]$} & \textbf{\#GT$>$5} & \textbf{\#shortTraj} & \textbf{\#longTraj} \\ \hline
-% 		Glasgow          & 351              & 25              & 219              & 64                 & 23              & 22                      & 19                & 336                     & 15 \\
-% 		Osaka            & 186              & 26              & 130              & 47                 & 17              & 22                      & 8                 & 178                     & 8  \\
-%         Toronto          & 977              & 27              & 454              & 99                 & 30              & 33                      & 36                & 918                     & 59 \\
+% 		{\tt Glasgow}          & 351              & 25              & 219              & 64                 & 23              & 22                      & 19                & 336                     & 15 \\
+% 		{\tt Osaka}            & 186              & 26              & 130              & 47                 & 17              & 22                      & 8                 & 178                     & 8  \\
+%         {\tt Toronto}          & 977              & 27              & 454              & 99                 & 30              & 33                      & 36                & 918                     & 59 \\
 % 		\hline
 % 		\end{tabular}%
 % 		}
@@ -50,9 +54,9 @@ each query has an average of 4-9, and a maximum of 30-60 trajectories.
 		\small
 		\begin{tabular}{llll|cc} \hline %{l*{9}{c}} \hline
 		\textbf{Dataset} & \textbf{\#Traj} & \textbf{\#POIs}  & \textbf{\#Queries}  & \textbf{\#ShortTraj} & \textbf{\#LongTraj} \\ \hline
-		Glasgow          & 351              & 25              & 64                 & 336                     & 15 \\
-		Osaka            & 186              & 26              & 47                 & 178                     & 8  \\
-        Toronto          & 977              & 27              & 99                 & 918                     & 59 \\
+		{\tt Glasgow}          & 351              & 25              & 64                 & 336                     & 15 \\
+		{\tt Osaka}            & 186              & 26              & 47                 & 178                     & 8  \\
+        {\tt Toronto}          & 977              & 27              & 99                 & 918                     & 59 \\
 		\hline
 		\end{tabular}%
 		}
@@ -62,26 +66,27 @@ each query has an average of 4-9, and a maximum of 30-60 trajectories.
         }
 		\label{tab:data}
 	%\end{minipage}
-	\vspace{-1.5\baselineskip}
+	\vspace{-1.75\baselineskip}
 \end{table}
 
 %
-\subsection{Experimental protocol}
+%\subsection{Experimental protocol}
 
-We compare the methods described previously ({\sc Greedy}, {\sc LoopElim}, {\sc List Viterbi}, {\sc ILP}),
-as well as the standard inference ({\sc Viterbi}).
-For all methods, we provide as input a structured SVM (SSVM) model trained as per \citet{Chen:2017}.
-
+We compare the inference methods described previously ({\sc Greedy}, {\sc LoopElim}, {\sc List Viterbi}, {\sc ILP})
+to standard inference ({\sc Viterbi}), which may produce loops.
+%For all methods, we provide as input a structured SVM (SSVM) model trained as per \citet{Chen:2017}.
 We evaluate each algorithm using leave-one-query-out cross validation (LOOCV),
 \ie holding out all the relevant trajectories for each query $\x^{(i)}$ in each round.
 %The regularisation constant $C$ is tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
 We use two performance measures for POIs, sequences and ordered lists.
 The {\bf F$_1$ score on points}~\cite{ijcai15} computes F$_1$ on the predicted versus seen points
 without considering their relative order.
-The {\bf F$_1$ score on pairs}~\cite{cikm16paper} is proposed to mitigate this by computing F$_1$ on all ordered pairs in the predicted versus ground truth sequence. %%It is 1 iff both sequences agree completely.
+The {\bf F$_1$ score on pairs}~\cite{cikm16paper} computes the F$_1$ on all ordered pairs in the predicted versus ground truth sequence. %%It is 1 iff both sequences agree completely.
 %The well-known rank correlation {\bf Kendall's $\tau$}~\cite{agresti2010analysis}
 %computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all possible pairs after accounting for ties.%taking care of ties.
 
+
+\input{tab_experiment}
 
 %
 \subsection{Results and discussion}
@@ -90,26 +95,31 @@ We now address several key questions relating the tradeoffs implied by the vario
 
 \textbf{How often does the top-scoring sequence have loops?}
 It is first of interest to determine that the top-scoring sequence for the underlying SSVM model does in fact often contain loops.
-We find that on the (Osaka, Glasgow, Toronto) datasets, the top-scoring sequence for (23.9\%, 31.2\%, 48.5\%) respectively of all queries have loops.
+We find that on the ({\tt Osaka}, {\tt Glasgow}, {\tt Toronto}) datasets, the top-scoring sequence for (23.9\%, 31.2\%, 48.5\%) respectively of all queries have loops.
 This confirms that with longer trajectories, even a powerful structured model cannot escape the problem of predicting sequences with loops.
 
-% Osaka percentage of predictions with loops:
+% {\tt Osaka} percentage of predictions with loops:
 % 11 / 46 = 23.9\% \\
-% Glasgow percentage of predictions with loops:
+% {\tt Glasgow} percentage of predictions with loops:
 % 20 / 64 = 31.2\% \\
-% Toronto percentage of predictions with loops:
+% {\tt Toronto} percentage of predictions with loops:
 % 48 / 99 = 48.5\% 
 
 \textbf{How important is it to remove loops?}
 Having confirmed that loops in the top-scoring sequence are an issue,
 it is now of interest to establish that removing such loops during prediction is in fact important.
 This is confirmed in Tables \ref{tab:f1-master} -- \ref{tab:pf1-master},
-where we see that there can be as much as a 50\% improvement in performance over the {\sc Viterbi} baseline.
+where we see that there can be as much as a 17\% improvement in performance over the {\sc Viterbi} baseline.
+
+The above improvements are aggregated over all queries, including those where the {\sc Viterbi} algorithm does not have loops.
+Restricting to those queries where this is not the case,
+Tables \ref{tab:f1-diff-up} -- \ref{tab:pf1-diff-up},
+show that the improvements are dramatic, being as high as 50\%.
 
 \textbf{How reliably can {\sc LoopElim} get the desired length?}
-A challenge in applying {\sc LoopElim} to the path recommendation problem as we have defined it
+A challenge in applying {\sc LoopElim} to path recommendation
 is that it may result in a path of the wrong length.
-Figure \ref{fig:length-christo} shows that a significant fraction of queries will have a different length to the target.
+Figure \ref{fig:length-christo} shows that for a significant fraction of queries, this algorithm will output a different length path to that specified in the query.
 
 \textbf{How reliably can {\sc LoopElim} predict a good path?}
 Assuming one can overlook the {\sc LoopElim} producing a path of possibly incorrect length,
@@ -122,33 +132,52 @@ grossly underperforms compared to the more principled approaches.
 \textbf{How reliably can {\sc Greedy} predict a good path?}
 Unlike {\sc LoopElim}, the {\sc Greedy} method is guaranteed to produce a path of the correct length.
 In fact, perhaps surprisingly, it also performs very well compared to the list Viterbi and ILP methods, 
-offering significant improvements over these methods on the larger Glasgow and Toronto datasets.
-The runtime of this method is also significantly faster than these exact methods,
-which makes it hard to favour any other approach.
+offering significant improvements over these methods on the larger {\tt Glasgow} and {\tt Toronto} datasets,
+while being competitive on the smaller {\tt Osaka} dataset.
 
-\textbf{Which of ILP or list Viterbi is faster, and when?}
-The list Viterbi and ILP methods have nearly identical accuracy, with the differences owing to ties.
-What about their relative runtimes?
-Figure \ref{fig:inftime} shows that for shorter trajectories, the list Viterbi approach is to be preferred;
+
+\textbf{How does trajectory length influence accuracy?}
+The above analyses the accuracy over all queries, and over queries where {\sc Viterbi} outputs a loop.
+It is of interest to partition the set queries based on the length of the requested trajectory.
+Intuitively, we expect that the longer the requested trajectory, the less accurate all methods will fare; this is because with longer trajectories, we are searching over an exponentially larger space.
+
+Figure \ref{fig:acc-vs-length} confirms this intuition:
+on all datasets, and for all methods,
+a longer trajectory length implies significantly worse performance in absolute terms.
+Interestingly, the relative improvements of all methods over {\sc Viterbi} are either consistent or actually \emph{improve} with longer trajectories;
+this is reassuring, and justifies the effort spent in removing loops.
+Of further interest is that the {\sc Greedy} heuristic remains dominant for longer trajectories on the {\tt Glasgow} and {\tt Toronto} datasets.
+
+
+\textbf{How fast are the various methods?}
+As expected, the heuristic {\sc LoopElim} and {\sc Greedy} algorithms have the fastest runtime, being on the order of milliseconds per query even for long trajectories (Figure \ref{fig:inftime}).
+The {\sc Greedy} algorithm is the faster of the two, as it does not even require running the standard Viterbi algorithm.
+
+The exact methods are comparatively slower, especially for medium length trajectories.
+Amongst these methods, for shorter trajectories, the list Viterbi approach is to be preferred;
 however, for longer trajectories, the ILP approach is faster.
 The reason for the list Viterbi to suffer at longer trajectories is simply because this creates an exponential increase in the number of available choices, which must be searched through serially.
 Of interest is that ILP approach has runtime largely independent of the trajectory length.
 This indicates the branch-and-bound as well as cutting plane underpinnings of these solvers are highly scalable.
 
+Overall, the {\sc Greedy} algorithm is at least competitive, and often more accurate than exact methods;
+it is also significantly faster.
+Thus, it is hard to favour any other approach.
+
+% \textbf{Which of ILP or list Viterbi is faster, and when?}
+% The list Viterbi and ILP methods have nearly identical accuracy, with the differences owing to ties.
+% What about their relative runtimes?
+% Figure \ref{fig:inftime} shows that for shorter trajectories, the list Viterbi approach is to be preferred;
+% however, for longer trajectories, the ILP approach is faster.
+% The reason for the list Viterbi to suffer at longer trajectories is simply because this creates an exponential increase in the number of available choices, which must be searched through serially.
+% Of interest is that ILP approach has runtime largely independent of the trajectory length.
+% This indicates the branch-and-bound as well as cutting plane underpinnings of these solvers are highly scalable.
+
 % As a final note, we see that the complexity of the LoopElim is several order of magnitudes less than either of the two more advanced methods at longer trajectories.
 % There is thus a familiar tradeoff between time and accuracy.
 
-\input{tab_experiment}
-
 % \begin{figure*}[t]
 % \begin{minipage}[c]{0.7\textwidth}
-\begin{figure*}[!t]
-		\centering
-		\includegraphics[width=0.95\textwidth]{top1_inftime.pdf}
-	    \captionof{figure}{Prediction time for three inference algorithms (in milliseconds)}
-	    \label{fig:inftime}
-	    %\captionmoveup\eqmoveup
-\end{figure*}%
 \begin{figure*}[!t]
 		\quad
 		\centering
@@ -165,6 +194,13 @@ This indicates the branch-and-bound as well as cutting plane underpinnings of th
 		% \includegraphics[width=\textwidth]{metric_d3.pdf}
 	    \captionof{figure}{Accuracy versus trajectory length.}
 	    \label{fig:acc-vs-length}
+	    %\captionmoveup\eqmoveup
+\end{figure*}%
+\begin{figure*}[!t]
+		\centering
+		\includegraphics[width=0.95\textwidth]{top1_inftime.pdf}
+	    \captionof{figure}{Prediction time for three inference algorithms (in milliseconds)}
+	    \label{fig:inftime}
 	    %\captionmoveup\eqmoveup
 \end{figure*}%
 % \end{minipage}
