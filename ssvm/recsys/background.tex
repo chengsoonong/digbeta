@@ -14,7 +14,7 @@ and produces one or more sequences of $l$ POIs starting from $s$. %that conform 
 
 Formally, let $\XCal \defEq \PCal \times \{ 2, 3, \ldots \}$ be the set of possible queries,
 $\YCal \defEq \bigcup_{l = 2}^\infty \PCal^l$ be the set of all possible trajectories,
-and for fixed $\x \in \XCal$, $\YCal_{\x} \subset \YCal$ be the set of trajectories that conform to the constraints imposed by $\x$
+and for fixed $\x \in \XCal$, $\YCal_{\x} \subset \YCal$ be the set of trajectories that conform to the constraints imposed by $\x$,
 \ie if $\x = (s, l)$ then $\YCal_{\x} = \PCal^l$.
 Then, the {trajectory recommendation} problem has:
 
@@ -38,9 +38,9 @@ One way to design a trajectory recommender is to find a (query, trajectory) affi
 %This was the view proposed in~\cite{cikm16paper} where they authors considered an
 %objective function that added two components together: a POI score and a transition score.
 Several choices of $f$ are possible.
-\citet{cikm16paper} proposed to use $f$ given by a RankSVM model, combined with a transition score between POIs.
-While offering strong performance, this method has a conceptual disadvantage highlighted in the previous section:
-it does not model global cohesion, and thus can lead to solutions such as recommending three restaurants in a row.
+\citet{cikm16paper} proposed to use $f$ given by a RankSVM model. %, combined with a transition score between POIs.
+While offering strong performance, this has a conceptual disadvantage highlighted in the previous section:
+it does not model global cohesion, and could result in solutions such as recommending three restaurants in a row.
 To overcome this, \citet{Chen:2017} proposed to use $f$ given by a structured SVM (SSVM).
 In the case of an SSVM with pairwise potentials, the optimisation in Equation \ref{eqn:argmax} can be solved with the classic Viterbi algorithm.
 
@@ -50,7 +50,7 @@ In the case of an SSVM with pairwise potentials, the optimisation in Equation \r
 
 We argue that the definition of trajectory recommendation is incomplete for a simple reason:
 in most cases, a tourist will not want to revisit the same POI.
-We argue that what is needed is to recommend a \emph{path}, \ie a trajectory that does not have any repeated POIs.
+Instead, what is needed is to recommend a \emph{path}, \ie a trajectory that does not have any repeated POIs.
 Let $\thickbar{\YCal} \subset \YCal$ be the set of all possible paths,
 and for fixed $\x \in \XCal$, let $\thickbar{\YCal}_{\x} \subset \thickbar{\YCal}$ be the set of paths that conform to the constraints imposed by $\x$.
 We now wish to construct a \emph{path recommender} $r \colon \XCal \to \thickbar{\YCal}$ via

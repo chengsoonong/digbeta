@@ -59,7 +59,8 @@ we visit $p_k$ immediately after visiting $p_j$;
 the integer $v_j$ track the rank of $p_j$;
 %The binary variables $z_j$ indicate whether we end up at $p_j$.
 and $z(\bu)_i \defEq \sum_{j=1}^m u_{ji} - \sum_{k=1}^m u_{ik}$ indicates whether we end up at $p_i$.
-The constraints merely ensure we output a (non-disjoint) path of exactly $l$ POIs.
+The constraints ensure we output a path of exactly $l$ POIs;
+the last constraint in particular ensures we do not have (disjoint) cycles, as per \citet{Miller:1960}.
 By reading off the values of $u_{jk}$, we can determine the predicted sequence.
 
 The above ILP implicitly solves both the problem of selecting the set of $l$ POIs to recommend,
