@@ -2,7 +2,7 @@
 
 We are now in a position to empirically compare the methods discussed above,
 to get a firmer sense of their tradeoffs.
-Our experiments focus on path recommendation tasks where a structured SVM is learned (per \citet{Chen:2017}) to score sequences.
+Our experiments focus on path recommendation tasks where a structured SVM is learned to score sequences per \citet{Chen:2017}.
 We then employ each of the methods described above to (approximately) solve the inference problem of Equation \ref{eqn:argmax-path}.
 
 %
@@ -14,8 +14,8 @@ data
 extracted from Flickr photos for the cities of {\tt Glasgow}, {\tt Osaka} and
 {\tt Toronto}~\cite{ijcai15,cikm16paper}.
 Each dataset comprises of a
-list of trajectories as visited by various Flickr users and recorded by the geotags in photos.
-Table~\ref{tab:data} summarises the profile of each dataset.
+list of trajectories as visited by various Flickr users. %and recorded by the geotags in photos.
+Table~\ref{tab:data} summarises the statistics of each dataset.
 % We see that %most queries have more than one ground truth, making the sequence recommendation setting relevant. Further,
 % each query has an average of 4-9, and a maximum of 30-60 trajectories.
 
@@ -72,16 +72,16 @@ Table~\ref{tab:data} summarises the profile of each dataset.
 %
 %\subsection{Experimental protocol}
 
-We compare the inference methods described previously ({\sc Greedy}, {\sc LoopElim}, {\sc List Viterbi}, {\sc ILP})
+We compare the inference methods for Equation \ref{eqn:argmax-path} described previously ({\sc Greedy}, {\sc LoopElim}, {\sc List Viterbi}, {\sc ILP})
 to standard inference ({\sc Viterbi}), which may produce loops.
 %For all methods, we provide as input a structured SVM (SSVM) model trained as per \citet{Chen:2017}.
 We evaluate each algorithm using leave-one-query-out cross validation (LOOCV),
-\ie holding out all the relevant trajectories for each query $\x^{(i)}$ in each round.
+\ie in each round, we hold out all trajectories for a distinct query $\x$ in the dataset.
 %The regularisation constant $C$ is tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
-We use two performance measures for POIs, sequences and ordered lists.
-The {\bf F$_1$ score on points}~\cite{ijcai15} computes F$_1$ on the predicted versus seen points
-without considering their relative order.
-The {\bf F$_1$ score on pairs}~\cite{cikm16paper} computes the F$_1$ on all ordered pairs in the predicted versus ground truth sequence. %%It is 1 iff both sequences agree completely.
+We use two performance measures:
+the {\bf F$_1$ score on points}~\cite{ijcai15} computes F$_1$ on the predicted versus seen points
+without considering their relative order,
+while the {\bf F$_1$ score on pairs}~\cite{cikm16paper} computes the F$_1$ on all ordered pairs in the predicted versus ground truth sequence. %%It is 1 iff both sequences agree completely.
 %The well-known rank correlation {\bf Kendall's $\tau$}~\cite{agresti2010analysis}
 %computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all possible pairs after accounting for ties.%taking care of ties.
 
@@ -91,19 +91,14 @@ The {\bf F$_1$ score on pairs}~\cite{cikm16paper} computes the F$_1$ on all orde
 %
 \subsection{Results and discussion}
 
-We now address several key questions relating the tradeoffs implied by the various methods in producing loop-free recommendations.
+We now address several key questions relating to the tradeoffs of the various methods considered.
 
 \textbf{How often does the top-scoring sequence have loops?}
-It is first of interest to determine that the top-scoring sequence for the underlying SSVM model does in fact often contain loops.
-We find that on the ({\tt Osaka}, {\tt Glasgow}, {\tt Toronto}) datasets, the top-scoring sequence for (23.9\%, 31.2\%, 48.5\%) respectively of all queries have loops.
-This confirms that with longer trajectories, even a powerful structured model cannot escape the problem of predicting sequences with loops.
-
-% {\tt Osaka} percentage of predictions with loops:
-% 11 / 46 = 23.9\% \\
-% {\tt Glasgow} percentage of predictions with loops:
-% 20 / 64 = 31.2\% \\
-% {\tt Toronto} percentage of predictions with loops:
-% 48 / 99 = 48.5\% 
+It is first of interest to confirm that
+even for the powerful SSVM model,
+the top-scoring sequence as found by the Viterbi algorithm does in fact often contain loops.
+This is indeed so: we find that on the ({\tt Osaka}, {\tt Glasgow}, {\tt Toronto}) datasets, the top-scoring sequence for (23.9\%, 31.2\%, 48.5\%) respectively of all queries have loops.
+%This confirms that on larger datasets, even a powerful  cannot escape the problem of predicting sequences with loops.
 
 \textbf{How important is it to remove loops?}
 Having confirmed that loops in the top-scoring sequence are an issue,
@@ -162,7 +157,7 @@ This indicates the branch-and-bound as well as cutting plane underpinnings of th
 
 Overall, the {\sc Greedy} algorithm is at least competitive, and often more accurate than exact methods;
 it is also significantly faster.
-Thus, it is hard to favour any other approach.
+Thus, for recommending paths, we recommend this algorithm.
 
 % \textbf{Which of ILP or list Viterbi is faster, and when?}
 % The list Viterbi and ILP methods have nearly identical accuracy, with the differences owing to ties.

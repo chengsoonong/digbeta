@@ -45,22 +45,22 @@ via \citep{Chen:2017}
 	s.t. 
 	& \sum_{k=2}^m u_{1k} = 1, \, z(\bu)_1 = 0, z(\bu)_i \in \{ 0, 1 \} \, &&(\forall i \in \{2,\cdots,m\}) \\
 	& \sum_{j=1}^m \sum_{k=1}^m u_{jk} = l-1, \, \sum_{j=1}^m u_{jj} = 0, \, \sum_{j=1}^m u_{ji} \leq 1 \, &&(\forall i \in \{2,\cdots,m\}) \\
-	& v_j - v_k + 1 \le (m-1) (1-u_{jk}), \, &&(\forall j,k \in \{2,\cdots,m\}).
+	& v_j - v_k + 1 \le (m-1) (1-u_{jk}) \, &&(\forall j,k \in \{2,\cdots,m\}).
 	\end{align*}
 \end{minipage}
 }
 
 \vspace{0.5\baselineskip}
 
-Here, the binary $u_{jk}$ are true iff
+Here, we index POIs such that $s = p_1$ for brevity,
+and we strictly ask for a path that starts from $s$ and travels $l$ distinct POIs.
+The binary $u_{jk}$ are true iff
 we visit $p_k$ immediately after visiting $p_j$;
 the integer $v_j$ track the rank of $p_j$;
 %The binary variables $z_j$ indicate whether we end up at $p_j$.
 and $z(\bu)_i \defEq \sum_{j=1}^m u_{ji} - \sum_{k=1}^m u_{ik}$ indicates whether we end up at $p_i$.
 The constraints merely ensure we output a (non-disjoint) path of exactly $l$ POIs.
-By reading off the values of $u_{jk}$, we can thus determine the predicted sequence.
-Note that we index POIs such that $s = p_1$ for brevity,
-and we strictly ask for a path that starts from $s$ and travels $l$ distinct POIs.
+By reading off the values of $u_{jk}$, we can determine the predicted sequence.
 
 The above ILP implicitly solves both the problem of selecting the set of $l$ POIs to recommend,
 and the problem of ordering them.

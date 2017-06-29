@@ -11,5 +11,5 @@ formally, we can pick
 %the node whose combined node score $\alpha( y_{k + 1} )$ and
 %transition score $\beta( y_{k}, y_{k + 1} )$
 $$ y_{k + 1} = \argmax_{p \in \PCal - \{ y_1, \ldots, y_k \}} \alpha( p ) + \beta( y_k, p ). $$
-This algorithm has efficient $\mathscr{O}(l \cdot | \PCal |)$ complexity for an input query $\x = (s, l)$,
-but its performance guarantee is unclear.
+This algorithm is faster that the above heuristic, with $\mathscr{O}(l \cdot | \PCal |)$ complexity,
+but similarly has an unclear performance guarantee.

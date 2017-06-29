@@ -3,10 +3,10 @@
 A burgeoning sub-field of citizen-centric recommendation focusses on suggesting travel routes in a city that a tourist might enjoy.
 This goal encompasses at least three distinct problems:
 \begin{enumerate}[(1)]
-	\item ranking \emph{all} points of interest (POIs) in a city in a manner personalised to a tourist (\eg a tourist to Sydney interested in scenic views might have {\tt Opera House $\succ$ Darling Harbour $\succ$ The Rocks}) \citep{shi2011personalized,lian2014geomf,hsieh2014mining,yuan2014graph};
-	\item recommending the \emph{next} location a tourist might enjoy, given the sequence of places they have visited thus far (\eg given {\tt The Rocks$\to$Botanic Gardens}, we might recommend {\tt Hyde Park}) \citep{fpmc10,ijcai13,zhang2015location};
+	\item ranking \emph{all} points of interest (POIs) in a city in a manner personalised to a tourist (\eg a tourist to Sydney interested in scenic views might have {\tt Opera House $\succ$ Darling Harbour $\succ$ Chinatown}) \citep{shi2011personalized,lian2014geomf,hsieh2014mining,yuan2014graph};
+	\item recommending the \emph{next} location a tourist might enjoy, given the sequence of places they have visited thus far (\eg given {\tt Darling Harbour$\to$Botanic Gardens}, we might recommend {\tt Quay Caf\'{e}}) \citep{fpmc10,ijcai13,zhang2015location};
 	%and
-	\item recommending an \emph{entire sequence} of POIs for a tourist, effectively giving them a travel itinerary (\eg {\tt Opera House$\to$Darling Harbour$\to$Chinatown}) \citep{lu2010photo2trip,ijcai15,lu2012personalized,gioniswsdm14,chen2015tripplanner}.
+	\item recommending an \emph{entire sequence} of POIs for a tourist, effectively giving them a travel itinerary (\eg {\tt Opera House$\to$Quay Caf\'{e}$\to$Darling Harbour}) \citep{lu2010photo2trip,ijcai15,lu2012personalized,gioniswsdm14,chen2015tripplanner}.
 \end{enumerate}
 Our focus in the present paper is problem setting (3), which we dub ``trajectory recommendation''.
 
@@ -23,8 +23,8 @@ In recent work, \citet{Chen:2017} showed that structured SVMs are one such viabl
 In this paper, we focus on a distinct but related challenge:
 at prediction time, how can one recommend a sequence that does not have \emph{loops}?
 This is desirable because tourists would typically wish to avoid revisiting a POI that has already been visited before.
-In principle, this problem will not exist if, at training time, one employs a suitably rich model which learns to suppress sequences with loops.
-In practice, one is forced to compromise on model richness owing to computational and sample complexity considerations.
+In principle, this problem will not exist if one employs a suitably rich model which learns to suppress sequences with loops.
+In practice, one is often forced to compromise on model richness owing to computational and sample complexity considerations.
 %As a result, it is of import to design means of overcoming this problem.
 %How can one solve this modified inference problem?
 %We study this question with the following contributions:
@@ -33,7 +33,9 @@ We thus study this challenge, with the following contributions:
 	\item[(\textbf{C1})] We detail three different approaches to the problem -- 
 	%a heuristic inspired by Christofides' algorithm,
 	graph-based heuristics,
-	list extensions of the Viterbi algorithm, and integer linear programming
+	integer linear programming,
+	and
+	list extensions of the Viterbi algorithm
 	-- and qualitatively summarise their strengths and weaknesses.
 	\item[(\textbf{C2})] In the course of our analysis, we explicate how two ostensibly different approaches to the list Viterbi algorithm \citep{seshadri1994list,nilsson2001sequentially} are in fact fundamentally identical.
 	\item[(\textbf{C3})] We conduct experiments on real-world trajectory recommendation datasets to identify the tradeoffs imposed by each of the three approaches.
@@ -42,7 +44,7 @@ Overall, we find that
 all methods offer performance improvements over na\"{i}vely predicting a sequence with loops,
 but that
 a greedy graph-based heuristic offers excellent performance and runtime.
-We thus recommend its use over the more complicated integer programming and list Viterbi inference procedures.
+We thus recommend its use over the more complicated integer programming and list Viterbi algorithms.
 %Christofides' algorithm is at least an order of magnitude faster than the other methods, but with a significant sacrifice in accuracy;
 %and that the list Viterbi is faster than the ILP for short trajectories, but the ILP is superior for longer trajectories.
 

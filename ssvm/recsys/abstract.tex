@@ -8,13 +8,13 @@ This paper studies this problem, with three contributions.
 First, we detail three distinct approaches to the problem -- 
 %a heuristic inspired by Christofides' algorithm,
 graph-based heuristics,
-list extensions of the Viterbi algorithm,
-and integer linear programming
+integer linear programming, and
+list extensions of the Viterbi algorithm
 -- and qualitatively summarise their strengths and weaknesses.
-Second, we explicate how two ostensibly different approaches to the list Viterbi algorithm \citep{seshadri1994list,nilsson2001sequentially} are in fact fundamentally identical.
+Second, we explicate how two ostensibly different approaches to the list Viterbi algorithm are in fact fundamentally identical.
 Third, we conduct experiments on real-world trajectory recommendation datasets to identify the tradeoffs imposed by each of the three approaches.
 
-Overall, our results indicate that a greedy graph-based heuristic offer excellent performance and runtime.
+Overall, our results indicate that a greedy graph-based heuristic offer excellent performance and runtime, leading us to recommend its use.
 
 % Overall, we find that
 % all methods offer performance improvements over na\"{i}vely predicting a sequence with loops;

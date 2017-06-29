@@ -1,13 +1,13 @@
 % !TEX root=main.tex
 
-We now formalise the problem of interest.
+We now formalise the problem of interest and outline its challenges.
 
 %
 \subsection{Trajectory recommendation}
 
 Fix some set $\PCal$ of points-of-interest (POIs) in a city.
 A \emph{trajectory}\footnote{In graph theory, this is also referred to as a walk.} is any sequence of POIs, possibly containing loops (repeated POIs).
-In the \emph{trajectory recommendation} problem, we are given as input a training set of historical visitors' trajectories.
+In the \emph{trajectory recommendation} problem, we are given as input a training set of historical tourists' trajectories.
 From this, we wish to design a \emph{trajectory recommender}, which accepts a
 \emph{trajectory query} $\x = (s, l)$, comprising a start POI $s \in \PCal$, and trip length $l \!>\! 1$, %(\ie the desired number of POIs, including $s$),
 and produces one or more sequences of $l$ POIs starting from $s$. %that conform to the query.
@@ -21,8 +21,10 @@ Then, the {trajectory recommendation} problem has:
 \vspace{0.5\baselineskip}
 
 \begin{mdframed}[innertopmargin=3pt,innerbottommargin=3pt,skipbelow=5pt,roundcorner=8pt,backgroundcolor=red!3,topline=false,rightline=false,leftline=false,bottomline=false]
-{\sc Input}: training set $\left\{ \left( \x^{(i)}, \y^{(i)} \right) \right\}_{i = 1}^n \in ( \XCal \times \YCal )^n$ \\
-{\sc Output}: a trajectory recommender $r \colon \XCal \to \YCal$ 
+	\begin{tabular}{ll}
+		{\sc Input}:  & training set $\left\{ \left( \x^{(i)}, \y^{(i)} \right) \right\}_{i = 1}^n \in ( \XCal \times \YCal )^n$ \\
+		{\sc Output}: & a trajectory recommender $r \colon \XCal \to \YCal$ \\
+	\end{tabular}
 \end{mdframed}
 
 \vspace{0.5\baselineskip}
@@ -230,10 +232,10 @@ Figure \ref{fig:schematics} gives a schematic overview of these algorithms.
     are selected by the algorithm, with thick edges such as
     {\protect\tikz{\protect\coordinate (X) at (0,0) {}; \protect\coordinate (Y) at (0.5,0) {}; \protect\draw[->,ultra thick] (X) to (Y); \protect\node[draw=none] at (0.25,-0.00625) {}}}
     denoting the sequence ordering.
-    {\sc LoopElim} removes the loop from the Viterbi solution (here assumed to be POI sequence $(1,2,3,1)$), possibly returning a path of shorter length than requested;    
-    {\sc Greedy} incrementally selects POIs so as to locally maximise the sub-sequence score while ensuring we do not repeat POIs;
+    {\sc LoopElim} removes the loop from the Viterbi solution (here the POI sequence $(1,2,3,1)$), possibly returning a path of shorter length than requested;    
+    {\sc Greedy} incrementally selects POIs which locally maximise the sub-path score, and have not been selected before;
     {\sc ILP} solves an integer linear program to find the optimal length $l$ path in a complete graph over POIs;
-    {\sc ListViterbi} finds where the second best sequence diverges from the standard Viterbi sequence; if not loop-free, we find where the third best diverges from the second best, \emph{etc}.
+    {\sc ListViterbi} finds where the second-best sequence diverges from the standard Viterbi sequence ($(1,2,3,1)$ as before); if not loop-free, it finds where the third-best diverges from the second-best, \emph{etc}.
     }
     \label{fig:schematics}
     \vspace{-0.5\baselineskip}
