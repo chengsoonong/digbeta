@@ -15,7 +15,9 @@ and produces one or more sequences of $l$ POIs starting from $s$. %that conform 
 Formally, let $\XCal \defEq \PCal \times \{ 2, 3, \ldots \}$ be the set of possible queries,
 $\YCal \defEq \bigcup_{l = 2}^\infty \PCal^l$ be the set of all possible trajectories,
 and for fixed $\x \in \XCal$, $\YCal_{\x} \subset \YCal$ be the set of trajectories that conform to the constraints imposed by $\x$,
-\ie if $\x = (s, l)$ then $\YCal_{\x} = \PCal^l$.
+\ie if $\x = (s, l)$ then
+%$\YCal_{\x} = \left\{ \y \in \PCal^l \mid y_1 = s \right\}$.
+$\YCal_{\x} = \{ \y \in \PCal^l \mid y_1 = s \}$.
 Then, the {trajectory recommendation} problem has:
 
 \vspace{0.5\baselineskip}

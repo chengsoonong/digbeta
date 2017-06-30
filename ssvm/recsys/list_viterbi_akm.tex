@@ -13,7 +13,7 @@ To find the best sequence without loops in Equation \ref{eqn:argmax-path}, one c
 to find not just the single best sequence,
 but rather the top $K$ best sequences.
 By definition, the first such sequence that is loop free must be the highest scoring sequence that does not have loops.
-We detail existing approaches to solving the list Viterbi problem.
+We detail existing approaches to solve the list Viterbi problem.
 
 %
 \subsection{Parallel and serial list Viterbi algorithms}
@@ -77,7 +77,7 @@ To connect the two approaches, observe that by unrolling the recurrence in Equat
 \begin{align*}
 	M &= \max_t \widehat{\mu}_t \\
 	\widehat{\mu}_{t} &\defEq \prod_{k = 1}^t a( s^*_{k-1}, s^*_{k} ) \cdot b( s^*_{k}, \OSf_{k} ) \cdot \max_{i \neq s^*_{t}} \delta(i, t) \cdot a( i, s^*_{t+1} ) \cdot b( s^*_{t+1}, \OSf_{t+1} ) \\
-	&= \max_{i \neq s^*_{t}} \max_{S_{1:t-1}} {\Pr( \SSf_{1:t}, \SSf_t = i, \SSf_{t+1:T} = s^*_{t+1:T}, \OSf_{1:T} )};
+	&= \max_{i \neq s^*_{t}} \max_{S_{1:t-1}} {\Pr( \SSf_{1:t-1}, \SSf_t = i, \SSf_{t+1:T} = s^*_{t+1:T}, \OSf_{1:T} )};
 \end{align*}
 i.e., the same quantities are computed, except that the former fixes the suffix of the candidate sequence, while the latter fixes the prefix.
 A similar analysis holds in the case of finding the $K$th best sequence.

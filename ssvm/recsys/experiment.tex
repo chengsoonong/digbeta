@@ -2,7 +2,8 @@
 
 We now empirically compare the methods discussed above,
 to get a firmer sense of their tradeoffs.
-We focus on path recommendation tasks where a structured SVM is learned to score sequences per \citet{Chen:2017}.
+We focus on path recommendation tasks where a structured SVM is learned %\footnote{Specifically, we use the {\sc SR} method of that paper.}
+to score sequences per \citet{Chen:2017}.
 We then employ each of the above methods to (approximately) solve the inference problem of Equation \ref{eqn:argmax-path}.
 
 %
@@ -71,7 +72,7 @@ Table~\ref{tab:data} summarises the statistics of each dataset.
 
 To produce a recommendation,
 we use 
-the aforementioned inference methods (named {\sc LoopElim(++)}, {\sc Greedy}, {\sc ILP}, {\sc List Viterbi})
+the aforementioned inference methods (named {\sc LoopElim(++)}, {\sc Greedy}, {\sc ILP}, {\sc ListViterbi})
 as well as
 standard inference ({\sc Viterbi}).
 {\sc LoopElim} processes the Viterbi solution for the query length $l$,
@@ -100,8 +101,8 @@ We now address several key questions relating to the tradeoffs of the various me
 \textbf{How often does the top-scoring sequence have loops?}
 It is first of interest to confirm that
 even for the powerful SSVM model,
-the top-scoring sequence as found by the Viterbi algorithm does in fact often contain loops.
-This is indeed so: we find that on the ({\tt Osaka}, {\tt Glasgow}, {\tt Toronto}) datasets, the top-scoring sequence for (23.9\%, 31.2\%, 48.5\%) respectively of all queries have loops.
+the top-scoring sequence as found by the Viterbi algorithm often contain loops.
+Indeed, we find that on the ({\tt Osaka}, {\tt Glasgow}, {\tt Toronto}) datasets, the top-scoring sequence for (23.9\%, 31.2\%, 48.5\%) respectively of all queries have loops.
 %This confirms that on larger datasets, even a powerful  cannot escape the problem of predicting sequences with loops.
 
 \textbf{How important is it to remove loops?}
@@ -116,7 +117,7 @@ show that the improvements are dramatic, being as high as \textbf{50\%}.
 
 \textbf{How reliably can {\sc LoopElim(++)} get the desired length?}
 Recall that
-{\sc LoopElim} and its {\sc LoopElim++} variant
+{\sc LoopElim} and its variant {\sc LoopElim++}
 may result in a path of the wrong length.
 Figure \ref{fig:length-christo} shows that for a significant fraction of queries,
 these algorithms
@@ -131,28 +132,28 @@ they perform.
 Tables \ref{tab:f1-master} -- \ref{tab:pf1-master} show that the heuristic often
 grossly underperforms compared to the exact {\sc ILP} and {\sc ListViterbi} approaches.
 (Being exact, the latter methods have nearly identical accuracy, with occasional differences owing to ties.)
-Curiously, {\sc LoopElim++}, while producing paths of length closer to the original, actually performs \emph{worse} than the na\"{i}ve {\sc LoopElim} on the larger {\tt Toronto} dataset.
+Curiously, {\sc LoopElim++}, while producing paths of length closer to the original, actually performs slightly \emph{worse} than the na\"{i}ve {\sc LoopElim} on the larger {\tt Toronto} dataset.
 
 %Interestingly, if Kendall's $\tau$ is the measure of interest, then the heuristic may actually be preferable to these methods.
 
 \textbf{How reliably can {\sc Greedy} predict a good path?}
 Unlike {\sc LoopElim(++)}, the {\sc Greedy} method is guaranteed to produce a path of the correct length.
-Perhaps surprisingly, it also performs very well compared to the list Viterbi and ILP methods, 
+Surprisingly, it also performs very well compared to the {\sc ListViterbi} and {\sc ILP} methods, 
 offering significant improvements over these methods on the larger {\tt Glasgow} and {\tt Toronto} datasets,
 while being competitive on the smaller {\tt Osaka} dataset.
 
 
 \textbf{How does trajectory length influence accuracy?}
 The above analyses the accuracy over all queries, and over queries where {\sc Viterbi} outputs a loop.
-It is of interest to partition the set queries based on the length of the requested trajectory.
+It is of interest to partition the set of queries based on the length of the requested trajectory.
 Intuitively, we expect that the longer the requested trajectory, the less accurate all methods will fare; this is because longer trajectories imply an 
-exponentially larger space.
-(Indeed, on {\tt Toronto}, for a query with length 13, the first \textbf{10 million} sequences have loops!)
+exponentially large search space.
+(Indeed, on {\tt Toronto}, for a query with length 13, the first \textbf{5 million} sequences have loops!)
 
 Figure \ref{fig:acc-vs-length} confirms this intuition:
 on all datasets, and for all methods,
 a longer trajectory length implies significantly worse performance in absolute terms.
-Interestingly, the relative improvements of all methods over {\sc Viterbi} are either consistent or actually \emph{improve} with longer trajectories;
+Interestingly, the relative improvements of all methods over {\sc Viterbi} are either consistent or actually \emph{increase} with longer trajectories;
 this is reassuring, and justifies the effort spent in removing loops.
 Of further interest is that the {\sc Greedy} heuristic remains dominant for longer trajectories on the {\tt Glasgow} and {\tt Toronto} datasets.
 
@@ -162,11 +163,11 @@ As expected, the heuristic {\sc LoopElim} and {\sc Greedy} algorithms have the f
 The {\sc Greedy} algorithm is the faster of the two, as it does not even require running the standard Viterbi algorithm.
 The {\sc LoopElim++} variant is much slower than {\sc LoopElim}, as it needs to perform the Viterbi calculation multiple times.
 
-The exact methods are comparatively slower, especially for medium length trajectories.
-Amongst these methods, for shorter trajectories, the list Viterbi approach is to be preferred;
-however, for longer trajectories, the ILP approach is faster.
-The reason for the list Viterbi to suffer at longer trajectories is simply because this creates an exponential increase in the number of available choices, which must be searched through serially.
-Of interest is that ILP approach has runtime largely independent of the trajectory length.
+The exact methods are by comparison slower, especially for medium length trajectories.
+Amongst these methods, for shorter trajectories, the {\sc ListViterbi} approach is to be preferred;
+however, for longer trajectories, the {\sc ILP} approach is faster.
+The reason for the {\sc ListViterbi} to suffer at longer trajectories is simply because this creates an exponential increase in the number of available choices, which must be searched through serially.
+Of interest is that {\sc ILP} approach has runtime largely independent of the trajectory length.
 This indicates the branch-and-bound as well as cutting plane underpinnings of these solvers are highly scalable.
 
 Overall, the {\sc Greedy} algorithm is at least competitive, and often more accurate than exact methods;

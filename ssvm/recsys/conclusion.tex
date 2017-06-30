@@ -8,7 +8,7 @@ list extensions of the Viterbi algorithm,
 and integer linear programming.
 We explicated how two ostensibly different approaches to the list Viterbi algorithm \citep{seshadri1994list,nilsson2001sequentially} are in fact fundamentally identical.
 
-On experiments on real-world datasets,
+In experiments on real-world datasets,
 a greedy graph-based heuristic offered excellent performance and runtime.
 We thus recommend its use
 for removing loops at prediction time
@@ -16,7 +16,7 @@ over the more involved integer programming and list Viterbi algorithms.
 
 As a caveat on the applicability of the greedy algorithm,
 we note that the problem of removing loops also arises during training SSVMs in the loss-augmented inference step \citep{Chen:2017}.
-The list Viterbi algorithm has been demonstrated useful here;
+The list Viterbi algorithm has been demonstrated useful in this context;
 it is unclear whether the same will be true of the approximate greedy algorithm, as it will necessarily lead to sub-optimal solutions.
 
 As future work, it is of interest to extend the greedy algorithm to the top-$K$ evaluation setting of \citet{Chen:2017}, wherein the recommender produces a \emph{list} of paths to be considered.
@@ -25,7 +25,7 @@ A natural strategy would be to augment the algorithm with a beam search.
 Further, the idea of modifying the standard Viterbi inference problem (Equation \ref{eqn:argmax}) has other applications, such
 as ensuring diversity in the predicted ranking.
 Such problems have been studied in contexts such as information retrieval \citep{Carbonell:1998} and computer vision \citep{Park:2011},
-and would be interesting for study in trajectory recommendation.
+and their study would be interesting in trajectory recommendation.
 
 % {\color{red!75}
 % \begin{itemize}
