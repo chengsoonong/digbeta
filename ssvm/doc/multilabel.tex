@@ -1,0 +1,200 @@
+\documentclass[9pt]{extarticle}
+\usepackage[a4paper,top=0.79in,left=0.79in,bottom=0.79in,right=0.79in]{geometry} % A4 paper margins in LibreOffice
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{mathrsfs}
+\usepackage{bm}
+\usepackage{bbm}
+%\usepackage{ulem}
+\usepackage{stmaryrd}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage[sc]{mathpazo}
+\linespread{1.05}       % Palladio needs more leading (space between lines)
+\usepackage[T1]{fontenc}
+\usepackage{footmisc}   % \footref, refer the same footnote at different places
+\usepackage{subcaption} % sub-figures
+\usepackage{setspace}   % set space between lines
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\graphicspath{{fig/}}   % Location of the graphics files
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+\newcommand{\eat}[1]{}
+\newcommand{\given}{\mid}
+\newcommand{\llb}{\llbracket}
+\newcommand{\rrb}{\rrbracket}
+\newcommand{\bu}{\mathbf{u}}
+\newcommand{\bv}{\mathbf{v}}
+\newcommand{\h}{\mathbf{h}}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\X}{\mathbf{X}}
+\newcommand{\Y}{\mathbf{Y}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\w}{\mathbf{w}}
+\newcommand{\p}{\mathbb{P}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\q}{\mathbf{q}}
+\newcommand{\LCal}{\mathcal{L}}
+\newcommand{\XCal}{\mathcal{X}}
+\newcommand{\YCal}{\mathcal{Y}}
+\newcommand{\alphat}{\tilde{\alpha}}
+\newcommand{\betat}{\tilde{\beta}}
+\newcommand{\gammat}{\tilde{\gamma}}
+\newcommand{\phit}{\tilde{\phi}}
+% madeness: suPer-script in Brackets
+\newcommand{\pb}[1]{^{({#1})}}
+
+\newcommand{\eg}{e.g.\ }
+\newcommand{\ie}{i.e.\ }
+\newcommand{\downto}{\,\textbf{downto}\,}
+\newcommand{\blue}[1]{{\color{blue}{#1}}}
+
+\setlength{\columnsep}{1.5em} % spacing between columns
+
+\title{Multi-label Classification, Bipartite Ranking and Playlist Generation}
+
+\author{Dawei Chen}
+
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\section{Multi-label classification~\cite{cheng:2010}}
+\label{sec:mlc}
+
+\noindent
+\paragraph{Definition}
+Let $\LCal = \{\lambda_1,\dots,\lambda_l\}$ be a finite set of class labels,
+and example $(\x,\y) \in \XCal \times \YCal$, 
+where $\YCal \in \{0,1\}^m$ is the set of all possible labels,
+and $\y=y_{1:m}$ is a binary vector where $y_i = 1$ \emph{iff} $\lambda_i$ is a label of $\x$.
+A multi-label classifier is a mapping $\h: \XCal \to \YCal$.
+
+\noindent
+\paragraph{Label dependence}
+Suppose examples are independent and identically distributed (iid) according to a joint probability distribution $\p(\X,\Y)$ on $\XCal \times \YCal$,
+where $\X$ is a random variable and $\Y=Y_{1:l}$ is a random vector,
+Let $\p\pb{i}(Y_i |\x)$ be the marginal distribution of $Y_i$, then
+\begin{equation*}
+\p\pb{i}(Y_i=b |\x) = \sum_{\y \in \YCal:y_i = b} \p(\Y = \y |\x),
+\end{equation*}
+where $\p(\Y = \y |\x)$ is the posterior distribution given observation $\x$.
+We note that the labels are not independent if 
+\begin{equation*}
+\p(\Y |\x) \ne \prod_{i=1}^l \p\pb{i}(Y_i |\x),
+\end{equation*}
+and the degree of dependence could be quantified in terms of measures such as cross entropy and KL divergence.
+
+\noindent
+\paragraph{Learning}
+Given a loss function $\ell(\cdot)$, 
+we can learn a multi-label classifier by find a model $\h^*$ that minimise the expected loss over the joint distribution $\p(\X,\Y)$:
+\begin{equation*}
+\h^* 
+= \argmin_{\h} \, \E_{\X\Y} \, \ell(\Y,\h(\X))
+= \argmin_{\h} \, \E_{\X} \, \E_{\Y|\X} \, \ell(\Y,\h(X))
+= \argmin_{\h} \, \sum_{\x} \p(\x) \, \E_{\Y|\X} \, \ell(\Y,\h(\x)),
+\end{equation*}
+thanks to the summation, fix $\x$, we have
+\begin{equation*}
+\h^*(\x) = \argmin_{\y} \, \E_{\Y|\X} \, \ell(\Y,\y).
+\end{equation*}
+Frequently used loss functions in the context of multi-label classification including Hamming loss, rank loss and subset 0/1 loss~\cite{cheng:2010},
+here we focus on a rank loss (taking care of ties):
+\begin{equation}
+\label{eq:loss_rank}
+\ell(\y, \h(\x)) = \sum_{(i,j): y_i > y_j} \left( \llb h_i < h_j \rrb + \frac{1}{2} \llb h_i = h_j \rrb \right).
+\end{equation}
+\emph{Theorem 3.1 in~\cite{cheng:2010} here.}
+
+\noindent
+\paragraph{Probabilistic classifier chains}
+Given a query $\x$, the posterior probability of a label $\y$ can be computed using the product rule of probability:
+\begin{equation*}
+\p(\y |\x) = \p(y_1) \cdot \prod_{i=2}^l \p(y_i |\x, y_{1:i-1}),
+\end{equation*}
+and we further define a function:
+\begin{equation*}
+f_i = 
+\begin{cases}
+\p(y_i = 1 |\x), & i = 1 \\
+\p(y_i = 1 |\x, y_{1:i-1}), & 1 < i \le l
+\end{cases}
+\end{equation*}
+then we have
+\begin{equation*}
+\p(\y |\x) = f_1 \cdot \prod_{i=2}^l f_i,
+\end{equation*}
+where $f_i$ uses $\x$ and $y_{1:i-1}$ as the input features. 
+Theoretically, the results of the product rule does not depend on the order of variables, 
+however, in practice, different order of variables will result in different model parameters (\ie the order of features depend on the order of variables). \\
+\emph{Greedy approach -- classifier chain; assuming Markov property, we can use the Viterbi algorithm; with Neural net, we can build an order agnostic model.}
+
+
+\section{Bipartite ranking}
+\label{sec:birank}
+
+\paragraph{Definition} 
+Bipartite ranking is to learn a real-valued ranking function that places positive examples above negative examples~\cite{li:2014}.
+Formally, given training examples $S = S_+ \cup S_-$ with $m$ positive examples $S_+ = \{\x_i^+\}_{i=1}^m$ and $n$ negative examples $S_- = \{\x_i^-\}_{i=1}^n$, 
+bipartite ranking aims to learn a ranking function $f: \XCal \to \R$ that is likely ranks positive examples higher than negative examples.
+
+\paragraph{Loss function}
+AUC is a widely used as an evaluate metric for bipartite ranking, and it turns out that AUC can be optimised by minimising a loss defined as~\cite{cortes:2004}
+\begin{equation}
+\label{eq:loss_auc}
+\ell_\text{rank}(f; S) = \frac{1}{mn} \sum_{i=1}^m \sum_{j=1}^n \llb f(\x_i^+) \le f(\x_j^-) \rrb,
+\end{equation}
+and this loss can be easily optimised (\eg by gradient descent) if we replace the indicator function with a convex surrogate such as the truncated quadratic loss 
+$\ell(z) = (1+z)_+^2$, the exponential loss $\ell(z) = e^z$ and logistic loss $\ell(z) = \log(1+e^z)$.
+One drawback of this loss function is enumerating all the positive-negative pairs, which is computationally expensive for large dataset. \\
+\emph{Theorem 3.1 in~\cite{cheng:2010} for this loss function here.}
+
+Alternatively, one may interested in optimising the ranking accuracy only at the top, 
+or equivalently, we would like to minimize the number of positive examples that ranked below the highest-ranking negative instance~\cite{agarwal:2011,li:2014}:
+\begin{equation}
+\label{eq:loss_inf}
+\begin{aligned}
+\ell_{\infty}(f; S) 
+&= \max_{1 \le j \le n} \frac{1}{m} \sum_{i=1}^m \, \llb f(\x_i^+) < f(\x_j^-) \rrb \\
+&= \frac{1}{m} \sum_{i=1}^m \max_{1 \le j \le n} \llb f(\x_i^+) < f(\x_j^-) \rrb,
+\end{aligned}
+\end{equation}
+by replace the indicator function in (\ref{eq:loss_inf}) with a convex surrogate $\ell(\cdot)$, we have
+\begin{equation}
+\label{eq:loss_inf1} 
+\begin{aligned}
+\tilde{\ell}_{\infty}(f; S) 
+&= \frac{1}{m} \sum_{i=1}^m \max_{1 \le j \le n} \ell\left( f(\x_j^-) - f(\x_i^+) \right) \\
+&= \frac{1}{m} \sum_{i=1}^m \ell\left( \max_{1 \le j \le n} f(\x_j^-) - f(\x_i^+) \right),
+\end{aligned}
+\end{equation}
+which can be optimised more efficiently than (\ref{eq:loss_auc})~\cite{li:2014}.
+
+
+\section{Playlist generation}
+\label{sec:playlist}
+
+The playlist generation problem can be formulated as a multi-label classification problem (we have a label for each song in library).
+The idea is to replace the loss function (\ref{eq:loss_rank}) in multi-label classification with loss~(\ref{eq:loss_auc}) or (\ref{eq:loss_inf}). \\
+We can build a probabilistic classifier chains with approximate inference (greedy, Viterbi, Neural net).
+
+
+\bibliographystyle{ieeetr}
+%\bibliographystyle{apalike}
+\bibliography{ref_mlc}
+
+\end{document}
