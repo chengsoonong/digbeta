@@ -9,7 +9,7 @@ Here, the score $f(\mathbf{x}, \mathbf{y})$ can be decomposed as
 	\label{eqn:f-ssvm}
 	f(\mathbf{x}, \mathbf{y}) = \sum_{k = 1}^{|\mathbf{y}|} \alpha( y_k ) + \sum_{k = 1}^{|\mathbf{y}| - 1} \beta( y_k, y_{k+1} )
 \end{equation}
-for suitable unary and pairwise potentials $\alpha, \beta$.
+for suitable unary and pairwise potentials $\alpha, \beta$~\cite{Chen:2017}.
 Consider then a complete graph where the nodes are POIs, each node $p \in \PCal$ has a score $\alpha( p )$, and each edge $(p, p') \in \PCal^2$ has a score $\beta( p, p' )$.
 Then, Equation \ref{eqn:argmax-path} is equivalently a problem of selecting $l$ nodes whose
 total sum of node and edge scores maximises Equation \ref{eqn:f-ssvm}.

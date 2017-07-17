@@ -2,9 +2,13 @@
 
 We now empirically compare the methods discussed above,
 to get a firmer sense of their tradeoffs.
-We focus on path recommendation tasks where a structured SVM is learned %\footnote{Specifically, we use the {\sc SR} method of that paper.}
-to score sequences per \citet{Chen:2017}.
-We then employ each of the above methods to (approximately) solve the inference problem of Equation \ref{eqn:argmax-path}.
+We focus on path recommendation tasks where a SSVM is learned %structured SVM is learned 
+%\footnote{Specifically, we use the {\sc SR} method of that paper.}
+to score sequences, %per \citet{Chen:2017}.
+and refer the reader to \citet{Chen:2017} for a detailed comparison of SSVM to other baselines, \eg RankSVM.
+We then apply %employ 
+each of the above methods to (approximately) solve the inference problem of Equation \ref{eqn:argmax-path}.
+%We refer the reader to \citet{Chen:2017} for a detailed comparison of SSVM to other baselines, \eg RankSVM.
 
 %
 \subsection{Experimental setup}
@@ -84,9 +88,9 @@ We evaluate each algorithm using leave-one-query-out cross validation,
 %The regularisation constant $C$ is tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
 To measure performance,
 we use 
-the {\bf F$_1$ score on points}~\cite{ijcai15}, which computes F$_1$ on the predicted versus seen points
+the {\bf F$_1$ score on points}~\cite{ijcai15}, which computes F$_1$-score on the predicted versus seen points
 without considering their relative order,
-and the {\bf F$_1$ score on pairs}~\cite{cikm16paper}, which computes the F$_1$ on all ordered pairs in the predicted versus ground truth sequence. %%It is 1 iff both sequences agree completely.
+and the {\bf F$_1$ score on pairs}~\cite{cikm16paper}, which computes the F$_1$-score on all ordered pairs in the predicted versus ground truth sequence. %%It is 1 iff both sequences agree completely.
 %The well-known rank correlation {\bf Kendall's $\tau$}~\cite{agresti2010analysis}
 %computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all possible pairs after accounting for ties.%taking care of ties.
 

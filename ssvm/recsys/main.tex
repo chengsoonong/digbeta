@@ -85,6 +85,10 @@
 \copyrightyear{2017}
 \acmPrice{15.00}
 
+% Remove the non-mandatory "ACM Reference format."
+%\fancyhead{}
+%\settopmatter{printacmref=false, printfolios=false}
+
 \allowdisplaybreaks
 
 \begin{document}
@@ -93,81 +97,11 @@
 %\subtitle{Extended Abstract}
 %\subtitlenote{The full version of the author's guide is available as \texttt{acmart.pdf} document}
 
-\author{Dawei Chen, Aditya Krishna Menon, Lexing Xie, Dongwoo Kim, Cheng Soon Ong}
+\author{Dawei Chen, Aditya Krishna Menon, Lexing Xie, Cheng Soon Ong}
 \affiliation{%
  \institution{The Australian National University and Data61/CSIRO}
 }
-% \author{Dawei Chen$^{\dagger,*}$, Aditya Krishna Menon$^{*,\dagger}$, Lexing Xie$^{\dagger,*}$, Dongwoo Kim$^{\dagger,*}$, Cheng Soon Ong$^{*,\dagger}$}
-% \affiliation{%
-%  \institution{$^\dagger$ The Australian National University \quad $^*$ Data61/CSIRO}
-% }
-\email{ [u5708856, aditya.menon, lexing.xie, dongwoo.kim, chengsoon.ong] @anu.edu.au}
-
-% \author{Dawei Chen}
-% \affiliation{%
-%  \institution{The Australian National University and Data61}
-% }
-% \email{u5708856@anu.edu.au}
-
-% \author{Aditya Krishna Menon}
-% \affiliation{%
-%  \institution{Data61 and The Australian National University}
-% }
-% \email{aditya.menon@data61.csiro.au}
-
-% \author{Lexing Xie}
-% \affiliation{%
-%  \institution{The Australian National University and Data61}
-% }
-% \email{lexing.xie@anu.edu.au}
-
-% \author{Dongwoo Kim}
-% \affiliation{%
-%  \institution{The Australian National University}
-% }
-% \email{dongwoo.kim@anu.edu.au}
-
-% \author{Cheng Soon Ong}
-% \affiliation{%
-%  \institution{Data61 and The Australian National University}
-% }
-% \email{chengsoon.ong@anu.edu.au}
-
-
-% \author{Ben Trovato}
-% \authornote{Dr.~Trovato insisted his name be first.}
-% \orcid{1234-5678-9012}
-% \affiliation{%
-%  \institution{Institute for Clarity in Documentation}
-%  \streetaddress{P.O. Box 1212}
-%  \city{Dublin} 
-%  \state{Ohio} 
-%  \postcode{43017-6221}
-% }
-% \email{trovato@corporation.com}
-
-%\author{Lars Th{\o}rv{\"a}ld}
-%\authornote{This author is the one who did all the really hard work.}
-%\affiliation{%
-%  \institution{The Th{\o}rv{\"a}ld Group}
-%  \streetaddress{1 Th{\o}rv{\"a}ld Circle}
-%  \city{Hekla} 
-%  \country{Iceland}}
-%\email{larst@affiliation.org}
-
-%\author{Lawrence P. Leipuner}
-%\affiliation{
-%  \institution{Brookhaven Laboratories}
-%  \streetaddress{P.O. Box 5000}}
-%\email{lleipuner@researchlabs.org}
-
-%\author{John Smith}
-%\affiliation{\institution{The Th{\o}rv{\"a}ld Group}}
-%\email{jsmith@affiliation.org}
-
-% The default list of authors is too long for headers}
-%\renewcommand{\shortauthors}{B. Trovato et al.}
-
+\email{ [u5708856, aditya.menon, lexing.xie, chengsoon.ong] @anu.edu.au}
 
 \begin{abstract}
 \input{abstract}
@@ -186,6 +120,9 @@
 %%%%%%%%%
 \section{Introduction}
 \input{intro}
+
+%\setlength{\belowdisplayskip}{1pt} \setlength{\belowdisplayshortskip}{0pt}
+%\setlength{\abovedisplayskip}{1pt} \setlength{\abovedisplayshortskip}{0pt}
 
 %%%%%%%%%
 \section{Trajectory \& path recommendation}
