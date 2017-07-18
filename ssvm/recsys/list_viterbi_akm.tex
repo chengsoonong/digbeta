@@ -46,13 +46,15 @@ $\delta_{j, t}$ is the value of the best sequence up till position $t$ ending at
 Our interest is in finding the second-best sequence %given observations $\OSf_{1:T}$,
 with value
 $ M \defEq \max_{\SSf_{1:T} \neq s^*_{1 : T}}{\Pr( \SSf_{1:T}, \OSf_{1:T} )}. $
-\citet{seshadri1994list} proposed to find $M$ via a Viterbi-like recurrence,
+\citet{seshadri1994list} %proposed to find $M$ via a Viterbi-like recurrence,
+observed that $M = \bar{\delta}_{T+1}$, where $\bar{\delta}_t$ has a Viterbi-like recurrence
 \begin{equation}
     \label{eqn:att-recurrence}
+    \resizebox{0.9\linewidth}{!}{$
     \begin{aligned}
-        M &= \bar{\delta}_{T+1} \\
+        %M &= \bar{\delta}_{T+1} \\
         %(\forall t > 0) \,
-        \bar{\delta}_t &= 
+        \bar{\delta}_t &\defEq 
         \indicator{t > 0} \cdot
         \max
         \begin{cases}
@@ -60,29 +62,37 @@ $ M \defEq \max_{\SSf_{1:T} \neq s^*_{1 : T}}{\Pr( \SSf_{1:T}, \OSf_{1:T} )}. $
         \bar{\delta}_{t - 1} \cdot a( s^*_{t - 1}, s^*_{t} ) \cdot b( s^*_{t}, \OSf_{t} ).
         \end{cases}% \\
         %\bar{\delta}_0 &= 0.
-    \end{aligned}    
+    \end{aligned}
+    $}
 \end{equation}
 Intuitively, $\bar{\delta}_t$ finds the value of the second-best sequence that merges with the best sequence by at least time $t$.
 
-\setlength{\belowdisplayskip}{1pt} \setlength{\belowdisplayshortskip}{0pt}
-\setlength{\abovedisplayskip}{1pt} \setlength{\abovedisplayshortskip}{0pt}
+% \setlength{\belowdisplayskip}{1pt} \setlength{\belowdisplayshortskip}{0pt}
+% \setlength{\abovedisplayskip}{1pt} \setlength{\abovedisplayshortskip}{0pt}
 
-\citet{nilsson2001sequentially} proposed to find $M$ via another way,
+\citet{nilsson2001sequentially} observed that $M = \max_t \widehat{\rho}_t$, where
 \begin{align*}
-	M &= \max_t \widehat{\rho}_t \\
+	%M &= \max_t \widehat{\rho}_t \\
 	\widehat{\rho}_{t} &\defEq \max_{i \neq s^*_{t}} \max_{S_{t+1:T}} {\Pr( \SSf_{1:t-1} = s^*_{1:t-1}, \SSf_t = i, \SSf_{t+1:T}, \OSf_{1:T} )}.
 \end{align*}
 Intuitively, $\widehat{\rho}_t$ finds the value of the second-best sequence that first deviates from the best sequence exactly at time $t$.
 One can compute $\widehat{\rho}_{t}$ using $\eta_{i, j, t} \defEq \max_{\SSf \colon S_{t - 1} = i, \SSf_{t} = j} \Pr( \SSf_{1:T}, \OSf_{1:T} )$ \citep{nilsson2001sequentially},
 which in turn can be computed from the ``backward'' analogue of $\delta$.
 
-To connect the two approaches, observe that by unrolling the recurrence in Equation \ref{eqn:att-recurrence}, and by definition of $\delta$, we have
-\begin{align*}
-	M &= \max_t \widehat{\mu}_t \\
-	\widehat{\mu}_{t} &\defEq \prod_{k = 1}^t a( s^*_{k-1}, s^*_{k} ) \cdot b( s^*_{k}, \OSf_{k} ) \cdot \max_{i \neq s^*_{t}} \delta(i, t) \cdot a( i, s^*_{t+1} ) \cdot b( s^*_{t+1}, \OSf_{t+1} ) \\
-	&= \max_{i \neq s^*_{t}} \max_{S_{1:t-1}} {\Pr( \SSf_{1:t-1}, \SSf_t = i, \SSf_{t+1:T} = s^*_{t+1:T}, \OSf_{1:T} )};
-\end{align*}
-i.e., the same quantities are computed, except that the former fixes the suffix of the candidate sequence, while the latter fixes the prefix.
+To connect the two approaches, by unrolling the recurrence in Equation \ref{eqn:att-recurrence}, and by definition of $\delta$, we have
+$M = \max_t \widehat{\mu}_t$ where
+\resizebox{\linewidth}{!}{
+    \begin{minipage}{\linewidth}
+        \begin{align*}
+        	%M &= \max_t \widehat{\mu}_t \\
+        	\widehat{\mu}_{t} &\defEq \prod_{k = 1}^t a( s^*_{k-1}, s^*_{k} ) \cdot b( s^*_{k}, \OSf_{k} ) \cdot \max_{i \neq s^*_{t}} \delta(i, t) \cdot a( i, s^*_{t+1} ) \cdot b( s^*_{t+1}, \OSf_{t+1} ) \\
+        	&= \max_{i \neq s^*_{t}} \max_{S_{1:t-1}} {\Pr( \SSf_{1:t-1}, \SSf_t = i, \SSf_{t+1:T} = s^*_{t+1:T}, \OSf_{1:T} )};
+        \end{align*}
+    \end{minipage}
+}%
+
+\vspace{0.5\baselineskip}
+\noindent i.e., the same quantities are computed, except that the former fixes the suffix of the candidate sequence, while the latter fixes the prefix.
 A similar analysis holds in the case of finding the $K$th best sequence.
 
 The complexity of either of the above algorithms is $\mathscr{O}( l \cdot |\PCal|^2 + l \cdot |\PCal| \cdot K + l \cdot K \cdot \log( l \cdot K ) )$ \citep{nilsson2001sequentially}.
