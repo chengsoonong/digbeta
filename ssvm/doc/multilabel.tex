@@ -46,6 +46,7 @@
 \newcommand{\p}{\mathbb{P}}
 \newcommand{\E}{\mathbb{E}}
 \newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
 \newcommand{\q}{\mathbf{q}}
 \newcommand{\LCal}{\mathcal{L}}
 \newcommand{\XCal}{\mathcal{X}}
@@ -79,6 +80,8 @@
 
 \section{Multi-label classification~\cite{cheng:2010}}
 \label{sec:mlc}
+
+%1. Brief summary of reference
 
 \noindent
 \paragraph{Definition}
@@ -152,6 +155,8 @@ however, in practice, different order of variables will result in different mode
 \section{Bipartite ranking}
 \label{sec:birank}
 
+%1. Brief summary of reference
+
 \paragraph{Definition} 
 Bipartite ranking is to learn a real-valued ranking function that places positive examples above negative examples~\cite{li:2014}.
 Formally, given training examples $S = S_+ \cup S_-$ with $m$ positive examples $S_+ = \{\x_i^+\}_{i=1}^m$ and $n$ negative examples $S_- = \{\x_i^-\}_{i=1}^n$, 
@@ -190,16 +195,24 @@ by replace the indicator function in (\ref{eq:loss_inf}) with a convex surrogate
 which can be optimised more efficiently than (\ref{eq:loss_auc})~\cite{li:2014}.
 
 \paragraph{Dual formulation}
-Consider a linear ranking function $f(\x) = \w^\top \x$ and loss function~\ref{eq:loss_inf1}, and define the following notations:
+Consider a linear ranking function $f(\x) = \w^\top \x$ and loss function~\ref{eq:loss_inf1}.
+Table~\ref{tab:symbol} summarises some notation we will use.
 \begin{table}[!h]
-\begin{tabular}{ll}
-$d$ & The number of features for each example \\
-$\w \in \R^d$ & The vector of model parameters \\
-$\mathbf{1}_m \in \R^m$ & The $m$ dimensional vector of $1$'s \\
-$\X^+ \in \R^{m \times d}$ & Matrix of features of positive examples \\
-$\X^- \in \R^{n \times d}$ & Matrix of features of negative examples \\
-$\alphabm \in \R^m$ & Dual variables for positive examples \\
-$\betabm, \nubm \in \R^n$ & Dual variables for negative examples 
+\caption{Glossary of commonly used symbols}
+\label{tab:symbol}
+\renewcommand{\arraystretch}{1.5} % tweak the space between rows
+\setlength{\tabcolsep}{1pt} % tweak the space between columns
+\centering
+\begin{tabular}{llll}
+\hline \hline
+\multicolumn{3}{l}{\textbf{Symbol}} & \textbf{Quantity} \\ \hline 
+$d$              &  $\in$  &  $\Z^+$  & The number of features for each example \\
+$\w$             &  $\in$  &  $\R^d$  & The vector of model parameters \\
+$\mathbf{1}_m$   &  $\in$  &  $\R^m$  & The $m$ dimensional vector of $1$'s \\
+$\X^+$           &  $\in$  &  $\R^{m \times d}\quad$  & Matrix of features of positive examples \\
+$\X^-$           &  $\in$  &  $\R^{n \times d}$       & Matrix of features of negative examples \\
+$\alphabm$       &  $\in$  &  $\R^m$  &  Dual variables for positive examples \\
+$\betabm, \nubm$ &  $\in$  &  $\R^n$  &  Dual variables for negative examples \\ \hline
 \end{tabular}
 \end{table}
 
@@ -214,7 +227,7 @@ Let
 \begin{equation*}
 \begin{aligned}
 f_0 (\w, \xi) &= \frac{\lambda}{2} \w^\top \w + \frac{1}{m} \sum_{i=1}^m \ell\left( \xi - \w^\top \x_i^+ \right), \\
-f_j (\w, \xi) &= \w^\top \x_j^- - \xi \, j \in \{1,\dots,n\}.
+f_j (\w, \xi) &= \w^\top \x_j^- - \xi, \ j \in \{1,\dots,n\}.
 \end{aligned}
 \end{equation*}
 Then problem (\ref{eq:minrisk}) is equivalent to
@@ -222,7 +235,7 @@ Then problem (\ref{eq:minrisk}) is equivalent to
 \label{eq:minrisk_lg}
 \begin{aligned}
 \min_{\w, \xi} \quad & f_0 (\w, \xi) \\
-s.t. \quad & f_j (\w, \xi) \le 0, \, j \in \{1,\dots,n\}.
+s.t. \quad & f_j (\w, \xi) \le 0, \ j \in \{1,\dots,n\}.
 \end{aligned}
 \end{equation}
 The \emph{Lagrangian} of (\ref{eq:minrisk_lg}) is
@@ -307,10 +320,15 @@ s.t. \quad & \1_m^\top \alphabm = \1_n^\top \betabm.
 \section{Playlist generation}
 \label{sec:playlist}
 
+%2. Formal problem statement (e.g. input, output)
+
 The playlist generation problem can be formulated as a multi-label classification problem (we have a label for each song in library).
 The idea is to replace the loss function (\ref{eq:loss_rank}) in multi-label classification with loss~(\ref{eq:loss_auc}) or (\ref{eq:loss_inf}). \\
 We can build a probabilistic classifier chains with approximate inference (greedy, Viterbi, Neural net).
 
+%3. Baseline approaches (e.g. song-song matrix factorisation, model each label independently, model label pairs with a number of ranking losses)
+
+%4. Evaluation measure (e.g. Precision@k, Average precision, Reciprocal precision)
 
 \bibliographystyle{ieeetr}
 %\bibliographystyle{apalike}
