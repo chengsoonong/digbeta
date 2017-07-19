@@ -1,5 +1,6 @@
 \documentclass[9pt]{extarticle}
 \usepackage[a4paper,top=0.79in,left=0.79in,bottom=0.79in,right=0.79in]{geometry} % A4 paper margins in LibreOffice
+\usepackage[numbers,compress]{natbib}
 \usepackage{hyperref}
 \usepackage{amsmath}
 \usepackage{amsthm}
@@ -78,10 +79,24 @@
 
 \maketitle
 
-\section{Multi-label classification~\cite{cheng:2010}}
+\section{Multi-label classification}
 \label{sec:mlc}
 
 %1. Brief summary of reference
+\paragraph{Summary}
+\citet{cheng:2010} formalised the multi-label classification problem, 
+and claimed that if Hamming loss or rank loss is used,
+multi-label classification methods, in theory, could not benefit from modelling label dependence.
+On the other hand, modelling correlation between labels was necessary if one chose to use the subset 0/1 loss.
+Further, a probabilistic classifier chains (PCC), which generalised the classifier chains (CC) from a probabilistic perspective,
+was proposed to modelling label correlation. 
+
+Theoretically, the order of labels does not affect the model, 
+in practice, however, using different order of labels will result in different model parameters (we do not have infinity data).
+To alleviate this issue, an ensemble of PCC (EPCC) was proposed, which made a prediction by averaging over predictions by a number of PCCs, 
+each model was trained using a randomly chosen permutation of the labels.
+PCC (and EPCC) was empirically shown to outperform a number of baselines that did not model label correlations when label dependence existed in data.
+
 
 \noindent
 \paragraph{Definition}
@@ -156,6 +171,14 @@ however, in practice, different order of variables will result in different mode
 \label{sec:birank}
 
 %1. Brief summary of reference
+\paragraph{Summary}
+\citet{li:2014} proposed a new algorithm (\ie \emph{TopPush}) for bipartite ranking to optimise the ranking accuracy at the top.
+This algorithm has a linear time complexity at each iteration of the optimisation process.
+
+The key observation was that the loss used in~\cite{agarwal:2011} (when indicator function is replaced with a convex surrogate)
+can be equivalently transformed to a new form 
+which can be optimised in linear time (w.r.t the size of training set).
+
 
 \paragraph{Definition} 
 Bipartite ranking is to learn a real-valued ranking function that places positive examples above negative examples~\cite{li:2014}.
@@ -272,8 +295,8 @@ The \emph{Lagrangian dual function} of (\ref{eq:minrisk_lg}) is
 \begin{align*}
 \inf_{\w, \xi} \, L(\w, \xi, \alphabm, \nubm) 
 &= \inf_{\w, \xi}  \, \sup_{\alphabm} \left[ g(\w, \xi) - \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right] \\
-&= \sup_{\alphabm} \, \inf_{\w, \xi} \left[ g(\w, \xi) - \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right] ~~ \text{(assuming strong duality?)} \\
-&= \max_{\alphabm} \, \min_{\w, \xi} \left[ g(\w, \xi) - \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right] \\
+&= \sup_{\alphabm} \, \inf_{\w, \xi} \left[ g(\w, \xi) - \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right] ~~ \text{(assuming strong duality)} \\
+&= \max_{\alphabm} \, \min_{\w, \xi} \left[ g(\w, \xi) - \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right] ~~ \text{(Equation (\ref{eq:minrisk}) is L2 regularised~\cite{shalev:2007})} \\
 &= \max_{\alphabm} \left[ \min_{\w, \xi} g(\w, \xi) - \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right]
 \end{align*}
 To solve the unconstrained inner minimisation, let
@@ -321,17 +344,73 @@ s.t. \quad & \1_m^\top \alphabm = \1_n^\top \betabm.
 \label{sec:playlist}
 
 %2. Formal problem statement (e.g. input, output)
+\subsection{Problem formulation}
+Given $N$ playlists where songs in each playlist are from a music library with $M$ songs.
+For a query $q$ (\eg a seed song) and each song $s_i, i=\{1,\dots,M\}$,
+we have a scoring function $f: (q, s_i) \to \R$ (\eg $f(q, s_i) = \w^\top \Psi(q, s_i)$ 
+where $\w$ is the model parameters and $\Psi(q, s_i)$ is a feature map).
+Further, for a query related to a particular playlist, we want the songs in the playlist to be ranked higher (get higher scores)
+than songs that are not in the playlist.
+The prediction given a query can be simply taking the top-$k$ ranked songs.
 
-The playlist generation problem can be formulated as a multi-label classification problem (we have a label for each song in library).
-The idea is to replace the loss function (\ref{eq:loss_rank}) in multi-label classification with loss~(\ref{eq:loss_auc}) or (\ref{eq:loss_inf}). \\
-We can build a probabilistic classifier chains with approximate inference (greedy, Viterbi, Neural net).
 
 %3. Baseline approaches (e.g. song-song matrix factorisation, model each label independently, model label pairs with a number of ranking losses)
+\subsection{Baselines}
+
+\paragraph{Matrix factorisation}
+Let $\phi(s_i)$ be the (hidden) features of song $s_i$, we can construct a $N \times N$ matrix of song co-occurrences (normally very sparse),
+the missing entries can be recovered by factorising this matrix into two low rank matrices.
+The scoring function of this approach is $f(q, s_i) = \phi(q)^\top \phi(s_i)$.
+
+\paragraph{Logistic regression}
+We can model the probability of song $s_i$ in a playlist induced by query $q$ using logistic regression,
+\ie the scoring function is $f(q, s_i) = \sigma(\w^\top \Psi(q, s_i))$ where $\sigma(z) = \frac{1}{1+\exp(-z)}$ is the logistic function.
+To estimate the model parameters $\w$, for each observed playlist, we derive a set of positive examples $\{((q, s_j), +1)\}$ and 
+a set of negative examples $\{(q, s_k), -1)\}$ where $s_j$ are song in the playlist and $s_k$ are songs not in it.
+
+\paragraph{Bipartite ranking by optimising AUC}
+Similar to the logistic regression approach, we derive a set of positive/negative examples for each observed playlist, 
+inspired by bipartite ranking, we can optimise AUC by minimise a loss similar to Equation~\ref{eq:loss_auc}:
+\begin{equation}
+\label{eq:loss_auc_pl}
+\ell_\text{rank}(f; S) = \frac{1}{N} \sum_{i=1}^N \frac{1}{m_i n_i} \sum_{j=1}^{m_i} \sum_{k=1}^{n_i} \llb f(q_i, s_j) \le f(q_i, s_k) \rrb,
+\end{equation}
+where $m_i$ (and $n_i$) is the number of songs (not) in the $i$-th playlist, and $m_i + n_i = M$.
+\\ \emph{describe pros and cons}
+
+\subsection{Proposed approach}
+Inspired by bipartite ranking by optimising accuracy at the top, we can optimise a loss similar to Equation~\ref{eq:loss_inf1}:
+\begin{equation}
+\label{eq:loss_inf_pl}
+\hat{\ell}_{\infty}(f; S) = \frac{1}{N} \sum_{i=1}^N \frac{1}{m_i} \sum_{j=1}^{m_i} \ell\left( \max_{1 \le k \le n_i} f(q_i, s_k) - f(q_i, s_j) \right),
+\end{equation}
+where $m_i$ and $n_i$ is define as before.
+
+\paragraph{Training set}
+We can derive a set of positive/negative examples for each observed playlist as described before, however,
+for the $i$-th playlist, there are $m_i$ songs that can be used as a \emph{seed}, so we have multiple queries for each observed playlist.
+Formally, we have a training set:
+\begin{equation*}
+\left\{ \left\{ 
+        \left\{\left((q_{il}, s_j), +1\right) \right\}_{j=1}^{m_i}, \,
+        \left\{\left((q_{il}, s_k), -1\right) \right\}_{k=1}^{n_i}  \right\}_{l=1}^{m_i} \right\}_{i=1}^N
+\end{equation*}
+\emph{describe approach that considers label correlations}
+
+%The playlist generation problem can be formulated as a multi-label classification problem (we have a label for each song in library).
+%The idea is to replace the loss function (\ref{eq:loss_rank}) in multi-label classification with loss~(\ref{eq:loss_auc}) or (\ref{eq:loss_inf}). \\
+%We can build a probabilistic classifier chains with approximate inference (greedy, Viterbi, Neural net).
+
+
 
 %4. Evaluation measure (e.g. Precision@k, Average precision, Reciprocal precision)
+\subsection{Evaluation measure}
+Evaluation measure such as Precision@k, Average precision, Reciprocal precision can be used.
+\\ \emph{described details of the above measures}
 
-\bibliographystyle{ieeetr}
+%\bibliographystyle{ieeetr}
 %\bibliographystyle{apalike}
+\bibliographystyle{plainnat}
 \bibliography{ref_mlc}
 
 \end{document}
