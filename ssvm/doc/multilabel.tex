@@ -36,6 +36,7 @@
 \newcommand{\rrb}{\rrbracket}
 \newcommand{\bu}{\mathbf{u}}
 \newcommand{\bv}{\mathbf{v}}
+\newcommand{\f}{\mathbf{f}}
 \newcommand{\h}{\mathbf{h}}
 \newcommand{\x}{\mathbf{x}}
 \newcommand{\X}{\mathbf{X}}
@@ -84,7 +85,7 @@
 
 %1. Brief summary of reference
 \paragraph{Summary}
-\citet{cheng:2010} formalised the multi-label classification problem, 
+\citet{dembczynski:2010} formalised the multi-label classification problem, 
 and claimed that if Hamming loss or rank loss is used,
 multi-label classification methods, in theory, could not benefit from modelling label dependence.
 On the other hand, modelling correlation between labels was necessary if one chose to use the subset 0/1 loss.
@@ -135,13 +136,13 @@ thanks to the summation, fix $\x$, we have
 \begin{equation*}
 \h^*(\x) = \argmin_{\y} \, \E_{\Y|\X} \, \ell(\Y,\y).
 \end{equation*}
-Frequently used loss functions in the context of multi-label classification including Hamming loss, rank loss and subset 0/1 loss~\cite{cheng:2010},
+Frequently used loss functions in the context of multi-label classification including Hamming loss, rank loss and subset 0/1 loss~\cite{dembczynski:2010},
 here we focus on a rank loss (taking care of ties):
 \begin{equation}
 \label{eq:loss_rank}
 \ell(\y, \h(\x)) = \sum_{(i,j): y_i > y_j} \left( \llb h_i < h_j \rrb + \frac{1}{2} \llb h_i = h_j \rrb \right).
 \end{equation}
-\emph{Theorem 3.1 in~\cite{cheng:2010} here.}
+\emph{Theorem 3.1 in~\cite{dembczynski:2010} here.}
 
 \noindent
 \paragraph{Probabilistic classifier chains}
@@ -194,7 +195,7 @@ AUC is a widely used as an evaluate metric for bipartite ranking, and it turns o
 and this loss can be easily optimised (\eg by gradient descent) if we replace the indicator function with a convex surrogate such as the truncated quadratic loss 
 $\ell(z) = (1+z)_+^2$, the exponential loss $\ell(z) = e^z$ and logistic loss $\ell(z) = \log(1+e^z)$.
 One drawback of this loss function is enumerating all the positive-negative pairs, which is computationally expensive for large dataset. \\
-\emph{Theorem 3.1 in~\cite{cheng:2010} for this loss function here.}
+\emph{Theorem 3.1 in~\cite{dembczynski:2010} for this loss function here.}
 
 Alternatively, one may interested in optimising the ranking accuracy only at the top, 
 or equivalently, we would like to minimize the number of positive examples that ranked below the highest-ranking negative instance~\cite{agarwal:2011,li:2014}:
@@ -344,16 +345,75 @@ s.t. \quad & \1_m^\top \alphabm = \1_n^\top \betabm.
 \label{sec:playlist}
 
 %2. Formal problem statement (e.g. input, output)
-\subsection{Problem formulation}
-Given $N$ playlists where songs in each playlist are from a music library with $M$ songs.
-For a query $q$ (\eg a seed song) and each song $s_i, i=\{1,\dots,M\}$,
-we have a scoring function $f: (q, s_i) \to \R$ (\eg $f(q, s_i) = \w^\top \Psi(q, s_i)$ 
-where $\w$ is the model parameters and $\Psi(q, s_i)$ is a feature map).
-Further, for a query related to a particular playlist, we want the songs in the playlist to be ranked higher (get higher scores)
-than songs that are not in the playlist.
-The prediction given a query can be simply taking the top-$k$ ranked songs.
+%\subsection{Problem formulation}
+
+Given $n$ playlists where songs in each playlist are from a music library with $m$ songs $\{s_j\}_{j=1}^m$.
+%For a query $q$ (\eg a seed song) and each song $s_i, i=\{1,\dots,m\}$,
+%we have a scoring function $f: (q, s_i) \to \R$ (\eg $f(q, s_i) = \w^\top \Psi(q, s_i)$ 
+%where $\w$ is the model parameters and $\Psi(q, s_i)$ is a feature map).
+%Further, for a query related to a particular playlist, we want the songs in the playlist to be ranked higher (get higher scores)
+%than songs that are not in the playlist.
+%The prediction given a query can be simply taking the top-$k$ ranked songs.
+
+For the $i$-th playlist, %we derive a set of examples $\{\x\pb{i}, \y\pb{i}\}$ where
+we derive a vector of labels $\y\pb{i} = y_{1:m}\pb{i}$ where
+$$
+y_j\pb{i} = 
+\begin{cases}
++1, & \text{song $s_j$ occurred in the $i$-th playlist} \\
+-1, & \text{otherwise}
+\end{cases}
+$$
+and a set of training examples
+$$\left\{ \left( \x_j\pb{i}, \y\pb{i} \right) \colon y_j\pb{i} = +1 \right\}_{i=1}^n$$
+where $\x_j\pb{i} = \phi_j$ which denotes the feature vector of song $s_j$.
+
+%The playlist generation problem can be stated as follows:
+%\begin{mdframed}[innertopmargin=3pt,innerbottommargin=3pt,skipbelow=5pt,roundcorner=8pt,backgroundcolor=red!3,topline=false,rightline=false,leftline=false,bottomline=false]
+%	\begin{tabular}{ll}
+%		{\sc Input}:  & training set $\left\{ \left( \x^{(i)}, \y^{(i)} \right) \right\}_{i = 1}^n \in ( \XCal \times \YCal )^n$ \\
+%		{\sc Output}: & a playlist generator $g \colon \XCal \to \YCal$ \\
+%	\end{tabular}
+%\end{mdframed}
+
+Let $m_i$ be the number of songs in the $i$-th playlist, \ie 
+$$
+m_i = \sum_{j=1}^m \llb y_j\pb{i} = +1 \rrb,
+$$
+and $\Psi(\x, s_j)$ be a feature map of song $s_j$ given query $\x$ (\ie the feature vector of a seed song).
+
+Suppose we learn a playlist generator using the probabilistic classifier chains~\cite{dembczynski:2010},
+in particular, we assume a logistic regression classifier for each label $y_j$, \ie
+\begin{align*}
+\p(y_1 |\x) &= \sigma\left( \w_1^\top \Psi(\x, s_1) \right) \\
+\p(y_j |\x, y_{1:j-1}) &= \sigma\left( \w_j^\top \Psi(\x, s_j, y_{1:j-1}) \right), \, j=2,\dots,m
+\end{align*}
+where $\sigma(z) = \frac{1}{1+\exp(-z)}$ is the logistic function.
+
+\emph{$\Psi(\x, s_j, y_{1:j-1})$ looks weird!}
+
+The scoring function
+$$
+f_j(\x) = 
+\begin{cases}
+\p(y_j |\x), & j=1 \\
+\p(y_j |\x, y_{1:j-1}), & j=2,\dots,m
+\end{cases}
+$$
+
+The empirical risk is
+$$
+R(\f) 
+= \frac{1}{n} \sum_{i=1}^n 
+  \frac{1}{m_i} \sum_{q=1}^m \llb y_q\pb{i} = +1 \rrb 
+  \cdot \left[
+  \frac{1}{m_i} \sum_{j=1}^m 
+  \llb y_j\pb{i} = +1 \rrb \cdot \ell \left( \max_{1 \le k \le m} \llb y_k\pb{i} = -1 \rrb \cdot f_k(\phi_q) - f_j(\phi_q) 
+  \right) \right]
+$$ 
 
 
+\eat{
 %3. Baseline approaches (e.g. song-song matrix factorisation, model each label independently, model label pairs with a number of ranking losses)
 \subsection{Baselines}
 
@@ -400,7 +460,7 @@ Formally, we have a training set:
 %The playlist generation problem can be formulated as a multi-label classification problem (we have a label for each song in library).
 %The idea is to replace the loss function (\ref{eq:loss_rank}) in multi-label classification with loss~(\ref{eq:loss_auc}) or (\ref{eq:loss_inf}). \\
 %We can build a probabilistic classifier chains with approximate inference (greedy, Viterbi, Neural net).
-
+}
 
 
 %4. Evaluation measure (e.g. Precision@k, Average precision, Reciprocal precision)
