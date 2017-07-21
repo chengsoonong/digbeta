@@ -263,22 +263,31 @@ s.t. \quad & f_j (\w, \xi) \le 0, \ j \in \{1,\dots,n\}.
 \end{aligned}
 \end{equation}
 The \emph{Lagrangian} of (\ref{eq:minrisk_lg}) is
-\begin{align*}
+\begin{equation}
+\label{eq:minrisk_lg1}
+\begin{aligned}
 L(\w, \xi, \nubm) 
 &= f_0 (\w, \xi) + \sum_{j=1}^n \nu_j \cdot f_j(\w, \xi) \\
 &= \frac{\lambda}{2} \w^\top \w + \frac{1}{m} \sum_{i=1}^m \ell\left( \xi - \w^\top \x_i^+ \right) + \sum_{j=1}^n \nu_j \cdot \left( \w^\top \x_j^- - \xi \right)
-\end{align*}
+\end{aligned}
+\end{equation}
 Note that the conjugate of the conjugate of a convex function is itself, \eg $f(\z) = f^{**}(\z) = \sup_{\y} \left( \z^\top \y - f^*(\y) \right)$, we have
-\begin{align*}
+\begin{equation}
+\label{eq:lg_part1}
+\begin{aligned}
 \frac{1}{m} \sum_{i=1}^m \ell\left( \xi - \w^\top \x_i^+ \right)
 &= \frac{1}{m} \sum_{i=1}^m \sup_{\alpha_i} \left( (\xi - \w^\top \x_i^+) \cdot \alpha_i - \ell^*(\alpha_i) \right) \\
 &= \sup_{\alphabm} \left[ \frac{1}{m} \sum_{i=1}^m (\xi - \w^\top \x_i^+) \cdot \alpha_i - \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right] \\
 &= \sup_{\alphabm} \left[ \frac{\xi}{m} \1_m^\top \alphabm - \frac{1}{m} \alphabm^\top \X^+ \w - \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right] \\
-\end{align*}
+\end{aligned}
+\end{equation}
 where $\ell^*(\cdot)$ is the conjugate of $\ell(\cdot)$.
 Further, 
-$$\sum_{j=1}^n \nu_j \cdot \left( \w^\top \x_j^- - \xi \right) = \nubm^\top \X^- \w - \xi \1_n^\top \nubm$$
-Then
+\begin{equation}
+\label{eq:lg_part2}
+\sum_{j=1}^n \nu_j \cdot \left( \w^\top \x_j^- - \xi \right) = \nubm^\top \X^- \w - \xi \1_n^\top \nubm
+\end{equation}
+Then by (\ref{eq:minrisk_lg1}), (\ref{eq:lg_part1}) and (\ref{eq:lg_part2}), we have
 \begin{align*}
 L(\w, \xi, \alphabm, \nubm) 
 &= \frac{\lambda}{2} \w^\top \w + 
@@ -293,28 +302,37 @@ L(\w, \xi, \alphabm, \nubm)
 where
 $$g(\w, \xi) = \frac{\lambda}{2} \w^\top \w + \frac{\xi}{m} \1_m^\top \alphabm - \frac{1}{m} \alphabm^\top \X^+ \w + \nubm^\top \X^- \w - \xi \1_n^\top \nubm$$
 The \emph{Lagrangian dual function} of (\ref{eq:minrisk_lg}) is
-\begin{align*}
+\begin{equation}
+\label{eq:lg_dual_func}
+\begin{aligned}
 \inf_{\w, \xi} \, L(\w, \xi, \alphabm, \nubm) 
 &= \inf_{\w, \xi}  \, \sup_{\alphabm} \left[ g(\w, \xi) - \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right] \\
 &= \sup_{\alphabm} \, \inf_{\w, \xi} \left[ g(\w, \xi) - \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right] ~~ \text{(assuming strong duality)} \\
 &= \max_{\alphabm} \, \min_{\w, \xi} \left[ g(\w, \xi) - \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right] ~~ \text{(Equation (\ref{eq:minrisk}) is L2 regularised~\cite{shalev:2007})} \\
 &= \max_{\alphabm} \left[ \min_{\w, \xi} g(\w, \xi) - \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right]
-\end{align*}
+\end{aligned}
+\end{equation}
 To solve the unconstrained inner minimisation, let
 \begin{align*}
 \frac{\partial g}{\partial \w}  &= \lambda \w - \frac{1}{m} \alphabm^\top \X^+ + \nubm^\top \X^- = 0 \\
 \frac{\partial g}{\partial \xi} &= \frac{1}{m} \1_m^\top \alphabm - \1_n^\top \nubm = 0
 \end{align*}
 Then we have
-$$
+\begin{equation}
+\label{eq:sol1}
 \w^* 
 = \frac{1}{\lambda m} \left( \alphabm^\top \X^+ - m \nubm^\top \X^- \right) 
 = \frac{1}{\lambda m} \left( \alphabm^\top \X^+ - \betabm^\top \X^- \right) 
-$$
+\end{equation}
 and
-$$\1_m^\top \alphabm = m \1_n^\top \nubm = \1_n^\top \betabm$$
-where $\betabm = m \nubm$, and
-\begin{align*}
+\begin{equation}
+\label{eq:sol2}
+\1_m^\top \alphabm = m \1_n^\top \nubm = \1_n^\top \betabm
+\end{equation}
+where $\betabm = m \nubm$, and by (\ref{eq:sol1}) and (\ref{eq:sol2}), we have
+\begin{equation}
+\label{eq:min_func}
+\begin{aligned}
 \min_{\w, \xi} g(\w, \xi) 
 &= \frac{\lambda}{2} \w^{*\top} \w^* + \frac{\xi}{m} \1_m^\top \alphabm - \frac{1}{m} \alphabm^\top \X^+ \w^* + \nubm^\top \X^- \w^* - \xi \1_n^\top \nubm \\
 &= \frac{\lambda}{2} \w^{*\top} \w^* + 
@@ -323,8 +341,9 @@ where $\betabm = m \nubm$, and
 &= \frac{\lambda}{2} \w^{*\top} \w^* + 0 - \lambda \w^{*\top} \w^* \\
 &= -\frac{\lambda}{2} \w^{*\top} \w^* \\
 &= -\frac{1}{2 \lambda m^2} \left\| \alphabm^\top \X^+ - \betabm^\top \X^- \right\|^2
-\end{align*}
-Lastly, the \emph{Lagrangian dual problem} of (\ref{eq:minrisk_lg}) is
+\end{aligned}
+\end{equation}
+Lastly, by (\ref{eq:lg_dual_func}) and (\ref{eq:min_func}), the \emph{Lagrangian dual problem} of (\ref{eq:minrisk_lg}) is
 \begin{align*}
 \max_{\nubm} \, \inf_{\w, \xi} \, L(\w, \xi, \alphabm, \nubm) 
 = \max_{\alphabm, \nubm} \, \left[ \min_{\w, \xi} g(\w, \xi) - \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right]
@@ -410,7 +429,9 @@ R(\f)
   \frac{1}{m_i} \sum_{j=1}^m 
   \llb y_j\pb{i} = +1 \rrb \cdot \ell \left( \max_{1 \le k \le m} \llb y_k\pb{i} = -1 \rrb \cdot f_k(\phi_q) - f_j(\phi_q) 
   \right) \right]
-$$ 
+$$
+
+\emph{If we define a query as a song only, we have this ugly formulation} 
 
 
 \eat{
