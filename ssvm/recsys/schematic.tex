@@ -160,7 +160,7 @@
     {\protect\tikz{\protect\coordinate (X) at (0,0) {}; \protect\coordinate (Y) at (0.5,0) {}; \protect\draw[->,ultra thick] (X) to (Y); \protect\node[draw=none] at (0.25,-0.00625) {}}}
     denoting the sequence ordering.
     {\sc LoopElim} removes the loop from the Viterbi solution (here the POI sequence $(1,2,3,1)$), possibly returning a path of shorter length than requested;    
-    {\sc Greedy} incrementally selects POIs which have not been selected before, and locally maximise the sub-path score;
+    {\sc Greedy} incrementally selects POIs which have not been selected before, and locally maximises the sub-path score;
     {\sc ILP} solves an integer linear program to find the optimal length $l$ path in a complete graph over POIs;
     {\sc ListViterbi} finds where the second-best sequence diverges from the standard Viterbi sequence ($(1,2,3,1)$ as before); if not loop-free, it finds where the third-best diverges from the second-best, \emph{etc}.
     }

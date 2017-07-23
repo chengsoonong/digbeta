@@ -38,9 +38,9 @@ While derived in different communities, these two algorithms are in fact only su
 \subsection{Relating serial list Viterbi algorithms}
 
 The connection between the two list Viterbi algorithms is easiest to see when finding the second-best sequence for an HMM.
-Suppose we have an HMM with states $\SSf_{t}$, observations $\OSf_{t}$, transitions $a_{ij} = \Pr( \SSf_{t+1} = j \mid \SSf_t = i )$, and emissions $b_{ik} = \Pr( \OSf_{t} = k \mid \SSf_t = i )$.
+Suppose we have an HMM with states $\SSf_{t}$, observations $\OSf_{t}$, transitions $a(i, j) = \Pr( \SSf_{t+1} = j \mid \SSf_t = i )$, and emissions $b(i, k) = \Pr( \OSf_{t} = k \mid \SSf_t = i )$.
 Suppose $s^*_{1:T}$ is the most likely length $T$ sequence given observations $\OSf_{1:T}$, and
-$\delta_{j, t}$ is the value of the best sequence up till position $t$ ending at state $j$ as computed by the Viterbi algorithm.
+$\delta(j, t)$ is the value of the best sequence up till position $t$ ending at state $j$ as computed by the Viterbi algorithm.
 %$\delta_{j, t} \defEq \max_{\SSf_{1:t - 1}} \Pr( \SSf_{1:t - 1}, \SSf_t = j, \OSf_{1:t} )$
 
 Our interest is in finding the second-best sequence %given observations $\OSf_{1:T}$,
@@ -85,7 +85,8 @@ $M = \max_t \widehat{\mu}_t$ where
     \begin{minipage}{\linewidth}
         \begin{align*}
         	%M &= \max_t \widehat{\mu}_t \\
-        	\widehat{\mu}_{t} &\defEq \prod_{k = 1}^t a( s^*_{k-1}, s^*_{k} ) \cdot b( s^*_{k}, \OSf_{k} ) \cdot \max_{i \neq s^*_{t}} \delta(i, t) \cdot a( i, s^*_{t+1} ) \cdot b( s^*_{t+1}, \OSf_{t+1} ) \\
+        	%\widehat{\mu}_{t} &\defEq \prod_{k = 1}^t a( s^*_{k-1}, s^*_{k} ) \cdot b( s^*_{k}, \OSf_{k} ) \cdot \max_{i \neq s^*_{t}} \delta(i, t) \cdot a( i, s^*_{t+1} ) \cdot b( s^*_{t+1}, \OSf_{t+1} ) \\
+        	\widehat{\mu}_{t} &\defEq \left[ \prod_{k = t+2}^T a( s^*_{k-1}, s^*_{k} ) \cdot b( s^*_{k}, \OSf_{k} ) \right] \cdot \max_{i \neq s^*_{t}} \delta(i, t) \cdot a( i, s^*_{t+1} ) \cdot b( s^*_{t+1}, \OSf_{t+1} ) \\
         	&= \max_{i \neq s^*_{t}} \max_{S_{1:t-1}} {\Pr( \SSf_{1:t-1}, \SSf_t = i, \SSf_{t+1:T} = s^*_{t+1:T}, \OSf_{1:T} )};
         \end{align*}
     \end{minipage}
