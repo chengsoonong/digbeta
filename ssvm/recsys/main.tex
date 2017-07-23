@@ -71,19 +71,19 @@
 %\setcopyright{none}
 %\setcopyright{acmcopyright}
 %\setcopyright{acmlicensed}
-\setcopyright{rightsretained}
+%\setcopyright{rightsretained}
 
 % DOI
-\acmDOI{10.475/123_4}
+%\acmDOI{10.475/123_4}
 
 % ISBN
-\acmISBN{123-4567-24-567/08/06}
+%\acmISBN{123-4567-24-567/08/06}
 
 % Conference
-\acmConference[CitRec '17]{ACM RecSys Workshop on Recommender Systems for Citizens}{September 2017}{Como, Italy}
-\acmYear{2017}
-\copyrightyear{2017}
-\acmPrice{15.00}
+%\acmConference[CitRec '17]{ACM RecSys Workshop on Recommender Systems for Citizens}{September 2017}{Como, Italy}
+%\acmYear{2017}
+%\copyrightyear{2017}
+%\acmPrice{15.00}
 
 % Remove the non-mandatory "ACM Reference format."
 %\fancyhead{}
@@ -118,15 +118,17 @@
 %
 
 %\keywords{ACM proceedings, \LaTeX, text tagging}
+\copyrightyear{2017}
+\acmYear{2017}
+\setcopyright{acmcopyright}
+\acmConference{CitRec}{August 27, 2017}{Como, Italy}\acmPrice{15.00}\acmDOI{10.1145/3127325.3127326}
+\acmISBN{978-1-4503-5370-0/17/08}
 
 \maketitle
 
 %%%%%%%%%
 \section{Introduction}
 \input{intro}
-
-%\setlength{\belowdisplayskip}{1pt} \setlength{\belowdisplayshortskip}{0pt}
-%\setlength{\abovedisplayskip}{1pt} \setlength{\abovedisplayshortskip}{0pt}
 
 %%%%%%%%%
 \section{Trajectory \& path recommendation}
@@ -149,8 +151,6 @@
 \section{Top-k Sequences using List Viterbi}
 \label{sec:viterbi}
 \input{list_viterbi_akm}
-
-%\input{list_viterbi}
 
 %%%%%%%%%
 \section{Empirical comparison}
