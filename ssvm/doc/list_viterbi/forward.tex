@@ -95,7 +95,7 @@ Computing the $\alphat_t(i)$ values by Eq.~(\ref{eq:forward-max}) is known as th
 and the/a sequence $\q^* = q_{1:T}^*$ with highest probability can be identified via back-tracking, and
 \begin{equation}
 \label{eq:alpha-sum}
-\alphat_t(q_t^*) = \frac{\p(q_1^*) \cdot \p(O_1 |q_1^*)} {\p(s |q_{t-1}^*) \cdot \p(O_t |s)} \left[ \prod_{t'=2}^t \p(q_{t'}^* |q_{t'-1}^*) \cdot \p(O_{t'} |q_{t'}^*) \right], \, t = 1,\dots,T
+\alphat_t(q_t^*) = \frac{\p(q_1^*) \cdot \p(O_1 |q_1^*)} {\p(s |q_{t-1}^*) \cdot \p(O_t |s)} \left[ \prod_{k=2}^t \p(q_{k}^* |q_{k-1}^*) \cdot \p(O_{k} |q_{k}^*) \right], \, t = 1,\dots,T
 \end{equation}
 
 We note that by adding a dummy state $q_{T+1} = s_{T+1}^*$ at the end of $\q$, with observation $O_{T+1}$, 

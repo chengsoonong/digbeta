@@ -5,8 +5,8 @@ Similar to the forward procedure and the Viterbi algorithm,
 we can compute the likelihood of observations $O_{1:T}$ and identity the state sequence with highest probability by computing backwards.
 By making use of conditional independences encoded by the HMM:
 \begin{alignat}{2}
-& q_t \perp q_{t' \notin \{t-1,t\}} \mid q_{t-1} \text{~and~} q_t \perp O_{1:T} \mid q_{t-1}, \, \forall t=2,\dots,T  \label{eq:indep1} \\
-& O_t \perp q_{t' \ne t} \mid q_t \text{~and~} O_t \perp O_{t' \ne t} \mid q_t, \, \forall t=1,\dots,T                \label{eq:indep2}
+& q_t \perp q_{k \notin \{t-1,t\}} \mid q_{t-1} \text{~and~} q_t \perp O_{1:T} \mid q_{t-1}, \, \forall t=2,\dots,T  \label{eq:indep1} \\
+& O_t \perp q_{k \ne t} \mid q_t \text{~and~} O_t \perp O_{k \ne t} \mid q_t, \, \forall t=1,\dots,T                \label{eq:indep2}
 \end{alignat}
 The likelihood of $O_{1:T}$ is 
 \begin{align*}
@@ -92,7 +92,7 @@ the latter can be treated as the Viterbi algorithm works backwards,
 and the/a sequence $q_{1:T}^*$ with highest probability can be identified via \emph{forward}-tracking, and
 \begin{equation}
 \label{eq:beta-sum}
-\betat_t(s_i) = \frac{\p(q_{t+1}^* |s_i)} {\p(q_{t+1}^* |q_t^*)} \prod_{t'=t}^{T-1} \p(q_{t'+1}^* |q_{t'}^*) \cdot \p(O_{t'+1} |q_{t'+1}^*), \, t = 1,\dots,T\!-\!1
+\betat_t(s_i) = \frac{\p(q_{t+1}^* |s_i)} {\p(q_{t+1}^* |q_t^*)} \prod_{k=t}^{T-1} \p(q_{k+1}^* |q_{k}^*) \cdot \p(O_{k+1} |q_{k+1}^*), \, t = 1,\dots,T\!-\!1
 \end{equation}
 
 We also note that by adding a dummy state $q_0 = s_0^*$ at the front of $\q$, with observation $O_0$, 
