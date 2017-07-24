@@ -2,7 +2,7 @@
 \usepackage[a4paper,top=0.79in,left=0.79in,bottom=0.79in,right=0.79in]{geometry} % A4 paper margins in LibreOffice
 \usepackage[numbers,compress]{natbib}
 \usepackage{hyperref}
-\usepackage{amsmath}
+\usepackage{mathtools}
 \usepackage{amsthm}
 \usepackage{amsfonts}
 \usepackage{mathrsfs}
@@ -51,12 +51,13 @@
 \newcommand{\Z}{\mathbb{Z}}
 \newcommand{\q}{\mathbf{q}}
 \newcommand{\LCal}{\mathcal{L}}
+\newcommand{\SCal}{\mathcal{S}}
 \newcommand{\XCal}{\mathcal{X}}
 \newcommand{\YCal}{\mathcal{Y}}
-\newcommand{\alphat}{\tilde{\alpha}}
-\newcommand{\betat}{\tilde{\beta}}
-\newcommand{\gammat}{\tilde{\gamma}}
-\newcommand{\phit}{\tilde{\phi}}
+\newcommand{\alphat}{\widetilde{\alpha}}
+\newcommand{\betat}{\widetilde{\beta}}
+\newcommand{\gammat}{\widetilde{\gamma}}
+\newcommand{\phit}{\widetilde{\phi}}
 \newcommand{\alphabm}{\bm{\alpha}}
 \newcommand{\betabm}{\bm{\beta}}
 \newcommand{\nubm}{\bm{\nu}}
@@ -366,6 +367,58 @@ s.t. \quad & \1_m^\top \alphabm = \1_n^\top \betabm.
 %2. Formal problem statement (e.g. input, output)
 %\subsection{Problem formulation}
 
+Given $N$ playlists where songs in each playlist are from a music library with $M$ songs $\{s_i\}_{i=1}^M$,
+we derive a training set $\SCal = \left\{ \left( \x\pb{n}, \y\pb{n} \right) \right\}_{n=1}^N$ where $\x\pb{n} \in \R^d$ is a feature vector of the query 
+induced by the $n$-th playlist (for simplicity, let $\x\pb{n}$ be the feature vector of the first song in the $n$-th playlist),
+$\y\pb{n} \in \{0,1\}^M$ is a binary indicator such that 
+$$
+y_i\pb{n} = 
+\begin{cases}
+1, & \text{song $s_i$ is in the $n$-the playlist} \\
+0, & \text{otherwise}
+\end{cases}
+$$
+
+The empirical risk of a predicting function $\f$ on training set $\SCal$ is
+$$
+R_{\LCal}(\f; \SCal) = \frac{1}{N} \sum_{n=1}^N \LCal\left(\f(\x\pb{n}), \y\pb{n}\right),
+$$
+where $\LCal(\cdot)$ is a loss function for multi-label learning such as Hamming loss, rank loss, subset 0/1 loss etc.
+
+For training example $(\x, \y)$, let $M_+ = \{i |y_i = 1\}$ and $M_- = \{j |y_j = 0\}$, 
+we consider three options for $\LCal(\cdot)$ here:
+\begin{enumerate}
+\item Hamming loss: 
+      \begin{equation}
+      \label{eq:loss_hamm_pl0}
+      \LCal_\text{Hamm}(\f(\x), \y) = \frac{1}{M} \sum_{i=1}^M \; \llb f_i \ne y_i \rrb
+      \end{equation}
+\item Rank loss: 
+      \begin{equation}
+      \label{eq:loss_rank_pl0}
+      \LCal_\text{Rank}(\f(\x), \y) = \frac{1}{M_+ \cdot M_-} \sum_{i \in M_+} \sum_{j \in M_-} 
+                                      \left( \llb f_i < f_j \rrb + \frac{1}{2} \llb f_i = f_j \rrb \right)
+      \end{equation}
+\item Top-push loss:
+      $$\LCal_\infty(\f(\x), \y) = \frac{1}{M_+} \sum_{i \in M_+} \max_{j \in M_-} \llb f_i < f_j \rrb,$$
+      let $\ell(\cdot)$ be a convex surrogate of the indicator function, we have
+      \begin{equation}
+      \label{eq:loss_inf_pl}
+      \widetilde{\LCal}_\infty(\f(\x), \y) = \frac{1}{M_+} \sum_{i \in M_+} \ell\left( \max_{j \in M_-} f_j - f_i \right).
+      \end{equation}
+\end{enumerate}
+
+Suppose we choose the Hamming loss $\LCal_\text{Hamm}(\cdot)$, by replacing the indicator function in (\ref{eq:loss_hamm_pl}) with 
+one of its convex surrogate, \eg the logistic loss $\ell(f_i, y_i) = -\log \sigma(f_i \cdot y_i)$ 
+where $\sigma(z) = \frac{1}{1+\exp(-z)}$ is the logistic function,
+\begin{equation}
+\label{eq:loss_hamm_pl}
+\widetilde{\LCal}_\text{Hamm}(\f(\x), \y) 
+= \frac{1}{M} \sum_{i=1}^M \left[ -\log \sigma(f_i \cdot y_i) \right]
+= \frac{1}{M} \sum_{i=1}^M \log \left(1 + \exp(-f_i \cdot y_i) \right)
+\end{equation}
+
+\eat{
 Given $n$ playlists where songs in each playlist are from a music library with $m$ songs $\{s_j\}_{j=1}^m$.
 %For a query $q$ (\eg a seed song) and each song $s_i, i=\{1,\dots,m\}$,
 %we have a scoring function $f: (q, s_i) \to \R$ (\eg $f(q, s_i) = \w^\top \Psi(q, s_i)$ 
@@ -432,7 +485,7 @@ R(\f)
 $$
 
 \emph{If we define a query as a song only, we have this ugly formulation} 
-
+}
 
 \eat{
 %3. Baseline approaches (e.g. song-song matrix factorisation, model each label independently, model label pairs with a number of ranking losses)
