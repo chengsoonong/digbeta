@@ -369,7 +369,7 @@ s.t. \quad & \1_m^\top \alphabm = \1_n^\top \betabm.
 
 Given $N$ playlists where songs in each playlist are from a music library with $M$ songs $\{s_i\}_{i=1}^M$,
 we derive a training set $\SCal = \left\{ \left( \x\pb{n}, \y\pb{n} \right) \right\}_{n=1}^N$ where $\x\pb{n} \in \R^d$ is a feature vector of the query 
-induced by the $n$-th playlist (for simplicity, let $\x\pb{n}$ be the feature vector of the first song in the $n$-th playlist),
+induced by the $n$-th playlist (\eg the feature vector of the first song in the $n$-th playlist),
 $\y\pb{n} \in \{0,1\}^M$ is a binary indicator such that 
 $$
 y_i\pb{n} = 
@@ -379,10 +379,11 @@ y_i\pb{n} =
 \end{cases}
 $$
 
-The empirical risk of a predicting function $\f$ on training set $\SCal$ is
-$$
+The empirical risk of a predictor $\f$ (with parameters $\w$) on training set $\SCal$ is
+\begin{equation}
+\label{eq:risk_pl}
 R_{\LCal}(\f; \SCal) = \frac{1}{N} \sum_{n=1}^N \LCal\left(\f(\x\pb{n}), \y\pb{n}\right),
-$$
+\end{equation}
 where $\LCal(\cdot)$ is a loss function for multi-label learning such as Hamming loss, rank loss, subset 0/1 loss etc.
 
 For training example $(\x, \y)$, let $M_+ = \{i |y_i = 1\}$ and $M_- = \{j |y_j = 0\}$, 
@@ -408,15 +409,52 @@ we consider three options for $\LCal(\cdot)$ here:
       \end{equation}
 \end{enumerate}
 
-Suppose we choose the Hamming loss $\LCal_\text{Hamm}(\cdot)$, by replacing the indicator function in (\ref{eq:loss_hamm_pl}) with 
+To learn the parameters of predictor $\f$, we can minimise the empirical risk (\ref{eq:risk_pl}) with L2 regularisation:
+\begin{equation}
+\label{eq:minrisk_l2}
+\min_{\w} \, \frac{1}{2} \w^\top \w + R_{\LCal}(\f; \SCal).
+\end{equation}
+
+
+\subsection{Baselines}
+
+\paragraph{First song as seed + Hamming loss + Independent logistic regression}
+Suppose the feature of a query induced by a playlist is simply the feature of the first song in the playlist 
+(\ie use the first song in a playlist as the \emph{seed}).
+Further, we choose the Hamming loss $\LCal_\text{Hamm}(\cdot)$, and by replacing the indicator function in (\ref{eq:loss_hamm_pl0}) with 
 one of its convex surrogate, \eg the logistic loss $\ell(f_i, y_i) = -\log \sigma(f_i \cdot y_i)$ 
 where $\sigma(z) = \frac{1}{1+\exp(-z)}$ is the logistic function,
 \begin{equation}
 \label{eq:loss_hamm_pl}
 \widetilde{\LCal}_\text{Hamm}(\f(\x), \y) 
 = \frac{1}{M} \sum_{i=1}^M \left[ -\log \sigma(f_i \cdot y_i) \right]
-= \frac{1}{M} \sum_{i=1}^M \log \left(1 + \exp(-f_i \cdot y_i) \right)
+= \frac{1}{M} \sum_{i=1}^M \log \left(1 + \exp(-f_i \cdot y_i) \right).
 \end{equation}
+If we assume the predictor $\f$ is chain of logistic regression classifiers,
+and further assume each label can be modelled independently, \ie 
+%\begin{align*}
+%f_1(\x) &= \p(y_1 = 1 |\x) = \sigma\left( \w_1^\top \Phi(\x, s_1) \right) \\
+%f_i(\x) &= \p(y_i = 1 |\x, y_{1:i-1}) = \sigma\left( \w_i^\top \Phi(\x, s_i, y_{1:i-1}) \right)
+%\end{align*}
+$$f_i(\x) = \p(y_i = 1 |\x) = \sigma\left( \w_i^\top \Phi(\x, s_i) \right)$$
+where $\Phi(\cdot)$ is a feature map, then the optimisation objective in (\ref{eq:minrisk_l2}) becomes:
+\begin{align*}
+J(\w)
+&= \frac{1}{2} \w^\top \w + R_{\LCal}(\f; \SCal) \\
+&= \frac{1}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \widetilde{\LCal}_\text{Hamm}\left(\f(\x\pb{n}), \y\pb{n}\right) \\
+&= \frac{1}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \frac{1}{M} \sum_{i=1}^M 
+   \log \left(1 + \exp(-f_i\pb{n} \cdot y_i\pb{n}) \right) \\
+&= \frac{1}{2} \sum_{i=1}^M \w_i^\top \w_i + \frac{1}{MN} \sum_{n=1}^N \sum_{i=1}^M 
+   \log \left(1 + \exp(-\sigma(\w_i^\top \Phi(\x\pb{n}, s_i)) \cdot y_i\pb{n}) \right)
+\end{align*}
+This objective can be optimised by gradient descent, noting that $\frac{d\sigma(z)}{dz} = \sigma(z) \cdot (1-\sigma(z))$,
+so
+$$
+\frac{\partial J}{\partial \w_i} 
+= \w_i + \frac{1}{MN} \sum_{n=1}^N \frac{-y_i\pb{n} \cdot f_i\pb{n} \cdot (1-f_i\pb{n}) \cdot \Phi(\x\pb{n}, s_i)} {1+\exp(f_i\pb{n} \cdot y_i\pb{n})}
+$$
+where $f_i\pb{n} = \sigma\left( \w_i^\top \Phi(\x\pb{n}, s_i) \right)$.
+
 
 \eat{
 Given $n$ playlists where songs in each playlist are from a music library with $m$ songs $\{s_j\}_{j=1}^m$.
@@ -540,7 +578,7 @@ Formally, we have a training set:
 %4. Evaluation measure (e.g. Precision@k, Average precision, Reciprocal precision)
 \subsection{Evaluation measure}
 Evaluation measure such as Precision@k, Average precision, Reciprocal precision can be used.
-\\ \emph{described details of the above measures}
+\\ \emph{describe details of the above measures}
 
 %\bibliographystyle{ieeetr}
 %\bibliographystyle{apalike}
