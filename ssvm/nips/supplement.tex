@@ -126,7 +126,7 @@ and Algorithm~\ref{alg:viterbi} and Algorithm~\ref{alg:listviterbi} can be used 
 \STATE Initialise score matrices $\alpha,~ \beta,~ f_{t, t+1}$, a max-heap $H$, result set $R$, $k=0$.
 \STATE $\triangleright$ Do the forward-backward procedure (Algorithm~\ref{alg:forward-backward})
 \STATE $\triangleright$ Identify the best (scored) trajectory $\mathbf{y}^1=(y_1^1,\dots,y_l^1)$
-  with Viterbi (Algorithm~\ref{alg:viterbi}). This may be a trajectory that violates the desired condition.
+       with score $r^1$ using Viterbi (Algorithm~\ref{alg:viterbi}). $\y^1$ may be a trajectory that violates the desired condition.
 \STATE $H.\textit{push}\left(r^1,~ (\mathbf{y}^1, \textsc{nil}, \emptyset) \right)$
 \STATE Set $R=\emptyset$, the list of trajectories to be returned.
 \WHILE{$H \ne \emptyset$ \textbf{and} $k < \,|\mathcal{P}|^{l-1} - \prod_{t=2}^l (|\mathcal{P}|-t+1) + K$}

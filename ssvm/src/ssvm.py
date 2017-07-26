@@ -6,6 +6,7 @@ from joblib import Parallel, delayed
 from sklearn.preprocessing import MinMaxScaler
 from pystruct.models import StructuredModel
 from pystruct.learners import OneSlackSSVM
+# from pystruct.learners import FrankWolfeSSVM
 
 sys.path.append('.')
 from shared import LOG_SMALL, DF_COLUMNS, LOG_TRANSITION  # noqa: E402
@@ -82,9 +83,10 @@ class SSVM:
         if self.debug is True:
             print('C:', self.C)
         verbose = 1 if self.debug is True else 0
-        self.osssvm = OneSlackSSVM(model=sm, C=self.C, n_jobs=n_jobs, verbose=verbose)
+        self.learner = OneSlackSSVM(model=sm, C=self.C, n_jobs=n_jobs, verbose=verbose)
+        # self.learner = FrankWolfeSSVM(model=sm, C=self.C, n_jobs=n_jobs, verbose=verbose)
         try:
-            self.osssvm.fit(X_train, y_train, initialize=True)
+            self.learner.fit(X_train, y_train, initialize=True)
             self.trained = True
             if self.debug is True:
                 inftime = np.sum(sm.inftime)
@@ -113,10 +115,117 @@ class SSVM:
         # X_node_test = X_node_test.reshape(self.fdim)
 
         X_test = [(X_node_test, self.edge_features, (self.poi_id_dict[startPOI], nPOI))]
-        y_hat_list = self.osssvm.predict(X_test)[0]
+        
+        t0 = time.time()
+        y_hat_list = self.learner.predict(X_test)[0]
+        t1 = time.time()
         # print(y_hat_list)
 
-        return [np.array([self.poi_id_rdict[x] for x in y_hat]) for y_hat in y_hat_list]
+        # return [np.array([self.poi_id_rdict[x] for x in y_hat]) for y_hat in y_hat_list]
+
+        # return predicted trajectories as well as scores,
+        # including individual POI/transition score, accumulated score for each feature
+        result_set = []
+        n_states, n_features = X_node_test.shape
+        n_edge_features = self.edge_features.shape[2]
+        if self.share_params is True:
+            unary_params = self.learner.w[:n_features]
+            pw_params = self.learner.w[n_features:].reshape(n_edge_features)
+            unary_params = np.tile(unary_params, (n_states, 1))
+            pw_params = np.tile(pw_params, (n_states, n_states, 1))
+        else:
+            unary_params = self.learner.w[:n_states * n_features].reshape((n_states, n_features))
+            pw_params = self.learner.w[n_states * n_features:].reshape((n_states, n_states, n_edge_features))
+        
+        for i in range(len(y_hat_list)):
+            y_hat = y_hat_list[i]
+            K = None
+            if type(y_hat) == tuple: 
+                K = y_hat[1]
+                y_hat = y_hat[0]
+            item = dict()
+            poi_score = np.zeros(len(y_hat), dtype=np.float)
+            trans_score = np.zeros(len(y_hat)-1, dtype=np.float)
+            poi_score[0] = np.dot(X_node_test[y_hat[0]], unary_params[y_hat[0]])
+            poi_feature_score = np.multiply(X_node_test[y_hat[0]], unary_params[y_hat[0]])
+            poi_perfeature_score = [poi_feature_score.tolist()]
+            trans_feature_score = np.zeros(self.edge_features.shape[2], dtype=np.float)
+            for j in range(len(y_hat)-1):
+                ss = y_hat[j]
+                tt = y_hat[j+1]
+                poi_score[j+1] = np.dot(X_node_test[tt], unary_params[tt])
+                score_tt = np.multiply(X_node_test[tt], unary_params[tt])
+                poi_feature_score += score_tt
+                poi_perfeature_score.append(score_tt.tolist())
+                trans_score[j] = np.dot(self.edge_features[ss, tt], pw_params[ss, tt])
+                trans_feature_score += np.multiply(self.edge_features[ss, tt], pw_params[ss, tt])
+
+            item['Trajectory'] = np.array([self.poi_id_rdict[x] for x in y_hat])
+            item['TotalScore'] = np.sum(poi_score) + np.sum(trans_score)
+            item['POIScore'] = poi_score
+            item['TransitionScore'] = trans_score
+            item['POIFeatureScore'] = poi_feature_score
+            item['TransitionFeatureScore'] = trans_feature_score
+            item['POIPerFeatureScore'] = poi_perfeature_score
+            item['InferenceTime'] = t1 - t0
+            if K is not None:
+                item['nIter_LVA'] = K
+            if self.share_params is True:
+                item['POIFeatureWeight'] = unary_params[y_hat[0]]
+                item['TransitionFeatureWeight'] = pw_params[y_hat[0], y_hat[1]]
+
+            result_set.append(item)
+        return result_set
+
+    def set_params(self, trajid_list, w, n_jobs=4):
+        if self.poi_info is None:
+            self.poi_info = self.dat_obj.calc_poi_info(trajid_list)
+
+        poi_set = {p for tid in trajid_list for p in self.dat_obj.traj_dict[tid]
+                   if len(self.dat_obj.traj_dict[tid]) >= 2}
+        self.poi_list = sorted(poi_set)
+        self.poi_id_dict, self.poi_id_rdict = dict(), dict()
+        for idx, poi in enumerate(self.poi_list):
+            self.poi_id_dict[poi] = idx
+            self.poi_id_rdict[idx] = poi
+
+        # generate training data
+        train_traj_list = [self.dat_obj.traj_dict[k] for k in trajid_list if len(self.dat_obj.traj_dict[k]) >= 2]
+        node_features_list = Parallel(n_jobs=n_jobs)(delayed(calc_node_features)(
+            tr[0], len(tr), self.poi_list, self.poi_info, self.dat_obj) for tr in train_traj_list)
+        edge_features = calc_edge_features(trajid_list, self.poi_list, self.poi_info, self.dat_obj)
+
+        # feature scaling: node features
+        # should each example be flattened to one vector before scaling?
+        self.fdim_node = node_features_list[0].shape
+        X_node_all = np.vstack(node_features_list)
+        X_node_all = self.scaler_node.fit_transform(X_node_all)
+        X_node_all = X_node_all.reshape(-1, self.fdim_node[0], self.fdim_node[1])
+
+        # feature scaling: edge features
+        fdim_edge = edge_features.shape
+        edge_features = self.scaler_edge.fit_transform(edge_features.reshape(fdim_edge[0] * fdim_edge[1], -1))
+        self.edge_features = edge_features.reshape(fdim_edge)
+
+        assert(len(train_traj_list) == X_node_all.shape[0])
+        X_train = [(X_node_all[k, :, :],
+                    self.edge_features.copy(),
+                    (self.poi_id_dict[train_traj_list[k][0]], len(train_traj_list[k])))
+                   for k in range(len(train_traj_list))]
+        y_train = [np.array([self.poi_id_dict[k] for k in tr]) for tr in train_traj_list]
+        assert(len(X_train) == len(y_train))
+
+        n_features = X_train[0][0].shape[1]
+        n_states = len(np.unique(np.hstack([y.ravel() for y in y_train])))
+        n_edge_features = X_train[0][1].shape[2]
+     
+        sm = MyModel(inference_train=self.inference_train, inference_pred=self.inference_pred,
+                     share_params=self.share_params, multi_label=self.multi_label,
+                     n_states=n_states, n_features=n_features, n_edge_features=n_edge_features, debug=self.debug)
+        self.learner = OneSlackSSVM(model=sm, C=self.C, n_jobs=1)
+        self.learner.w = w
+        self.trained = True
+
 
 
 class MyModel(StructuredModel):
@@ -304,7 +413,14 @@ class MyModel(StructuredModel):
             pw_params = w[self.n_states * self.n_features:].reshape(
                 (self.n_states, self.n_states, self.n_edge_features))
 
-        y_pred = self.inference_pred(ps, L, M, unary_params, pw_params, unary_features, pw_features)
+        #y_pred = self.inference_pred(ps, L, M, unary_params, pw_params, unary_features, pw_features)
+        if type(self.inference_pred) == list:
+            if L < 9: 
+                y_pred = self.inference_pred[0](ps, L, M, unary_params, pw_params, unary_features, pw_features)
+            else:
+                y_pred = self.inference_pred[1](ps, L, M, unary_params, pw_params, unary_features, pw_features)
+        else:
+            y_pred = self.inference_pred(ps, L, M, unary_params, pw_params, unary_features, pw_features)
 
         return y_pred
 

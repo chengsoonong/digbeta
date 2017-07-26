@@ -337,7 +337,7 @@ def calc_metrics(y_hat, y_true_list, poi_id_dict, use_max=True):
     pF1 = np.zeros(len(y_true_list), dtype=np.float)
     Tau = np.zeros(len(y_true_list), dtype=np.float)
     for j in range(len(y_true_list)):
-        assert(len(y_hat) == len(y_true_list[j]))
+        #assert(len(y_hat) == len(y_true_list[j]))
         F1[j] = calc_F1(y_true_list[j], y_hat)
         pF1[j] = calc_pairsF1(y_true_list[j], y_hat)
         Tau[j] = calc_kendalltau(y_true_list[j], y_hat, poi_id_dict)
@@ -353,24 +353,31 @@ def calc_F1(traj_act, traj_rec, noloop=True):
     assert(len(traj_act) > 0)
     assert(len(traj_rec) > 0)
 
+    if len(set(traj_act)) == len(set(traj_rec)):
+        noloop = True
+    else:
+        noloop = False
+
     if noloop is True:
         intersize = len(set(traj_act) & set(traj_rec))
     else:  # if there are sub-tours in both ground truth and prediction
-        match_tags = np.zeros(len(traj_act), dtype=np.bool)
-        for poi in traj_rec:
-            for j in range(len(traj_act)):
-                if match_tags[j] is False and poi == traj_act[j]:
-                    match_tags[j] = True
-                    break
-        intersize = np.nonzero(match_tags)[0].shape[0]
-
+        #match_tags = np.zeros(len(traj_act), dtype=np.bool)
+        #for poi in traj_rec:
+        #    for j in range(len(traj_act)):
+        #        if match_tags[j] is False and poi == traj_act[j]:
+        #            match_tags[j] = True
+        #            break
+        #intersize = np.nonzero(match_tags)[0].shape[0]
+        intersize = len(set(traj_act) & set(traj_rec))
+    if intersize == 0: 
+        return 0
     recall = intersize / len(traj_act)
     precision = intersize / len(traj_rec)
     F1 = 2 * precision * recall / (precision + recall)
     return F1
 
 
-def calc_pairsF1(y, y_hat):
+def calc_pairsF1_path(y, y_hat):
     """Compute the pairs-F1 score"""
     assert(len(y) > 0)
     assert(len(y) == len(set(y)))  # no loops in y
@@ -386,6 +393,37 @@ def calc_pairsF1(y, y_hat):
             if poi1 in order_dict and poi2 in order_dict and poi1 != poi2:
                 if order_dict[poi1] < order_dict[poi2]:
                     nc += 1
+
+    n0 = len(y) * (len(y) - 1) // 2
+    n1 = len(y_hat) * (len(y_hat) - 1) // 2
+
+    precision = nc / n1
+    recall = nc / n0
+    if nc > 0:
+        F1 = 2 * precision * recall / (precision + recall)
+    else:
+        F1 = 0
+    return F1
+
+
+def calc_pairsF1(y, y_hat):
+    """Compute the pairs-F1 score"""
+    assert(len(y) > 0)
+
+    # y determines the correct visiting order
+    pairs = set()
+    for i in range(len(y)-1):
+        for j in range(i+1, len(y)):
+            assert(y[i] != y[j])
+            pairs.add((y[i], y[j]))
+    pairs_hat = set()
+    for i in range(len(y_hat)-1):
+        for j in range(i+1, len(y_hat)):
+            if y_hat[i] != y_hat[j]: 
+                pairs_hat.add((y_hat[i], y_hat[j]))
+    nc = 0
+    for pair in pairs_hat: 
+        if pair in pairs: nc += 1
 
     n0 = len(y) * (len(y) - 1) // 2
     n1 = len(y_hat) * (len(y_hat) - 1) // 2
@@ -480,7 +518,7 @@ def vars_equal(d1, d2):
     return True
 
 
-def do_evaluation(dat_obj, recdict, debug=True):
+def do_evaluation(dat_obj, recdict, use_max=True, debug=True):
     assert(type(dat_obj) == TrajData)
 
     F1_list = []
@@ -493,7 +531,7 @@ def do_evaluation(dat_obj, recdict, debug=True):
         pF1_list_ = []
         Tau_list_ = []
         for y_hat in recdict[key]['PRED']:
-            F1, pF1, tau = calc_metrics(y_hat, y_true_list, dat_obj.POI_ID_DICT)
+            F1, pF1, tau = calc_metrics(y_hat, y_true_list, dat_obj.POI_ID_DICT, use_max=use_max)
             F1_list_.append(F1)
             pF1_list_.append(pF1)
             Tau_list_.append(tau)

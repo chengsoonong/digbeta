@@ -5,10 +5,6 @@ import heapq as hq
 import itertools
 import pulp
 
-USE_GUROBI = False
-N_JOBS = 6
-
-
 class HeapTerm:  # an item in heapq (min-heap)
     def __init__(self, priority, task):
         self.priority = priority
@@ -93,7 +89,7 @@ def do_inference_greedy(ps, L, M, unary_params, pw_params, unary_features, pw_fe
     """
     Inference using greedy search (baseline), could be:
     - Train/prediction inference for single-label SSVM
-    - Prediction inference for multi-label SSVM
+    - Prediction inference for multi-label SSVM, no guaranteed for training
     """
     assert(L > 1)
     assert(L <= M)
@@ -131,8 +127,47 @@ def do_inference_greedy(ps, L, M, unary_params, pw_params, unary_features, pw_fe
                 sys.stderr.write('Greedy inference EQUALS (one of) ground truth, return ground truth\n')
                 y_hat.append(candidate_points[indices[-1]])
 
-    return np.asarray(y_hat)
+    return [np.asarray(y_hat)]
 
+def do_inference_viterbi_brute_force(ps, L, M, unary_params, pw_params, unary_features, pw_features):
+    """
+    Heuristic to skip repeated POIs in predictions by Viterbi
+    """
+    result = []
+    y_hat = do_inference_viterbi(ps, L, M, unary_params, pw_params, unary_features, pw_features)
+    pois = set(y_hat[0][1:])
+ 
+    Cu = np.zeros(M, dtype=np.float)       # unary_param[p] x unary_features[p]
+    Cp = np.zeros((M, M), dtype=np.float)  # pw_param[pi, pj] x pw_features[pi, pj]
+    # a intermediate POI should NOT be the start POI, NO self-loops
+    for pi in range(M):
+        Cu[pi] = np.dot(unary_params[pi, :], unary_features[pi, :])   # if pi != ps else -np.inf
+        for pj in range(M):
+            Cp[pi, pj] = -np.inf if (pj == ps or pi == pj) else np.dot(pw_params[pi, pj, :], pw_features[pi, pj, :])
+
+    y_best = None
+    best_score = -np.inf
+    for x in itertools.permutations(sorted(pois), len(pois)):
+        y = [ps] + list(x)
+        score = 0
+        for j in range(1, len(y)):
+            score += Cp[y[j - 1], y[j]] + Cu[y[j]]
+        if best_score < score:
+            best_score = score
+            y_best = y
+
+    assert(y_best is not None)
+    return [np.asarray(y_best)]
+
+def do_inference_heuristic(ps, L, M, unary_params, pw_params, unary_features, pw_features):
+    """
+    Heuristic to skip repeated POIs in predictions by Viterbi
+    """
+    result = []
+    y_hat = do_inference_viterbi(ps, L, M, unary_params, pw_params, unary_features, pw_features)
+    for p in y_hat[0]:
+        if p not in result: result.append(p)
+    return [np.asarray(result)]
 
 def do_inference_viterbi(ps, L, M, unary_params, pw_params, unary_features, pw_features, y_true=None, y_true_list=None):
     """
@@ -183,21 +218,33 @@ def do_inference_viterbi(ps, L, M, unary_params, pw_params, unary_features, pw_f
         p, t = y_hat[-1], t - 1
     y_hat.reverse()
 
-    return np.asarray(y_hat)
+    return [np.asarray(y_hat)]
 
 
-def do_inference_ILP_topk(ps, L, M, unary_params, pw_params, unary_features, pw_features, top=10):
-    results = []
-    for k in range(top):
-        predicted = results if len(results) > 0 else None
-        y_hat = do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_features,
-                                 predicted_list=predicted)
-        results.append(y_hat)
-    return results
+def do_inference_ILP_topk(ps, L, M, unary_params, pw_params, unary_features, pw_features, top=10, DIVERSITY=True):
+    if DIVERSITY is True:
+        results = []
+        good_results = []
+        while top > 0: 
+            predicted = results if len(results) > 0 else None
+            y_hat = do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_features,
+                                     predicted_list=predicted)
+            results.append(y_hat[0])
+            if len(good_results) == 0 or len(set(y_hat[0]) - set(good_results[-1])) > 0:
+                good_results.append(y_hat[0]); top -= 1
+        return good_results
+    else:
+        results = []
+        for k in range(top):
+            predicted = results if len(results) > 0 else None
+            y_hat = do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_features,
+                                     predicted_list=predicted)
+            results.append(y_hat[0])
+        return results
 
 
 def do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_features, y_true=None,
-                     y_true_list=None, predicted_list=None):
+                     y_true_list=None, predicted_list=None, n_threads=4, USE_GUROBI=True):
     """
     Inference using integer linear programming (ILP), could be:
     - Train/prediction inference for single-label SSVM (NOTE: NOT Hamming loss)
@@ -213,6 +260,11 @@ def do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_featu
         assert(predicted_list is None)
     if predicted_list is not None:
         assert(y_true is None and y_true_list is None)
+
+    # when the parameters are very small, GUROBI will suffer from precision problems
+    # scaling parameters
+    unary_params = 1e6 * unary_params
+    pw_params = 1e6 * pw_params
 
     p0 = str(ps)
     pois = [str(p) for p in range(M)]  # create a string list for each POI
@@ -266,14 +318,15 @@ def do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_featu
             pb += pulp.lpSum([visit_vars[str(y[k])][str(y[k + 1])] for k in range(len(y) - 1)]) <= (len(y) - 2), \
                 'exclude_%dth' % j
 
-    # pb.writeLP("traj_tmp.lp")
+    pb.writeLP("traj_tmp.lp")
 
     # solve problem: solver should be available in PATH, default solver is CBC
     if USE_GUROBI is True:
-        gurobi_options = [('TimeLimit', '7200'), ('Threads', str(N_JOBS)), ('NodefileStart', '0.2'), ('Cuts', '2')]
+        #gurobi_options = [('TimeLimit', '7200'), ('Threads', str(n_threads)), ('NodefileStart', '0.2'), ('Cuts', '2')]
+        gurobi_options = [('TimeLimit', '10800'), ('Threads', str(n_threads)), ('NodefileStart', '0.5')]
         pb.solve(pulp.GUROBI_CMD(path='gurobi_cl', options=gurobi_options))  # GUROBI
     else:
-        pb.solve(pulp.COIN_CMD(path='cbc', options=['-threads', str(N_JOBS), '-strategy', '1', '-maxIt', '2000000']))
+        pb.solve(pulp.COIN_CMD(path='cbc', options=['-threads', str(n_threads), '-strategy', '1', '-maxIt', '2000000']))
     visit_mat = pd.DataFrame(data=np.zeros((len(pois), len(pois)), dtype=np.float), index=pois, columns=pois)
     isend_vec = pd.Series(data=np.zeros(len(pois), dtype=np.float), index=pois)
     for pi in pois:
@@ -291,4 +344,4 @@ def do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_featu
         recseq.append(pj)
         if len(recseq) == L:
             assert(int(round(isend_vec[pj])) == 1)
-            return np.asarray([int(x) for x in recseq])
+            return [np.asarray([int(x) for x in recseq])]

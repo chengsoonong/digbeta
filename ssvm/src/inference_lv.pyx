@@ -50,7 +50,7 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
                                 np.ndarray[dtype=np.float64_t, ndim=3] pw_params, 
                                 np.ndarray[dtype=np.float64_t, ndim=2] unary_features, 
                                 np.ndarray[dtype=np.float64_t, ndim=3] pw_features, 
-                                y_true=None, y_true_list=None, int top=10, path4train=False):
+                                y_true=None, y_true_list=None, int top=10, path4train=False, DIVERSITY=True):
     """ 
     Inference using the list Viterbi algorithm, could be:
     - Train/prediction inference for single-label SSVM
@@ -62,9 +62,13 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
     assert(ps < M)
     assert(top > 0)
     if y_true is not None: assert(y_true_list is not None and type(y_true_list) == list)
+
+    # scaling parameters as it is too small
+    unary_params = 1e6 * unary_params
+    pw_params = 1e6 * pw_params
     
     cdef int pi, pj, t, pk, parix, partition_index, partition_index_start, k_partition_index
-    cdef long k, nIter, maxIter = long(1e6)
+    cdef long k, nIter, maxIter = long(5e6)
     cdef float loss, priority, new_priority
     
     Cu = np.zeros(M, dtype=np.float)      # unary_param[p] x unary_features[p]
@@ -128,13 +132,17 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
         k_priority = hitem.priority
         (k_best, k_partition_index, k_exclude_set) = hitem.task
         k += 1; y_last = k_best
-        
+     
         # allow sub-tours for training
         if path4train == False:
             if y_true is None: 
+                #print(-k_priority)
                 if len(set(k_best)) == L:
-                    #print(-k_priority)
-                    results.append(k_best); top -= 1
+                    if DIVERSITY is True:
+                        if len(results) == 0 or len(set(k_best) - set(results[-1][0])) > 0:
+                            results.append((k_best, k)); top -= 1
+                    else:
+                        results.append((k_best, k)); top -= 1
                     if top == 0: return results
             else: # return k_best if it is NOT one of the ground truth labels
                 if not np.any([np.all(np.asarray(k_best) == np.asarray(yj)) for yj in y_true_list]): return k_best
@@ -144,7 +152,11 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
             if len(set(k_best)) == L:
                 if y_true is None: 
                     #print(-k_priority); 
-                    results.append(k_best); top -= 1
+                    if DIVERSITY is True:
+                        if len(results) == 0 or len(set(k_best) - set(results[-1][0])) > 0:
+                            results.append((k_best, k)); top -= 1
+                    else:
+                        results.append((k_best, k)); top -= 1
                     if top == 0: return results
                 else: # return k_best if it is NOT one of the ground truth labels
                     if not np.any([np.all(np.asarray(k_best) == np.asarray(yj)) for yj in y_true_list]): return k_best
@@ -190,10 +202,10 @@ cpdef do_inference_list_viterbi(int ps, int L, int M,
     if len(Q) == 0:
         sys.stderr.write('WARN: empty queue, return the last one\n')
     if y_true is None: 
-        results.append(y_last); top -= 1
+        results.append((y_last, k)); top -= 1
         while len(Q) > 0 and top > 0:
             hitem = hq.heappop(Q)
-            results.append(hitem.task[0])
+            results.append((hitem.task[0], k))
             top -= 1
         return results
     else: 

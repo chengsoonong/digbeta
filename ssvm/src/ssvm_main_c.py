@@ -57,7 +57,7 @@ if ps not in poi_set_i:
     sys.exit(0)
 
 # tune regularisation constant C
-print('\n--------------- try_C: %f ---------------\n' % ssvm_C)
+print('\n--------------- try_C: %.2f ---------------\n' % ssvm_C)
 sys.stdout.flush()
 F1_ssvm = []
 pF1_ssvm = []
