@@ -337,7 +337,7 @@ def calc_metrics(y_hat, y_true_list, poi_id_dict, use_max=True):
     pF1 = np.zeros(len(y_true_list), dtype=np.float)
     Tau = np.zeros(len(y_true_list), dtype=np.float)
     for j in range(len(y_true_list)):
-        #assert(len(y_hat) == len(y_true_list[j]))
+        # assert(len(y_hat) == len(y_true_list[j]))
         F1[j] = calc_F1(y_true_list[j], y_hat)
         pF1[j] = calc_pairsF1(y_true_list[j], y_hat)
         Tau[j] = calc_kendalltau(y_true_list[j], y_hat, poi_id_dict)
@@ -361,15 +361,15 @@ def calc_F1(traj_act, traj_rec, noloop=True):
     if noloop is True:
         intersize = len(set(traj_act) & set(traj_rec))
     else:  # if there are sub-tours in both ground truth and prediction
-        #match_tags = np.zeros(len(traj_act), dtype=np.bool)
-        #for poi in traj_rec:
+        # match_tags = np.zeros(len(traj_act), dtype=np.bool)
+        # for poi in traj_rec:
         #    for j in range(len(traj_act)):
         #        if match_tags[j] is False and poi == traj_act[j]:
         #            match_tags[j] = True
         #            break
-        #intersize = np.nonzero(match_tags)[0].shape[0]
+        # intersize = np.nonzero(match_tags)[0].shape[0]
         intersize = len(set(traj_act) & set(traj_rec))
-    if intersize == 0: 
+    if intersize == 0:
         return 0
     recall = intersize / len(traj_act)
     precision = intersize / len(traj_rec)
@@ -419,11 +419,12 @@ def calc_pairsF1(y, y_hat):
     pairs_hat = set()
     for i in range(len(y_hat)-1):
         for j in range(i+1, len(y_hat)):
-            if y_hat[i] != y_hat[j]: 
+            if y_hat[i] != y_hat[j]:
                 pairs_hat.add((y_hat[i], y_hat[j]))
     nc = 0
-    for pair in pairs_hat: 
-        if pair in pairs: nc += 1
+    for pair in pairs_hat:
+        if pair in pairs:
+            nc += 1
 
     n0 = len(y) * (len(y) - 1) // 2
     n1 = len(y_hat) * (len(y_hat) - 1) // 2

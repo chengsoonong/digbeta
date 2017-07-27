@@ -5,6 +5,7 @@ import heapq as hq
 import itertools
 import pulp
 
+
 class HeapTerm:  # an item in heapq (min-heap)
     def __init__(self, priority, task):
         self.priority = priority
@@ -129,14 +130,14 @@ def do_inference_greedy(ps, L, M, unary_params, pw_params, unary_features, pw_fe
 
     return [np.asarray(y_hat)]
 
+
 def do_inference_viterbi_brute_force(ps, L, M, unary_params, pw_params, unary_features, pw_features):
     """
     Heuristic to skip repeated POIs in predictions by Viterbi
     """
-    result = []
     y_hat = do_inference_viterbi(ps, L, M, unary_params, pw_params, unary_features, pw_features)
     pois = set(y_hat[0][1:])
- 
+
     Cu = np.zeros(M, dtype=np.float)       # unary_param[p] x unary_features[p]
     Cp = np.zeros((M, M), dtype=np.float)  # pw_param[pi, pj] x pw_features[pi, pj]
     # a intermediate POI should NOT be the start POI, NO self-loops
@@ -159,6 +160,7 @@ def do_inference_viterbi_brute_force(ps, L, M, unary_params, pw_params, unary_fe
     assert(y_best is not None)
     return [np.asarray(y_best)]
 
+
 def do_inference_heuristic(ps, L, M, unary_params, pw_params, unary_features, pw_features):
     """
     Heuristic to skip repeated POIs in predictions by Viterbi
@@ -166,8 +168,10 @@ def do_inference_heuristic(ps, L, M, unary_params, pw_params, unary_features, pw
     result = []
     y_hat = do_inference_viterbi(ps, L, M, unary_params, pw_params, unary_features, pw_features)
     for p in y_hat[0]:
-        if p not in result: result.append(p)
+        if p not in result:
+            result.append(p)
     return [np.asarray(result)]
+
 
 def do_inference_viterbi(ps, L, M, unary_params, pw_params, unary_features, pw_features, y_true=None, y_true_list=None):
     """
@@ -225,13 +229,14 @@ def do_inference_ILP_topk(ps, L, M, unary_params, pw_params, unary_features, pw_
     if DIVERSITY is True:
         results = []
         good_results = []
-        while top > 0: 
+        while top > 0:
             predicted = results if len(results) > 0 else None
             y_hat = do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_features,
                                      predicted_list=predicted)
             results.append(y_hat[0])
             if len(good_results) == 0 or len(set(y_hat[0]) - set(good_results[-1])) > 0:
-                good_results.append(y_hat[0]); top -= 1
+                good_results.append(y_hat[0])
+                top -= 1
         return good_results
     else:
         results = []
@@ -322,7 +327,7 @@ def do_inference_ILP(ps, L, M, unary_params, pw_params, unary_features, pw_featu
 
     # solve problem: solver should be available in PATH, default solver is CBC
     if USE_GUROBI is True:
-        #gurobi_options = [('TimeLimit', '7200'), ('Threads', str(n_threads)), ('NodefileStart', '0.2'), ('Cuts', '2')]
+        # gurobi_options = [('TimeLimit', '7200'), ('Threads', str(n_threads)), ('NodefileStart', '0.2'), ('Cuts', '2')]
         gurobi_options = [('TimeLimit', '10800'), ('Threads', str(n_threads)), ('NodefileStart', '0.5')]
         pb.solve(pulp.GUROBI_CMD(path='gurobi_cl', options=gurobi_options))  # GUROBI
     else:

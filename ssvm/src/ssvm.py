@@ -115,7 +115,7 @@ class SSVM:
         # X_node_test = X_node_test.reshape(self.fdim)
 
         X_test = [(X_node_test, self.edge_features, (self.poi_id_dict[startPOI], nPOI))]
-        
+
         t0 = time.time()
         y_hat_list = self.learner.predict(X_test)[0]
         t1 = time.time()
@@ -136,11 +136,11 @@ class SSVM:
         else:
             unary_params = self.learner.w[:n_states * n_features].reshape((n_states, n_features))
             pw_params = self.learner.w[n_states * n_features:].reshape((n_states, n_states, n_edge_features))
-        
+
         for i in range(len(y_hat_list)):
             y_hat = y_hat_list[i]
             K = None
-            if type(y_hat) == tuple: 
+            if type(y_hat) == tuple:
                 K = y_hat[1]
                 y_hat = y_hat[0]
             item = dict()
@@ -218,14 +218,13 @@ class SSVM:
         n_features = X_train[0][0].shape[1]
         n_states = len(np.unique(np.hstack([y.ravel() for y in y_train])))
         n_edge_features = X_train[0][1].shape[2]
-     
+
         sm = MyModel(inference_train=self.inference_train, inference_pred=self.inference_pred,
                      share_params=self.share_params, multi_label=self.multi_label,
                      n_states=n_states, n_features=n_features, n_edge_features=n_edge_features, debug=self.debug)
         self.learner = OneSlackSSVM(model=sm, C=self.C, n_jobs=1)
         self.learner.w = w
         self.trained = True
-
 
 
 class MyModel(StructuredModel):
@@ -413,9 +412,9 @@ class MyModel(StructuredModel):
             pw_params = w[self.n_states * self.n_features:].reshape(
                 (self.n_states, self.n_states, self.n_edge_features))
 
-        #y_pred = self.inference_pred(ps, L, M, unary_params, pw_params, unary_features, pw_features)
+        # y_pred = self.inference_pred(ps, L, M, unary_params, pw_params, unary_features, pw_features)
         if type(self.inference_pred) == list:
-            if L < 9: 
+            if L < 9:
                 y_pred = self.inference_pred[0](ps, L, M, unary_params, pw_params, unary_features, pw_features)
             else:
                 y_pred = self.inference_pred[1](ps, L, M, unary_params, pw_params, unary_features, pw_features)
