@@ -1,0 +1,78 @@
+Reviews For Paper
+Track: Blue
+Paper ID: 1527
+Title: Structured Recommendation
+
+---------------------------------------------
+Masked Reviewer ID: Assigned_Reviewer_1
+
+Overall rating: Marginally above acceptance threshold
+
+Confidence score: The reviewer is confident but not absolutely certain that the evaluation is correct
+
+Detailed Comments: This paper proposed a modified structured SVM prediction for structured prediction where the observation is the sequences of events such as song list, trajectory path, etc. The paper is written clear and crisp. The formulation sounds correct. However, the following concern exists:
+The experimental section is weak as it is only considered one application of POI from Flickr dataset. Given the argument in the paper, it would be nice to see such approach for more industrial application such as song and movie recommendation. One question I have is we all know the training data is always bias toward the existing recommendation system and this issue will be even more severe when we consider the sequence of event because the recommendation engine react based on the user feedback. This bias can have huge impact on training and eventually on the final evaluation. Does authors have any idea how this issue can be alleviated in their approach?
+
+---------------------------------------------
+Masked Reviewer ID: Assigned_Reviewer_2
+
+Overall rating: Ok but not good enough - rejection
+
+Confidence score: The reviewer is confident but not absolutely certain that the evaluation is correct
+
+Detailed Comments: The paper proposes sequence recommendation based on structured support vector machine with a requirement that there are no repetitions in the sequence. Use cases like playlist recommendation, trajectory recommendation of points-of-interest in a city. During training the SSVM formula has been modified to account for multiple ground truths for a given input. 
+The non-structured methods like RankSVM would not account for the structure in the nature of the recommendations like in the case of recommending two restaurants after one another. For incorporating multiple ground truths in the SSVM, the authors suggest: Firstly a naive (sub optimal) approach of using them independently, structured prediction(SP). Secondly a slight modification on the SSVM to incorporate multiple GTs explicitly (4) borrowed from ranking objective, structured recommendation (SR). 
+SP can be trained with vanilla SSVM, for solving SR inference loss should account for multiple GT and with the path constraint. The authors explain how Viterbi based solutions could be applied for both constraints. 
+The evaluation is done on a dataset collected by flicker photo trajectories on 3 cities.
+
+Comments:
+Major concerns regarding the following issues:
+Cold-Warm start problem? How would this technique could be extended to warm start problem? When the user makes a selection of the next item in the sequence, how can that be incorporated in the inference, this point is not addressed. No feedback loop in the technique.
+
+Multiple predicted trajectories have no inter-structural constraint, to what extent should they differ, is replacement of a restaurant with a museum punished? The paper claims to take care of multiple similar type entities (restaurants) in the recommendation, not clear how it achieves that.
+
+Also do not fully agree on the fixed length of a recommendation sequence (l). Maybe a more plausible sequence with length l-1 or l+1 might exist, how can that be accounted?
+Evaluation on a relatively small dataset (not stated exactly in the paper but looking at the data there are only some thousands of trajectories in the dataset.) 
+
+Evaluation lacks mainly comparison with a similar method, only baseline (random, popularity, popularity rank) comparisons are provided. The problems suits well within the RNN based techniques as mentioned in the literature review, but no mention of that in the evaluation.
+
+Authors provided quite a limited literature review on the topic of sequential recommendation, while it is a very popular subject. A more detailed review mentioning limitation of the other solutions could be useful, mentioning main papers in the field to help compare the results.
+
+Quality
+The paper is technically sound, most of the claims are supported by the theoretical analysis, an extension of SSVM to account for additional constraints is proposed and described. No discussion about the weaknesses of the technique is provided. Personalization is suggested as a future work but please consider the questions above as improvement points. 
+
+The results of the testing on the real-life data are promising, suggesting that new method can capture the sequence of the events better. However, authors compare their work only with the methods that do not take event sequence in the recommendation into account. For example, they can use methods that use markov models and try to predict the most probable path of k elements making prediction in k steps. Authors can use models from Rendle, 2010 with Markov chains or Shani, 2005 where authors used markov decision processes to estimate sequence of the events.
+
+Clarity
+Paper is clearly written and nicely organized, more experimental results should be provided to support the claims and more literature comparison is necessary.
+Originality
+This is a minor improvement from the SSVM formula to incorporate some additional constraints for sequence recommendation problem, not enough experimental validation to support the superiority of the approach.
+Significance
+The paper is lacking NIPS level significance due to minor novelty in the idea and insufficient experimental evaluation. Comparison with other methods that take the sequential structure of the data into account is needed.
+
+---------------------------------------------
+Masked Reviewer ID: Assigned_Reviewer_3
+
+Overall rating: Ok but not good enough - rejection
+
+Confidence score: The reviewer is confident but not absolutely certain that the evaluation is correct
+
+Detailed Comments: This paper is ultimately about sequential (POI) recommendation though the title makes a more general claim. While the approach in the paper appears reasonable, its technical novelty is not substantial for a conference such as NIPS. While the results are positive, I question the choice of baselines... why is citation [12] the only non-trival comparison method when there are many other POI recommendation algorithms in the literature?
+
+For me, structured recommendation is different from structured prediction simply because the latter focuses on ranking, not so much that there are "multiple correct answers" as the paper states.
+
+The authors seem to over-specialize structured here as sequential. If the entire paper is about trajectory recommendation, it seems to me "sequential" is more appropriate. The authors state in Section 2.1 that the framework is more general, but then I would expect a more general formalization and experimentation to demonstrate this. 
+
+More than just sequential, this paper seems to be a POI recommendation paper (especially as one reads on, there is more transition to a focus on POIs), which is even more specialized than sequential recommendation. Why not include POI Recommendation in the title as other papers of the sort do? I find the title overly general and misleading.
+
+> matrix factorisation would require associating a latent feature with each y, which will be infeasible
+... I do not think it is infeasible if the dependency itself is factored.
+
+The authors seem to contribute an extension of Structured SVM to sequential problems, but similar extensions are known, such as Joachims original SVM^hmm or more recently a ranking oriented paper:
+
+Sequential Labeling with Structural SVM Under an Average Precision Loss
+Structural, Syntactic, and Statistical Pattern Recognition pp 344-354, 2016.
+
+Probably most novel are the decoding restrictions. But here the technical novelty is somewhat minimal. A "no repeats" condition can be easily encoded into Viterbi, or into additional factorized constraints in the graphical model that Viterbi operates on. Similarly, pruning ground-truth paths is just a post-processing step. While necessary for the paper, it seems over-stated as a contribution... or I am simply failing to see the deep technical insights here.
+
+Because Rendle's paper, cited as [26], was one of the first to consider sequential recommendation (and which in my experience works very well on collaborative sequential prediction problems), it is not clear why it is not a baseline for experimentation.

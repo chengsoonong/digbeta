@@ -1,0 +1,32 @@
+Many thanks for the feedback and questions.
+
+R1:
+> How to alleviate that recommendations are biased toward the training data
+This is indeed a fundamental problem with recommender systems in general. However, we note that our problem setup is user agnostic, in that we are only considering features of an input query specifying the start location and trip length. When extending this model to the user-personalised case, it is indeed of import to handle sample selection bias in the data -- however, even in simpler contexts, the best way of doing so is not obvious. We would nonetheless recommend some form of online learning to adapt to users’ drifting preference pattern.
+
+
+R2:
+> How to extend the inference to incorporate POIs selected by user
+This is an interesting problem, but not the one we consider here -- note that even in the case of a static, one-time recommendation, it is not obvious as to how to ensure global cohesion of the results while accounting for multiple ground truths and eliminating loops.
+
+Consideration of issues in a different problem formulation are best handled, we believe, in a separate piece of work.
+ 
+> Difference between multiple recommendations
+We learned the weights of transition features, which will help avoid homogeneous recommendations.
+
+> Dataset is relatively small
+These are publicly available benchmark datasets.
+ 
+> Not compared with RNN based techniques
+RNN based techniques are only for next location prediction, not for recommending a whole trajectory in one go.
+ 
+> Not compared with (Rendle, 2010) Markov chains approach
+Markov Chains based approach has been done in the cited reference (Chen et al. 2016) using transition probabilities (where it was shown to be outperformed by RankSVM).
+    
+
+R3:
+> Similar extensions (e.g. SVM-HMM) of SSVM for multiple ground truth are known
+SVM-HMM is an instance of SVM-Struct, i.e. it applies structural SVMs to a graphical model mimicking an HMM. An HMM is a sequence model, but it isn’t a *path* model i.e. it allows repeats. Our contribution isn’t applying SSVM to sequences, it’s applying SSVMs to paths.
+ 
+> "no-repeats" can be incorporated in Viterbi
+It is not clear to us how one can trivially prevent cycles in the Viterbi algorithm, but we are open to any suggestions the reviewer may have in mind. We have another paper which surveys different approaches for avoiding repeats, and as far as we know there is no efficient optimal algorithm to incorporate no-repeats into a Viterbi like approach.
