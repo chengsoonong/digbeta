@@ -1,13 +1,21 @@
-\documentclass{article}
+\documentclass[letterpaper]{article} % Required US Letter
+\usepackage{aaai18}  % Required
+\usepackage{times}   % Required
+\usepackage{helvet}  % Required
+\usepackage{courier} % Required
 
+\setlength{\pdfpagewidth}{8.5in}  % Required
+\setlength{\pdfpageheight}{11in}  % Required
+
+%PDF Info Is Required:
+\pdfinfo{
+/Title (Structured Recommendation)
+/Author (Authors list)}
+\setcounter{secnumdepth}{0}  
+ 
+\usepackage[numbers,compress]{natbib}
 % if you need to pass options to natbib, use, e.g.:
-\PassOptionsToPackage{numbers, compress}{natbib}
-% before loading nips_2017
-%
-% to avoid loading the natbib package, add option nonatbib:
-% \usepackage[nonatbib]{nips_2017}
-
-\usepackage{nips_2017}
+%\PassOptionsToPackage{numbers, compress}{natbib}
 
 % to compile a camera-ready version, add the [final] option, e.g.:
 % \usepackage[final]{nips_2017}
@@ -120,42 +128,9 @@
 % on the second line, try using \AND instead of \And before the third
 % author name.
 
-%%\author{
-  %%David S.~Hippocampus\thanks{Use footnote for providing further
-  %%  information about author (webpage, alternative
-  %%  address)---\emph{not} for acknowledging funding agencies.} \\
-  %%Department of Computer Science\\
-  %%Cranberry-Lemon University\\
-  %%Pittsburgh, PA 15213 \\
-  %%\texttt{hippo@cs.cranberry-lemon.edu} \\
-  %% examples of more authors
-  %% \And
-  %% Coauthor \\
-  %% Affiliation \\
-  %% Address \\
-  %% \texttt{email} \\
-  %% \AND
-  %% Coauthor \\
-  %% Affiliation \\
-  %% Address \\
-  %% \texttt{email} \\
-  %% \And
-  %% Coauthor \\
-  %% Affiliation \\
-  %% Address \\
-  %% \texttt{email} \\
-  %% \And
-  %% Coauthor \\
-  %% Affiliation \\
-  %% Address \\
-  %% \texttt{email} \\
-%%}
-
 \allowdisplaybreaks
 
-
 \begin{document}
-% \nipsfinalcopy is no longer used
 
 \maketitle
 
@@ -178,16 +153,15 @@
 %
 %\textbf{Do not} include acknowledgements in the initial version of
 %the paper submitted for blind review.
-\clearpage
+%\clearpage
 
 \setlength\bibsep{2pt}
 
-\bibliographystyle{ieeetr}
+\bibliographystyle{aaai}
 \bibliography{ref,ref_aditya}
 
-\clearpage
-\onecolumn
-
-\input{supplement}
+%\clearpage
+%\onecolumn
+%\input{supplement}
 
 \end{document}
