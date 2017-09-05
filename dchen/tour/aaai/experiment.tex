@@ -1,9 +1,9 @@
 % !TEX root = ./main.tex
 
-\secmoveup
+%\secmoveup
 \section{Experimental results}
 \label{sec:experiment}
-\textmoveup
+%\textmoveup
 
 
 
@@ -19,10 +19,10 @@ created from the publicly available YFCC100M corpus~\cite{thomee2016yfcc100m}.
 %a number of non-structured baselines or those that do not take into account the recommendation setting.
 
 
-\secmoveup
+%\secmoveup
 \subsection{Photo trajectory datasets}
 \label{sec:dataset}
-\textmoveup
+%\textmoveup
 
 % experiment protocol: Nested cross-validation with Monte-Carlo cross-validation for the inner loop
 %We assess the recommendation performance %methods developed in Section~\ref{sec:trajrec}
@@ -114,10 +114,10 @@ Music playlist datasets are larger, but recent results show that sequencing info
 % \end{table}
 
 
-\secmoveup
+%\secmoveup
 \subsection{Evaluation settings}
 \label{ssec:methods}
-\textmoveup
+%\textmoveup
 
 We compare the performance of our methods to the following three baselines:
 \begin{itemize}[leftmargin=0.125in]\itemmoveup
@@ -207,18 +207,18 @@ where $\{\mathbf{y}^{(ij)}\}_{j=1}^{N_i}$ are the ground truths for query $\math
 $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 }
 
-\secmoveup
+%\secmoveup
 \subsection{Results and discussion}
 \label{sec:result}
-\textmoveup
+%\textmoveup
 
 \input{tab_experiment}
 
 %\begin{minipage}[!t]{0.8\linewidth}
 \begin{figure}[!t]
 		\centering
-		\includegraphics[width=0.65\textwidth]{tau_topk.pdf}
-		\includegraphics[width=0.33\textwidth]{f1_glasgow_gte5}
+		\includegraphics[width=0.65\linewidth]{tau_topk.pdf}
+		\includegraphics[width=0.33\linewidth]{f1_glasgow_gte5}
 	    \captionof{figure}{Average Kendall’s $\tau$ over k=1:10, for short (left) and long (middle) trajectories. (right) F$_1$ score on points for long trajectories.
 			Structured recommendation methods perform best for all values of $k$.
 			For longer trajectories, the predictions of \textsc{Popularity} and \textsc{POIRank} are permutations of the same set of POIs (that do not fully overlap with the ground truth).}

@@ -1,8 +1,8 @@
 %!TEX root = main.tex
-\secmoveup
+%\secmoveup
 \section{A structured prediction approach to sequence recommendation}
 \label{sec:recseq}
-\textmoveup
+%\textmoveup
 
 We now describe a method to
 solve sequence recommendation problems.
@@ -12,10 +12,10 @@ followed by the correspondingly updated algorithms for its learning (Sec~\ref{ss
 and inference (Sec~\ref{ssec:testing}).
 
 
-\secmoveup
+%\secmoveup
 \subsection{Background: SSVM for structured prediction}
 \label{ssec:ssvm}
-\textmoveup
+%\textmoveup
 
 A structured prediction task involves predicting some structured label $\y \in \mathcal{Y}$ for an input $\x \in \mathcal{X}$,
 typically via a score function $f(\x,\y)$ that determines the affinity of an (input, label) pair.
@@ -45,10 +45,10 @@ Subsequently, $f(\x,\y)$ decomposes into a weighted sum of
 each of these features: %with the corresponding feature weight:
 \begin{equation}
 \label{eq:jointfeature}
-%\resizebox{0.9\linewidth}{!}{$\displaystyle
-f(\x, \y) = \w^\top \Psi(\x, \y) =
+\resizebox{0.909\linewidth}{!}{$\displaystyle
+f(\x, \y) = %\w^\top \Psi(\x, \y) =
 \sum_{j=1}^l \w_j^\top \psi_j(\x, y_j) + \sum_{j=1}^{l-1} \w_{j,j+1}^\top \psi_{j,j+1}(\x, y_{j}, y_{j+1}).
-%$}
+$}
 \eqmoveup
 \end{equation}
 Here, $\psi_j$ is a feature map between the input and one output label element $y_j$, with a corresponding weight vector $\w_j$,
@@ -60,9 +60,10 @@ with a corresponding weight vector $\w_{j,j+1}$.
 To learn a suitable weight vector $\w$, SSVMs solve: %the following optimisation problem:
 \begin{equation}
 \label{eq:nslack}
-\resizebox{0.93\linewidth}{!}{$\displaystyle
+\resizebox{0.909\linewidth}{!}{$\displaystyle
 \begin{aligned}
-\min_{\w, \, \bm{\xi} \ge 0} ~\frac{1}{2} \w^\top \w + \frac{C}{n} \sum_{i=1}^n \xi_i,  ~~s.t.~  \forall i,
+\min_{\w, \, \bm{\xi} \ge 0} \ & \frac{1}{2} \w^\top \w + \frac{C}{n} \sum_{i=1}^n \xi_i, \\
+s.t. \ & \forall i, \, 
   \w^\top \Psi(\x^{(i)}, \y^{(i)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}) \ge
   \Delta(\y^{(i)}, \bar{\y}) - \xi_i, \, \forall \bar\y \in \mathcal{Y}.
 \end{aligned}
@@ -105,10 +106,10 @@ with respect to individual and pairs of label elements,
 \eg using the Viterbi algorithm~\cite{joachims2009predicting}.
 % in a way similar to Equation~\eqref{eq:jointfeature}.
 
-\secmoveup
+%\secmoveup
 \subsection{SSVM for structured recommendation: the SP and SR models}
 \label{ssec:sr}
-\textmoveup
+%\textmoveup
 
 We now present two possible means of applying SSVMs to sequence recommendation.
 
@@ -144,9 +145,10 @@ we propose the following \emph{structured recommendation} (\emph{SR}) model that
 %We can learn an \emph{SR} model by optimising %a quadratic program similar to (\ref{eq:nslack}),
 \begin{equation}
 \label{eq:nslack_ml}
-\resizebox{0.93\linewidth}{!}{$
+\resizebox{0.909\linewidth}{!}{$
 \begin{aligned}
-\min_{\w, \, \bm{\xi} \ge 0} ~ \frac{1}{2} \w^\top \w + \frac{C}{N} \sum_{i=1}^n \sum_{j=1}^{n_i} \xi_{ij}, ~~s.t.~ \forall i, \, \forall j,
+\min_{\w, \, \bm{\xi} \ge 0} \ & \frac{1}{2} \w^\top \w + \frac{C}{N} \sum_{i=1}^n \sum_{j=1}^{n_i} \xi_{ij}, \\
+s.t. \ & \forall i, \, \forall j,
   \w^\top \Psi(\x^{(i)}, \y^{(ij)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}^{(i)}) \ge
   \Delta(\y^{(ij)}, \bar{\y}^{(i)}) - \xi_{ij}.
 \end{aligned}
@@ -166,10 +168,10 @@ explicitly aggregates all the ground truth sequences for each input when generat
 \ie the loss-augmented inference becomes
 \begin{equation}
 \label{eq:loss_aug_inf}
-%%\resizebox{0.9\linewidth}{!}{$
+\resizebox{0.909\linewidth}{!}{$
 \max_{\bar{\y}^{(i)} \in \ \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}}
      \left( \Delta(\y^{(ij)}, \bar{\y}^{(i)}) + \w^\top \Psi(\x^{(i)}, \bar\y^{(i)}) \right).
-%%$}
+$}
 \end{equation}
 In this way, we do not have contradictory constraints where
 two ground truth sequences are each required to have larger score than the other.
@@ -198,10 +200,10 @@ This is a {\em global} constraint bringing new challenges for prediction and los
 The following two sections describe the training and prediction with these requirements.
 %This is the focus of the next two sections.
 
-\secmoveup
+%\secmoveup
 \subsection{SP and SR model training}
 \label{ssec:training}
-\textmoveup
+%\textmoveup
 
 The main challenge in training the SP and SR models is performing loss-augmented inference~(\ref{eq:loss_aug_inf}).
 As noted above, the SP model can be trained as per the vanilla SSVM.
@@ -255,10 +257,10 @@ We call these extended models \textsc{SPpath} and \textsc{SRpath} respectively.
 %LX - remark, doesn't have to be here. intuition for the real extension to SLVA?
 Note that $k$ is expected to be small in noisy signal recovery, such as digital communications~\cite{nill1995list} and speech recognition~\cite{soong1991tree}. But this is not necessarily the case for inference in SR models.
 
-\secmoveup
+%\secmoveup
 \subsection{SP and SR model prediction}
 \label{ssec:testing}
-\textmoveup
+%\textmoveup
 
 For both the SP and SR models, prediction requires that we compute $\argmax_{\y \in \mathcal{Y}_{\mathrm{path}}} f( \x, \y )$.
 This is the maximum over $\mathcal{Y}_{\mathrm{path}} \subseteq \mathcal{Y}$,
@@ -302,30 +304,51 @@ enforces that $\y^*$ is a single sequence of points without sub-tours.
 % DW: v_j defined in the first constraint, which is a natural number
 We rewrite Eq.~(\ref{eq:jointfeature}) into a linear function of decision variables $u_{jk}$
 (dropping the unary term corresponding to $y_1^*$ as it is a constant), which results in ~(\ref{eq:obj}).
-\setlength{\belowdisplayskip}{1pt} \setlength{\belowdisplayshortskip}{0pt}
-\setlength{\abovedisplayskip}{1pt} \setlength{\abovedisplayshortskip}{0pt}
-\begin{equation}%\eqmoveup\eqmoveup
+%\setlength{\belowdisplayskip}{1pt} \setlength{\belowdisplayshortskip}{0pt}
+%\setlength{\abovedisplayskip}{1pt} \setlength{\abovedisplayshortskip}{0pt}
+%\begin{equation}%\eqmoveup\eqmoveup
+%\label{eq:obj}
+%\max_{\bu} ~\sum_{k=1}^m \w_k^\top \psi_k(\x, p_k) \sum_{j=1}^m u_{jk} +
+%            \sum_{j,k=1}^m u_{jk} \w_{jk}^\top \psi_{j, k}(\x, p_j, p_k)
+%\end{equation}
+%{$\displaystyle
+%\begin{minipage}{0.45\linewidth}
+%\begin{alignat}{2}
+%s.t. \,
+%& \sum_{k=2}^m u_{1k} = 1, \, \sum_{j=2}^m u_{j1} = z_1=0                 \label{eq:cons1} \\
+%& \sum_{j=1}^m \sum_{k=1}^m u_{jk} = l-1, \, \sum_{j=1}^m u_{jj}=0        \label{eq:cons2}
+%\end{alignat}
+%\end{minipage}
+%\qquad
+%\begin{minipage}{0.5\linewidth}
+%\begin{alignat}{3}
+%\sum_{j=1}^m u_{ji} = z_i &+ \sum_{k=2}^m u_{ik} \le 1, \, i = 2,\cdots,m  \label{eq:cons3} \\
+%v_j - v_k + 1 &\le (m-1) (1-u_{jk}),                                       \nonumber \\
+%              & \qquad j,k = 2,\cdots,m                                    \label{eq:cons4}
+%\end{alignat}
+%\end{minipage}
+%$}
+
+\begin{equation}
 \label{eq:obj}
+\resizebox{0.909\linewidth}{!}{$\displaystyle
 \max_{\bu} ~\sum_{k=1}^m \w_k^\top \psi_k(\x, p_k) \sum_{j=1}^m u_{jk} +
             \sum_{j,k=1}^m u_{jk} \w_{jk}^\top \psi_{j, k}(\x, p_j, p_k)
+$}
 \end{equation}
 {$\displaystyle
-\begin{minipage}{0.45\linewidth}
-\begin{alignat}{2}
+\begin{minipage}{\linewidth}
+\begin{alignat}{4}
 s.t. \,
 & \sum_{k=2}^m u_{1k} = 1, \, \sum_{j=2}^m u_{j1} = z_1=0                 \label{eq:cons1} \\
-& \sum_{j=1}^m \sum_{k=1}^m u_{jk} = l-1, \, \sum_{j=1}^m u_{jj}=0        \label{eq:cons2}
-\end{alignat}
-\end{minipage}
-\qquad
-\begin{minipage}{0.5\linewidth}
-\begin{alignat}{3}
-\sum_{j=1}^m u_{ji} = z_i &+ \sum_{k=2}^m u_{ik} \le 1, \, i = 2,\cdots,m  \label{eq:cons3} \\
-v_j - v_k + 1 &\le (m-1) (1-u_{jk}),                                       \nonumber \\
-              & \qquad j,k = 2,\cdots,m                                    \label{eq:cons4}
+& \sum_{j=1}^m \sum_{k=1}^m u_{jk} = l-1, \, \sum_{j=1}^m u_{jj}=0        \label{eq:cons2} \\
+& \sum_{j=1}^m u_{ji} = z_i + \sum_{k=2}^m u_{ik} \le 1, \, i = 2,\cdots,m  \label{eq:cons3} \\
+& v_j - v_k + 1 \le (m-1) (1-u_{jk}), \, j,k = 2,\cdots,m              \label{eq:cons4}
 \end{alignat}
 \end{minipage}
 $}
+
+
 
 \textbf{Recommending more than one trajectory}.
 Since multiple possible trajectories can start at the same POI, 
