@@ -13,7 +13,7 @@
 /Author (Authors list)}
 \setcounter{secnumdepth}{0}  
  
-\usepackage[numbers,compress]{natbib}
+%\usepackage[numbers,compress]{natbib}
 % if you need to pass options to natbib, use, e.g.:
 %\PassOptionsToPackage{numbers, compress}{natbib}
 
@@ -22,7 +22,7 @@
 
 \usepackage[utf8]{inputenc} % allow utf-8 input
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
-\usepackage[colorlinks=true,citecolor=blue]{hyperref}       % hyperlinks
+%\usepackage[colorlinks=true,citecolor=blue]{hyperref}       % hyperlinks
 \usepackage{url}            % simple URL typesetting
 \usepackage{booktabs}       % professional-quality tables
 \usepackage{amsfonts}       % blackboard math symbols
@@ -84,6 +84,11 @@
 
 % madeness: suPer-script in Brackets
 \newcommand{\pb}[1]{^{({#1})}}
+%\newcommand{\citet}[1]{\cite{#1}}
+%\newcommand{\citep}[1]{\cite{#1}}
+\newcommand{\citet}[1]{\citeauthor{#1} ̃\shortcite{#1}}
+\newcommand{\citep}{\cite}
+\newcommand{\citealp}[1]{\citeauthor{#1} ̃\citeyear{#1}}
 
 \newcommand{\bu}{\mathbf{u}}
 \newcommand{\bv}{\mathbf{v}}
@@ -115,8 +120,8 @@
 \newcommand{\refitemmoveup}{\vspace{-0.mm}}   			  %{\vspace{-0.16in}}
 
 
-%\title{Sequence Recommendation via Structured Prediction}
-\title{Structured Recommendation}
+\title{Sequence Recommendation via Structured Prediction}
+%\title{Structured Recommendation}
 
 % The \author macro works with any number of authors. There are two
 % commands used to separate the names and addresses of multiple
@@ -155,7 +160,7 @@
 %the paper submitted for blind review.
 %\clearpage
 
-\setlength\bibsep{2pt}
+%\setlength\bibsep{2pt} % from natbib
 
 \bibliographystyle{aaai}
 \bibliography{ref,ref_aditya}
