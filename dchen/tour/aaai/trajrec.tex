@@ -14,7 +14,8 @@
 % \subsection{Trajectory recommendation: standard view}
 % \textbf{Trajectory recommendation: standard view}.
 % \subsection{The trajectory recommendation problem}
-\textbf{Trajectory recommendation}.
+%\textbf{Trajectory recommendation}.
+\subsubsection{Trajectory recommendation}
 Travel recommendation problems involve a set of points-of-interest (POIs) $\mathcal{P}$ in a city~\cite{bao2015recommendations,zheng2015trajectory,zheng2014urban}.
 % There are, roughly, three problem settings that have been studied.
 % The first setting is \emph{point of interest} (\emph{POI}) \emph{recommendation};
@@ -150,7 +151,8 @@ We are also interested in predicting paths $\y$, since it is unlikely a user wil
 
 
 %
-\textbf{Playlist generation}.
+%\textbf{Playlist generation}.
+\subsubsection{Playlist generation}
 As another example, consider recommending song playlists (\ie sequences) to users, given a query song~\citep{McFee:2011,chen2012playlist,hidasi2015session,choi2016towards}.
 A canonical approach is to
 learn a latent representation of songs from historical playlists,
@@ -159,7 +161,8 @@ and exploit a Markovian assumption on the song transitions.
 
 
 %
-\textbf{Next basket and next song prediction}.
+%\textbf{Next basket and next song prediction}.
+\subsubsection{Next basket and next song prediction}
 One more example of sequence recommendation is the problem of recommending the next items a user might like to purchase, given the sequence of their shopping basket purchases~\citep{Rendle:2010,Wang:2015}.
 The canonical approach here is to apply matrix factorisation to the Markov chain of transitions between items.
 This method is feasible because one is only interested in predicting sequences one element at a time, instead of predicting the entire sequence given the initial item.

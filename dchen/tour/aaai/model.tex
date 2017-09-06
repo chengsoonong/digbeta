@@ -21,7 +21,9 @@ A structured prediction task involves predicting some structured label $\y \in \
 typically via a score function $f(\x,\y)$ that determines the affinity of an (input, label) pair.
 A popular model is the Structured Support Vector Machine (SSVM)~\cite{joachims2009predicting,tsochantaridis2005large}, comprising three core ingredients.
 
-\emph{Score function}. In SSVMs, we specify that the score function $f(\x, \y)$ takes a linear form, \ie
+%\textbf{Score function}.
+\subsubsection{Score function}
+In SSVMs, we specify that the score function $f(\x, \y)$ takes a linear form, \ie
 $f(\x, \y) = \w^\top \Psi(\x, \y)$,
 where $\w$ is a weight vector, and $\Psi(\x, \y)$ is a \emph{joint feature map}.
 
@@ -56,7 +58,8 @@ and $\psi_{j,j+1}$ is a pairwise feature vector that captures the interactions b
 with a corresponding weight vector $\w_{j,j+1}$.
 
 %To learn the parameters, we train the structured SVM by optimising a quadratic program (QP),
-\emph{Objective function}.
+%\textbf{Objective function}.
+\subsubsection{Objective function}
 To learn a suitable weight vector $\w$, SSVMs solve: %the following optimisation problem:
 \begin{equation}
 \label{eq:nslack}
@@ -92,7 +95,8 @@ Alternatively, we can use \emph{one} slack variable to represent the sum of the 
 %which helps shrink the feasible region of the problem.
 
 
-\emph{Loss-augmented inference}.
+%\textbf{Loss-augmented inference}.
+\subsubsection{Loss-augmented inference}
 We can rewrite the constraints in (\ref{eq:nslack}) as
 $\w^\top \Psi(\x\pb{i}, \y\pb{i}) + \xi_i \ge
 \max_{\bar\y \in \mathcal{Y}} \left\{ \Delta(\y\pb{i}, \bar\y) + \w^\top \Psi(\x\pb{i}, \bar\y) \right\}$,
@@ -113,7 +117,8 @@ with respect to individual and pairs of label elements,
 
 We now present two possible means of applying SSVMs to sequence recommendation.
 
-\emph{The SP model}.
+%\textbf{The SP model}.
+\subsubsection{The SP model}
 Recall that structured recommendation
 involves observing \emph{multiple} ground truth outputs for each input, \ie
 %If we observed more than one labels for a particular set of features,
@@ -139,7 +144,8 @@ However, it is sub-optimal:
 the result of loss-augmented inference on $(\x\pb{i}, \y\pb{ij})$ could be a ground truth label $\y' \in \{\y\pb{ij}\}_{j=1}^{n_i}$,
 which means we would incorrectly penalise predicting $\y'$ for $\x\pb{i}$.
 
-\emph{The SR model}.
+%\textbf{The SR model}.
+\subsubsection{The SR model}
 To overcome the limitation of the SP model,
 we propose the following \emph{structured recommendation} (\emph{SR}) model that extends the SSVM to explicitly incorporate multiple ground truths: %for each example.
 %We can learn an \emph{SR} model by optimising %a quadratic program similar to (\ref{eq:nslack}),
@@ -218,7 +224,8 @@ We show in the following how to address both problems with an extension of the V
 %%The motivation is that, as mentioned in \S\ref{sec:trajrec}, repeated elements are often undesirable in sequence recommendation
 %%\eg a user will likely not want to visit the same location twice.
 
-\textbf{The list Viterbi algorithms}.
+%\textbf{The list Viterbi algorithms}.
+\subsubsection{The list Viterbi algorithms}
 List Viterbi represents a family of algorithms originally invented to decode digital signals corrupted by noise~\cite{seshadri1994list,nill1995list}, or to find more than one candidate sentence in speech recognition~\cite{soong1991tree}. Given a score function that can be decomposed into unary and pairwise costs such as (\ref{eq:jointfeature}), a list Viterbi algorithm aims to find the $k$ highest scoring sequences. % that has the highest score.
 
 The \emph{parallel list Viterbi} algorithm~\cite{seshadri1994list} finds the top $k$ sequences
@@ -237,7 +244,8 @@ at the point of final merge, or the 2nd or 3rd best sequence to the $(k \!-\! 2)
 We use SLVA in two different ways, first to deal with multiple ground truths, and second
 to find paths.
 
-\textbf{Eliminating multiple ground truths}.
+%\textbf{Eliminating multiple ground truths}.
+\subsubsection{Eliminating multiple ground truths}
 Recall that standard loss-augmented inference for an SSVM (for sequences) may be done with the classic Viterbi algorithm, but the best-scoring sequence could be in the ground-truth set $\{\y^{(ij)}\}_{j=1}^{n_i}$. We check whether this is the case, and if it is, use SLVA to decode the next best sequence until we find one that is not in the ground truth set.
 %The serial list Viterbi allows exclusion of sequences with repeats,
 %as well as
@@ -248,7 +256,8 @@ can be used for loss-augmented inference with Hamming loss, the most common loss
 since it only requires the loss function be decomposable with respect to the label elements.
 
 %
-\textbf{Eliminating loops: the \textsc{SPpath} and \textsc{SRpath} model}.
+%\textbf{Eliminating loops: the \textsc{SPpath} and \textsc{SRpath} model}.
+\subsubsection{Eliminating loops: the \textsc{SPpath} and \textsc{SRpath} model}
 %Having seen the viability of the list Viterbi algorithm for removing known sequences from consideration during inference,
 The list Viterbi algorithm is also applicable to enforce that loss-augmented inference only considers sequences that are \emph{paths}. This may be done by checking if each of the next-best sequences has a loop, and following SLVA as above.
 This idea can be applied to both the SP and SR models, as enforcing path constraints is independent of excluding multiple ground truths.
@@ -350,7 +359,8 @@ $}
 
 
 
-\textbf{Recommending more than one trajectory}.
+%\textbf{Recommending more than one trajectory}.
+\subsubsection{Recommending more than one trajectory}
 Since multiple possible trajectories can start at the same POI, 
 we need to predict multiple trajectories for each test query. 
 % ILP for top-k prediction/inference
@@ -365,7 +375,8 @@ $\sum_{j=1}^{l-1} u_{y_j, y_{j+1}} \le l-2, ~\forall \y \in \{\y^{(k)}\}_{k=1}^{
 Alternatively, we can achieve this by using the same approach as when eliminating ground truth sequences using SLVA.
 
 % ILP for learning (loss-augmented inference)
-\textbf{Eliminating multiple ground truths with ILP?}
+%\textbf{Eliminating multiple ground truths with ILP?}
+\subsubsection{Eliminating multiple ground truths with ILP?}
 A natural question is whether one can use the above ILP
 to exclude observed labels when training an SR model,
 \ie solving the loss-augmented inference~(\ref{eq:loss_aug_inf}).
@@ -377,7 +388,8 @@ However, we note that Hamming loss %%, the most common loss function for sequenc
 cannot be used here, as $\Delta(\y,\bar\y) = \sum_{j=1}^l (1 - \llb y_j = \bar y_j \rrb)$
 cannot be expressed as a linear function of $u_{jk}$.
 
-\textbf{Practical choices: ILP vs SLVA vs other heuristics}.
+%\textbf{Practical choices: ILP vs SLVA vs other heuristics}.
+\subsubsection{Practical choices: ILP vs SLVA vs other heuristics}
 When performing prediction for SP and SR model, we found that state-of-the-art ILP solvers converge to a solution faster
 than the serial list Viterbi algorithm if the sequence length $l$ is large.
 The reason is, while list Viterbi algorithms are polynomial time given the list depth $k$~\cite{nilsson2001sequentially},

@@ -1,10 +1,11 @@
 \appendix
 %\section{Supplementary material to Structured Recommendation}
 %\label{sec:supplement}
-{\Large\bf Supplementary material to Structured Recommendation}
+%{\Large\bf Supplementary material to Structured Recommendation}
+{\Large\bf Supplementary material to Sequence Recommendation via Structured Prediction}
 
-\setlength{\belowdisplayskip}{2pt} \setlength{\belowdisplayshortskip}{1pt}
-\setlength{\abovedisplayskip}{2pt} \setlength{\abovedisplayshortskip}{1pt}
+%\setlength{\belowdisplayskip}{2pt} \setlength{\belowdisplayshortskip}{1pt}
+%\setlength{\abovedisplayskip}{2pt} \setlength{\abovedisplayshortskip}{1pt}
 
 \section{Model learning and prediction}
 \label{sec:supplement}
@@ -173,7 +174,8 @@ In addition, the details of evaluation and empirical results are also described.
 \subsection{Photo trajectory dataset and features}
 \label{sec:feature}
 
-\textbf{Dataset}.
+%\textbf{Dataset}.
+\subsubsection{Dataset}
 In the interests of reproducibility we present further details of our empirical experiment.
 The histogram of the number of trajectories per query is shown in Figure~\ref{fig:hist_query},
 where we can see each query has 4-9 ground truths (\ie trajectories) on average, and 30-60 trajectories at most.
@@ -198,12 +200,13 @@ where we can see the majority are short trajectories (\ie length $\le$ 5).
 \end{figure}
 
 
-\textbf{Features}.
+%\textbf{Features}.
+\subsubsection{Features}
 The POI-query features used by \textsc{PoiRank}, SP and SR methods and their extensions 
 (\ie the \textsc{SPpath} and \textsc{SRpath} models) are shown in Table~\ref{tab:poifeature},
 pairwise features used in SP and SR methods and their extensions are shown in Table~\ref{tab:tranfeature}.
 
-\begin{table*}[!h]
+\begin{table}[!h]
 \caption{POI-query features: features of POI $p$ with respect to query $(s,l)$}
 \label{tab:poifeature}
 \centering
@@ -228,7 +231,7 @@ pairwise features used in SP and SR methods and their extensions are shown in Ta
 \texttt{distStart}          & distance between $p$ and $s$, calculated using the Haversine formula \\
 \hline
 \end{tabular}
-\end{table*}
+\end{table}
 
 
 
@@ -253,7 +256,8 @@ pairwise features used in SP and SR methods and their extensions are shown in Ta
 \subsection{Evaluation settings}
 \label{sec:metric}
 
-\textbf{Top-k prediction for baselines}.
+%\textbf{Top-k prediction for baselines}.
+\subsubsection{Top-k prediction for baselines}
 \begin{itemize}
 \item To perform top-$k$ prediction with \textsc{Random} baseline, we simply repeat the \textsc{Random} method $k$ times.
 \item To perform top-$k$ prediction with \textsc{Popularity} and \textsc{PoiRank}, we make use of the list Viterbi algorithm 
@@ -268,7 +272,8 @@ we need to measure the similarity (or loss) given prediction $\hat{\mathbf{y}}$
 and ground truth $\mathbf{y}$.
 
 
-\textbf{F$_1$ score on points}.
+%\textbf{F$_1$ score on points}.
+\subsubsection{F$_1$ score on points}
 F$_1$ score on points~\cite{ijcai15} cares about only the set of correctly recommended POIs.
 %%Let $\texttt{set}(\mathbf{y})$ denote the set of POIs in trajectory $\mathbf{y}$, F$_1$ score on points is defined as
 \begin{equation*}
@@ -281,7 +286,8 @@ where $P_\textsc{point}$, $R_\textsc{point}$ are respectively the precision and 
 If $| \hat{\mathbf{y}} | = | \mathbf{y} |$, this metric is just the unordered Hamming loss,
 i.e., Hamming loss between two binary indicator vectors of size $| \mathcal{P} |$.
 
-\textbf{F$_1$ score on pairs}.
+%\textbf{F$_1$ score on pairs}.
+\subsubsection{F$_1$ score on pairs}
 To take into account the orders in recommended sequence, 
 we also use the F$_1$ score on pairs~\cite{cikm16paper} measure, which considers the set of correctly predicted POI pairs,
 \begin{equation*}
@@ -298,7 +304,8 @@ where $P_\textsc{point}$, $R_\textsc{point}$ are respectively the precision and 
 %%}
 
 
-\textbf{Kendall's $\tau$ with ties}
+%\textbf{Kendall's $\tau$ with ties}
+\subsubsection{Kendall's $\tau$ with ties}
 Alternatively, we can cast a trajectory $\y = y_{1:l}$ as a ranking of POIs in $\mathcal{P}$,
 where $y_j$ has a rank $| \mathcal{P} | - j + 1$ and any other POI $p \notin \mathbf{y}$ has a rank $0$ ($0$ is an arbitrary choice),
 then we can make use of ranking evaluation metrics such as Kendall's $\tau$ by taking care of ties in ranks.
@@ -357,7 +364,8 @@ where $T = T_{\mathbf{y}} - T_{\mathbf{y},\hat{\mathbf{y}}}$ and $U = T_{\hat{\m
 \clearpage
 \subsection{Empirical results}
 
-\textbf{The effects of $k$ for top-$k$ prediction}.
+%\textbf{The effects of $k$ for top-$k$ prediction}.
+\subsubsection{The effects of $k$ for top-$k$ prediction}
 The performance of baselines and structured recommendation algorithms for top-$k$ ($k=1,3,5,10$) 
 prediction are shown in the following tables.
 Bold entries: \textbf{best} performing method for each metric; italicised entries: the \textit{next best}. 
@@ -366,7 +374,8 @@ Bold entries: \textbf{best} performing method for each metric; italicised entrie
 \input{tab_topk}
 
 %\clearpage
-\textbf{Performance on short and long trajectories}.
+%\textbf{Performance on short and long trajectories}.
+\subsubsection{Performance on short and long trajectories}
 The performance of baselines and structured recommendation algorithms 
 for short (length $<$ 5) and long (length $\ge$ 5) trajectories 
 with top-$k$ ($k=1:10$) prediction are shown in the following figures.

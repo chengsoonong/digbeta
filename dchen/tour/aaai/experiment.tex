@@ -48,33 +48,36 @@ The sparsity of this dataset presents a barrier for large-scale evaluations.
 Music playlist datasets are larger, but recent results show that sequencing information does not affect the data likelihood~\cite{chen2012playlist}.
 
 % dataset stats
-\begin{table}[t]
-	\begin{minipage}[t]{\linewidth}
-		\resizebox{\linewidth}{!}{
-		\setlength{\tabcolsep}{4pt} % tweak the space between columns
-		\small
+%\begin{table}[t]
+\begin{table*}[t]
+    \centering
+	%\begin{minipage}[t]{\linewidth}
+	%	\resizebox{\linewidth}{!}{
+	%	\setlength{\tabcolsep}{4pt} % tweak the space between columns
+	%	\small
 		\begin{tabular}{lllll|ccc|cc} \hline %{l*{9}{c}} \hline
 		\textbf{Dataset} & \textbf{\#Traj} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#Queries} & \textbf{\#GT=1} & \textbf{\#GT$\in [2,5]$} & \textbf{\#GT$>$5} & \textbf{\#shortTraj} & \textbf{\#longTraj} \\ \hline
-		Glasgow          & 351              & 25              & 219              & 64                 & 23              & 22                      & 19                & 336                     & 15 \\
 		Osaka            & 186              & 26              & 130              & 47                 & 17              & 22                      & 8                 & 178                     & 8  \\
+		Glasgow          & 351              & 25              & 219              & 64                 & 23              & 22                      & 19                & 336                     & 15 \\
         Toronto          & 977              & 27              & 454              & 99                 & 30              & 33                      & 36                & 918                     & 59 \\
 		\hline
 		\end{tabular}%
-		}
+		%}
 		\captionof{table}{Statistics of trajectory datasets.
         Including the number of trajectories (\#Traj), POIs (\#POIs), users (\#Users), queries (\#Queries);
         the number of queries with a single (\#GT=1), 2-5 (\#GT$\in$[2,5]), or more than 5 (\#GT$>$5) ground truths;
         and profile of trajectory length, \ie less than 5 (\#shortTraj) and more than 5 POIs (\#longTraj).
         }
 		\label{tab:data}
-	\end{minipage}\captionmoveup
+	%\end{minipage}
+    \captionmoveup
 	%%\quad
 	%%\begin{minipage}[t]{0.45\linewidth}
 	%%	\includegraphics[scale=0.25]{hist_query.pdf}
 	%%    \captionof{figure}{\# of trajectories per query.}
 	%%    \label{fig:image}
     %%\end{minipage}
-\end{table}
+\end{table*}
 
 
 
@@ -215,7 +218,8 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 \input{tab_experiment}
 
 %\begin{minipage}[!t]{0.8\linewidth}
-\begin{figure}[!t]
+%\begin{figure}[!t]
+\begin{figure*}[!t]
 		\centering
 		\includegraphics[width=0.65\linewidth]{tau_topk.pdf}
 		\includegraphics[width=0.33\linewidth]{f1_glasgow_gte5}
@@ -224,7 +228,7 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 			For longer trajectories, the predictions of \textsc{Popularity} and \textsc{POIRank} are permutations of the same set of POIs (that do not fully overlap with the ground truth).}
 	    \label{fig:topk}
 	    \captionmoveup\eqmoveup
-\end{figure}
+\end{figure*}
 
 % experimental results
 %The performance of %three baselines and four variants based on structured prediction on two datasets
