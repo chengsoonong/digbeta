@@ -71,7 +71,7 @@ The sparsity of this dataset presents a barrier for large-scale evaluations.
         }
 		\label{tab:data}
 	%\end{minipage}
-    \captionmoveup
+    %\captionmoveup
 	%%\quad
 	%%\begin{minipage}[t]{0.45\linewidth}
 	%%	\includegraphics[scale=0.25]{hist_query.pdf}
@@ -140,9 +140,9 @@ The sparsity of this dataset presents a barrier for large-scale evaluations.
 \label{ssec:methods}
 %\textmoveup
 
-We compare the performance of our methods to the following four baselines:
-\begin{itemize}[leftmargin=0.125in]\itemmoveup
-\parskip -.05em
+We compare our methods to the following four baselines:
+\begin{itemize}[leftmargin=0.125in]%%\itemmoveup
+%\parskip -.05em
 \item The \textsc{Random} baseline recommends a sequence of POIs by sampling uniformly at random from the whole set of POIs
       (without utilising any POI or query related features). 
       To obtain top-$k$ predictions we independently repeat $k$ times.
@@ -158,7 +158,7 @@ We compare the performance of our methods to the following four baselines:
 \item \textsc{Markov}~\cite{cikm16paper} learns a Markov chain by factorising the transition probabilities between a pair of POIs 
       according to a number of pairwise features (see supplement). 
 
-\end{itemize}\itemmoveup
+\end{itemize}%\itemmoveup
 To perform top-$k$ prediction with \textsc{Popularity}, \textsc{PoiRank} and \textsc{Markov},
 we make use of the same approach we used to deal with multiple ground truths.
 For \textsc{Popularity}, the score of a path is the accumulated popularity of all POIs in the path;
@@ -177,7 +177,7 @@ We consider four variants of sequence recommendation, starting with a structured
 	%so that we do not attempt to distinguish between multiple ground truths for the same query.
 
 \item {\sc SPpath} and {\sc SRpath}, described in Section~\ref{ssec:training} with the same features as SP and SR.
-\end{itemize}\itemmoveup
+\end{itemize}%\itemmoveup
 %LX - not clear what the sentence below is trying to say, delete.
 %All above methods take into account the specified start location properly.
 
@@ -243,13 +243,15 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 %\begin{figure}[!t]
 \begin{figure*}[!t]
 		\centering
+		\scalebox{0.9}{
 		\includegraphics[width=0.65\linewidth]{tau_topk.pdf}
 		\includegraphics[width=0.33\linewidth]{f1_glasgow_gte5}
+		}
 	    \captionof{figure}{Average Kendall’s $\tau$ over k=1:10, for short (left) and long (middle) trajectories. (right) F$_1$ score on points for long trajectories.
 			Structured recommendation methods perform best for all values of $k$.
 			For longer trajectories, the predictions of \textsc{Popularity} and \textsc{POIRank} are permutations of the same set of POIs (that do not fully overlap with the ground truth).}
 	    \label{fig:topk}
-	    \captionmoveup\eqmoveup
+	    %\captionmoveup\eqmoveup
 \end{figure*}
 
 % experimental results

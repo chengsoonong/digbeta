@@ -187,14 +187,21 @@ however, it is unlikely that these form a trajectory that most travellers will e
 This motivates an approach to sequence recommendation that directly ensures such global cohesion.
 We now see how to do so with novel extensions to structured prediction approaches. %by attacking the problem using tools from structured prediction.
 
+% TODO: add text that fleshes these out
+Table \ref{tbl:challenges} summarises the three main challenges of travel sequence recommendation.
+
 \begin{table}[!h]
-\centering
-\begin{tabular}{|l|l|} \hline
-\multicolumn{1}{|c|}{\bf Challenges} & \multicolumn{1}{c|}{\bf Solutions}          \\ \hline
-Global cohesion                    & Structured SVM                             \\ \hline
-Multiple ground truths             & Ground truths aggregation in loss \\ \hline
-Loop elimination                   & The list Viterbi algorithm                 \\ \hline  
-\end{tabular}
+	\centering
+	\begin{tabular}{ll}
+	\hline
+	\hline
+	\multicolumn{1}{c}{\bf Challenge} & \multicolumn{1}{c}{\bf Solution}            \\ \hline
+	Global cohesion                    & Structured SVM                             \\ \hline
+	Multiple ground truths             & Ground truth aggregation in loss 			\\ \hline
+	Loop elimination                   & List Viterbi algorithm                		\\ \hline  
+	\end{tabular}
+	\caption{Three fundamental challenges of travel sequence recommendation and their solutions.}
+	\label{tbl:challenges}
 \end{table}
 
 % To do this, we show how the problem can be cast as one of sequential recommendation,
