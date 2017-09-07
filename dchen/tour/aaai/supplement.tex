@@ -32,19 +32,19 @@ We can use \emph{one} slack variable to represent the sum of the $N$ hinge losse
 Which results in the 1-slack formulation for the SR model:
 \begin{equation*}
 %%\label{eq:1slack_ml}
-\resizebox{0.9\linewidth}{!}{$
+%\resizebox{0.9\linewidth}{!}{$
 \begin{aligned}
 \min_{\w, \, \xi \ge 0} ~\frac{1}{2} \w^\top \w + C \xi, ~~s.t.~ \frac{1}{N} \left( \sum_{i,j} \w^\top \Psi(\x^{(i)}, \y^{(ij)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}^{(i)}) \right) 
   \ge \frac{1}{N} \sum_{i,j} \Delta(\y^{(ij)}, \bar{\y}^{(i)}) - \xi.
 \end{aligned}
-$}
+%$}
 \end{equation*}
 
 
 \subsection{The list Viterbi algorithm}
 \label{sec:listviterbi-supp}
 
-We make use of the list Viterbi in four situations:
+We make use of the (serial) list Viterbi in four situations:
 \begin{enumerate}
   \item To avoid sequence with loops during the prediction phase of the SP and SR models
   \item To make top-$k$ prediction using the SP and SR models
@@ -52,119 +52,169 @@ We make use of the list Viterbi in four situations:
   \item To avoid sequence with loops during the training phase (\ie loss augmented inference) of the \textsc{SPpath} and \textsc{SRpath} models
 \end{enumerate}
 
+Here, we describe two well-known proposals of the serial list Viterbi algorithm in the context of hidden Markov models (HMMs).
+Suppose we have an HMM with states $\SSf_{t}$, observations $\OSf_{t}$, transitions $a(i, j) = \Pr( \SSf_{t+1} = j \mid \SSf_t = i )$, and emissions $b(i, k) = \Pr( \OSf_{t} = k \mid \SSf_t = i )$.
+Suppose $s^*_{1:T}$ is the most likely length $T$ sequence given observations $\OSf_{1:T}$, and
+$\delta(j, t)$ is the value of the best sequence up till position $t$ ending at state $j$ as computed by the Viterbi algorithm.
+
+To find the second-best sequence with value $ M \defEq \max_{\SSf_{1:T} \neq s^*_{1 : T}}{\Pr( \SSf_{1:T}, \OSf_{1:T} )}. $
+\citet{seshadri1994list} observed that $M = \bar{\delta}_{T+1}$, where $\bar{\delta}_t$ has a Viterbi-like recurrence
+\begin{equation}
+    \label{eqn:att-recurrence}
+    %\resizebox{0.9\linewidth}{!}{$
+    \begin{aligned}
+        \bar{\delta}_t &\defEq 
+        \indicator{t > 0} \cdot
+        \max
+        \begin{cases}
+        \max_{i \neq s^*_{t-1}} \delta(i, t-1) \cdot a( i, s^*_{t} ) \cdot b( s^*_{t}, \OSf_{t} ) \\
+        \bar{\delta}_{t - 1} \cdot a( s^*_{t - 1}, s^*_{t} ) \cdot b( s^*_{t}, \OSf_{t} ).
+        \end{cases}
+    \end{aligned}
+    %$}
+\end{equation}
+Intuitively, $\bar{\delta}_t$ finds the value of the second-best sequence that merges with the best sequence by at least time $t$,
+to find the third, \dots, k-th best sequences, this algorithm keeps track of the ``next-best'' sequence terminating at each state in the current list of best sequences.
+
+On the other hand, \citet{nilsson2001sequentially} observed that $M = \max_t \widehat{\rho}_t$, where
+\begin{align*}
+	\widehat{\rho}_{t} &\defEq \max_{i \neq s^*_{t}} \max_{S_{t+1:T}} {\Pr( \SSf_{1:t-1} = s^*_{1:t-1}, \SSf_t = i, \SSf_{t+1:T}, \OSf_{1:T} )}.
+\end{align*}
+Intuitively, $\widehat{\rho}_t$ finds the value of the second-best sequence that first deviates from the best sequence exactly at time $t$,
+We note that one can compute $\widehat{\rho}_{t}$ using $\eta_{i, j, t} \defEq \max_{\SSf \colon S_{t - 1} = i, \SSf_{t} = j} \Pr( \SSf_{1:T}, \OSf_{1:T} )$ \citep{nilsson2001sequentially},
+which in turn can be computed from the ``backward'' analogue of $\delta$.
+In the original work, \citeauthor{nilsson2001sequentially} illustrated this approache as cleverly partitions the search space into subsets of sequences that share a prefix with the current list of best sequences.
+
+If we unroll the recurrence in Equation \ref{eqn:att-recurrence}, and note the definition of $\delta$, we have
+%\resizebox{\linewidth}{!}{
+%    \begin{minipage}{\linewidth}
+        \begin{align*}
+        	M &= \max_t \widehat{\mu}_t \\
+        	\widehat{\mu}_{t} &\defEq \left[ \prod_{k = t+2}^T a( s^*_{k-1}, s^*_{k} ) \cdot b( s^*_{k}, \OSf_{k} ) \right] \cdot \max_{i \neq s^*_{t}} \delta(i, t) \cdot a( i, s^*_{t+1} ) \cdot b( s^*_{t+1}, \OSf_{t+1} ) \\
+        	&= \max_{i \neq s^*_{t}} \max_{S_{1:t-1}} {\Pr( \SSf_{1:t-1}, \SSf_t = i, \SSf_{t+1:T} = s^*_{t+1:T}, \OSf_{1:T} )};
+        \end{align*}
+%    \end{minipage}
+%}%
+\ie, the two approaches computed the same quantities, 
+while the former fixes the suffix of the candidate sequence, and the latter fixes the prefix. 
+The case of finding the $K$-th best sequence can be shown in a similar manner.
+
+For sequence recommendation, as the underlying structure of SSVM is a Markov chain, which means we can use the same algorithms described above, 
+except that the emissions are uniform distributions since all states are observed.
+
 %%There are two general approaches for generalising Viterbi decoding to when we require $k$
 %%sequences to be decoded: by maintaining $k$ paths through the trellis while decoding; or by
 %%careful book keeping of the best $k-1$ paths through the trellis found so far and avoiding them.
 %%We choose the latter approach as it is more memory efficient.
 
-The serial list Viterbi algorithm~\cite{nilsson2001sequentially,seshadri1994list} maintains
-a heap (\ie priority queue) of potential solutions, which are then checked for the desired property (for example
-whether there are loops). Once the requisite number of trajectories with the desired
-property are found, the algorithm terminates (for example once $k$ trajectories without loops are found when performing top-k prediction)
-The heap is initialised by running forward-backward (Algorithm~\ref{alg:forward-backward}) followed by the vanilla Viterbi (Algorithm~\ref{alg:viterbi}).
+%The serial list Viterbi algorithm~\cite{nilsson2001sequentially,seshadri1994list} maintains
+%a heap (\ie priority queue) of potential solutions, which are then checked for the desired property (for example
+%whether there are loops). Once the requisite number of trajectories with the desired
+%property are found, the algorithm terminates (for example once $k$ trajectories without loops are found when performing top-k prediction)
+%The heap is initialised by running forward-backward (Algorithm~\ref{alg:forward-backward}) followed by the vanilla Viterbi (Algorithm~\ref{alg:viterbi}).
+%
+%\begin{algorithm}[htbp]
+%\caption{Forward-backward procedure~\cite{rabiner1989tutorial}}
+%\label{alg:forward-backward}
+%\begin{algorithmic}[1]
+%  \STATE $\forall p_j \in \mathcal{P},~ \alpha_t(p_j) =
+%          \begin{cases}
+%          0,~ t = 1 \\
+%          \max_{p_i \in \mathcal{P}} \left\{ \alpha_{t-1}(p_i) + \mathbf{w}_{ij}^\top \psi_{ij}(\mathbf{x}, p_i, p_j) +
+%          \mathbf{w}_j^\top \psi_j(\mathbf{x}, p_j) \right\},~ t=2,\dots,l
+%          \end{cases}$
+%
+%  \STATE $\forall p_i \in \mathcal{P},~ \beta_t(p_i) =
+%          \begin{cases}
+%          0,~ t = l \\
+%          \max_{p_j \in \mathcal{P}} \left\{ \mathbf{w}_{ij}^\top \psi_{ij}(\mathbf{x}, p_i, p_j) +
+%          \mathbf{w}_j^\top \psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j) \right\},~ t = l-1,\dots,1
+%          \end{cases}$
+%
+%  %\STATE $\forall p_i \in \mathcal{P},~ f_t(p_i) = \alpha_t(p_i) + \beta_t(p_i),~ t = 1,\dots,K$
+%  \STATE $\forall p_i, p_j \in \mathcal{P},~ f_{t,t+1}(p_i, p_j) = \alpha_t(p_i) + \mathbf{w}_{ij}^\top \psi_{ij}(\mathbf{x}, p_i, p_j) +
+%                                \mathbf{w}_j^\top \psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j),~ t = 1,\dots,l-1$
+%\end{algorithmic}
+%\end{algorithm}
+%
+%\begin{algorithm}[htbp]
+%\caption{Viterbi}
+%\label{alg:viterbi}
+%\begin{algorithmic}[1]
+%  \STATE $y_t^1 = \begin{cases}
+%                  s,~ t = 1 \\
+%  %                \argmax_{p \in \mathcal{P}} \left\{ f_{1,2}(s, p) \right\},~ t = 2, \\
+%                  \argmax_{p \in \mathcal{P}} \left\{ f_{t-1,t}(y_{t-1}^1, p) \right\},~ t = 2,\dots,l
+%                  \end{cases}$
+%
+%  %\STATE $r^1 = \max_{p \in \mathcal{P}} \left\{ f_K(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
+%  \STATE $r^1 = \max_{p \in \mathcal{P}} \left\{ \alpha_{l}(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
+%\end{algorithmic}
+%\end{algorithm}
+%
+%Given an existing heap containing potential trajectories,
+%list Viterbi maintains a set of POIs $S$ to exclude, which is updated
+%sequentially by considering the front sequence of the heap.
+%
+%Recall that for trajectory recommendation we are given the query $\mathbf{x}=(s, l)$, where
+%$s$ is the starting POI from the set of POIs $\mathcal{P}$,
+%and $l$ is the desired length of the trajectory.
+%We assume the score function is of the form $\mathbf{w}^\top \Psi$ where $\Psi$ is the joint
+%feature vector. $\mathbf{w}$ could be the value of the weight in the current iteration in training,
+%or the learned weight vector during prediction.
+%
+%The list Viterbi algorithm for performing top-$k$ prediction is described in Algorithm~\ref{alg:listviterbi}.
+%To eliminating known ground truths in loss augmented inference,
+%we modify the forward-backward procedure (Algorithm~\ref{alg:forward-backward}) to account for the loss term $\Delta(\cdot,\cdot)$,
+%and Algorithm~\ref{alg:viterbi} and Algorithm~\ref{alg:listviterbi} can be used without modification.
 
-\begin{algorithm}[htbp]
-\caption{Forward-backward procedure~\cite{rabiner1989tutorial}}
-\label{alg:forward-backward}
-\begin{algorithmic}[1]
-  \STATE $\forall p_j \in \mathcal{P},~ \alpha_t(p_j) =
-          \begin{cases}
-          0,~ t = 1 \\
-          \max_{p_i \in \mathcal{P}} \left\{ \alpha_{t-1}(p_i) + \mathbf{w}_{ij}^\top \psi_{ij}(\mathbf{x}, p_i, p_j) +
-          \mathbf{w}_j^\top \psi_j(\mathbf{x}, p_j) \right\},~ t=2,\dots,l
-          \end{cases}$
+%\begin{algorithm}[htbp]
+%\caption{The list Viterbi algorithm for top-$K$ prediction~\cite{nilsson2001sequentially,seshadri1994list}}
+%\label{alg:listviterbi}
+%\begin{algorithmic}[1]
+%\STATE \textbf{Input}: $\mathbf{x}=(s, l),~ \mathcal{P},~ \mathbf{w},~ \Psi, ~K$
+%%\STATE Initialise score matrices $\alpha,~ \beta,~ f_t,~ f_{t, t+1}$, a max-heap $H,~ k=0$.
+%\STATE Initialise score matrices $\alpha,~ \beta,~ f_{t, t+1}$, a max-heap $H$, result set $R$, $k=0$.
+%\STATE $\triangleright$ Do the forward-backward procedure (Algorithm~\ref{alg:forward-backward})
+%\STATE $\triangleright$ Identify the best (scored) trajectory $\mathbf{y}^1=(y_1^1,\dots,y_l^1)$
+%       with score $r^1$ using Viterbi (Algorithm~\ref{alg:viterbi}). $\y^1$ may be a trajectory that violates the desired condition.
+%\STATE $H.\textit{push}\left(r^1,~ (\mathbf{y}^1, \textsc{nil}, \emptyset) \right)$
+%\STATE Set $R=\emptyset$, the list of trajectories to be returned.
+%\WHILE{$H \ne \emptyset$ \textbf{and} $k < \,|\mathcal{P}|^{l-1} - \prod_{t=2}^l (|\mathcal{P}|-t+1) + K$}
+%    \STATE $r^k,~ (\mathbf{y}^k, I, S) = H.\textit{pop}()~~~ \triangleright$
+%           $r^k$ is the score of $\mathbf{y}^k=(y_1^k,\dots,y_l^k)$, $I$ is the partition index, and $S$ is the exclude set
+%    \STATE $k = k + 1$
+%    \STATE Add $\mathbf{y}^k$ to $R$ if it satisfies the desired property
+%    \RETURN $R$ if it contains the required number of trajectories
+%    \STATE $I' = \begin{cases}
+%                  2, & I = \textsc{nil} \\
+%                  I, & \text{otherwise}
+%                 \end{cases}$
+%
+%    \FOR{$t = I',\dots,l$}
+%        \STATE $S' = \begin{cases}
+%                      S \cup \{ y_t^k \}, & t = I' \\
+%                      \{ y_t^k \},        & \text{otherwise}
+%                     \end{cases}$
+%
+%        \STATE $y'_j = \begin{cases}
+%                            y_j^k,                                                                             & j=1,\dots,t-1 \\
+%                            \argmax_{p \in \mathcal{P} \setminus S'} \left\{ f_{t-1,t}(y_{t-1}^k, p) \right\}, & j=t \\
+%                            \argmax_{p \in \mathcal{P}} \left\{ f_{j-1, j}(y'_{j-1}, p) \right\},              & j=t+1,\dots,l
+%                \end{cases}$
+%        %\STATE $\bar{r} = \begin{cases}
+%        %                  f_{t-1,t}(y_{t-1}^k, \bar{y}_t),&I = \textsc{nil} \\
+%        %                  r^k + f_{t-1,t}(y_{t-1}^k, \bar{y}_t) - f_{t-1,t}(y_{t-1}^k, y_t^k), &\text{otherwise}
+%        %                  \end{cases}$
+%        \STATE \vspace{3pt}$r' = r^k + f_{t-1,t}(y_{t-1}^k, y'_t) - f_{t-1,t}(y_{t-1}^k, y_t^k)$
+%
+%        \STATE \vspace{3pt}$H.\textit{push}(r', (\y', t, S') )$ \vspace{2pt}
+%    \ENDFOR
+%\ENDWHILE
+%\end{algorithmic}
+%\end{algorithm}
 
-  \STATE $\forall p_i \in \mathcal{P},~ \beta_t(p_i) =
-          \begin{cases}
-          0,~ t = l \\
-          \max_{p_j \in \mathcal{P}} \left\{ \mathbf{w}_{ij}^\top \psi_{ij}(\mathbf{x}, p_i, p_j) +
-          \mathbf{w}_j^\top \psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j) \right\},~ t = l-1,\dots,1
-          \end{cases}$
-
-  %\STATE $\forall p_i \in \mathcal{P},~ f_t(p_i) = \alpha_t(p_i) + \beta_t(p_i),~ t = 1,\dots,K$
-  \STATE $\forall p_i, p_j \in \mathcal{P},~ f_{t,t+1}(p_i, p_j) = \alpha_t(p_i) + \mathbf{w}_{ij}^\top \psi_{ij}(\mathbf{x}, p_i, p_j) +
-                                \mathbf{w}_j^\top \psi_j(\mathbf{x}, p_j) + \beta_{t+1}(p_j),~ t = 1,\dots,l-1$
-\end{algorithmic}
-\end{algorithm}
-
-\begin{algorithm}[htbp]
-\caption{Viterbi}
-\label{alg:viterbi}
-\begin{algorithmic}[1]
-  \STATE $y_t^1 = \begin{cases}
-                  s,~ t = 1 \\
-  %                \argmax_{p \in \mathcal{P}} \left\{ f_{1,2}(s, p) \right\},~ t = 2, \\
-                  \argmax_{p \in \mathcal{P}} \left\{ f_{t-1,t}(y_{t-1}^1, p) \right\},~ t = 2,\dots,l
-                  \end{cases}$
-
-  %\STATE $r^1 = \max_{p \in \mathcal{P}} \left\{ f_K(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
-  \STATE $r^1 = \max_{p \in \mathcal{P}} \left\{ \alpha_{l}(p) \right\}~~~ \triangleright$ $r^1$ is the score/priority of $\mathbf{y}^1$
-\end{algorithmic}
-\end{algorithm}
-
-Given an existing heap containing potential trajectories,
-list Viterbi maintains a set of POIs $S$ to exclude, which is updated
-sequentially by considering the front sequence of the heap.
-
-Recall that for trajectory recommendation we are given the query $\mathbf{x}=(s, l)$, where
-$s$ is the starting POI from the set of POIs $\mathcal{P}$,
-and $l$ is the desired length of the trajectory.
-We assume the score function is of the form $\mathbf{w}^\top \Psi$ where $\Psi$ is the joint
-feature vector. $\mathbf{w}$ could be the value of the weight in the current iteration in training,
-or the learned weight vector during prediction.
-
-The list Viterbi algorithm for performing top-$k$ prediction is described in Algorithm~\ref{alg:listviterbi}.
-To eliminating known ground truths in loss augmented inference,
-we modify the forward-backward procedure (Algorithm~\ref{alg:forward-backward}) to account for the loss term $\Delta(\cdot,\cdot)$,
-and Algorithm~\ref{alg:viterbi} and Algorithm~\ref{alg:listviterbi} can be used without modification.
-
-\begin{algorithm}[htbp]
-\caption{The list Viterbi algorithm for top-$K$ prediction~\cite{nilsson2001sequentially,seshadri1994list}}
-\label{alg:listviterbi}
-\begin{algorithmic}[1]
-\STATE \textbf{Input}: $\mathbf{x}=(s, l),~ \mathcal{P},~ \mathbf{w},~ \Psi, ~K$
-%\STATE Initialise score matrices $\alpha,~ \beta,~ f_t,~ f_{t, t+1}$, a max-heap $H,~ k=0$.
-\STATE Initialise score matrices $\alpha,~ \beta,~ f_{t, t+1}$, a max-heap $H$, result set $R$, $k=0$.
-\STATE $\triangleright$ Do the forward-backward procedure (Algorithm~\ref{alg:forward-backward})
-\STATE $\triangleright$ Identify the best (scored) trajectory $\mathbf{y}^1=(y_1^1,\dots,y_l^1)$
-       with score $r^1$ using Viterbi (Algorithm~\ref{alg:viterbi}). $\y^1$ may be a trajectory that violates the desired condition.
-\STATE $H.\textit{push}\left(r^1,~ (\mathbf{y}^1, \textsc{nil}, \emptyset) \right)$
-\STATE Set $R=\emptyset$, the list of trajectories to be returned.
-\WHILE{$H \ne \emptyset$ \textbf{and} $k < \,|\mathcal{P}|^{l-1} - \prod_{t=2}^l (|\mathcal{P}|-t+1) + K$}
-    \STATE $r^k,~ (\mathbf{y}^k, I, S) = H.\textit{pop}()~~~ \triangleright$
-           $r^k$ is the score of $\mathbf{y}^k=(y_1^k,\dots,y_l^k)$, $I$ is the partition index, and $S$ is the exclude set
-    \STATE $k = k + 1$
-    \STATE Add $\mathbf{y}^k$ to $R$ if it satisfies the desired property
-    \RETURN $R$ if it contains the required number of trajectories
-    \STATE $I' = \begin{cases}
-                  2, & I = \textsc{nil} \\
-                  I, & \text{otherwise}
-                 \end{cases}$
-
-    \FOR{$t = I',\dots,l$}
-        \STATE $S' = \begin{cases}
-                      S \cup \{ y_t^k \}, & t = I' \\
-                      \{ y_t^k \},        & \text{otherwise}
-                     \end{cases}$
-
-        \STATE $y'_j = \begin{cases}
-                            y_j^k,                                                                             & j=1,\dots,t-1 \\
-                            \argmax_{p \in \mathcal{P} \setminus S'} \left\{ f_{t-1,t}(y_{t-1}^k, p) \right\}, & j=t \\
-                            \argmax_{p \in \mathcal{P}} \left\{ f_{j-1, j}(y'_{j-1}, p) \right\},              & j=t+1,\dots,l
-                \end{cases}$
-        %\STATE $\bar{r} = \begin{cases}
-        %                  f_{t-1,t}(y_{t-1}^k, \bar{y}_t),&I = \textsc{nil} \\
-        %                  r^k + f_{t-1,t}(y_{t-1}^k, \bar{y}_t) - f_{t-1,t}(y_{t-1}^k, y_t^k), &\text{otherwise}
-        %                  \end{cases}$
-        \STATE \vspace{3pt}$r' = r^k + f_{t-1,t}(y_{t-1}^k, y'_t) - f_{t-1,t}(y_{t-1}^k, y_t^k)$
-
-        \STATE \vspace{3pt}$H.\textit{push}(r', (\y', t, S') )$ \vspace{2pt}
-    \ENDFOR
-\ENDWHILE
-\end{algorithmic}
-\end{algorithm}
-
-\clearpage
+%\clearpage
 
 \section{Experiment}
 
@@ -207,9 +257,6 @@ The POI-query features used by \textsc{PoiRank}, SP and SR methods and their ext
 pairwise features used in SP and SR methods and their extensions are shown in Table~\ref{tab:tranfeature}.
 
 \begin{table}[!h]
-\caption{POI-query features: features of POI $p$ with respect to query $(s,l)$}
-\label{tab:poifeature}
-\centering
 \small
 \setlength{\tabcolsep}{10pt} % tweak the space between columns
 \begin{tabular}{l|l} \hline
@@ -231,13 +278,14 @@ pairwise features used in SP and SR methods and their extensions are shown in Ta
 \texttt{distStart}          & distance between $p$ and $s$, calculated using the Haversine formula \\
 \hline
 \end{tabular}
+\caption{POI-query features: features of POI $p$ with respect to query $(s,l)$}
+\label{tab:poifeature}
+\centering
 \end{table}
 
 
 
 \begin{table}[!h]
-\caption{Pairwise POI features}
-\label{tab:tranfeature}
 \centering
 \small
 \setlength{\tabcolsep}{2pt} % tweak the space between columns
@@ -249,10 +297,12 @@ pairwise features used in SP and SR methods and their extensions are shown in Ta
 \texttt{nVisit}        & (discretised) total number of visit at POI \\
 \texttt{avgDuration}  & (discretised) average duration at POI \\ \hline
 \end{tabular}
+\caption{Pairwise POI features}
+\label{tab:tranfeature}
 \end{table}
 
 
-\clearpage
+%\clearpage
 \subsection{Evaluation settings}
 \label{sec:metric}
 
@@ -361,7 +411,7 @@ where $T = T_{\mathbf{y}} - T_{\mathbf{y},\hat{\mathbf{y}}}$ and $U = T_{\hat{\m
 %        {l(l-1)}
 %\end{align*}
 
-\clearpage
+%\clearpage
 \subsection{Empirical results}
 
 %\textbf{The effects of $k$ for top-$k$ prediction}.
