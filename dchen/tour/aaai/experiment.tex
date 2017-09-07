@@ -36,7 +36,8 @@ as visited by various Flickr users and recorded by the geotags in photos.
 %a single POI are excluded.
 %We use 12 behavioural and geographical features to describe each POI and pairs of POIs (see supplement).
 Table~\ref{tab:data} summarises the profile of each dataset.
-We see that most queries have more than one ground truth, making the sequence recommendation setting relevant. Further, each query has an average of 4-9, and a maximum of 30-60 trajectories (details in supplement).
+We see that most queries have more than one ground truth, making the sequence recommendation setting relevant. Further, each query has an average of 4-9, and a maximum of 30-60 trajectories (details in Figure~\ref{fig:hist_query}).
+The histograms of trajectory length is shown in Figure~\ref{fig:hist_length}.
 % All datasets are sparse in user activity,
 % i.e.,
 In all datasets,
@@ -45,7 +46,7 @@ This makes user-specific recommendation impractical, and also undesirable becaus
 %of the domain being urban locations
 a user would want different recommendations given different starting locations, and not a static recommendation no matter where she is.
 The sparsity of this dataset presents a barrier for large-scale evaluations.
-Music playlist datasets are larger, but recent results show that sequencing information does not affect the data likelihood~\cite{chen2012playlist}.
+%Music playlist datasets are larger, but recent results show that sequencing information does not affect the data likelihood~\cite{chen2012playlist}.
 
 % dataset stats
 %\begin{table}[t]
@@ -78,6 +79,23 @@ Music playlist datasets are larger, but recent results show that sequencing info
 	%%    \label{fig:image}
     %%\end{minipage}
 \end{table*}
+
+% histogram of #ground truth
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=\linewidth]{hist_query.pdf}
+	\caption{Histograms of the number of trajectories per query.}
+	\label{fig:hist_query}
+\end{figure}
+
+% histogram of trajectory length
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=\linewidth]{hist_length.pdf}
+	\caption{Histograms of trajectory length.}
+	\label{fig:hist_length}
+\end{figure}
+
 
 
 
