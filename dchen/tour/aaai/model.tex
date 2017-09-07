@@ -52,7 +52,7 @@ each of these features: %with the corresponding feature weight:
 f(\x, \y) = %\w^\top \Psi(\x, \y) =
 \sum_{j=1}^l \w_j^\top \psi_j(\x, y_j) + \sum_{j=1}^{l-1} \w_{j,j+1}^\top \psi_{j,j+1}(\x, y_{j}, y_{j+1}).
 $}
-\eqmoveup
+%\eqmoveup
 \end{equation}
 Here, $\psi_j$ is a feature map between the input and one output label element $y_j$, with a corresponding weight vector $\w_j$,
 and $\psi_{j,j+1}$ is a pairwise feature vector that captures the interactions between consecutive labels $y_j$ and $y_{j+1}$,
@@ -71,7 +71,7 @@ To learn a suitable weight vector $\w$, SSVMs solve: %the following optimisation
 & \ \w^\top \Psi(\x^{(i)}, \y^{(i)}) - \w^\top \Psi(\x^{(i)}, \bar{\y}) \ge
   \Delta(\y^{(i)}, \bar{\y}) - \xi_i, \, \forall \bar\y \in \mathcal{Y}.
 \end{aligned}
-$} \eqmoveup
+$} %\eqmoveup
 \end{equation}
 
 Here,
@@ -315,7 +315,8 @@ enforces that $\y^*$ is a single sequence of points without sub-tours.
 %\TODO{LX: i do not understand the last contraint, $v_j$ did not seem to have been defined? are they binary or something else?}
 % DW: v_j defined in the first constraint, which is a natural number
 We rewrite Eq.~(\ref{eq:jointfeature}) into a linear function of decision variables $u_{jk}$
-(dropping the unary term corresponding to $y_1^*$ as it is a constant), which results in ~(\ref{eq:obj}).
+(dropping the constant unary term corresponding to $y_1^*$), as % which results 
+in~(\ref{eq:obj}).
 %\setlength{\belowdisplayskip}{1pt} \setlength{\belowdisplayshortskip}{0pt}
 %\setlength{\abovedisplayskip}{1pt} \setlength{\abovedisplayshortskip}{0pt}
 %\begin{equation}%\eqmoveup\eqmoveup
@@ -350,7 +351,7 @@ $}
 \end{equation}
 %
 \begin{small}
-\vspace{-1.1em}
+\vspace{-1.2em}
 \begin{align}
 s.t. \, 
 & \sum_{k=2}^m u_{1k} = 1, \, \sum_{j=2}^m u_{j1} = z_1=0                   \label{eq:cons1} \\
@@ -360,7 +361,7 @@ s.t. \,
 \end{align}
 \end{small}
 
-\vspace{-1.5em}
+\vspace{-1.3em}
 %\textbf{Recommending more than one trajectory}.
 \subsubsection{Recommending more than one trajectory}
 Since multiple possible trajectories can start at the same POI, 

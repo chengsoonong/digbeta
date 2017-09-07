@@ -55,7 +55,7 @@ The sparsity of this dataset presents a barrier for large-scale evaluations.
 	%\begin{minipage}[t]{\linewidth}
 	%	\resizebox{\linewidth}{!}{
 	%	\setlength{\tabcolsep}{4pt} % tweak the space between columns
-	%	\small
+		\small
 		\begin{tabular}{lllll|ccc|cc} \hline %{l*{9}{c}} \hline
 		\textbf{Dataset} & \textbf{\#Traj} & \textbf{\#POIs} & \textbf{\#Users} & \textbf{\#Queries} & \textbf{\#GT=1} & \textbf{\#GT$\in [2,5]$} & \textbf{\#GT$>$5} & \textbf{\#shortTraj} & \textbf{\#longTraj} \\ \hline
 		Osaka            & 186              & 26              & 130              & 47                 & 17              & 22                      & 8                 & 178                     & 8  \\
@@ -244,8 +244,9 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 \begin{figure*}[!t]
 		\centering
 		\scalebox{0.9}{
-		\includegraphics[width=0.65\linewidth]{tau_topk.pdf}
-		\includegraphics[width=0.33\linewidth]{f1_glasgow_gte5}
+		%\includegraphics[width=0.65\linewidth]{tau_topk.pdf}
+		%\includegraphics[width=0.33\linewidth]{f1_glasgow_gte5}
+		\includegraphics[height=0.33\linewidth]{performance_comp.pdf}
 		}
 	    \captionof{figure}{Average Kendall’s $\tau$ over k=1:10, for short (left) and long (middle) trajectories. (right) F$_1$ score on points for long trajectories.
 			Structured recommendation methods perform best for all values of $k$.
