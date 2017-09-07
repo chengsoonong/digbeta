@@ -56,16 +56,17 @@ and by two novel applications of the list Viterbi algorithm that sequentially fi
 %modifying the inference and prediction steps using a variant of the Viterbi algorithm.
 Specifically, our contributions are as follows:
 \begin{itemize}[noitemsep,leftmargin=12pt]\itemmoveup
-	\item We formalise the problem of sequence recommendation (\S\ref{sec:seqrec-defn}), and show how trajectory recommendation can be seen as a special case (\S\ref{sec:trajrec}).
+	\item We formalise the problem of sequence recommendation, %(\S\ref{sec:seqrec-defn}), 
+          and show how trajectory recommendation can be seen as a special case. % (\S\ref{sec:trajrec}).
 	%cast it as a structured prediction task (\S\ref{sec:recseq}), and .
 
-	\item We show how sequence recommendation may be attacked using structured SVMs (\S\ref{sec:recseq}).
-	We propose one improvement of structured SVMs to the recommendation problem, so as to account for the existence of multiple ground truths for each input (\S\ref{ssec:sr}).
+	\item We show how sequence recommendation may be attacked using structured SVMs. % (\S\ref{sec:recseq}).
+	We propose one improvement of structured SVMs to the recommendation problem, so as to account for the existence of multiple ground truths for each input. % (\S\ref{ssec:sr}).
 	%Following \citep{joachims2009cutting}, we propose both $n$-slack and 1-slack versions of the structured recommender.%\footnote{This new structured recommender can in principle be applied to any problem where loss augmented inference can be efficiently computed. We focus on sequence recommendation in this paper.}
 
     \item We propose two novel applications of the list Viterbi algorithm -- an extension of the classic Viterbi algorithm that sequentially finds the list of highest scored sequences under some model --
-to exclude multiple ground truths for model learning (\S\ref{ssec:training}),
-and to predict sequences without repeated elements, i.e. {\em path}s in state-space (\S\ref{ssec:testing}).
+to exclude multiple ground truths for model learning, % (\S\ref{ssec:training}),
+and to predict sequences without repeated elements, i.e. {\em path}s in state-space. % (\S\ref{ssec:testing}).
 	%\item We show how one can avoid recommending sequences with loops or repetitions via integer linear programming and list Viterbi;
 %an extension of the classic Viterbi algorithm that returns a list of the highest scored sequences under some model;
 %%	We show that these algorithms may be incorporated during both the training %(via loss augmented inference)
@@ -73,7 +74,7 @@ and to predict sequences without repeated elements, i.e. {\em path}s in state-sp
 	%LX - now we have only four bullet points, i'm happier with this -- 5 is too many!
 	%LX - in addition, i do not think we can claim ILP as a contribution. it's in Lim'2015
 
-	\item We present experiments on real-world trajectory recommendation problems, and demonstrate our structured recommendation approaches improve over existing non-structured baselines (\S\ref{sec:experiment}).\itemmoveup
+	\item We present experiments on real-world trajectory recommendation problems, and demonstrate our structured recommendation approaches improve over existing non-structured baselines. % (\S\ref{sec:experiment}).\itemmoveup
 \end{itemize}
 
 %We begin with an overview of related work, before presenting our model.
