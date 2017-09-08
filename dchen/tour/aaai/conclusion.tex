@@ -4,18 +4,18 @@
 \section{Conclusion}
 %\textmoveup
 
-We cast the problem of sequence recommendation
+We cast the problem of {\trajrec}
 as a structured prediction problem.
-Our proposed solution extends structured SVMs to account for the new setting:
-first, we modified the training objective to account for the existence of multiple ground truths;
-second, we modified the prediction and loss augmented inference procedures to avoid predicting
-loops in the sequence. The inference procedures are novel applications of the list Viterbi
-algorithm.
+Our solution extends structured SVMs to account for two challenges:
+(1) the existence of multiple ground truths;
+(2) avoiding predicting loops in the sequence.
+The inference procedures are novel applications of the list Viterbi algorithm.
 Experiments on real-world trajectory recommendation datasets showed that
 structured recommendation outperform existing, non-structured approaches.
-Our new viewpoint enables researchers to bring recent advances in structured prediction
-to bear on recommender systems problems,
+
+Our viewpoint enables researchers to bring recent advances in structured prediction
+to bear on {\trajrec} problems,
 including further improving the efficiency of inference and learning.
-In the other direction techniques from recommender systems to capture latent
-user- and POI-representations, in sufficiently rich domains, may be used to
+In the other direction, techniques from recommender systems to capture latent
+user- and POI-representations, in sufficiently rich domains, may
 improve the predictive power of structured prediction models.
