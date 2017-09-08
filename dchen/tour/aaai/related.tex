@@ -24,8 +24,8 @@
 
 
 We summarise recent work most related to sequence recommendation, 
-in particular the problem of \trajrec, music playlist generation,
-next basket and next song prediction.
+in particular the problem of \trajrec, music playlist generation, 
+and next basket prediction.
 
 %To make the sequence recommendation problem more concrete,
 %we provide three specific examples,
@@ -34,15 +34,10 @@ next basket and next song prediction.
 %%we explicate how a recently studied problem may be viewed as a special case.
 %Note that in all these problems, one is specifically interested in sequences that are paths.
 
-{\bf Travel recommendation}
-%Travel recommendation 
-problems involve a set of points-of-interest (POIs) %$\mathcal{P}$ 
-in a city~\cite{bao2015recommendations,zheng2015trajectory,zheng2014urban}.
-
-One classic approach for ranking locations and trajectories is collaborative filtering, 
-or matrix factorisation family of techniques applied to places and trajectories~\cite{shi2011personalized,zhang2015location,ijcai13}.
-Another approach regards route recommendation as a planning problem~\cite{gioniswsdm14,ijcai15}.
-The TripBuilder system~\cite{brilhante2013shall} first solves a maximum coverage problem for user preference and then solves TSP for routing. 
+A classic approach for {\bf travel recommendation} is ranking locations with collaborative filtering~\cite{shi2011personalized,zhang2015location,ijcai13}.
+%or matrix factorisation family of techniques applied to places and trajectories
+Another approach regards route recommendation as a planning problem~\cite{brilhante2013shall,gioniswsdm14,ijcai15}.
+%The TripBuilder system~\cite{brilhante2013shall} first solves a maximum coverage problem for user preference and then solves TSP for routing. 
 The collaborative filtering approaches rank POI but do not take into account the sequence that a trip is taken. 
 On the other hand, the planning approaches assume a fixed objective function that is not directly optimised to predict user behaviour. 
 There have been a few approaches that jointly consider POI preferences and routes~\cite{chen2015tripplanner,kurashima2010geotag,kurashima2010geotag,cikm16paper}.
@@ -108,32 +103,24 @@ There have been a few approaches that jointly consider POI preferences and route
 %\textbf{Playlist generation}.
 {\bf Playlist generation}
 %As another example, 
-considers recommending song playlists (\ie sequences) to users, given a query song~\citep{McFee:2011,chen2012playlist,hidasi2015session,choi2016towards}.
+considers recommending playlists (\ie sequences of songs) to users, given a query song~\citep{McFee:2011,chen2012playlist,hidasi2015session}.
 A canonical approach is to
 learn a latent representation of songs from historical playlists,
-and exploit a Markovian assumption on the song transitions.
+and exploit a Markovian assumption on the song transitions;
+or to learn high quality transitions using RNNs~\cite{choi2016towards}.
 %While a reasonable first order approximation, this assumption limits the modelling power of such approaches.
-
 
 %
 %\textbf{Next basket and next song prediction}.
-{\bf Next basket and next song prediction}
+{\bf Next basket prediction}
 is another example of sequence recommendation,
 %One more example of sequence recommendation is the problem of recommending 
 where we recommend the next items a user might like to purchase, given the sequence of their shopping basket purchases~\citep{Rendle:2010,Wang:2015}.
-The canonical approach here is to apply matrix factorisation to the Markov chain of transitions between items.
-This method is feasible because one is only interested in predicting sequences one element at a time, instead of predicting the entire sequence given the initial item.
-Recent approaches using recurrent neural networks for
-next basket prediction~\cite{yu2016dynamic} and playlist
-generation~\cite{choi2016towards} also focus on modelling high quality transitions only.
+The canonical approach here is to apply matrix factorisation to the Markov chain of transitions between items,
+or modelling high quality transitions using RNNs.
+This method is feasible because one is only interested in predicting %sequences 
+one element at a time, instead of predicting a entire sequence given the initial item.
 
-As a remark, we note the cast of trajectory recommendation as a sequence recommendation problem
-is equally applicable to other applications described above.
-%and leave exploration of other applications to future work.
-Further, the assumption that the output $\y$ is a sequence does not limit the generality of our approach,
-as inferring $\y$ of other structures can be achieved using corresponding inference and loss-augmented inference algorithms~\cite{joachims2009predicting},
-we leave this exploration as future work.
-%LX - this sentence can be cut or merged above
 
 
 %\subsubsection{Existing approaches}

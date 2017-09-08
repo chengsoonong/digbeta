@@ -200,9 +200,11 @@ We use three performance measures for POIs, sequences and ordered lists.
 %We use three different measures to compare algorithm performances.
 The {\bf F$_1$ score on points}~\cite{ijcai15} computes F$_1$ on the predicted versus seen points
 without considering their relative order.
-The {\bf F$_1$ score on pairs}~\cite{cikm16paper} is proposed to mitigate this by computing F$_1$ on all ordered pairs in the predicted versus ground truth sequence. %%It is 1 iff both sequences agree completely.
+The {\bf F$_1$ score on pairs}~\cite{cikm16paper} %is proposed to
+can mitigate this by computing F$_1$ on all ordered pairs in the predicted versus ground truth sequence. %%It is 1 iff both sequences agree completely.
 The well-known rank correlation {\bf Kendall's $\tau$}~\cite{agresti2010analysis}
-computes the ratio of concordant (correctly ranked) pairs minus discordant pairs, over all possible pairs after accounting for ties.%taking care of ties.
+computes the ratio of concordant (correctly ranked) %pairs 
+minus discordant pairs, over all possible pairs after accounting for ties.%taking care of ties.
 %$\frac{1}{2}l(l-1)$) pairs  %DW: this is not correct
 
 Structured recommendation performs ranking on a very large labelset (of size $m^l$).
@@ -261,12 +263,12 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 
 
 Table~\ref{tab:result} summarises the performance of all methods for top-10 recommendations.
-We can observe from the results that \textsc{POIRank}, \textsc{Markov} and \textsc{SP},
+We can observe from the results that \textsc{POIRank}, \textsc{Markov} and \textsc{SP}
 methods that convert the trajectory recommendation task
 into data that is amenable to off the shelf methods (ranking, Markov chains and structured SVM respectively)
 performs better than baselines but are not the best performing methods.
 Although \textsc{Markov} achieves the best performance on the smallest \texttt{Osaka} dataset,
-however, the best results on larger datasets (\ie \texttt{Glasgow} and \texttt{Toronto}) are obtained using our proposed methods
+the best results on larger datasets (\ie \texttt{Glasgow} and \texttt{Toronto}) are obtained using our proposed methods
 %\textsc{SPpath}, 
 \textsc{SR} and \textsc{SRpath}.
 We also compare the performance for all values of top-$k$ with $k=1,\ldots,10$, and
@@ -302,23 +304,15 @@ and {\sc SRpath} are salient for longer trajectories, where pairwise and sequent
 Overall, structured recommendation methods have shown superior performance in location sequence recommendation tasks on a public benchmark. Most notably, taking into account multiple ground truths in structured prediction and modeling path constraints are important; and the effects are more pronounced in longer trajectories.
 
 Finally, we note that the unary terms in the sequence scoring function \eqref{eq:jointfeature} can be replaced with {\em personalised} terms to each user, such as from a recommender system~\cite{Koren:2009,bpr09}. 
-We also note that the sequence recommendation problem suits well within the recurrent neural network (RNN) based techniques, 
+We also note that the sequence recommendation problem suits well within the recurrent neural networks (RNNs) based techniques, 
 although these techniques generally require much more training data than available in our problem and 
-it is also not clear how to recommend a sequence as a whole instead of recommending the next best location as proposed in recent RNN based work~\cite{aaai16}.
+it is also not clear how to recommend a sequence as a whole instead of recommending the next best location as proposed in recent RNNs based work~\cite{aaai16}.
 We leave this and personalising structured recommendation as future work.
 %these results indicate that our structured prediction approach to the problem has
 %benefits over non-structured approaches,
 %and that our extensions to the vanilla structured approach are important to further improve performance.
 
-\subsection{Example}
-\label{sec:example}
-
-Figure~\ref{fig:example} shows an example of a recommended trajectory by the SR model, 
-the left sub-figure visualises the trajectory on a map, 
-and the right sub-figure shows how different POI features contribute to the scores of two POIs using a radar chart.
-Figure~\ref{fig:example_sbar} uses a stacked bar plot to visualises the score decomposition of both POIs and transitions according to POI and pairwise features respectively.
-
-\begin{figure}[!h]
+\begin{figure}[htbp]
     \centering
     \begin{subfigure}[t]{.47\linewidth} % sub-figure environment width
         \centering
@@ -333,19 +327,33 @@ Figure~\ref{fig:example_sbar} uses a stacked bar plot to visualises the score de
         %\caption{}
         %\label{fig:feature_comp}
     \end{subfigure}
-    \caption{Example of a recommended trajectory (left); A radar chart compares scores of two POIs decomposed according to features (right).}
+    \caption{Example of a recommended trajectory (left); A radar chart compares scores of two POIs decomposed according to features (right), see main body for details.}
     \label{fig:example}
 \end{figure}
+
+\subsection{Example}
+\label{sec:example}
+
+Figure~\ref{fig:example} shows a recommended trajectory by the SR model, 
+the trajectory includes 6 POIs and is visualised on a map (left figure);
+the scores of two POIs are decomposed according to many features,
+in particular, the red radar chart shows the decomposition of the first POI with a red marker in the trajectory,
+and the green radar chart show that of the third POI with a green marker. 
+We found that the popularity and distance related features were the contributor for the first POI, 
+while the third POI was mainly supported by the visits and distance related features.
+%the left sub-figure visualises the trajectory on a map, 
+%and the right sub-figure shows how different POI features contribute to the scores of two POIs using a radar chart.
+%Figure~\ref{fig:example_sbar} uses a stacked bar plot to visualises the score decomposition of both POIs and transitions according to POI and pairwise features respectively.
 
 
 %\begin{minipage}{0.5\linewidth}
 
-\begin{figure}[!h]
-    \centering
-    \includegraphics[width=\linewidth]{example_sbar.pdf}
-    \caption{A stacked bar plot compares scores of POI/transition decomposed according to features.}
-    \label{fig:example_sbar}
-\end{figure}
+%\begin{figure}[!h]
+%    \centering
+%    \includegraphics[width=\linewidth]{example_sbar.pdf}
+%    \caption{A stacked bar plot compares scores of POI/transition decomposed according to features.}
+%    \label{fig:example_sbar}
+%\end{figure}
 
 %\begin{figure*}[t]
 %	\centering

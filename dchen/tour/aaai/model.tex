@@ -19,7 +19,7 @@ and inference. % (Sec~\ref{ssec:testing}).
 
 A structured prediction task involves predicting some structured label $\y \in \mathcal{Y}$ for an input $\x \in \mathcal{X}$,
 typically via a score function $f(\x,\y)$ that determines the affinity of an (input, label) pair.
-A popular model is the Structured Support Vector Machine (SSVM)~\cite{tsochantaridis2004support}, comprising three core ingredients.
+A popular model is the Structured Support Vector Machine (SSVM)~\cite{taskar2004max,tsochantaridis2004support}, comprising three core ingredients.
 
 %\textbf{Score function}.
 \subsubsection{Score function}
@@ -77,9 +77,9 @@ $} %\eqmoveup
 Here,
 $\mathcal{Y}$ is the set of all possible sequences
 and $\Delta(\y\pb{i}, \bar\y)$ is the loss function between $\bar\y$ and the ground truth $\y\pb{i}$,
-and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th example~\cite{tsochantaridis2004support}.
+and slack variable $\xi_i$ is the \emph{hinge loss} for the prediction of the $i$-th example. %~\cite{tsochantaridis2004support}.
 Alternatively, we can use \emph{one} slack variable to represent the sum of the $n$ hinge losses in~(\ref{eq:nslack}),
-\ie the 1-slack formulation~\cite{tsochantaridis2004support}.
+\ie the 1-slack formulation~\cite{joachims2009predicting}.
 %%To solve problem (\ref{eq:nslack}),
 % one option is to simply enumerate all constraints, and feed the problem into a standard solver.
 % However, this approach is impractical as there is a constraint for every possible label $\bar{\y}$.
@@ -133,7 +133,7 @@ is creating
 $n_i$ examples $\{(\x\pb{i}, \y\pb{ij})\}_{j=1}^{n_i}$,
 and feeding this to the classic SSVM. %described in Section~\ref{ssec:ssvm} to capture this setting
 We call this the \emph{structured prediction} (\emph{SP}) model.
-
+%
 The SP model is appealing due to its simplicity.
 However, it is sub-optimal:
 %The problem with this approach is in the result of loss-augmented inference,
@@ -165,8 +165,10 @@ $}
 where $N = \sum_i n_i$ and $\bar{\y}^{(i)} \in \mathcal{Y} \setminus \{\y^{(ij)}\}_{j=1}^{n_i}$.
 The 1-slack formulation of~(\ref{eq:nslack_ml}) can be formed similar to that of~(\ref{eq:nslack}).
 Intuitively, the objective in (\ref{eq:nslack_ml}) is similar to a ranking objective, as the constraints enforce
-that the positively labeled sequences (the known items that the user likes) are scored
-higher than all other unseen sequences.
+that the positively labeled sequences 
+%(the known items that the user likes) 
+(items that the user likes) 
+are scored higher than all other unseen sequences.
 Such objectives have been proven useful in classic unstructured recommendation~\cite{bpr09}.
 %Recent work on positive and unlabelled data have
 %theoretically shown the close relationship between positive and unlabelled learning and two class classification.
@@ -196,7 +198,7 @@ cutting-plane algorithms~\cite{joachims2009predicting}, % cutting-plane
 gradient-based algorithms~\cite{ratliff2006subgradient} % sub-gradient
 and conditional gradient methods~\cite{lacoste2013block} % Frank-Wolfe
 giving proper loss augmented inference and prediction procedures,
-which we describe in the next two sections.
+which we describe as below. %in the next two sections.
 
 %DW: do we need this paragraph?
 %LX - the sentence below contains little info
@@ -230,7 +232,8 @@ List Viterbi represents a family of algorithms originally invented to decode dig
 
 The \emph{parallel list Viterbi} algorithm~\cite{seshadri1994list} finds the top $k$ sequences
 by keeping $k$ backtrack pointers for each possible state in each position of the sequence.
-This algorithm is memory-inefficient and can be difficult to use when one does not know what $k$ to use apriori -- this is the case for both the learning and inference challenges in this work.
+This algorithm is memory-inefficient and can be difficult to use when $k$ is unknown \emph{a-priori} %one does not know what $k$ to use apriori 
+-- this is the case for both the learning and inference challenges in this work.
 
 An important variant is the \emph{serial list Viterbi} algorithms (SLVA)~\cite{seshadri1994list,nill1995list,nilsson2001sequentially}.
 This algorithm sequentially find the $k$-th best sequences given the best, 2nd best, \dots, $(k \!-\! 1)$-th best sequences.
