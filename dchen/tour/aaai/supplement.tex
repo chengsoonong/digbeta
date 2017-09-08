@@ -311,7 +311,8 @@ pairwise features used in SP and SR methods and their extensions are shown in Ta
 \begin{itemize}
 \item To perform top-$k$ prediction with \textsc{Random} baseline, we simply repeat the \textsc{Random} method $k$ times.
 \item To perform top-$k$ prediction with \textsc{Popularity} and \textsc{PoiRank}, we make use of the list Viterbi algorithm 
-      (Algorithm~\ref{alg:listviterbi} to get $k$ best scored paths, in particular, 
+      %(Algorithm~\ref{alg:listviterbi} 
+      to get $k$ best scored paths, in particular, 
       for \textsc{Popularity}, the score of a path is the accumulated popularity of all POIs in the path; 
       for \textsc{PoiRank}, the score of a path is the likelihood 
       (the ranking scores for POIs are first transformed into a probability distribution using the softmax function, as described in~\cite{cikm16paper}).

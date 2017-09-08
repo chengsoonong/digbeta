@@ -1,102 +1,236 @@
-% !TEX root=./main.tex
-
-\secmoveup
-\section{Related work}
-\label{sec:related}
-\textmoveup
-
-We contrast the problem setting and approach of this paper to a number of sub-fields in the recommender systems and machine learning literature.
+% !TEX root = ./main.tex
 
 % \secmoveup
-% \subsection{Recommender systems}
+% \section{Trajectory Recommendation as a Structured Prediction Problem}
+% \label{sec:trajrec}
 % \textmoveup
 
-\textbf{Recommender systems}.
-There is a rich body of work on recommender systems,
-with the
-Netflix prize~\citep{Netflix} encapsulating the canonical problem that concerns most research in this field:
-the recommendation of \emph{static} content such as books or movies from some large database~\citep{Goldberg:1992,Sarwar:2001}.
-Matrix factorisation methods have proven particularly effective for such problems~\citep{Koren:2009}.
-%The latter are a prototypical example of a \emph{collaborative filtering} approach to recommendation,
-%wherein one exploits the ``wisdom of the crowd'' implicit in the preferences of several users.
-
-Standard matrix factorisation methods
-have been extended to tackle
-diverse problem settings such as
-time-varying preferences~\citep{Koren:2009b} and implicitly provided feedback~\citep{Rendle:2009}.
-However,
-the setting of recommending \emph{structured content},
-such as trajectories as considered in this paper,
-has received less attention but for a few exceptions (see below).
-There are clear challenges with applying matrix factorisation techniques in our problem.
-First, most users are only associated with a single trajectory, which defeats any hope of inferring a complex preference embedding for them.
-Second, even if one had access to multiple trajectories per user, it is unclear how to find a latent embedding for entire trajectories,
-as there are exponentially many possible values for the latter.
-
+% We present the trajectory recommendation problem,
+% which shall serve as our canonical application of sequential recommendation.
+% We first review the problem as it is typically treated in the literature,
+% and then show how it may be viewed as a structured prediction problem.
 
 % \secmoveup
-% \subsection{Structured content recommendation}
-% \textmoveup
-
-\textbf{Structured content recommendation}.
-The recommendation of structured content has
-been studied in three distinct subfields.
-The first is work on recommending the next item a user might like to purchase, given the sequence of their shopping basket purchases~\citep{Rendle:2010,Wang:2015}.
-The canonical approach here is to apply the matrix factorisation idea to the Markov chain of transitions between items.
-The success of this method relies on the fact that one is only interested in predicting sequences one element at a time, so that latent embeddings for each item may be found.
-
-The second is work on recommending song playlists to users, given a query song~\citep{McFee:2011,chen2012playlist}.
-The canonical approach here is to
-learn a latent representation of songs from historical playlist data,
-and exploit a Markovian assumption on the song transitions.
-While a reasonable first order approximation, this assumption limits the modelling power of such approaches.
-
-The third is prior work on travel route recommendation, which we survey in detail.
-
-
-% \secmoveup
-% \subsection{Travel route recommendation}
-% \textmoveup
-
-\textbf{Travel route recommendation}.
-Recommendation problems involving travel routes have received considerable interest of late~\cite{bao2015recommendations,zheng2015trajectory,zheng2014urban}.
-There are, roughly, three problem settings that have been studied.
-The first setting is \emph{point of interest} (\emph{POI}) \emph{recommendation}.
-Here, one wishes to rank various POIs in a city in order of how ``interesting'' they are to a given visitor,
-exploiting
-available metadata for each POI.
-Typically, this problem is tackled via
-collaborative filtering on user-location affinity~\cite{shi2011personalized,lian2014geomf,hsieh2014mining,yuan2014graph}.
-
-The second setting is \emph{next location recommendation}.
-Here, given the sequence of a traveller's partial tour through a city,
-the goal is to recommend which POI the traveller should visit next.
-This can be understood as a variant of POI recommendation with strong contextual information provided.
-Typically, this problem is tackled via
-incorporating Markov chains into collaborative filtering~\cite{fpmc10,ijcai13,zhang2015location}.
+% \subsection{Trajectory recommendation: standard view}
+% \textbf{Trajectory recommendation: standard view}.
+% \subsection{The trajectory recommendation problem}
+%\textbf{Trajectory recommendation}.
+\subsubsection{Trajectory recommendation}
+Travel recommendation problems involve a set of points-of-interest (POIs) $\mathcal{P}$ in a city~\cite{bao2015recommendations,zheng2015trajectory,zheng2014urban}.
+% There are, roughly, three problem settings that have been studied.
+% The first setting is \emph{point of interest} (\emph{POI}) \emph{recommendation};
+% Here, one wishes to rank various POIs in a city in order of how ``interesting'' they are to a given visitor,
+% exploiting
+% available metadata for each POI~\cite{shi2011personalized,lian2014geomf,hsieh2014mining,yuan2014graph}.
+% The second setting is \emph{next location recommendation};
+% here, given the sequence of a traveller's partial tour through a city,
+% the goal is to recommend which POI the traveller should visit next~\cite{fpmc10,ijcai13,zhang2015location}.
 %quantifying tourist traffic flow between points-of-interest~\cite{zheng2012patterns},
 %formulating a binary decision or ranking problem~\cite{baraglia2013learnext}, and predicting the next location with
 %or sequence models such as recurrent neural networks~\cite{aaai16}.
-The third setting is trajectory recommendation,
-which is our focus in this paper.
-Typically, this problem is tackled via
-a heuristic combination of locations and routes~\cite{lu2010photo2trip,ijcai15,lu2012personalized}, or
-by solving an optimisation problem that does not exploit historical data~\cite{gioniswsdm14,chen2015tripplanner}.
+%The third setting is \emph{trajectory recommendation},
+%which is our interest in this paper.
+%The \emph{trajectory recommendation} problem is:
+Given a \emph{trajectory query} $\mathbf{x} = (s, l)$,
+comprising a start POI $s \in \mathcal{P}$ and trip length
+%\footnote{Instead of specifying the number of desired POIs,
+%we can constrain the trajectory with a total time budget $T$.
+%In this case, the number of POIs $l$ can be treated as a \emph{hidden} variable,
+%with additional constraint $\sum_{k=1}^l t_k \le T$ where $t_k$ is the time spent at POI $y_k$.}
+$l \!>\! 1$ (\ie the desired number of POIs, including $s$),
+the \emph{trajectory recommendation} problem is to
+recommend one or more sequences of POIs %%(or \emph{trajectories}) %$\mathbf{y}^*$
+that maximise some notion of utility,
+%To learn a suitable $f$,
+%we are
+%provided as input
+learned from a training set
+%$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$,
+%comprising pairs of queries and corresponding
+of trajectories visited by travellers in the city.
+
+% AKM: not sure these are suitable here
+%
+% This problem is related to automatic playlist generation,
+% where we recommend a sequence of songs given a specified song (a.k.a. the seed) and the number of new songs.
+% Formally, given a library of songs and a query $\mathbf{x} = (s, K)$, where $s$ is the seed and $K$ is the number of songs in playlist,
+% we produce a list with $K$ songs (without duplication) by maximising the likelihood~\cite{chen2012playlist},
+% \begin{equation*}
+% %\max_{(y_1,\dots,y_K)} \prod_{k=2}^K \mathbb{P}(y_{k-1} \given y_k),~ y_1 = s ~\text{and}~ y_j \ne y_k,~ j \ne k.
+% \mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{P}_\mathbf{x}}~ \mathbb{P}(\mathbf{y} \given \mathbf{x}),~ \mathbf{y} = (y_1=s,\dots,y_K)
+% ~\text{and}~ y_j \ne y_k ~\text{if}~ j \ne k.
+% \end{equation*}
+
+% Another similar problem is choosing a small set of photos from a large photo library and compiling them into a slideshow or movie.
+
+%
+%\subsection{Trajectory recommendation: structured view}
+%\textbf{Trajectory recommendation: structured view}.
+%\subsection{Trajectory recommendation as a structured prediction problem}
+
+Existing approaches treat the problem as one of determining a score for the intrinsic appeal of each POI.
+% based on implicit preference data in the training set.
+% Perhaps the simplest such approach is based on learning a model to predict whether a particular POI occurs, or not, in the trajectory corresponding to a query.
+% Formally, from the given set of trajectories
+% we derive a training set $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
+% where each POI $p$ is augmented with a label $y^{(i)} \in \{ \pm 1 \}$ denoting whether or not it appeared in a trajectory corresponding to the query $\x^{(i)}$.
+% Formally, the objective used for training is
+% $$ \min_{\w} \frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{p \in \mathcal{P}} \ell\left( y^{(i)} \cdot ( \w^\top \Phi( \x^{(i)}, p ) ) \right) $$
+% where
+% $\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
+% $C > 0$ is some regularisation strength,
+% and $\ell( v )$ is any suitable margin loss, such as the logistic loss $\ell( v ) = \log( 1 + e^{-v} )$.
+% One can use the resulting model to produce a score for any POI $p$ given a new query $\x$,
+% and then pick the top-$l$ scoring POIs to produce a trajectory.
+%%For example, \citep{cikm16paper} proposed a RankSVM model,
+For example, a RankSVM model
+which %is fed as input %pairs $(p_i, p_j)$ of POIs such that $p_i$ appears ahead of $p_j$ in some trajectory.
+learns to predict whether a POI is likely to appear ahead of another POI in a trajectory corresponding to some query~\cite{cikm16paper}.
+Formally,
+from the given set of trajectories
+we derive a training set
+% $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
+% where each POI $p$ is augmented with a label
+% %$y^{(i)} \in \{ \pm 1 \}$ denoting whether or not
+% $y^{(i)}$ denoting how many times
+% it appeared in a trajectory corresponding to the query $\x^{(i)}$.
+$\{ ( \x^{(i)}, \mathbf{r}^{(i)} ) \}_{i = 1}^n$,
+where for each trajectory query $\x^{(i)}$ there is a list of ranked POI pairs
+$\mathbf{r}^{(i)} \subseteq \mathcal{P} \times \mathcal{P}$
+such that
+$(p, p') \in \mathbf{r}^{(i)}$
+iff
+%POI $p$ is ranked above the POI $p'$ in the trajectories associated with $\x^{(i)}$, %according to some notion.
+%\eg based on the counts of the number of times a POI appears in the trajectories associated with a query.
+POI $p$ appears more times than POI $p'$ in all trajectories associated with $\x^{(i)}$. %according to some notion.
+The training objective is %then
+\begin{align}
+\resizebox{0.909\linewidth}{!}{$\displaystyle
+\displaystyle \min_{\w} ~\frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathbf{r}^{(i)}}
+\ell\left( \w^\top ( \Psi( \x^{(i)}, p ) - \Psi( \x^{(i)}, p' ) ) \right),
+$} \label{eq:ranksvm}
+\end{align}
+for
+feature mapping $\Psi$,
+regularisation strength $C$ % > 0$,
+and squared hinge loss $\ell( v ) = \max( 0, 1 - v )^2$.
+%where $\Phi, C$ are as before,
+% where
+% $\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
+% $C > 0$ is some regularisation strength,
+% and $\ell( v ) = \max( 0, 1 - v )^2$ is the squared hinge loss,
+% and
+% %$p \succeq_{\mathbf{x}} p'$ is denoted to mean that the
+% $\mathcal{R}( \x )$
+% denotes all pairs of POIs $(p, p')$ such that
+% POI $p$ is ranked above the POI $p'$ in the trajectories associated with $\x$, %according to some notion.
+% \eg based on the counts of the number of times a POI appears in the trajectories associated with a query.
+%For example, this may be computed by counting the number of times a POI appears in the trajectories associated with a query,
+%and using this to determine which of two POIs is more suitable for a query.
+
+%%More abstractly,
+We can view trajectory recommendation as sequence recommendation in the following way:
+given trajectory query $\x$, and a suitable scoring function $f$, we wish to find
+$\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~f(\mathbf{x}, \mathbf{y}),$
+%%DW: use top-k prediction formulation or not?
+where $\mathcal{Y}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ that conform to the constraints imposed by the query $\mathbf{x}$.
+In particular,
+$\mathbf{y} = (s,~ y_2, \dots, y_l)$ is a trajectory with $l$ POIs. %, which has no sub-tours. %i.e. $y_j \ne y_k$ if $j \ne k$.
+This was the view proposed in~\cite{cikm16paper} where they authors considered an
+objective function that added two components together: a POI score and a transition score.
+
+Now, our training set of historical trajectories may be written as
+$\{ ( \x\pb{i}, \{ \y\pb{ij} \}_{j=1}^{n_i} ) \}_{i=1}^{n}$,
+where each $\x\pb{i}$ is a distinct query
+with $\{ \y\pb{ij} \}_{j=1}^{n_i}$ the corresponding \emph{set} of observed trajectories.
+Note that we expect most queries to have several distinct trajectories;
+minimally,
+for example,
+there may be two nearby POIs that are visited in interchangeable order by different travellers.
+We are also interested in predicting paths $\y$, since it is unlikely a user will want to visit the same location twice.
 
 
-% \secmoveup
-% \subsection{Learning to rank}
-% \textmoveup
-% AKM: probably can omit this stuff as I dunno how to frame it properly
+%
+%\textbf{Playlist generation}.
+\subsubsection{Playlist generation}
+As another example, consider recommending song playlists (\ie sequences) to users, given a query song~\citep{McFee:2011,chen2012playlist,hidasi2015session,choi2016towards}.
+A canonical approach is to
+learn a latent representation of songs from historical playlists,
+and exploit a Markovian assumption on the song transitions.
+%While a reasonable first order approximation, this assumption limits the modelling power of such approaches.
 
-% \textbf{Learning to rank}.
-% The sequence recommendation problem can be related at an abstract level to the label ranking problem~\citep{Dekel:2003},
-% where the input comprises a query and a corresponding graph as a label.
-% The goal in such problems is to similarly learn a ranking over the nodes of the graph;
-% however, these are typically not learned using structured prediction models,
-% but rather by computing a loss function over pairs.
 
-% Our problem can also be related to the listwise ranking approach in information retrieval~\citep{Cao:2007},
-% which attempts to learn a good set of results for a query by exploiting structure embedded in the entire set of results.
-% In this light, previous methods for sequence recommendation are akin to pointwise and pairwise approaches for ranking~\citep{Liu:2009}.
-% One contribution of this work is in casting sequence recommendation as such a structured prediction problem, where one considers the information embedded in the entire sequence associated with an input.
+%
+%\textbf{Next basket and next song prediction}.
+\subsubsection{Next basket and next song prediction}
+One more example of sequence recommendation is the problem of recommending the next items a user might like to purchase, given the sequence of their shopping basket purchases~\citep{Rendle:2010,Wang:2015}.
+The canonical approach here is to apply matrix factorisation to the Markov chain of transitions between items.
+This method is feasible because one is only interested in predicting sequences one element at a time, instead of predicting the entire sequence given the initial item.
+Recent approaches using recurrent neural networks for
+next basket prediction~\cite{yu2016dynamic} and playlist
+generation~\cite{choi2016towards} also focus on modelling high quality transitions only.
+
+
+%
+\subsection{The case for exploiting structure}
+
+Each of the sequence recommendation problems above can be plausibly solved with approaches that do not exploit the structure inherent in the outputs $\y$. %% or do so in a simple way.
+While such approaches can certainly be useful,
+their modelling power is inherently limited,
+as
+they cannot ensure the \emph{global} cohesion of the corresponding recommendations $\y$.
+%as they inherently rely on either pointwise or pairwise preferences for POIs.
+For example, in the trajectory recommendation problem, the RankSVM model %as argued in Section~\ref{sec:intro},
+might find three restaurants to be the highest scoring POIs;
+however, it is unlikely that these form a trajectory that most travellers will enjoy.
+
+This motivates an approach to sequence recommendation that directly ensures such global cohesion.
+%We now see how to do so with novel extensions to structured prediction approaches. %by attacking the problem using tools from structured prediction.
+% TODO: add text that fleshes these out
+Table \ref{tbl:challenges} summarises the three main challenges of travel sequence recommendation.
+In the next section, we will see how to deal with the global cohesion and multiple ground truths with a novel extension of a classic structured prediction model, and solve the loop elimination problem with the list Viterbi algorithm.
+
+\begin{table}[!h]
+	\centering
+	\begin{tabular}{ll}
+	\hline
+	\hline
+	\multicolumn{1}{c}{\bf Challenge} & \multicolumn{1}{c}{\bf Solution}            \\ \hline
+	Global cohesion                    & Structured SVM                             \\ \hline
+	Multiple ground truths             & Ground truth aggregation in loss 			\\ \hline
+	Loop elimination                   & List Viterbi algorithm                		\\ \hline  
+	\end{tabular}
+	\caption{Three fundamental challenges of travel sequence recommendation and their solutions.}
+	\label{tbl:challenges}
+\end{table}
+
+% To do this, we show how the problem can be cast as one of sequential recommendation,
+% thus allowing us to leverage the tools developed in the previous section.
+
+% Comparing the above to the discussion in the previous section, it is clear that
+% we can cast trajectory recommendation as a special case of the structured recommendation problem.
+% Consequently, we may approach it using structured prediction methods such as the SSVM,
+% as well as the extensions proposed to account for multiple ground truths and eliminate loops during training.
+
+% AKM: repetitive
+%
+% standard SSVM
+% We can learn a recommender by training a SSVM on the set of observed trajectories $\{\mathbf{x}^{(i')}, \mathbf{y}^{(i')}\}_{i'=1}^{N'}$,
+% However, we ignore the fact that for the same query, we normally observed more than one trajectory,
+% we would like to exploit this fact to better modelling the observed trajectories.
+
+% AKM: repetitive
+%
+% \subsection{Query Aggregation}
+% \label{sec:query}
+
+% To modelling the fact that a given query has multiple observed trajectories,
+% we firstly group trajectories according to queries, in other words,
+% we now have a dataset $\{\mathbf{x}^{(i)}, \{\mathbf{y}^{(ij)}\}_{j=1}^{N_i}\}_{i=1}^N$
+% with $N$ queries and queries $\mathbf{x}^{(i)}$ has $N_i$ trajectories observed.
+
+
+% \subsection{Recommendation with Multiset SSVM}
+% \label{sec:trajrec-ssvm}
+
+% We can learn to recommend trajectories by training a multiset SSVM described in Section~\ref{sec:ssvm-ms}

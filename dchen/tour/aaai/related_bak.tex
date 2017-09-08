@@ -1,0 +1,102 @@
+% !TEX root=./main.tex
+
+\secmoveup
+\section{Related work}
+\label{sec:related}
+\textmoveup
+
+We contrast the problem setting and approach of this paper to a number of sub-fields in the recommender systems and machine learning literature.
+
+% \secmoveup
+% \subsection{Recommender systems}
+% \textmoveup
+
+\textbf{Recommender systems}.
+There is a rich body of work on recommender systems,
+with the
+Netflix prize~\citep{Netflix} encapsulating the canonical problem that concerns most research in this field:
+the recommendation of \emph{static} content such as books or movies from some large database~\citep{Goldberg:1992,Sarwar:2001}.
+Matrix factorisation methods have proven particularly effective for such problems~\citep{Koren:2009}.
+%The latter are a prototypical example of a \emph{collaborative filtering} approach to recommendation,
+%wherein one exploits the ``wisdom of the crowd'' implicit in the preferences of several users.
+
+Standard matrix factorisation methods
+have been extended to tackle
+diverse problem settings such as
+time-varying preferences~\citep{Koren:2009b} and implicitly provided feedback~\citep{Rendle:2009}.
+However,
+the setting of recommending \emph{structured content},
+such as trajectories as considered in this paper,
+has received less attention but for a few exceptions (see below).
+There are clear challenges with applying matrix factorisation techniques in our problem.
+First, most users are only associated with a single trajectory, which defeats any hope of inferring a complex preference embedding for them.
+Second, even if one had access to multiple trajectories per user, it is unclear how to find a latent embedding for entire trajectories,
+as there are exponentially many possible values for the latter.
+
+
+% \secmoveup
+% \subsection{Structured content recommendation}
+% \textmoveup
+
+\textbf{Structured content recommendation}.
+The recommendation of structured content has
+been studied in three distinct subfields.
+The first is work on recommending the next item a user might like to purchase, given the sequence of their shopping basket purchases~\citep{Rendle:2010,Wang:2015}.
+The canonical approach here is to apply the matrix factorisation idea to the Markov chain of transitions between items.
+The success of this method relies on the fact that one is only interested in predicting sequences one element at a time, so that latent embeddings for each item may be found.
+
+The second is work on recommending song playlists to users, given a query song~\citep{McFee:2011,chen2012playlist}.
+The canonical approach here is to
+learn a latent representation of songs from historical playlist data,
+and exploit a Markovian assumption on the song transitions.
+While a reasonable first order approximation, this assumption limits the modelling power of such approaches.
+
+The third is prior work on travel route recommendation, which we survey in detail.
+
+
+% \secmoveup
+% \subsection{Travel route recommendation}
+% \textmoveup
+
+\textbf{Travel route recommendation}.
+Recommendation problems involving travel routes have received considerable interest of late~\cite{bao2015recommendations,zheng2015trajectory,zheng2014urban}.
+There are, roughly, three problem settings that have been studied.
+The first setting is \emph{point of interest} (\emph{POI}) \emph{recommendation}.
+Here, one wishes to rank various POIs in a city in order of how ``interesting'' they are to a given visitor,
+exploiting
+available metadata for each POI.
+Typically, this problem is tackled via
+collaborative filtering on user-location affinity~\cite{shi2011personalized,lian2014geomf,hsieh2014mining,yuan2014graph}.
+
+The second setting is \emph{next location recommendation}.
+Here, given the sequence of a traveller's partial tour through a city,
+the goal is to recommend which POI the traveller should visit next.
+This can be understood as a variant of POI recommendation with strong contextual information provided.
+Typically, this problem is tackled via
+incorporating Markov chains into collaborative filtering~\cite{fpmc10,ijcai13,zhang2015location}.
+%quantifying tourist traffic flow between points-of-interest~\cite{zheng2012patterns},
+%formulating a binary decision or ranking problem~\cite{baraglia2013learnext}, and predicting the next location with
+%or sequence models such as recurrent neural networks~\cite{aaai16}.
+The third setting is trajectory recommendation,
+which is our focus in this paper.
+Typically, this problem is tackled via
+a heuristic combination of locations and routes~\cite{lu2010photo2trip,ijcai15,lu2012personalized}, or
+by solving an optimisation problem that does not exploit historical data~\cite{gioniswsdm14,chen2015tripplanner}.
+
+
+% \secmoveup
+% \subsection{Learning to rank}
+% \textmoveup
+% AKM: probably can omit this stuff as I dunno how to frame it properly
+
+% \textbf{Learning to rank}.
+% The sequence recommendation problem can be related at an abstract level to the label ranking problem~\citep{Dekel:2003},
+% where the input comprises a query and a corresponding graph as a label.
+% The goal in such problems is to similarly learn a ranking over the nodes of the graph;
+% however, these are typically not learned using structured prediction models,
+% but rather by computing a loss function over pairs.
+
+% Our problem can also be related to the listwise ranking approach in information retrieval~\citep{Cao:2007},
+% which attempts to learn a good set of results for a query by exploiting structure embedded in the entire set of results.
+% In this light, previous methods for sequence recommendation are akin to pointwise and pairwise approaches for ranking~\citep{Liu:2009}.
+% One contribution of this work is in casting sequence recommendation as such a structured prediction problem, where one considers the information embedded in the entire sequence associated with an input.
