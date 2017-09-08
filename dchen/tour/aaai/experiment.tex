@@ -152,7 +152,8 @@ We compare our methods to the following four baselines:
 \item \textsc{PoiRank}~\cite{cikm16paper}
       %is a generalisation of \textsc{Popularity} which
       considers a number of POI-query features (see supplement) in addition to the popularity,
-      and trains a RankSVM model~\eqref{eq:ranksvm} to learn a score for each POI. The top-$l$ scored POIs are then used to construct a trajectory.
+      and trains a RankSVM model%~\eqref{eq:ranksvm} 
+      to learn a score for each POI. The top-$l$ scored POIs are then used to construct a trajectory.
 
 \item \textsc{Markov}~\cite{cikm16paper} learns a Markov chain by factorising the transition probabilities between a pair of POIs 
       according to a number of pairwise features (see supplement). 
@@ -309,8 +310,42 @@ We leave this and personalising structured recommendation as future work.
 %benefits over non-structured approaches,
 %and that our extensions to the vanilla structured approach are important to further improve performance.
 
-%\subsection{Example}
-%\label{sec:example}
+\subsection{Example}
+\label{sec:example}
+
+Figure~\ref{fig:example} shows an example of a recommended trajectory by the SR model, 
+the left sub-figure visualises the trajectory on a map, 
+and the right sub-figure shows how different POI features contribute to the scores of two POIs using a radar chart.
+Figure~\ref{fig:example_sbar} uses a stacked bar plot to visualises the score decomposition of both POIs and transitions according to POI and pairwise features respectively.
+
+\begin{figure}[!h]
+    \centering
+    \begin{subfigure}[t]{.47\linewidth} % sub-figure environment width
+        \centering
+        \includegraphics[width=\linewidth]{example_route.pdf}
+        %\caption{}
+        %\label{fig:route}
+    \end{subfigure}
+    \quad
+    \begin{subfigure}[t]{.47\linewidth} 
+        \centering
+        \includegraphics[width=\linewidth]{example_feature.pdf}
+        %\caption{}
+        %\label{fig:feature_comp}
+    \end{subfigure}
+    \caption{Example of a recommended trajectory (left); A radar chart compares scores of two POIs decomposed according to features (right).}
+    \label{fig:example}
+\end{figure}
+
+
+%\begin{minipage}{0.5\linewidth}
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[width=\linewidth]{example_sbar.pdf}
+    \caption{A stacked bar plot compares scores of POI/transition decomposed according to features.}
+    \label{fig:example_sbar}
+\end{figure}
 
 %\begin{figure*}[t]
 %	\centering
