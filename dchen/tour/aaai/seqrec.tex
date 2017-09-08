@@ -7,16 +7,16 @@
 \label{sec:recseq}
 %\textmoveup
 
-We introduce the structured recommendation problem that is the focus of this paper.
-We then provide some motivating examples, in particular the problem of trajectory recommendation.
+%We introduce the structured recommendation problem that is the focus of this paper.
+%We then provide some motivating examples, in particular the problem of trajectory recommendation.
 
 %\secmoveup
-\subsection{Structured and sequence recommendation}
-\label{sec:seqrec-defn}
+%\subsection{Structured and sequence recommendation}
+%\label{sec:seqrec-defn}
 
 %We now generalise the previous discussion to cover a broad class of problems.
 Consider the following %general %abstract
-\emph{structured recommendation} problem:
+\emph{sequence recommendation} problem:
 given an input query $\x \in \mathcal{X}$ (representing \eg a location, or some ``seed'' song)
 we wish to recommend one or more \emph{structured outputs} $\y \in \mathcal{Y}$ (representing \eg a sequence of locations, or songs)
 according to a learned \emph{score function} $f(\x,\y)$.
@@ -38,14 +38,57 @@ In many settings, one further requires the sequences to be \emph{paths}, \ie not
 As a remark, we note that the assumption that $\y$ is a sequence does not limit the generality of our approach,
 as inferring $\y$ of other structures can be achieved using corresponding inference and loss-augmented inference algorithms~\cite{joachims2009predicting}.  %LX - this sentence can be cut or merged above
 
+We can view trajectory recommendation as sequence recommendation in the following way:
+given trajectory query $\x$, and a suitable scoring function $f$, we wish to find
+$\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~f(\mathbf{x}, \mathbf{y}),$
+%%DW: use top-k prediction formulation or not?
+where $\mathcal{Y}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ that conform to the constraints imposed by the query $\mathbf{x}$.
+In particular,
+$\mathbf{y} = (s,~ y_2, \dots, y_l)$ is a trajectory with $l$ POIs. %, which has no sub-tours. %i.e. $y_j \ne y_k$ if $j \ne k$.
+This was the view proposed in~\cite{cikm16paper} where they authors considered an
+objective function that added two components together: a POI score and a transition score.
+
+Now, our training set of historical trajectories may be written as
+$\{ ( \x\pb{i}, \{ \y\pb{ij} \}_{j=1}^{n_i} ) \}_{i=1}^{n}$,
+where each $\x\pb{i}$ is a distinct query
+with $\{ \y\pb{ij} \}_{j=1}^{n_i}$ the corresponding \emph{set} of observed trajectories.
+Note that we expect most queries to have several distinct trajectories;
+minimally,
+for example,
+there may be two nearby POIs that are visited in interchangeable order by different travellers.
+We are also interested in predicting paths $\y$, since it is unlikely a user will want to visit the same location twice.
+
+
 
 %\secmoveup
 %\subsection{Sequence recommendation versus existing problems}
-\subsection{Comparison to existing problems}
+%\subsection{Comparison to existing problems}
+\subsection{Challenges of sequence recommendation}
 
 There are key differences between sequence recommendation and %what is being solved in
-standard problems in structured prediction and recommender systems;
+standard problems in recommender systems and structured prediction;
 this brings unique challenges for both inference and learning.
+
+In a typical recommender systems problem, the outputs are non-structured; canonically, one works with {static} content such as books or movies~\citep{Goldberg:1992,Sarwar:2001,Netflix}.
+Thus, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$ for suitable score function $f$, \eg some form of matrix factorisation~\citep{Koren:2009}.
+For sequence recommendation, computing $\argmax_\y f(\x,\y)$ is harder since it is often impossible to efficiently enumerate $\y$ (\eg all possible trajectories in a city).
+This inability to enumerate $\y$ also poses a challenge in designing a suitable $f(\x,\y)$,
+\eg
+%the standard matrix factorisation approach to recommender systems~\citep{Koren:2009}
+matrix factorisation
+would require associating a latent feature with each $\y$, which will be infeasible.
+
+%Each of the sequence recommendation problems above 
+The sequence recommendation problem can be plausibly solved with approaches that do not exploit the structure inherent in the outputs $\y$. %% or do so in a simple way.
+While such approaches can certainly be useful,
+their modelling power is inherently limited,
+as
+they cannot ensure the \emph{global} cohesion of the corresponding recommendations $\y$.
+%as they inherently rely on either pointwise or pairwise preferences for POIs.
+For example, in the trajectory recommendation problem, the RankSVM model %as argued in Section~\ref{sec:intro},
+might find three restaurants to be the highest scoring POIs;
+however, it is unlikely that these form a trajectory that most travellers will enjoy.
+This motivates an approach to sequence recommendation that directly ensures such global cohesion.
 
 In a structured prediction problem (for sequences), the goal is to learn from a set of
 input vector and output sequence tuples
@@ -61,25 +104,26 @@ or be a {\em path}~\cite{west2001introduction} in the candidate space (\eg locat
 Classic structured prediction does not constrain the output sequence, and having such a
 path constraint makes both inference and learning harder.
 
-In a typical recommender systems problem, the outputs are non-structured; canonically, one works with {static} content such as books or movies~\citep{Goldberg:1992,Sarwar:2001,Netflix}.
-Thus, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$ for suitable score function $f$, \eg some form of matrix factorisation~\citep{Koren:2009}.
-For sequence recommendation, computing $\argmax_\y f(\x,\y)$ is harder since it is often impossible to efficiently enumerate $\y$ (\eg all possible trajectories in a city).
-This inability to enumerate $\y$ also poses a challenge in designing a suitable $f(\x,\y)$,
-\eg
-%the standard matrix factorisation approach to recommender systems~\citep{Koren:2009}
-matrix factorisation
-would require associating a latent feature with each $\y$, which will be infeasible.
+
+%\subsection{The case for exploiting structure}
+
+%We now see how to do so with novel extensions to structured prediction approaches. %by attacking the problem using tools from structured prediction.
+% TODO: add text that fleshes these out
+Table \ref{tbl:challenges} summarises the three main challenges of travel sequence recommendation.
+In the next section, we will see how to deal with the global cohesion and multiple ground truths with a novel extension of a classic structured prediction model, and solve the loop elimination problem with the list Viterbi algorithm.
+
+\begin{table}[!h]
+	\centering
+	\begin{tabular}{ll}
+	\hline
+	\hline
+	\multicolumn{1}{c}{\bf Challenge} & \multicolumn{1}{c}{\bf Solution}            \\ \hline
+	Global cohesion                    & Structured SVM                             \\ \hline
+	Multiple ground truths             & Ground truth aggregation in loss 			\\ \hline
+	Loop elimination                   & List Viterbi algorithm                		\\ \hline  
+	\end{tabular}
+	\caption{Three fundamental challenges of travel sequence recommendation and their solutions.}
+	\label{tbl:challenges}
+\end{table}
 
 
-%\secmoveup
-\subsection{Examples of sequence recommendation}
-\label{sec:trajrec}
-
-To make the sequence recommendation problem more concrete,
-we provide three specific examples,
-starting with the problem of trajectory recommendation
-that shall serve as a recurring motivation.
-%we explicate how a recently studied problem may be viewed as a special case.
-Note that in all these problems, one is specifically interested in sequences that are paths.
-
-\input{trajrec}
