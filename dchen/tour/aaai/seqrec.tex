@@ -3,20 +3,23 @@
 %\section{Recommending sequences}
 %\secmoveup
 %\section{The structured recommendation problem}
-\section{The sequence recommendation problem}
+\section{The {\trajrec} problem}
 \label{sec:recseq}
 %\textmoveup
 
-%We introduce the structured recommendation problem that is the focus of this paper.
-%We then provide some motivating examples, in particular the problem of trajectory recommendation.
+We introduce the {\trajrec} problem that is the focus of this paper,
+by first providing an abstract mathematical formulation.
+%We then provide some motivating examples, in particular the problem of {\trajrec}.
 
 %\secmoveup
-%\subsection{Structured and sequence recommendation}
+%\subsection{Structured and {\seqrec}}
 %\label{sec:seqrec-defn}
+
+\subsection{The {\seqrec} problem}
 
 %We now generalise the previous discussion to cover a broad class of problems.
 Consider the following %general %abstract
-\emph{sequence recommendation} problem:
+\emph{{\seqrec}} problem:
 given an input query $\x \in \mathcal{X}$ (representing \eg a location, or some ``seed'' song)
 we wish to recommend one or more \emph{structured outputs} $\y \in \mathcal{Y}$ (representing \eg a sequence of locations, or songs)
 according to a learned \emph{score function} $f(\x,\y)$.
@@ -31,20 +34,59 @@ For this work, we assume the output $\y$ is a \emph{sequence} of $l$ points, den
 where each $y_i$ belongs to some fixed set (\eg places of interest in a city, or a collection of songs).
 %For example, each $\y$ may be a sequences of places in a city, or a playlist of songs.
 %Thus, for example, the training set might represent a collection of users in a city, along with a set of trajectories () they have visited.
-We call the resulting specialisation the \emph{sequence recommendation} problem,
+We call the resulting specialisation the \emph{{\seqrec}} problem,
 and this shall be our primary interest in this paper.
 In many settings, one further requires the sequences to be \emph{paths}, \ie not contain any repetitions.
 
 As a remark, we note that the assumption that $\y$ is a sequence does not limit the generality of our approach,
 as inferring $\y$ of other structures can be achieved using corresponding inference and loss-augmented inference algorithms~\cite{joachims2009predicting}.  %LX - this sentence can be cut or merged above
 
-We can view trajectory recommendation as sequence recommendation in the following way:
-given trajectory query $\x$, and a suitable scoring function $f$, we wish to find
+
+%
+\subsection{Contrast to recommender systems}
+
+%
+%\subsubsection{Recommender systems}
+In a typical recommender systems problem, the outputs are non-structured; canonically, one works with {static} content such as books or movies~\citep{Goldberg:1992,Sarwar:2001,Netflix}.
+Thus, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$ for suitable score function $f$, \eg some form of matrix factorisation~\citep{Koren:2009}.
+For {\seqrec}, computing $\argmax_\y f(\x,\y)$ is harder since it is often impossible to efficiently enumerate $\y$ (\eg all possible trajectories in a city).
+This inability to enumerate $\y$ also poses a challenge in designing a suitable $f(\x,\y)$,
+\eg
+%the standard matrix factorisation approach to recommender systems~\citep{Koren:2009}
+matrix factorisation
+would require associating a latent feature with each $\y$, which will be infeasible.
+
+
+
+%
+\subsection{Special case: {\trajrec}}
+
+%The \emph{\trajrec} problem is:
+Given a \emph{trajectory query} $\mathbf{x} = (s, l)$,
+comprising a start POI $s \in \mathcal{P}$ and trip length
+%\footnote{Instead of specifying the number of desired POIs,
+%we can constrain the trajectory with a total time budget $T$.
+%In this case, the number of POIs $l$ can be treated as a \emph{hidden} variable,
+%with additional constraint $\sum_{k=1}^l t_k \le T$ where $t_k$ is the time spent at POI $y_k$.}
+$l \!>\! 1$ (\ie the desired number of POIs, including $s$),
+the \emph{\trajrec} problem is to
+recommend one or more sequences of POIs %%(or \emph{trajectories}) %$\mathbf{y}^*$
+that maximise some notion of utility,
+%To learn a suitable $f$,
+%we are
+%provided as input
+learned from a training set
+%$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$,
+%comprising pairs of queries and corresponding
+of trajectories visited by travellers in the city.
+
+We can view the {\trajrec} problem as {\seqrec} in the following way:
+given {\trajectory} query $\x$, and a suitable scoring function $f$, we wish to find
 $\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~f(\mathbf{x}, \mathbf{y}),$
 %%DW: use top-k prediction formulation or not?
 where $\mathcal{Y}$ is the set of all possible trajectories with POIs in $\mathcal{P}$ that conform to the constraints imposed by the query $\mathbf{x}$.
 In particular,
-$\mathbf{y} = (s,~ y_2, \dots, y_l)$ is a trajectory with $l$ POIs. %, which has no sub-tours. %i.e. $y_j \ne y_k$ if $j \ne k$.
+$\mathbf{y} = (s,~ y_2, \dots, y_l)$ is a {\trajectory} with $l$ POIs. %, which has no sub-tours. %i.e. $y_j \ne y_k$ if $j \ne k$.
 This was the view proposed in~\cite{cikm16paper} where they authors considered an
 objective function that added two components together: a POI score and a transition score.
 
@@ -59,46 +101,110 @@ there may be two nearby POIs that are visited in interchangeable order by differ
 We are also interested in predicting paths $\y$, since it is unlikely a user will want to visit the same location twice.
 
 
+%
+\subsubsection{Existing approaches}
+
+Existing approaches treat the problem as one of determining a score for the intrinsic appeal of each POI.
+% based on implicit preference data in the training set.
+% Perhaps the simplest such approach is based on learning a model to predict whether a particular POI occurs, or not, in the trajectory corresponding to a query.
+% Formally, from the given set of trajectories
+% we derive a training set $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
+% where each POI $p$ is augmented with a label $y^{(i)} \in \{ \pm 1 \}$ denoting whether or not it appeared in a trajectory corresponding to the query $\x^{(i)}$.
+% Formally, the objective used for training is
+% $$ \min_{\w} \frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{p \in \mathcal{P}} \ell\left( y^{(i)} \cdot ( \w^\top \Phi( \x^{(i)}, p ) ) \right) $$
+% where
+% $\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
+% $C > 0$ is some regularisation strength,
+% and $\ell( v )$ is any suitable margin loss, such as the logistic loss $\ell( v ) = \log( 1 + e^{-v} )$.
+% One can use the resulting model to produce a score for any POI $p$ given a new query $\x$,
+% and then pick the top-$l$ scoring POIs to produce a trajectory.
+%%For example, \citep{cikm16paper} proposed a RankSVM model,
+For example, a RankSVM model
+which %is fed as input %pairs $(p_i, p_j)$ of POIs such that $p_i$ appears ahead of $p_j$ in some trajectory.
+learns to predict whether a POI is likely to appear ahead of another POI in a trajectory corresponding to some query~\cite{cikm16paper}.
+Formally,
+from the given set of trajectories
+we derive a training set
+% $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
+% where each POI $p$ is augmented with a label
+% %$y^{(i)} \in \{ \pm 1 \}$ denoting whether or not
+% $y^{(i)}$ denoting how many times
+% it appeared in a trajectory corresponding to the query $\x^{(i)}$.
+$\{ ( \x^{(i)}, \mathbf{r}^{(i)} ) \}_{i = 1}^n$,
+where for each trajectory query $\x^{(i)}$ there is a list of ranked POI pairs
+$\mathbf{r}^{(i)} \subseteq \mathcal{P} \times \mathcal{P}$
+such that
+$(p, p') \in \mathbf{r}^{(i)}$
+iff
+%POI $p$ is ranked above the POI $p'$ in the trajectories associated with $\x^{(i)}$, %according to some notion.
+%\eg based on the counts of the number of times a POI appears in the trajectories associated with a query.
+POI $p$ appears more times than POI $p'$ in all trajectories associated with $\x^{(i)}$. %according to some notion.
+The training objective is %then
+\begin{align}
+\resizebox{0.909\linewidth}{!}{$\displaystyle
+\displaystyle \min_{\w} ~\frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathbf{r}^{(i)}}
+\ell\left( \w^\top ( \Psi( \x^{(i)}, p ) - \Psi( \x^{(i)}, p' ) ) \right),
+$} \label{eq:ranksvm}
+\end{align}
+for
+feature mapping $\Psi$,
+regularisation strength $C$ % > 0$,
+and squared hinge loss $\ell( v ) = \max( 0, 1 - v )^2$.
+%where $\Phi, C$ are as before,
+% where
+% $\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
+% $C > 0$ is some regularisation strength,
+% and $\ell( v ) = \max( 0, 1 - v )^2$ is the squared hinge loss,
+% and
+% %$p \succeq_{\mathbf{x}} p'$ is denoted to mean that the
+% $\mathcal{R}( \x )$
+% denotes all pairs of POIs $(p, p')$ such that
+% POI $p$ is ranked above the POI $p'$ in the trajectories associated with $\x$, %according to some notion.
+% \eg based on the counts of the number of times a POI appears in the trajectories associated with a query.
+%For example, this may be computed by counting the number of times a POI appears in the trajectories associated with a query,
+%and using this to determine which of two POIs is more suitable for a query.
+
+
 
 %\secmoveup
-%\subsection{Sequence recommendation versus existing problems}
+%\subsection{{\seqrec} versus existing problems}
 %\subsection{Comparison to existing problems}
-\subsection{Challenges of sequence recommendation}
+\subsection{Challenges of {\trajrec}}
 
-There are key differences between sequence recommendation and %what is being solved in
+There are key differences between {\seqrec} and %what is being solved in
 standard problems in recommender systems and structured prediction;
 this brings unique challenges for both inference and learning.
 
-In a typical recommender systems problem, the outputs are non-structured; canonically, one works with {static} content such as books or movies~\citep{Goldberg:1992,Sarwar:2001,Netflix}.
-Thus, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$ for suitable score function $f$, \eg some form of matrix factorisation~\citep{Koren:2009}.
-For sequence recommendation, computing $\argmax_\y f(\x,\y)$ is harder since it is often impossible to efficiently enumerate $\y$ (\eg all possible trajectories in a city).
-This inability to enumerate $\y$ also poses a challenge in designing a suitable $f(\x,\y)$,
-\eg
-%the standard matrix factorisation approach to recommender systems~\citep{Koren:2009}
-matrix factorisation
-would require associating a latent feature with each $\y$, which will be infeasible.
-
-%Each of the sequence recommendation problems above 
-The sequence recommendation problem can be plausibly solved with approaches that do not exploit the structure inherent in the outputs $\y$. %% or do so in a simple way.
+%
+\subsubsection{Global cohesion}
+%Each of the {\seqrec} problems above 
+The {\seqrec} problem can be plausibly solved with approaches that do not exploit the structure inherent in the outputs $\y$. %% or do so in a simple way.
 While such approaches can certainly be useful,
 their modelling power is inherently limited,
 as
 they cannot ensure the \emph{global} cohesion of the corresponding recommendations $\y$.
 %as they inherently rely on either pointwise or pairwise preferences for POIs.
-For example, in the trajectory recommendation problem, the RankSVM model %as argued in Section~\ref{sec:intro},
+For example, in the {\trajrec} problem, the RankSVM model %as argued in Section~\ref{sec:intro},
 might find three restaurants to be the highest scoring POIs;
-however, it is unlikely that these form a trajectory that most travellers will enjoy.
-This motivates an approach to sequence recommendation that directly ensures such global cohesion.
+however, it is unlikely that these form a {\trajectory} that most travellers will enjoy.
+This motivates an approach to {\seqrec} that directly ensures such global cohesion.
 
+
+%
+\subsubsection{Multiple ground truth}
 In a structured prediction problem (for sequences), the goal is to learn from a set of
 input vector and output sequence tuples
 $\{ (\x\pb{i}, \y\pb{i}) \}_{i = 1}^n$, where
 for each input $\x\pb{i}$ there is usually one \emph{unique} output sequence $\y\pb{i}$.
-In a sequence recommendation problem, however, we expect that %learn from
+In a {\seqrec} problem, however, we expect that %learn from
 for each input $\x\pb{i}$ (\eg users),
 there are \emph{multiple} associated outputs
 $\{ \y\pb{ij} \}_{j=1}^{n_i}$ (\eg trajectories visited).
 Structured prediction approaches do not have a standard way to handle such multiple output sequences.
+
+
+%
+\subsubsection{Loop elimination}
 Furthermore, it is desirable for the recommended sequence to consist of unique elements,
 or be a {\em path}~\cite{west2001introduction} in the candidate space (\eg locations).
 Classic structured prediction does not constrain the output sequence, and having such a
@@ -109,7 +215,7 @@ path constraint makes both inference and learning harder.
 
 %We now see how to do so with novel extensions to structured prediction approaches. %by attacking the problem using tools from structured prediction.
 % TODO: add text that fleshes these out
-Table \ref{tbl:challenges} summarises the three main challenges of travel sequence recommendation.
+Table \ref{tbl:challenges} summarises the three main challenges of {\trajrec}.
 In the next section, we will see how to deal with the global cohesion and multiple ground truths with a novel extension of a classic structured prediction model, and solve the loop elimination problem with the list Viterbi algorithm.
 
 \begin{table}[!h]
@@ -122,7 +228,7 @@ In the next section, we will see how to deal with the global cohesion and multip
 	Multiple ground truths             & Ground truth aggregation in loss 			\\ \hline
 	Loop elimination                   & List Viterbi algorithm                		\\ \hline  
 	\end{tabular}
-	\caption{Three fundamental challenges of travel sequence recommendation and their solutions.}
+	\caption{Three fundamental challenges of {\trajrec} and their solutions.}
 	\label{tbl:challenges}
 \end{table}
 

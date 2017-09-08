@@ -1,20 +1,20 @@
 % !TEX root = ./main.tex
 
 % \secmoveup
-% \section{Trajectory Recommendation as a Structured Prediction Problem}
+% \section{\trajrec as a Structured Prediction Problem}
 % \label{sec:trajrec}
 % \textmoveup
 
-% We present the trajectory recommendation problem,
+% We present the \trajrec problem,
 % which shall serve as our canonical application of sequential recommendation.
 % We first review the problem as it is typically treated in the literature,
 % and then show how it may be viewed as a structured prediction problem.
 
 % \secmoveup
-% \subsection{Trajectory recommendation: standard view}
-% \textbf{Trajectory recommendation: standard view}.
-% \subsection{The trajectory recommendation problem}
-%\textbf{Trajectory recommendation}.
+% \subsection{\trajrec: standard view}
+% \textbf{\trajrec: standard view}.
+% \subsection{The \trajrec problem}
+%\textbf{\trajrec}.
 
 %\subsection{Examples of sequence recommendation}
 %\label{sec:trajrec}
@@ -22,18 +22,19 @@
 \section{Related work}
 \label{sec:related}
 
+
 We summarise recent work most related to sequence recommendation, 
-in particular the problem of travel trajectory recommendation, music playlist generation,
+in particular the problem of \trajrec, music playlist generation,
 next basket and next song prediction.
 
 %To make the sequence recommendation problem more concrete,
 %we provide three specific examples,
-%starting with the problem of trajectory recommendation
+%starting with the problem of \trajrec
 %that shall serve as a recurring motivation.
 %%we explicate how a recently studied problem may be viewed as a special case.
 %Note that in all these problems, one is specifically interested in sequences that are paths.
 
-{\bf The travel trajectory recommendation}
+{\bf Travel recommendation}
 %Travel recommendation 
 problems involve a set of points-of-interest (POIs) %$\mathcal{P}$ 
 in a city~\cite{bao2015recommendations,zheng2015trajectory,zheng2014urban}.
@@ -57,26 +58,9 @@ There have been a few approaches that jointly consider POI preferences and route
 %quantifying tourist traffic flow between points-of-interest~\cite{zheng2012patterns},
 %formulating a binary decision or ranking problem~\cite{baraglia2013learnext}, and predicting the next location with
 %or sequence models such as recurrent neural networks~\cite{aaai16}.
-%The third setting is \emph{trajectory recommendation},
+%The third setting is \emph{\trajrec},
 %which is our interest in this paper.
-%The \emph{trajectory recommendation} problem is:
-Given a \emph{trajectory query} $\mathbf{x} = (s, l)$,
-comprising a start POI $s \in \mathcal{P}$ and trip length
-%\footnote{Instead of specifying the number of desired POIs,
-%we can constrain the trajectory with a total time budget $T$.
-%In this case, the number of POIs $l$ can be treated as a \emph{hidden} variable,
-%with additional constraint $\sum_{k=1}^l t_k \le T$ where $t_k$ is the time spent at POI $y_k$.}
-$l \!>\! 1$ (\ie the desired number of POIs, including $s$),
-the \emph{trajectory recommendation} problem is to
-recommend one or more sequences of POIs %%(or \emph{trajectories}) %$\mathbf{y}^*$
-that maximise some notion of utility,
-%To learn a suitable $f$,
-%we are
-%provided as input
-learned from a training set
-%$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$,
-%comprising pairs of queries and corresponding
-of trajectories visited by travellers in the city.
+
 
 % AKM: not sure these are suitable here
 %
@@ -93,72 +77,13 @@ of trajectories visited by travellers in the city.
 % Another similar problem is choosing a small set of photos from a large photo library and compiling them into a slideshow or movie.
 
 %
-%\subsection{Trajectory recommendation: structured view}
-%\textbf{Trajectory recommendation: structured view}.
-%\subsection{Trajectory recommendation as a structured prediction problem}
+%\subsection{\trajrec: structured view}
+%\textbf{\trajrec: structured view}.
+%\subsection{\trajrec as a structured prediction problem}
 
-Existing approaches treat the problem as one of determining a score for the intrinsic appeal of each POI.
-% based on implicit preference data in the training set.
-% Perhaps the simplest such approach is based on learning a model to predict whether a particular POI occurs, or not, in the trajectory corresponding to a query.
-% Formally, from the given set of trajectories
-% we derive a training set $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
-% where each POI $p$ is augmented with a label $y^{(i)} \in \{ \pm 1 \}$ denoting whether or not it appeared in a trajectory corresponding to the query $\x^{(i)}$.
-% Formally, the objective used for training is
-% $$ \min_{\w} \frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{p \in \mathcal{P}} \ell\left( y^{(i)} \cdot ( \w^\top \Phi( \x^{(i)}, p ) ) \right) $$
-% where
-% $\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
-% $C > 0$ is some regularisation strength,
-% and $\ell( v )$ is any suitable margin loss, such as the logistic loss $\ell( v ) = \log( 1 + e^{-v} )$.
-% One can use the resulting model to produce a score for any POI $p$ given a new query $\x$,
-% and then pick the top-$l$ scoring POIs to produce a trajectory.
-%%For example, \citep{cikm16paper} proposed a RankSVM model,
-For example, a RankSVM model
-which %is fed as input %pairs $(p_i, p_j)$ of POIs such that $p_i$ appears ahead of $p_j$ in some trajectory.
-learns to predict whether a POI is likely to appear ahead of another POI in a trajectory corresponding to some query~\cite{cikm16paper}.
-Formally,
-from the given set of trajectories
-we derive a training set
-% $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
-% where each POI $p$ is augmented with a label
-% %$y^{(i)} \in \{ \pm 1 \}$ denoting whether or not
-% $y^{(i)}$ denoting how many times
-% it appeared in a trajectory corresponding to the query $\x^{(i)}$.
-$\{ ( \x^{(i)}, \mathbf{r}^{(i)} ) \}_{i = 1}^n$,
-where for each trajectory query $\x^{(i)}$ there is a list of ranked POI pairs
-$\mathbf{r}^{(i)} \subseteq \mathcal{P} \times \mathcal{P}$
-such that
-$(p, p') \in \mathbf{r}^{(i)}$
-iff
-%POI $p$ is ranked above the POI $p'$ in the trajectories associated with $\x^{(i)}$, %according to some notion.
-%\eg based on the counts of the number of times a POI appears in the trajectories associated with a query.
-POI $p$ appears more times than POI $p'$ in all trajectories associated with $\x^{(i)}$. %according to some notion.
-The training objective is %then
-\begin{align}
-\resizebox{0.909\linewidth}{!}{$\displaystyle
-\displaystyle \min_{\w} ~\frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathbf{r}^{(i)}}
-\ell\left( \w^\top ( \Psi( \x^{(i)}, p ) - \Psi( \x^{(i)}, p' ) ) \right),
-$} \label{eq:ranksvm}
-\end{align}
-for
-feature mapping $\Psi$,
-regularisation strength $C$ % > 0$,
-and squared hinge loss $\ell( v ) = \max( 0, 1 - v )^2$.
-%where $\Phi, C$ are as before,
-% where
-% $\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
-% $C > 0$ is some regularisation strength,
-% and $\ell( v ) = \max( 0, 1 - v )^2$ is the squared hinge loss,
-% and
-% %$p \succeq_{\mathbf{x}} p'$ is denoted to mean that the
-% $\mathcal{R}( \x )$
-% denotes all pairs of POIs $(p, p')$ such that
-% POI $p$ is ranked above the POI $p'$ in the trajectories associated with $\x$, %according to some notion.
-% \eg based on the counts of the number of times a POI appears in the trajectories associated with a query.
-%For example, this may be computed by counting the number of times a POI appears in the trajectories associated with a query,
-%and using this to determine which of two POIs is more suitable for a query.
 
 %%More abstractly,
-%We can view trajectory recommendation as sequence recommendation in the following way:
+%We can view \trajrec as sequence recommendation in the following way:
 %given trajectory query $\x$, and a suitable scoring function $f$, we wish to find
 %$\mathbf{y}^* = \argmax_{\mathbf{y} \in \mathcal{Y}}~f(\mathbf{x}, \mathbf{y}),$
 %%%DW: use top-k prediction formulation or not?
@@ -202,7 +127,7 @@ Recent approaches using recurrent neural networks for
 next basket prediction~\cite{yu2016dynamic} and playlist
 generation~\cite{choi2016towards} also focus on modelling high quality transitions only.
 
-We cast travel trajectory recommendation as an abstract sequence recommendation problem,
+We cast \trajrec as an abstract sequence recommendation problem,
 and leave exploration of other applications to future work.
 
 %
@@ -210,7 +135,7 @@ and leave exploration of other applications to future work.
 % thus allowing us to leverage the tools developed in the previous section.
 
 % Comparing the above to the discussion in the previous section, it is clear that
-% we can cast trajectory recommendation as a special case of the structured recommendation problem.
+% we can cast \trajrec as a special case of the structured recommendation problem.
 % Consequently, we may approach it using structured prediction methods such as the SSVM,
 % as well as the extensions proposed to account for multiple ground truths and eliminate loops during training.
 
