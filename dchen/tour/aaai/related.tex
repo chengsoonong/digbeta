@@ -45,7 +45,7 @@ Another approach regards route recommendation as a planning problem~\cite{gionis
 The TripBuilder system~\cite{brilhante2013shall} first solves a maximum coverage problem for user preference and then solves TSP for routing. 
 The collaborative filtering approaches rank POI but do not take into account the sequence that a trip is taken. 
 On the other hand, the planning approaches assume a fixed objective function that is not directly optimised to predict user behaviour. 
-There have been a few approaches that jointly consider POI preferences and routes~\cite{chen2015tripplanner,kurashima2010geotag,kurashima2010geotag}.
+There have been a few approaches that jointly consider POI preferences and routes~\cite{chen2015tripplanner,kurashima2010geotag,kurashima2010geotag,cikm16paper}.
 
 % There are, roughly, three problem settings that have been studied.
 % The first setting is \emph{point of interest} (\emph{POI}) \emph{recommendation};
@@ -127,8 +127,78 @@ Recent approaches using recurrent neural networks for
 next basket prediction~\cite{yu2016dynamic} and playlist
 generation~\cite{choi2016towards} also focus on modelling high quality transitions only.
 
-We cast \trajrec as an abstract sequence recommendation problem,
-and leave exploration of other applications to future work.
+As a remark, we note the cast of trajectory recommendation as a sequence recommendation problem
+is equally applicable to other applications described above.
+%and leave exploration of other applications to future work.
+Further, the assumption that the output $\y$ is a sequence does not limit the generality of our approach,
+as inferring $\y$ of other structures can be achieved using corresponding inference and loss-augmented inference algorithms~\cite{joachims2009predicting},
+we leave this exploration as future work.
+%LX - this sentence can be cut or merged above
+
+
+%\subsubsection{Existing approaches}
+%
+%Existing approaches treat the problem as one of determining a score for the intrinsic appeal of each POI.
+%% based on implicit preference data in the training set.
+%% Perhaps the simplest such approach is based on learning a model to predict whether a particular POI occurs, or not, in the trajectory corresponding to a query.
+%% Formally, from the given set of trajectories
+%% we derive a training set $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
+%% where each POI $p$ is augmented with a label $y^{(i)} \in \{ \pm 1 \}$ denoting whether or not it appeared in a trajectory corresponding to the query $\x^{(i)}$.
+%% Formally, the objective used for training is
+%% $$ \min_{\w} \frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{p \in \mathcal{P}} \ell\left( y^{(i)} \cdot ( \w^\top \Phi( \x^{(i)}, p ) ) \right) $$
+%% where
+%% $\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
+%% $C > 0$ is some regularisation strength,
+%% and $\ell( v )$ is any suitable margin loss, such as the logistic loss $\ell( v ) = \log( 1 + e^{-v} )$.
+%% One can use the resulting model to produce a score for any POI $p$ given a new query $\x$,
+%% and then pick the top-$l$ scoring POIs to produce a trajectory.
+%%%For example, \citep{cikm16paper} proposed a RankSVM model,
+%For example, a RankSVM model
+%which %is fed as input %pairs $(p_i, p_j)$ of POIs such that $p_i$ appears ahead of $p_j$ in some trajectory.
+%learns to predict whether a POI is likely to appear ahead of another POI in a trajectory corresponding to some query~\cite{cikm16paper}.
+%Formally,
+%from the given set of trajectories
+%we derive a training set
+%% $\{ ( \x^{(i)}, p, y^{(i)} ) \}_{i = 1}^n$,
+%% where each POI $p$ is augmented with a label
+%% %$y^{(i)} \in \{ \pm 1 \}$ denoting whether or not
+%% $y^{(i)}$ denoting how many times
+%% it appeared in a trajectory corresponding to the query $\x^{(i)}$.
+%$\{ ( \x^{(i)}, \mathbf{r}^{(i)} ) \}_{i = 1}^n$,
+%where for each trajectory query $\x^{(i)}$ there is a list of ranked POI pairs
+%$\mathbf{r}^{(i)} \subseteq \mathcal{P} \times \mathcal{P}$
+%such that
+%$(p, p') \in \mathbf{r}^{(i)}$
+%iff
+%%POI $p$ is ranked above the POI $p'$ in the trajectories associated with $\x^{(i)}$, %according to some notion.
+%%\eg based on the counts of the number of times a POI appears in the trajectories associated with a query.
+%POI $p$ appears more times than POI $p'$ in all trajectories associated with $\x^{(i)}$. %according to some notion.
+%The training objective is %then
+%\begin{align}
+%\resizebox{0.909\linewidth}{!}{$\displaystyle
+%\displaystyle \min_{\w} ~\frac{1}{2} \w^\top \w + C \cdot \sum_{i = 1}^n \sum_{(p, p') \in \mathbf{r}^{(i)}}
+%\ell\left( \w^\top ( \Psi( \x^{(i)}, p ) - \Psi( \x^{(i)}, p' ) ) \right),
+%$} \label{eq:ranksvm}
+%\end{align}
+%for
+%feature mapping $\Psi$,
+%regularisation strength $C$ % > 0$,
+%and squared hinge loss $\ell( v ) = \max( 0, 1 - v )^2$.
+%%where $\Phi, C$ are as before,
+%% where
+%% $\Phi( \cdot, \cdot )$ denotes a query-POI feature mapping,
+%% $C > 0$ is some regularisation strength,
+%% and $\ell( v ) = \max( 0, 1 - v )^2$ is the squared hinge loss,
+%% and
+%% %$p \succeq_{\mathbf{x}} p'$ is denoted to mean that the
+%% $\mathcal{R}( \x )$
+%% denotes all pairs of POIs $(p, p')$ such that
+%% POI $p$ is ranked above the POI $p'$ in the trajectories associated with $\x$, %according to some notion.
+%% \eg based on the counts of the number of times a POI appears in the trajectories associated with a query.
+%%For example, this may be computed by counting the number of times a POI appears in the trajectories associated with a query,
+%%and using this to determine which of two POIs is more suitable for a query.
+
+
 
 %
 % To do this, we show how the problem can be cast as one of sequential recommendation,
