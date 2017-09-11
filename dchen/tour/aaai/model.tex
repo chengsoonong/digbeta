@@ -197,8 +197,8 @@ The SP and SR models can be learned using a rich set of training schemes such as
 cutting-plane algorithms~\cite{joachims2009predicting}, % cutting-plane
 gradient-based algorithms~\cite{ratliff2006subgradient} % sub-gradient
 and conditional gradient methods~\cite{lacoste2013block}, % Frank-Wolfe
-giving proper loss augmented inference and prediction procedures,
-which we describe as below. %in the next two sections.
+given proper loss augmented inference and prediction procedures,
+which we describe subsequently. %in the next two sections.
 
 %DW: do we need this paragraph?
 %LX - the sentence below contains little info
@@ -227,14 +227,15 @@ We show in the following how to address both problems with an extension of the V
 %%\eg a user will likely not want to visit the same location twice.
 
 
-\subsubsection{The list Viterbi algorithms}
-List Viterbi represents a family of algorithms originally invented to decode digital signals corrupted by noise~\cite{seshadri1994list}, or to find more than one candidate sentence in speech recognition~\cite{soong1991tree}. Given a score function that can be decomposed into unary and pairwise costs such as (\ref{eq:jointfeature}), a list Viterbi algorithm aims to find the $k$ highest scoring sequences. % that has the highest score.
+\subsubsection{List Viterbi algorithms}
+List Viterbi represents a family of algorithms originally invented to decode digital signals corrupted by noise~\cite{seshadri1994list}, or to find more than one candidate sentence in speech recognition~\cite{soong1991tree}. Given a score function that can be decomposed into unary and pairwise costs such as (\ref{eq:jointfeature}), a list Viterbi algorithm finds the $k$ highest scoring sequences. % that has the highest score.
 \eat{%% removed to shorten the narrative
 The \emph{parallel list Viterbi} algorithm~\cite{seshadri1994list} finds the top $k$ sequences
 by keeping $k$ backtrack pointers for each possible state in each position of the sequence.
 This algorithm is memory-inefficient and can be difficult to use when $k$ is unknown \emph{a-priori} %one does not know what $k$ to use apriori 
 -- this is the case for both the learning and inference challenges in this work.
 }
+
 A particularly applicable variant is the \emph{serial list Viterbi} algorithms (SLVA)~\cite{seshadri1994list,nilsson2001sequentially}, when the number of sequences to find is unknown a priori. 
 This algorithm sequentially find the $k$-th best sequences given the best, 2nd best, \dots, $(k \!-\! 1)$-th best sequences.
 %The key insight here is 
@@ -262,11 +263,11 @@ can be used for loss-augmented inference with Hamming loss, the most common loss
 since it only requires the loss function be decomposable with respect to the label elements.
 
 
-\subsubsection{Eliminating loops: the \textsc{SPpath} and \textsc{SRpath} model}
+\subsubsection{Eliminating loops: \textsc{SPpath} and \textsc{SRpath}}
 %Having seen the viability of the list Viterbi algorithm for removing known sequences from consideration during inference,
-The list Viterbi algorithm is also applicable to enforce that loss-augmented inference only considers sequences that are \emph{paths}. This may be done by checking if each of the next-best sequences has a loop, and following SLVA as above.
+The list Viterbi algorithm can also enforce that loss-augmented inference only considers sequences that are \emph{paths}. This may be done by checking if each of the next-best sequences has a loop, and following SLVA as above.
 This idea can be applied to both the SP and SR models, as enforcing path constraints is independent of excluding multiple ground truths.
-We call these extended models \textsc{SPpath} and \textsc{SRpath} respectively.
+We call the resulting models \textsc{SPpath} and \textsc{SRpath} respectively.
 
 %LX - remark, doesn't have to be here. intuition for the real extension to SLVA?
 Note that $k$ is expected to be small in noisy signal recovery, such as digital communications~\cite{seshadri1994list} and speech recognition~\cite{soong1991tree}. But this is not necessarily the case for inference in SR models.
