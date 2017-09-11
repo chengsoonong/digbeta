@@ -7,9 +7,10 @@
 
 
 
-We present empirical evaluations for the trajectory recommendation task. % in Section~\ref{sec:trajrec}.
-Results are reported on real-world datasets of photo tours
-created from the publicly available YFCC100M corpus~\cite{thomee2016yfcc100m}.
+We present empirical evaluations for the trajectory recommendation task % in Section~\ref{sec:trajrec}.
+%Results are reported 
+on real-world datasets of photo tours
+created from the publicly available YFCC100M corpus~\cite{thomee2016yfcc100m}, as described below.
 %LX - this is verbose
 %We now present evaluations assessing the viability of our structured prediction approach
 %for the trajectory recommendation task discussed in Section~\ref{sec:trajrec}.
@@ -25,7 +26,7 @@ created from the publicly available YFCC100M corpus~\cite{thomee2016yfcc100m}.
 
 % experiment protocol: Nested cross-validation with Monte-Carlo cross-validation for the inner loop
 %We assess the recommendation performance %methods developed in Section~\ref{sec:trajrec}
-We used the trajectory data\footnote{\url{https://bitbucket.org/d-chen/tour-cikm16}}
+We used the trajectory data %\footnote{\url{https://bitbucket.org/d-chen/tour-cikm16}} % double-blind! 
 extracted from Flickr photos for the cities of Glasgow, Osaka and
 Toronto~\cite{ijcai15,cikm16paper}.
 Each dataset comprises of a
@@ -154,8 +155,7 @@ We compare our methods to the following four baselines:
       augments the popularity with a number of POI-query features (see supplement),
       and trains a RankSVM %~\eqref{eq:ranksvm} 
       to learn a score for each POI.
-      A trajectory is constructed from
-      the top-$l$ scored POIs.
+      A trajectory is constructed from the top-$l$ scored POIs.
 
 \item \textsc{Markov}~\cite{cikm16paper} learns a Markov chain by factorising the transition probabilities between a pair of POIs 
       according to a number of pairwise features (see supplement). 
@@ -252,7 +252,7 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 		%\includegraphics[width=0.33\linewidth]{f1_glasgow_gte5}
 		\includegraphics[height=0.33\linewidth]{performance_comp.pdf}
 		}
-	    \captionof{figure}{Average Kendall’s $\tau$ over k=1:10, for short (left) and long (middle) trajectories. (right) F$_1$ score on points for long trajectories.
+	    \captionof{figure}{Average Kendall’s $\tau$ over $k=1\!:\!10$, for short (left) and long (middle) trajectories. (right) F$_1$ score on points for long trajectories.
 			Structured recommendation methods perform best for all values of $k$.
 			For longer trajectories, the predictions of \textsc{Popularity} and \textsc{POIRank} are permutations of the same set of POIs (that do not fully overlap with the ground truth).}
 	    \label{fig:topk}
@@ -273,6 +273,7 @@ Although \textsc{Markov} achieves the best performance on the smallest \texttt{O
 the best results on larger datasets (\ie \texttt{Glasgow} and \texttt{Toronto}) are obtained using our proposed methods
 %\textsc{SPpath}, 
 \textsc{SR} and \textsc{SRpath}.
+
 We also compare the performance for all values of top-$k$ with $k=1,\ldots,10$, and
 Figure~\ref{fig:topk} shows a selection of the curves for Glasgow. We observe that
 our proposed methods are consistently the best for all values of $k$.
@@ -329,7 +330,7 @@ We leave this and personalising structured recommendation as future work.
         %\caption{}
         %\label{fig:feature_comp}
     \end{subfigure}
-    \caption{Example of a recommended trajectory (left); A radar chart compares scores of two POIs decomposed according to features (right), see main body for details.}
+    \caption{Example of a recommended trajectory (left); A radar chart compares scores of two POIs decomposed according to features (right), see text for details.}
     \label{fig:example}
 \end{figure}
 

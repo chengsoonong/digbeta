@@ -21,7 +21,7 @@ in many important scenarios one needs to recommend content that possesses some \
 where the desired content is naturally organized in
 \emph{sequences} or {\em graphs}.
 For example, consider %the problem of
-recommending a trajectory of points of interest (\ie a travel sequence) in a city to a visitor~\citep{lu2010photo2trip,lu2012personalized,ijcai15,cikm16paper}, 
+recommending a trajectory of points of interest in a city to a visitor~\citep{lu2010photo2trip,lu2012personalized,ijcai15,cikm16paper}, 
 a playlist of songs~\citep{McFee:2011,chen2012playlist,hidasi2015session,choi2016towards},
 a chemical compound~\cite{dehaspe1998finding} or a few linked websites for e-commerce~\cite{antikacioglu2015recommendation}.
 %
@@ -43,9 +43,11 @@ while a user's two favourite songs might belong
 the metal and country genres respectively,
 it is questionable that a playlist featuring these songs in succession will be as enjoyable to the user.
 
-The above raises the question of how one can effectively learn from such sequential content.
-In this paper, we show how to cast sequence recommendation as a \emph{structured prediction} problem,
-which allows us to leverage the toolkit of structured SVMs~\citep{taskar2004max,tsochantaridis2004support}.
+The above raises the question of how one can effectively learn from such sequential content to ensure global cohesion.
+%In this paper, we show how to cast sequence recommendation as a \emph{structured prediction} problem,
+%which allows us to leverage the toolkit of structured SVMs~\citep{taskar2004max,tsochantaridis2004support}.
+In this paper, we focus on the trajectory recommendation and cast it as a special case of the more general sequence recommendation problem,
+we show how to solve sequence recommendation via \emph{structured prediction} by leveraging the toolkit of structured SVMs~\citep{taskar2004max,tsochantaridis2004support}.
 However, a vanilla application of such methods does not suffice,
 as they do not account for the fact that each input can have multiple ground truths,
 and that repeated elements in predicted sequences are undesirable.
@@ -58,26 +60,33 @@ and by two novel applications of the list Viterbi algorithm that sequentially fi
 %modifying the inference and prediction steps using a variant of the Viterbi algorithm.
 Specifically, our contributions are as follows:
 \begin{itemize}[noitemsep,leftmargin=12pt]%\itemmoveup
-	\item We formalise the problem of sequence recommendation, %(\S\ref{sec:seqrec-defn}), 
-          and show how trajectory recommendation can be seen as a special case. % (\S\ref{sec:trajrec}).
-	%cast it as a structured prediction task (\S\ref{sec:recseq}), and .
+	%\item We formalise the problem of sequence recommendation, %(\S\ref{sec:seqrec-defn}), 
+    %      and show how trajectory recommendation can be seen as a special case. % (\S\ref{sec:trajrec}).
+	%%cast it as a structured prediction task (\S\ref{sec:recseq}), and .
+    \item We formalise the problem of trajectory recommendation as a special case of sequence recommendation,
+          and show how to attack it using structured SVMs to ensure global cohesion.
 
-	\item We show how sequence recommendation may be attacked using structured SVMs. % (\S\ref{sec:recseq}).
-	We propose one improvement of structured SVMs %to the recommendation problem, so as 
-    to account for the existence of multiple ground truths for each input. % (\S\ref{ssec:sr}).
-	%Following \citep{joachims2009cutting}, we propose both $n$-slack and 1-slack versions of the structured recommender.%\footnote{This new structured recommender can in principle be applied to any problem where loss augmented inference can be efficiently computed. We focus on sequence recommendation in this paper.}
+	%\item We show how sequence recommendation may be attacked using structured SVMs. % (\S\ref{sec:recseq}).
+	%We propose one improvement of structured SVMs %to the recommendation problem, so as 
+    %to account for the existence of multiple ground truths for each input. % (\S\ref{ssec:sr}).
+	%%Following \citep{joachims2009cutting}, we propose both $n$-slack and 1-slack versions of the structured recommender.%\footnote{This new structured recommender can in principle be applied to any problem where loss augmented inference can be efficiently computed. We focus on sequence recommendation in this paper.}
+    
+    %\item We propose two novel applications of the list Viterbi algorithm -- an extension of the classic Viterbi algorithm that sequentially finds the list of highest scored sequences under some model --
+%to exclude multiple ground truths for model learning, % (\S\ref{ssec:training}),
+%and to predict sequences without repeated elements, i.e. {\em path}s in state-space. % (\S\ref{ssec:testing}).
 
-    \item We propose two novel applications of the list Viterbi algorithm -- an extension of the classic Viterbi algorithm that sequentially finds the list of highest scored sequences under some model --
-to exclude multiple ground truths for model learning, % (\S\ref{ssec:training}),
-and to predict sequences without repeated elements, i.e. {\em path}s in state-space. % (\S\ref{ssec:testing}).
-	%\item We show how one can avoid recommending sequences with loops or repetitions via integer linear programming and list Viterbi;
+    \item We propose an extension of structured SVMs to account for the existence of multiple ground truths for each input,
+          and show how the list Viterbi algorithm -- an extension of the classic Viterbi algorithm that sequentially finds the list of highest scored sequences under some model -- can achieve this for model learning,
+and for predicting sequences without repeated elements, i.e. {\em path}s in state-space.
+
+	%%\item We show how one can avoid recommending sequences with loops or repetitions via integer linear programming and list Viterbi;
 %an extension of the classic Viterbi algorithm that returns a list of the highest scored sequences under some model;
 %%	We show that these algorithms may be incorporated during both the training %(via loss augmented inference)
 %%	and prediction steps of our structured recommendation (\S\ref{ssec:training}, \S\ref{ssec:testing}).
 	%LX - now we have only four bullet points, i'm happier with this -- 5 is too many!
 	%LX - in addition, i do not think we can claim ILP as a contribution. it's in Lim'2015
 
-	\item We present experiments on real-world trajectory recommendation problems, and demonstrate our sequence recommendation approaches improve over existing non-structured baselines. % (\S\ref{sec:experiment}).\itemmoveup
+	\item We present experiments on real-world trajectory recommendation problems, and demonstrate our structured prediction approaches improve over existing non-structured baselines. % (\S\ref{sec:experiment}).\itemmoveup
 \end{itemize}
 
 %We begin with an overview of related work, before presenting our model.

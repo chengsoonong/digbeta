@@ -1,19 +1,24 @@
 % !TEX root = ./main.tex
 
 Current recommender systems largely focus on static, unstructured content.
-In many scenarios, we would like to recommend content that is a sequence, % has structure,
+In many scenarios, we would like to recommend content that is a \emph{sequence}, % has structure,
 such as %when recommending
 a trajectory of points-of-interests in a city, or a playlist of songs.
 % emphasize the challenge, and then sell our solution ? -- LX
 %Dubbed {\em Structured Recommendation},
-This sequence recommendation problem 
+%This sequence recommendation problem 
 %this problem 
-differs from the typical structured prediction problem
-in that there are multiple correct answers for a given input.
-Motivated by trajectory recommendation, we focus on sequential structures
-but in contrast to classical Viterbi decoding we require that
-valid predictions are sequences with no repeated elements.
-We propose an approach to sequence recommendation based on the structured support vector machine.
-For prediction, we modify the inference procedure to avoid predicting loops in the sequence.
-For training, we modify the objective function to account for the existence of multiple ground truths for a given input. We also modify the loss-augmented inference procedure to exclude the known ground truths.
-Experiments on real-world trajectory recommendation datasets show the benefits of our approach over existing, non-structured recommendation approaches.
+%differs from the typical structured prediction problem
+%in that there are multiple correct answers for a given input.
+%Motivated by trajectory recommendation, we focus on sequential structures
+%but in contrast to classical Viterbi decoding we require that
+%valid predictions are sequences with no repeated elements.
+We consider trajectory recommendation and cast it as a special case of the sequence recommendation problem.
+
+We propose an approach to sequence recommendation based on the structured support vector machine to ensure global cohesion.
+%For prediction, we modify the inference procedure to avoid predicting loops in the sequence.
+%For training, we modify the objective function to account for the existence of multiple ground truths for a given input. We also modify the loss-augmented inference procedure to exclude the known ground truths.
+%Experiments on real-world trajectory recommendation datasets show the benefits of our approach over existing, non-structured recommendation approaches.
+We modify the objective function and loss-augmented inference to account for the existence of multiple ground truths for a given input.
+We further modify the inference procedure to avoid predicting loops in the sequence.
+Experiments on real-world trajectory datasets show the benefits of our approach over existing, non-structured recommendation approaches.

@@ -3,27 +3,37 @@
 %\section{Recommending sequences}
 %\secmoveup
 %\section{The structured recommendation problem}
-\section{The {\seqrec} problem}
-\label{sec:recseq}
+%\section{The {\seqrec} problem}
+%\label{sec:recseq}
 %\textmoveup
 
-We introduce the {\seqrec} problem that is the focus of this paper,
-by first providing an abstract mathematical formulation, 
-then cast trajectory recommendation as a special case,
-and finally, we summarise the main challenges brought by sequence recommendation.
-%We then provide some motivating examples, in particular the problem of {\trajrec}.
+\section{Background}
+
+%We introduce the {\seqrec} problem that is the focus of this paper,
+%by first providing an abstract mathematical formulation, 
+%then cast trajectory recommendation as a special case,
+%and finally, we summarise the main challenges brought by sequence recommendation.
+%%We then provide some motivating examples, in particular the problem of {\trajrec}.
+
+We first introduce the sequence recommendation problem,
+and formulate the problem of recommending trajectories as a special case.
+We then provide background on typical recommender system problems and structured prediction.
+Finally, we summarise the main challenges brought by trajectory recommendation.
+
 
 %\secmoveup
 %\subsection{Structured and {\seqrec}}
 %\label{sec:seqrec-defn}
 
 %\subsection{The {\seqrec} problem}
-\subsection{Problem formulation}
+%\subsection{Problem formulation}
+\subsection{The sequence recommendation problem}
 
 %We now generalise the previous discussion to cover a broad class of problems.
 %Consider the following %general %abstract
 %\emph{{\seqrec}} problem:
-Given an input query $\x \in \mathcal{X}$ (representing \eg a location, or some ``seed'' song),
+Consider the following abstract problem:
+given an input query $\x \in \mathcal{X}$ (representing \eg a location, or some ``seed'' song),
 we wish to recommend one or more \emph{structured outputs} $\y \in \mathcal{Y}$ (representing \eg a sequence of locations, or songs)
 according to a learned \emph{score function} $f(\x,\y)$.
 To learn $f$,
@@ -45,27 +55,12 @@ In many settings, one further requires the sequences to be \emph{paths}~\cite{we
 %as inferring $\y$ of other structures can be achieved using corresponding inference and loss-augmented inference algorithms~\cite{joachims2009predicting}.  %LX - this sentence can be cut or merged above
 
 
-%
-\subsection{Contrast to recommender systems}
-
-%
-%\subsubsection{Recommender systems}
-In a typical recommender systems problem, the outputs are non-structured; canonically, one works with {static} content such as books or movies~\citep{Goldberg:1992,Sarwar:2001,Netflix}.
-Thus, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$ for suitable score function $f$, \eg some form of matrix factorisation~\citep{Koren:2009}.
-For {\seqrec}, computing $\argmax_\y f(\x,\y)$ is harder since it is often impossible to efficiently enumerate $\y$ (\eg all possible trajectories in a city).
-This inability to enumerate $\y$ also poses a challenge in designing a suitable $f(\x,\y)$,
-\eg
-%the standard matrix factorisation approach to recommender systems~\citep{Koren:2009}
-matrix factorisation
-would require associating a latent feature with each $\y$, which will be infeasible.
 
 
-
-%
 \subsection{Special case: {\trajrec}}
 
-{\trajrec} involve a set of points-of-interest (POIs) $\mathcal{P}$ 
-in a city~\cite{bao2015recommendations,zheng2015trajectory,zheng2014urban}.
+%{\trajrec} involve a set of points-of-interest (POIs) $\mathcal{P}$ 
+Suppose we have a set of points-of-interest (POIs) $\mathcal{P}$ in a city~\cite{bao2015recommendations,zheng2015trajectory,zheng2014urban}.
 %The \emph{\trajrec} problem is:
 Given a \emph{trajectory query} $\mathbf{x} = (s, l)$,
 comprising a start POI $s \in \mathcal{P}$ and trip length
@@ -108,16 +103,40 @@ We are also interested in predicting \emph{paths}, % $\y$,
 since it is unlikely a user will want to visit the same location twice.
 
 
+
+
 %\secmoveup
 %\subsection{{\seqrec} versus existing problems}
 %\subsection{Comparison to existing problems}
-\subsection{Challenges of {\seqrec}}
+%\subsection{Challenges of {\seqrec}}
+\subsection{Challenges of sequence recommendation via structured prediction}
 
-There are key differences between {\seqrec} and %what is being solved in
+%\subsubsection{Recommender systems}
+%\subsection{Contrast to recommender systems}
+%\subsection{Typical problems in recommender system and structured prediction}
+In a typical recommender systems problem, the outputs are non-structured; canonically, one works with {static} content such as books or movies~\citep{Goldberg:1992,Sarwar:2001,Netflix}.
+Thus, making a prediction involves enumerating all {\em non-structured} items $y$ in order to compute $\argmax_y f(\x,y)$ for suitable score function $f$, \eg some form of matrix factorisation~\citep{Koren:2009}.
+For {\seqrec}, computing $\argmax_\y f(\x,\y)$ is harder since it is often impossible to efficiently enumerate $\y$ (\eg all possible trajectories in a city).
+This inability to enumerate $\y$ also poses a challenge in designing a suitable $f(\x,\y)$,
+\eg
+%the standard matrix factorisation approach to recommender systems~\citep{Koren:2009}
+matrix factorisation
+would require associating a latent feature with each $\y$, which will be infeasible.
+
+
+
+Structured prediction involves predicting some structured label $\y \in \mathcal{Y}$ for an input $\x \in \mathcal{X}$,
+typically via a score function $f(\x,\y)$ that determines the affinity of an (input, label) pair.
+In a structured prediction problem for sequences, the goal is to learn from a set of input vector and output sequence tuples
+$\{ (\x\pb{i}, \y\pb{i}) \}_{i = 1}^n$, where
+for each input $\x\pb{i}$ there is usually one \emph{unique} output sequence $\y\pb{i}$.
+
+%There are key differences between {\seqrec} and %what is being solved in
+There are three challenges in sequence recommendation problem as compared to
 standard problems in recommender systems and structured prediction;
 this brings unique challenges for both inference and learning.
 
-%
+
 \subsubsection{Global cohesion}
 %Each of the {\seqrec} problems above 
 The {\seqrec} problem can be plausibly solved with approaches that do not exploit the structure inherent in the outputs. % $\y$. %% or do so in a simple way.
@@ -129,53 +148,55 @@ they cannot ensure the \emph{global} cohesion of the corresponding recommendatio
 For example, in the {\trajrec} problem, a ranking based approach %the RankSVM model %as argued in Section~\ref{sec:intro},
 might find three restaurants to be the highest scoring POIs;
 however, it is unlikely that these form a {\trajectory} that most travellers will enjoy.
-This motivates an approach to {\seqrec} that directly ensures such global cohesion.
+This motivates an approach %to {\seqrec} 
+that directly ensures such global cohesion.
 
 
-%
 \subsubsection{Multiple ground truths}
-In a structured prediction problem (for sequences), the goal is to learn from a set of
-input vector and output sequence tuples
-$\{ (\x\pb{i}, \y\pb{i}) \}_{i = 1}^n$, where
-for each input $\x\pb{i}$ there is usually one \emph{unique} output sequence $\y\pb{i}$.
-In a {\seqrec} problem, however, we expect that %learn from
-for each input $\x\pb{i}$ (\eg users),
+%In a structured prediction problem (for sequences), the goal is to learn from a set of
+%input vector and output sequence tuples
+%$\{ (\x\pb{i}, \y\pb{i}) \}_{i = 1}^n$, where
+%for each input $\x\pb{i}$ there is usually one \emph{unique} output sequence $\y\pb{i}$.
+%In a {\seqrec} problem, %however, 
+%we expect that %learn from
+%for each input $\x\pb{i}$ (\eg users),
+%there are \emph{multiple} associated outputs
+%$\{ \y\pb{ij} \}_{j=1}^{n_i}$ (\eg trajectories visited).
+%Structured prediction approaches do not have a standard way to handle such multiple output sequences.
+%
+Recall that in a typical structured prediction problem,
+there is usually one \emph{unique} output for each input.
+However, in a sequence recommendation problem,
+we expect that for each input $\x\pb{i}$ (\eg users),
 there are \emph{multiple} associated outputs
-$\{ \y\pb{ij} \}_{j=1}^{n_i}$ (\eg trajectories visited).
+$\{ \y\pb{ij} \}_{j=1}^{n_i}$ (\ie trajectories visited).
 Structured prediction approaches do not have a standard way to handle such multiple output sequences.
 
 
-%
 \subsubsection{Loop elimination}
-Furthermore, in settings such as trajectory recommendation, it is desirable for the recommended sequence to consist of unique elements,
+Further, in settings such as trajectory recommendation, it is desirable for the recommended sequence to consist of unique elements,
 or be a {\em path} in the candidate space (\eg locations).
 Classic structured prediction does not constrain the output sequence, and having such a
-path constraint makes both inference and learning harder. \\
+path constraint makes both inference and learning harder.
 
 
-%\subsection{The case for exploiting structure}
-
-%We now see how to do so with novel extensions to structured prediction approaches. %by attacking the problem using tools from structured prediction.
-% TODO: add text that fleshes these out
-
-Table \ref{tbl:challenges} summarises the three main challenges of {\seqrec}.
+Table \ref{tbl:challenges} summarises the three main challenges of sequence recommendation.
 In the next section, we will see how to deal with the global cohesion and multiple ground truths with a novel extension of 
 %a classic structured prediction model, 
 the structured support vector machine,
-and solve the loop elimination problem with integer linear programming (ILP) or the list Viterbi algorithm.
+and solve the loop elimination problem with the list Viterbi algorithm and integer linear programming (ILP). 
 
 \begin{table}[!h]
 	\centering
 	\begin{tabular}{ll}
 	\hline
 	\hline
-	\multicolumn{1}{c}{\bf Challenge} & \multicolumn{1}{c}{\bf Solution}            \\ \hline
+	%\multicolumn{1}{c}{\bf Challenge} & \multicolumn{1}{c}{\bf Solution}           \\ \hline
+	{\bf Challenge}                    & {\bf Solution}                             \\ \hline
 	Global cohesion                    & Structured SVM                             \\ \hline
 	Multiple ground truths             & Ground truth aggregation in loss 			\\ \hline
-	Loop elimination                   & ILP or list Viterbi algorithm                		\\ \hline  
+	Loop elimination                   & List Viterbi algorithm or ILP              \\ \hline  
 	\end{tabular}
-	\caption{Three fundamental challenges of {\seqrec} and their solutions.}
+	\caption{Three fundamental challenges of {\seqrec} and the solutions proposed in this paper.}
 	\label{tbl:challenges}
 \end{table}
-
-
