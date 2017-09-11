@@ -151,9 +151,11 @@ We compare our methods to the following four baselines:
 
 \item \textsc{PoiRank}~\cite{cikm16paper}
       %is a generalisation of \textsc{Popularity} which
-      considers a number of POI-query features (see supplement) in addition to the popularity,
-      and trains a RankSVM model%~\eqref{eq:ranksvm} 
-      to learn a score for each POI. The top-$l$ scored POIs are then used to construct a trajectory.
+      augments the popularity with a number of POI-query features (see supplement),
+      and trains a RankSVM %~\eqref{eq:ranksvm} 
+      to learn a score for each POI.
+      A trajectory is constructed from
+      the top-$l$ scored POIs.
 
 \item \textsc{Markov}~\cite{cikm16paper} learns a Markov chain by factorising the transition probabilities between a pair of POIs 
       according to a number of pairwise features (see supplement). 
@@ -331,7 +333,7 @@ We leave this and personalising structured recommendation as future work.
     \label{fig:example}
 \end{figure}
 
-\subsection{Example}
+\subsubsection{Example}
 \label{sec:example}
 
 Figure~\ref{fig:example} shows a recommended trajectory by the SR model, 
