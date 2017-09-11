@@ -24,7 +24,7 @@
 
 
 We summarise recent work most related to sequence recommendation, 
-in particular the problem of \trajrec, music playlist generation, 
+in particular the problem of trajectory recommendation, music playlist generation, 
 and next basket prediction.
 
 %To make the sequence recommendation problem more concrete,
@@ -103,8 +103,6 @@ routes~\cite{chen2015tripplanner,cikm16paper}.
 %We are also interested in predicting paths $\y$, since it is unlikely a user will want to visit the same location twice.
 
 
-%
-%\textbf{Playlist generation}.
 {\bf Playlist generation}
 %As another example, 
 considers recommending playlists (\ie sequences of songs) to users, given a query song~\citep{McFee:2011,chen2012playlist,hidasi2015session}.
@@ -114,14 +112,13 @@ and exploit a Markovian assumption on the song transitions;
 or to learn high quality transitions using RNNs~\cite{choi2016towards}.
 %While a reasonable first order approximation, this assumption limits the modelling power of such approaches.
 
-%
-%\textbf{Next basket and next song prediction}.
+
 {\bf Next basket prediction}
-is another example of sequence recommendation,
+is another example, %of sequence recommendation,
 %One more example of sequence recommendation is the problem of recommending 
 where we recommend the next items a user might like to purchase, given the sequence of their shopping basket purchases~\citep{Rendle:2010,Wang:2015}.
 The canonical approach here is to apply matrix factorisation to the Markov chain of transitions between items,
-or modelling high quality transitions using RNNs.
+or modelling high quality transitions using RNNs~\cite{yu2016dynamic}.
 This method is feasible because one is only interested in predicting %sequences 
 one element at a time, instead of predicting a entire sequence given the initial item.
 
