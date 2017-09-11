@@ -402,6 +402,15 @@ We therefore use ILP for very long ($l\ge10$) sequences in the experiments (othe
 
 One might also consider the well-known Christofides algorithm~\cite{christofides1976} to eliminate loops in a sequence, as this is known to generate a solutions within a factor of 3/2 of the optimal solution for traveling salesman problems. However, the resulting sequence will have less than the desired number of points, and the resulting score will not be optimal.
 
+
+\subsection{Discussion}
+We note that the unary terms in the sequence scoring function \eqref{eq:jointfeature} can be replaced with {\em personalised} terms to each user, such as from a recommender system~\cite{Koren:2009,bpr09}. 
+We also note that the sequence recommendation problem suits well within the recurrent neural networks (RNNs) based techniques, 
+although these techniques generally require much more training data than available in our problem and 
+it is also not clear how to recommend a sequence as a whole instead of recommending the next best location as proposed in recent RNNs based work~\cite{aaai16}.
+We leave this and personalising sequence recommendation as future work.
+
+
 % \subsection{SSVM for sequence recommendation: sequence decoding}
 % \label{ssec:subtour}
 % \label{ssec:SRinf}
