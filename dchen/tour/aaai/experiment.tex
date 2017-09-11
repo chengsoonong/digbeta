@@ -154,8 +154,9 @@ We compare our methods to the following four baselines:
       to learn a score for each POI.
       A trajectory is constructed from the top-$l$ scored POIs.
 
-\item \textsc{Markov}~\cite{cikm16paper} learns a Markov chain by factorising the transition probabilities between a pair of POIs 
-      according to a number of pairwise features (see supplement). 
+\item \textsc{Markov}~\cite{cikm16paper} learns a Markov chain by factorising the transition probabilities between POIs 
+      according to %a number of 
+      pairwise features (see supplement). 
 
 \end{itemize}%\itemmoveup
 To perform top-$k$ prediction with \textsc{Popularity}, \textsc{PoiRank} and \textsc{Markov},
@@ -217,7 +218,8 @@ That is, for all methods, % described in Section~\ref{ssec:methods},
 we predict the top $k$ trajectories\footnote{To get $k$ paths, the list Viterbi algorithm normally searches a long list which contains sequences with loops.}
 and then report the best match of any in the top $k$ to any trajectory in the ground truth set.
 We reiterate that irrespective of the training procedure, \textsc{SP}, \textsc{SR},
-\textsc{SPpath} and \textsc{SRpath} all use prediction procedures that eliminate loops. % subtours.
+\textsc{SPpath} and \textsc{SRpath} all predict paths.
+%use prediction procedures that eliminate loops. % subtours.
 
 \eat{
 As described previously, our methods are capable of recommending not merely a single trajectory,
@@ -279,19 +281,21 @@ the best results on larger datasets (\ie \texttt{Glasgow} and \texttt{Toronto}) 
 \textsc{SR} and \textsc{SRpath}.
 
 
-\subsubsection{The performance in top-$k$ recommendation}
+%\subsubsection{The performance in top-$k$ recommendation}
 We also compare the performance for all values of top-$k$ with $k=1,\ldots,10$, and
 Figure~\ref{fig:topk} shows a selection of the curves for Glasgow. We observe that
 our proposed methods are consistently the best for all values of $k$.
 See the supplement for results across all datasets on all metric variants.
 
 
-\subsubsection{Is eliminating multiple ground truths necessary?}
+%\subsubsection{Is eliminating multiple ground truths necessary?}
+%\subsubsection{How important is it to account for multiple ground truths?}
+\subsubsection{Is it important to account for multiple ground truths?}
 %In particular,
 %%\textbf{Exploiting the sequence structure helps}. The proposed structured recommendation variants of our achieve better performance than existing baselines.
 %%Thus, the basis of our approach -- reducing sequence recommendation to a structured prediction problem -- is sensible, and has empirical benefit.
-Accounting for multiple ground truths helps --
-\textsc{SR} always performs better than \textsc{SP},
+%Accounting for multiple ground truths helps --
+We observe that \textsc{SR} always performs better than \textsc{SP},
 and similarly for the {\sc path} variants of both methods.
 This indicates that our first extension -- explicitly modelling multiple ground truths
  -- is important to achieve good performance.
@@ -305,7 +309,7 @@ This indicates that our first extension -- explicitly modelling multiple ground 
 %this advantage does \emph{not} take effect if the multiple ground truths are not modelled explicitly,
 %with the performance of the {\sc SP} method largely unaffected.
 
-\subsubsection{When sequence recommendation perform best?}
+%\subsubsection{When sequence recommendation perform best?}
 We can also see that the advantages of {\sc SR} %, {\sc SPpath}, 
 and {\sc SRpath} are salient for longer trajectories, where pairwise and sequential information play a larger role.
 
@@ -316,6 +320,13 @@ and {\sc SRpath} are salient for longer trajectories, where pairwise and sequent
 
 %LX - reflections and confessions
 Overall, sequence recommendation methods have shown superior performance in location sequence recommendation tasks on a public benchmark. Most notably, taking into account multiple ground truths in structured prediction and modeling path constraints are important; and the effects are more pronounced in longer trajectories.
+
+
+%Finally, we note that the unary terms in the sequence scoring function \eqref{eq:jointfeature} can be replaced with {\em personalised} terms to each user, such as from a recommender system~\cite{Koren:2009,bpr09}. 
+%We also note that the sequence recommendation problem suits well within the recurrent neural networks (RNNs) based techniques, 
+%although these techniques generally require much more training data than available in our problem and 
+%it is also not clear how to recommend a sequence as a whole instead of recommending the next best location as proposed in recent RNNs based work~\cite{aaai16}.
+%We leave this and personalising sequence recommendation as future work.
 
 
 %these results indicate that our structured prediction approach to the problem has
@@ -345,12 +356,12 @@ Overall, sequence recommendation methods have shown superior performance in loca
 \label{sec:example}
 
 Figure~\ref{fig:example} shows a recommended trajectory by the SR model, 
-the trajectory includes 6 POIs and is visualised on a map (left figure);
-the scores of two POIs are decomposed according to many features,
-in particular, the red radar chart shows the decomposition of the first POI with a red marker in the trajectory,
-and the green radar chart show that of the third POI with a green marker. 
-We found that the popularity and distance related features were the contributor for the first POI, 
-while the third POI was mainly supported by the visits and distance related features.
+the trajectory includes 6 POIs and is visualised on a map (left);
+the scores of two POIs are decomposed according to POI features (right),
+in particular, the red radar chart shows the decomposition of the first POI (red marker) in the trajectory,
+and the green chart shows the decomposition of the third POI (green marker).
+We found that popularity and distance related features are the main contributor to the first POI, 
+and the third POI is mainly supported by visits and distance related features.
 %the left sub-figure visualises the trajectory on a map, 
 %and the right sub-figure shows how different POI features contribute to the scores of two POIs using a radar chart.
 %Figure~\ref{fig:example_sbar} uses a stacked bar plot to visualises the score decomposition of both POIs and transitions according to POI and pairwise features respectively.
@@ -374,11 +385,3 @@ while the third POI was mainly supported by the visits and distance related feat
 %             (c) \textsc{SRpath} hits both ground truths at rank 3 (green edges) and 5 (red edges) respectively.}
 %	\label{fig:example}\captionmoveup
 %\end{figure*}
-
-\subsubsection{Discussion and future work}
-Finally, we note that the unary terms in the sequence scoring function \eqref{eq:jointfeature} can be replaced with {\em personalised} terms to each user, such as from a recommender system~\cite{Koren:2009,bpr09}. 
-We also note that the sequence recommendation problem suits well within the recurrent neural networks (RNNs) based techniques, 
-although these techniques generally require much more training data than available in our problem and 
-it is also not clear how to recommend a sequence as a whole instead of recommending the next best location as proposed in recent RNNs based work~\cite{aaai16}.
-We leave this and personalising sequence recommendation as future work.
-
