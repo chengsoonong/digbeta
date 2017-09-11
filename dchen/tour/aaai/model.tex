@@ -227,14 +227,14 @@ We show in the following how to address both problems with an extension of the V
 
 
 \subsubsection{The list Viterbi algorithms}
-List Viterbi represents a family of algorithms originally invented to decode digital signals corrupted by noise~\cite{seshadri1994list,nill1995list}, or to find more than one candidate sentence in speech recognition~\cite{soong1991tree}. Given a score function that can be decomposed into unary and pairwise costs such as (\ref{eq:jointfeature}), a list Viterbi algorithm aims to find the $k$ highest scoring sequences. % that has the highest score.
-
+List Viterbi represents a family of algorithms originally invented to decode digital signals corrupted by noise~\cite{seshadri1994list}, or to find more than one candidate sentence in speech recognition~\cite{soong1991tree}. Given a score function that can be decomposed into unary and pairwise costs such as (\ref{eq:jointfeature}), a list Viterbi algorithm aims to find the $k$ highest scoring sequences. % that has the highest score.
+\eat{%% removed to shorten the narrative
 The \emph{parallel list Viterbi} algorithm~\cite{seshadri1994list} finds the top $k$ sequences
 by keeping $k$ backtrack pointers for each possible state in each position of the sequence.
 This algorithm is memory-inefficient and can be difficult to use when $k$ is unknown \emph{a-priori} %one does not know what $k$ to use apriori 
 -- this is the case for both the learning and inference challenges in this work.
-
-An important variant is the \emph{serial list Viterbi} algorithms (SLVA)~\cite{seshadri1994list,nill1995list,nilsson2001sequentially}.
+}
+A particularly applicable variant is the \emph{serial list Viterbi} algorithms (SLVA)~\cite{seshadri1994list,nilsson2001sequentially}, when the number of sequences to find is unknown a priori. 
 This algorithm sequentially find the $k$-th best sequences given the best, 2nd best, \dots, $(k \!-\! 1)$-th best sequences.
 %The key insight here is 
 \citet{seshadri1994list} observed 
@@ -243,10 +243,10 @@ for one continuous segment, and then finally merges back to the best sequence wi
 -- otherwise replacing one of the continuous segments with those from the best sequence will increase the score.
 Subsequently, the $k$th best sequence can be the 2nd best sequence relative to the $(k \!-\! 1)$-th sequence
 at the point of final merge, or the 2nd or 3rd best sequence to the $(k \!-\! 2)$-th sequence at the point of final merge, \ldots, and so on. 
-
 \citet{nilsson2001sequentially} observed that the same goal can be achieved by cleverly partitioning the search space into subsets of sequences that share a prefix with the current list of best sequences. While derived in different communities, it is not hard to show that these two algorithms are in fact fundamentally identical.
 %SLVA works by keeping track of the score differences to the best sequences and merge points along the sequences. 
 See supplement for a complete description.
+
 We use SLVA in two different ways, first to deal with multiple ground truths, and second to find paths.
 
 
@@ -268,7 +268,7 @@ This idea can be applied to both the SP and SR models, as enforcing path constra
 We call these extended models \textsc{SPpath} and \textsc{SRpath} respectively.
 
 %LX - remark, doesn't have to be here. intuition for the real extension to SLVA?
-Note that $k$ is expected to be small in noisy signal recovery, such as digital communications~\cite{nill1995list} and speech recognition~\cite{soong1991tree}. But this is not necessarily the case for inference in SR models.
+Note that $k$ is expected to be small in noisy signal recovery, such as digital communications~\cite{seshadri1994list} and speech recognition~\cite{soong1991tree}. But this is not necessarily the case for inference in SR models.
 
 %\secmoveup
 \subsection{SP and SR model prediction}
