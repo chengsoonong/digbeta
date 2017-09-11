@@ -2,7 +2,7 @@
 %\section{Supplementary material to Structured Recommendation}
 %\label{sec:supplement}
 %{\Large\bf Supplementary material to Structured Recommendation}
-{\Large\bf Supplementary material to Sequence Recommendation via Structured Prediction}
+{\Large\bf Supplementary material to Trajectory Recommendation via Structured Prediction}
 
 %\setlength{\belowdisplayskip}{2pt} \setlength{\belowdisplayshortskip}{1pt}
 %\setlength{\abovedisplayskip}{2pt} \setlength{\abovedisplayshortskip}{1pt}
@@ -233,21 +233,21 @@ The histogram of trajectory length (\ie the number of POIs in a trajectory) is s
 where we can see the majority are short trajectories (\ie length $\le$ 5).
 
 % histogram of #ground truth
-%\begin{figure}[t]
-%	\centering
-%	\includegraphics[width=.7\linewidth]{hist_query.pdf}
-%	\caption{Histograms of the number of trajectories per query.}
-%	\label{fig:hist_query}
-%\end{figure}
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=.7\linewidth]{hist_query.pdf}
+	\caption{Histograms of the number of trajectories per query.}
+	\label{fig:hist_query}
+\end{figure}
 %
 %
 %% histogram of trajectory length
-%\begin{figure}[t]
-%	\centering
-%	\includegraphics[width=.7\linewidth]{hist_length.pdf}
-%	\caption{Histograms of trajectory length.}
-%	\label{fig:hist_length}
-%\end{figure}
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=.7\linewidth]{hist_length.pdf}
+	\caption{Histograms of trajectory length.}
+	\label{fig:hist_length}
+\end{figure}
 
 
 %\textbf{Features}.
@@ -419,7 +419,7 @@ where $T = T_{\mathbf{y}} - T_{\mathbf{y},\hat{\mathbf{y}}}$ and $U = T_{\hat{\m
 \subsubsection{The effects of $k$ for top-$k$ prediction}
 The performance of baselines and structured recommendation algorithms for top-$k$ ($k=1,3,5,10$) 
 prediction are shown in the following tables.
-Bold entries: \textbf{best} performing method for each metric; italicised entries: the \textit{next best}. 
+Dark gray entries: best performing method for each metric; light gray entries: the \textit{next best}. 
 
 % topk evaluation table
 \input{tab_topk}

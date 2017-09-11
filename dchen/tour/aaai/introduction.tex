@@ -18,16 +18,16 @@ For example, consider %the problem of
 recommending a trajectory of points of interest in a city to a visitor~\citep{lu2010photo2trip,lu2012personalized,ijcai15,cikm16paper},
 a playlist of songs~\citep{McFee:2011,chen2012playlist,hidasi2015session,choi2016towards},
 a chemical compound~\cite{dehaspe1998finding} or linked websites for e-commerce~\cite{antikacioglu2015recommendation}.
-We consider the problem recommending trajectories (sequences of items
+We consider the problem of recommending trajectories (sequences of items
 without repeats) given a seed item.
 We propose a way to train the recommender system based on session data that may
 have multiple possible ground truth trajectories for a particular seed item.
 
 A na\"{i}ve approach to trajectory recommendation is to ignore the structure.
-We could learn a user's preference for individual points of interests,
+We could learn a user's preference for individual points-of-interest,
 and create a trajectory based on the top ranked items.
 However, such an approach may be sub-optimal:
-for example
+for example,
 it is unlikely a user will want to visit three restaurants in a row.
 Similarly,
 while a user's two favourite songs might belong
@@ -57,7 +57,7 @@ Specifically, our contributions are as follows:
 	%\item We formalise the problem of sequence recommendation, %(\S\ref{sec:seqrec-defn}),
     %      and show how trajectory recommendation can be seen as a special case. % (\S\ref{sec:trajrec}).
 	%%cast it as a structured prediction task (\S\ref{sec:recseq}), and .
-    \item We formalise the problem of trajectory recommendation as a special case of sequence recommendation.          
+    \item We formalise the problem of recommending trajectories as a special case of sequence recommendation.          
 
 	%\item We show how sequence recommendation may be attacked using structured SVMs. % (\S\ref{sec:recseq}).
 	%We propose one improvement of structured SVMs %to the recommendation problem, so as

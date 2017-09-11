@@ -43,7 +43,7 @@ comprising a set %collection
 of inputs $\x\pb{i}$ with an associated \emph{set} of $n_i$ output structures $\{ \y\pb{ij} \}_{j=1}^{n_i}$.
 
 For this work, we assume the output $\y$ is a \emph{sequence} of $l$ points, denoted $y_{1:l}$
-where each $y_i$ belongs to some fixed set (\eg places of interest in a city).
+where each $y_i$ belongs to some fixed set (\eg points-of-interest in a city).
 %For example, each $\y$ may be a sequences of places in a city, or a playlist of songs.
 %Thus, for example, the training set might represent a collection of users in a city, along with a set of trajectories () they have visited.
 We call the resulting specialisation the \emph{{\seqrec}} problem,
@@ -110,7 +110,7 @@ since it is unlikely a user will want to visit the same location twice.
 %\subsection{{\seqrec} versus existing problems}
 %\subsection{Comparison to existing problems}
 %\subsection{Challenges of {\seqrec}}
-\subsection{Challenges of trajectory recommendation}
+\subsection{Challenges of sequence recommendation}
 
 %\subsubsection{Recommender systems}
 %\subsection{Contrast to recommender systems}
@@ -139,11 +139,11 @@ for each input $\x\pb{i}$ there is usually one \emph{unique} output sequence $\y
 	\hline
 	%\multicolumn{1}{c}{\bf Challenge} & \multicolumn{1}{c}{\bf Solution}           \\ \hline
 	{\bf Challenge}                    & {\bf Solution}                             \\ \hline
-	Global cohesion                    & Structured SVM                             \\ \hline
+	Global cohesion                    & Structured SVMs                            \\ \hline
 	Multiple ground truths             & Ground truth aggregation in loss 			\\ \hline
 	Loop elimination                   & List Viterbi algorithm or ILP              \\ \hline
 	\end{tabular}
-	\caption{Three fundamental challenges of \trajrec and the solutions proposed in this paper.}
+	\caption{Three fundamental challenges of sequence recommendation and the solutions proposed in this paper.}
 	\label{tbl:challenges}
 \end{table}
 
@@ -183,7 +183,7 @@ that directly ensures such global cohesion.
 Recall that in a typical structured prediction problem,
 there is usually one \emph{unique} output for each input.
 However, in a sequence recommendation problem,
-we expect that for each input $\x\pb{i}$ (\eg users),
+we expect that for each input $\x\pb{i}$, % (\eg users),
 there are \emph{multiple} associated outputs
 $\{ \y\pb{ij} \}_{j=1}^{n_i}$ (\ie trajectories visited).
 Structured prediction approaches do not have a standard way to handle such multiple output sequences.

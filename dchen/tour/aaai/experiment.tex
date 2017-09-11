@@ -27,7 +27,7 @@ created from the publicly available YFCC100M corpus~\cite{thomee2016yfcc100m}, a
 %We assess the recommendation performance %methods developed in Section~\ref{sec:trajrec}
 We used the trajectory data %\footnote{\url{https://bitbucket.org/d-chen/tour-cikm16}} % double-blind! 
 extracted from Flickr photos for the cities of Osaka, Glasgow and Toronto~\cite{ijcai15,cikm16paper}.
-Each dataset comprises of a list of trajectories, being a sequence of points of interest (POI),
+Each dataset comprises of a list of trajectories, being a sequence of points-of-interest (POI),
 as visited by various Flickr users and recorded by the geotags in photos.
 %Photos that are nearby in time and space are grouped, \rev{mapped to POIs,} and then segmented by eight hours of time gap. Visits \rev{with} %that only include
 %a single POI are excluded.
@@ -200,7 +200,8 @@ That is, holding out all the relevant trajectories for each query $\x\pb{i}$ (\i
 %one query and its associated trajectories serves as a test point, with all other trajectories for training.
 %(Note that without this query aggregation, there will be considerable overlap between the train and test set, and simple nearest neighbour methods will be hard to outperform.)
 % model selection (Monte Carlo CV) (with query aggregation): 90/10 random split for 5 times
-The regularisation constant $C$ is tuned using Monte Carlo cross validation~\cite{burman1989comparative} on the training set.
+The regularisation constant $C$ is tuned using Monte Carlo cross validation %~\cite{burman1989comparative} 
+on the training set.
 We use three performance measures for POIs, sequences and ordered lists.
 %We use three different measures to compare algorithm performances.
 The {\bf F$_1$ score on points}~\cite{ijcai15} computes F$_1$ on the predicted versus seen points
@@ -212,7 +213,7 @@ computes the ratio of concordant (correctly ranked) %pairs
 minus discordant pairs, over all possible pairs after accounting for ties.%taking care of ties.
 %$\frac{1}{2}l(l-1)$) pairs  %DW: this is not correct
 
-Sequence recommendation performs ranking on a very large labelset (of size $m^l$).
+Sequence recommendation methods perform ranking on a very large labelset (of size $m^l$).
 We report results on the {\em best of top $k$}~\cite{russakovsky2015imagenet}.
 That is, for all methods, % described in Section~\ref{ssec:methods},
 we predict the top $k$ trajectories\footnote{To get $k$ paths, the list Viterbi algorithm normally searches a long list which contains sequences with loops.}
@@ -348,7 +349,7 @@ Overall, sequence recommendation methods have shown superior performance in loca
         %\caption{}
         %\label{fig:feature_comp}
     \end{subfigure}
-    \caption{Example of a recommended trajectory (left); A radar chart compares scores of two POIs decomposed according to features (right), see text for details.}
+    \caption{Example of a recommended trajectory (left); Radar charts that compare scores of two POIs decomposed according to features (right), see text for details.}
     \label{fig:example}
 \end{figure}
 
@@ -358,8 +359,8 @@ Overall, sequence recommendation methods have shown superior performance in loca
 Figure~\ref{fig:example} shows a recommended trajectory by the SR model, 
 the trajectory includes 6 POIs and is visualised on a map (left);
 the scores of two POIs are decomposed according to POI features (right),
-in particular, the red radar chart shows the decomposition of the first POI (red marker) in the trajectory,
-and the green chart shows the decomposition of the third POI (green marker).
+in particular, the red radar chart shows the decomposition of the first POI (red marker on map) in the trajectory,
+and the green chart shows the decomposition of the third POI (green marker on map).
 We found that popularity and distance related features are the main contributor to the first POI, 
 and the third POI is mainly supported by visits and distance related features.
 %the left sub-figure visualises the trajectory on a map, 
