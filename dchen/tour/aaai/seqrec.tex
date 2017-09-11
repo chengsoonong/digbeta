@@ -59,7 +59,7 @@ In many settings, one further requires the sequences to be \emph{paths}~\cite{we
 \subsection{Special case: {\trajrec}}
 
 %{\trajrec} involve a set of points-of-interest (POIs) $\mathcal{P}$
-Suppose we have a set of points-of-interest (POIs) $\mathcal{P}$ in a city~\cite{bao2015recommendations,zheng2015trajectory}.
+Suppose we have a set of points-of-interest (POIs) $\mathcal{P}$ in a city.
 %The \emph{\trajrec} problem is:
 Given a \emph{trajectory query} $\mathbf{x} = (s, l)$,
 comprising a start POI $s \in \mathcal{P}$ and trip length
@@ -68,16 +68,18 @@ comprising a start POI $s \in \mathcal{P}$ and trip length
 %In this case, the number of POIs $l$ can be treated as a \emph{hidden} variable,
 %with additional constraint $\sum_{k=1}^l t_k \le T$ where $t_k$ is the time spent at POI $y_k$.}
 $l \!>\! 1$ (\ie the desired number of POIs, including $s$),
-the \emph{\trajrec} problem is to
+the \emph{\trajrec} problem~\cite{bao2015recommendations,zheng2015trajectory} is to
 recommend one or more sequences of POIs %%(or \emph{trajectories}) %$\mathbf{y}^*$
 that maximise some notion of utility,
 %To learn a suitable $f$,
 %we are
 %provided as input
-learned from a training set
+learned from %a training set
+historical
 %$(\x\pb{i}, \{ \y\pb{ij} \}_{j=1:n^i})$, $i=1:n$,
 %comprising pairs of queries and corresponding
-of trajectories visited by travellers in the city.
+%of
+trajectories visited by travellers in the city.
 
 We can view the {\trajrec} problem as {\seqrec} in the following way:
 given {\trajectory} query $\x$, and a suitable scoring function $f$, we wish to find

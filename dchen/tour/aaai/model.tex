@@ -278,6 +278,9 @@ Note that $k$ is expected to be small in noisy signal recovery, such as digital 
 For both the SP and SR models, prediction requires that we compute $\argmax_{\y \in \mathcal{Y}_{\mathrm{path}}} f( \x, \y )$.
 This is the maximum over $\mathcal{Y}_{\mathrm{path}} \subseteq \mathcal{Y}$,
 which comprises all elements of $\mathcal{Y}$ that are paths and not all possible sequences.
+
+
+\subsubsection{Eliminating loops}
 Observing that this requires excluding a set of sequences from consideration, a natural idea is to apply the \emph{list Viterbi algorithm} of the previous section.
 We further observe that our {\em path-decoding} problem is a variant of the well-known
 {\em traveling salesman problem} (TSP), in particular the best of ${m \choose l}$ TSPs.
