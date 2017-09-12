@@ -12,7 +12,7 @@ as well as the design of methods that can suitably exploit these to make useful 
 
 Classical recommendation systems have focused on a fixed set of individual items such as books or movies. In scenarios where there is a concept of a session,
 one needs to recommend content that possesses some \emph{structure}
-where the desired content is naturally organized in
+where the desired content is naturally organised in
 \emph{sequences} or {\em graphs}.
 For example, consider %the problem of
 recommending a trajectory of points of interest in a city to a visitor~\citep{lu2010photo2trip,lu2012personalized,ijcai15,cikm16paper},
@@ -42,8 +42,11 @@ via \emph{structured prediction} by leveraging the toolkit of structured
 SVMs~\citep{taskar2004max,tsochantaridis2004support}.
 However, a vanilla application of such methods does not suffice,
 as they do not account for the fact that each input can have multiple ground truths,
-and that predicted sequences must have no repeats.
-We focus here on recommending a travel path in a city, but in principle our approach could be
+and that 
+repeated elements in predicted sequences are undesirable.
+%predicted sequences must have no repeats.
+We focus %here 
+on recommending a travel path in a city, but in principle our approach could be
 used for recommending a playlist of songs.
 %We show how to overcome this by
 %ncorporating multiple ground truth sequences into a structured prediction formulation,
@@ -72,8 +75,8 @@ Specifically, our contributions are as follows:
 	\begin{itemize}
 		\item to ensure global cohesion, we attack the problem using structured SVMs (SSVMs)
 		\item to account for the existence of multiple ground truths for each input, we show how
-		to extend SSVM training via
-		the list Viterbi algorithm, an extension of the classic Viterbi algorithm that sequentially finds the list of highest scored sequences under some model
+		to extend SSVM training via the list Viterbi algorithm, 
+        which is an extension of the classic Viterbi algorithm that sequentially finds the list of highest scored sequences under some model
 		\item for predicting sequences without repeated elements, i.e. {\em path}s in state-space, we again show how the list Viterbi algorithm can be used
 	\end{itemize}
 
@@ -84,7 +87,7 @@ Specifically, our contributions are as follows:
 	%LX - now we have only four bullet points, i'm happier with this -- 5 is too many!
 	%LX - in addition, i do not think we can claim ILP as a contribution. it's in Lim'2015
 
-	\item We present experiments on a trajectory recommendation problem of recommending travel plans in cities, and demonstrate our structured prediction approaches improve over existing non-structured baselines. % (\S\ref{sec:experiment}).\itemmoveup
+	\item We present experiments on a trajectory recommendation problem of recommending travel plans in cities, and demonstrate our structured prediction approaches improve over existing, non-structured baselines. % (\S\ref{sec:experiment}).\itemmoveup
 \end{itemize}
 
 %We begin with an overview of related work, before presenting our model.
