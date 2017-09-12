@@ -237,14 +237,14 @@ This algorithm is memory-inefficient and can be difficult to use when $k$ is unk
 }
 
 A particularly applicable variant is the \emph{serial list Viterbi} algorithms (SLVA)~\cite{seshadri1994list,nilsson2001sequentially}, when the number of sequences to find is unknown a priori. 
-This algorithm sequentially find the $k$-th best sequences given the best, 2nd best, \dots, $(k \!-\! 1)$-th best sequences.
+This algorithm sequentially find the $k$-th best sequence given the best, 2nd best, \dots, $(k \!-\! 1)$-th best sequences.
 %The key insight here is 
 \citet{seshadri1994list} observed 
 that the 2nd best sequence deviates from the best sequence
 for one continuous segment, and then merges back %to the best sequence
 without deviating again
 -- otherwise replacing one of the continuous segments with those from the best sequence will increase the score.
-Subsequently, the $k$th best sequence can be the 2nd best sequence relative to the $(k \!-\! 1)$-th best sequence
+Subsequently, the $k$-th best sequence can be the 2nd best sequence relative to the $(k \!-\! 1)$-th best sequence
 at the point of final merge, or the 2nd or 3rd best sequence to the $(k \!-\! 2)$-th best sequence at the point of final merge, \ldots, and so on. 
 \citet{nilsson2001sequentially} observed that the same goal can be achieved by cleverly partitioning the search space into subsets of sequences that share a prefix with the current list of best sequences. While derived in different communities, it is not hard to show that these two algorithms are in fact fundamentally identical.
 %SLVA works by keeping track of the score differences to the best sequences and merge points along the sequences. 

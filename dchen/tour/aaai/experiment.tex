@@ -142,10 +142,9 @@ We compare our methods to the following four baselines:
 %\parskip -.05em
 \item The \textsc{Random} baseline recommends a sequence of POIs by sampling uniformly at random from the whole set of POIs
       (without utilising any POI or query related features). 
-      To obtain top-$k$ predictions we independently repeat $k$ times.
 
 \item The stronger \textsc{Popularity} baseline recommends the top-$l$ most popular POIs,
-      \ie, the POIs visited by the most number of users in the training set.
+      \ie the POIs visited by the most number of users in the training set.
 
 \item \textsc{PoiRank}~\cite{cikm16paper}
       %is a generalisation of \textsc{Popularity} which
@@ -216,6 +215,7 @@ for all methods, % described in Section~\ref{ssec:methods},
 we predict the top $k$ trajectories\footnote{To get $k$ paths, the list Viterbi algorithm normally searches a long list which contains sequences with loops.}
 and then report the best match of any in the top $k$ to any trajectory in the ground truth set.
 
+To obtain top-$k$ recommendations with \textsc{Random}, we independently repeat $k$ times.
 To perform top-$k$ prediction with \textsc{Popularity}, \textsc{PoiRank} and \textsc{Markov},
 we exploit the 
 %same approach 
@@ -278,7 +278,7 @@ Table~\ref{tab:result} summarises the performance of all methods for top-10 reco
 We can observe from the results that \textsc{POIRank}, \textsc{Markov} and \textsc{SP}
 methods that convert the trajectory recommendation task
 into data that is amenable to off the shelf methods (ranking, Markov chains and structured SVM respectively)
-performs better than baselines but are not the best performing methods.
+performs better than \textsc{Random} and \textsc{Popularity} baselines but are not the best performing methods.
 Although \textsc{Markov} achieves the best performance on the smallest \texttt{Osaka} dataset,
 the best results on larger datasets (\ie \texttt{Glasgow} and \texttt{Toronto}) are obtained using our proposed methods
 %\textsc{SPpath}, 
@@ -287,7 +287,7 @@ the best results on larger datasets (\ie \texttt{Glasgow} and \texttt{Toronto}) 
 
 %\subsubsection{The performance in top-$k$ recommendation}
 We also compare the performance for all values of top-$k$ with $k=1,\ldots,10$, and
-Figure~\ref{fig:topk} shows a selection of the curves for Glasgow. We observe that
+Figure~\ref{fig:topk} shows a selection of the curves for \textsc{Glasgow}. We observe that
 our proposed methods are consistently the best for all values of $k$.
 See the supplement for results across all datasets on all metric variants.
 
@@ -364,7 +364,7 @@ the trajectory includes 6 POIs and is visualised on a map (left);
 the scores of two POIs are decomposed according to POI features (right),
 in particular, the red radar chart shows the decomposition of the first POI (red marker on map) in the trajectory,
 and the green chart shows the decomposition of the third POI (green marker on map).
-We found that popularity and distance related features are the main contributor to the first POI, 
+We found that popularity and distance related features are the main contributors to the first POI,
 and the third POI is largely supported by visits and distance related features.
 %the left sub-figure visualises the trajectory on a map, 
 %and the right sub-figure shows how different POI features contribute to the scores of two POIs using a radar chart.

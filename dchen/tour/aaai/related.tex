@@ -41,10 +41,12 @@ such approaches do not consider sequence structure.
 %or matrix factorisation family of techniques applied to places and trajectories
 Another approach regards route recommendation as a planning problem~\cite{brilhante2013shall,gioniswsdm14,ijcai15};
 %The TripBuilder system~\cite{brilhante2013shall} first solves a maximum coverage problem for user preference and then solves TSP for routing. 
-these assume a fixed objective function that is not directly optimised to individual users. 
-A few approaches jointly consider POI preferences and 
-routes~\cite{chen2015tripplanner,cikm16paper}.
+%these assume a fixed objective function that is not directly optimised to predict user behaviour. %individual users. 
+%A few approaches jointly consider POI preferences and routes~\cite{chen2015tripplanner,cikm16paper}.
 %routes~\cite{chen2015tripplanner,kurashima2010geotag,cikm16paper}.
+The collaborative filtering approaches rank POI but do not take into account the sequence that a trip is taken.
+On the other hand, the planning approaches assume a fixed objective function that is not directly optimised to predict user behaviour.
+There have been a few approaches that jointly consider POI preferences and routes~\cite{chen2015tripplanner,cikm16paper}.
 
 % There are, roughly, three problem settings that have been studied.
 % The first setting is \emph{point of interest} (\emph{POI}) \emph{recommendation};
