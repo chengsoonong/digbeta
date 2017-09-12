@@ -1,8 +1,25 @@
 % !TEX root = ./main.tex
 
-Current recommender systems largely focus on static, unstructured content.
-In many scenarios, we would like to recommend content that is a path,
-such as a trajectory of points-of-interest in a city.
+Current recommender systems largely focus on static, unstructured content;
+however, in many scenarios, we would like to recommend content having sequential structure.
+For example, in \emph{trajectory recommendation}, we wish to recommend to travellers a sequence of points-of-interest in a city.
+Our predictions must thus have global cohesion, while also omitting repeated items.
+In this paper, we address trajectory recommendation via an extension of the structured support vector machine (SSVM).
+While a vanilla application of SSVMs is hampered by the existence of multiple ground truths for a query,
+we show how a modification of the training and loss-augmented inference can account for this.
+Experiments on real-world trajectory datasets show the benefits of our approach over existing, non-structured recommendation approaches.
+
+% Current recommender systems largely focus on static, unstructured content.
+% In many scenarios, we would like to recommend content that is a path,
+% such as a trajectory of points-of-interest in a city.
+% We require that trajectories are a sequence of items that are globally cohesive, but
+% do not have repeated items. We propose a modification of sequence prediction
+% that enables trajectory recommendation.
+
+% We introduce an approach to learn from session data based on the structured support vector machine.
+% We modify the objective function and loss-augmented inference to account for the existence of multiple ground truths for a given seed item.
+% Experiments on real-world trajectory datasets show the benefits of our approach over existing, non-structured recommendation approaches.
+
 % emphasize the challenge, and then sell our solution ? -- LX
 %Dubbed {\em Structured Recommendation},
 %This sequence recommendation problem
@@ -12,13 +29,7 @@ such as a trajectory of points-of-interest in a city.
 %Motivated by trajectory recommendation, we focus on sequential structures
 %but in contrast to classical Viterbi decoding we require that
 %valid predictions are sequences with no repeated elements.
-We require that trajectories are a sequence of items that are globally cohesive, but
-do not have repeated items. We propose a modification of sequence prediction
-that enables trajectory recommendation.
 
-We introduce an approach to learn from session data based on the structured support vector machine.
 %For prediction, we modify the inference procedure to avoid predicting loops in the sequence.
 %For training, we modify the objective function to account for the existence of multiple ground truths for a given input. We also modify the loss-augmented inference procedure to exclude the known ground truths.
 %Experiments on real-world trajectory recommendation datasets show the benefits of our approach over existing, non-structured recommendation approaches.
-We modify the objective function and loss-augmented inference to account for the existence of multiple ground truths for a given seed item.
-Experiments on real-world trajectory datasets show the benefits of our approach over existing, non-structured recommendation approaches.

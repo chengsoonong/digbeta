@@ -1,0 +1,13 @@
+pdfjam main.pdf 1-8 --letterpaper -o trajrec-body.pdf
+pdfjam main.pdf 9-  --letterpaper -o trajrec-supp.pdf
+
+zip trajrec-supp.zip trajrec-supp.pdf
+
+echo ""
+echo "MOVING TO INITIAL SUBMISSION"
+echo ""
+
+rm initial_submission/*
+mv *trajrec*.pdf initial_submission/
+mv *.zip initial_submission/
+ls -alt initial_submission
