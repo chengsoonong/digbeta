@@ -7,7 +7,8 @@
 %\label{sec:recseq}
 %\textmoveup
 
-\section{Background and problem statement}
+%\section{Background and problem statement}
+\section{Problem statement}
 
 %We introduce the {\seqrec} problem that is the focus of this paper,
 %by first providing an abstract mathematical formulation,
@@ -126,8 +127,9 @@ Here, if $x$ represents the identity of a user and $y$ the identity of an item,
 one also learns a score function $f( x, y )$, \eg via matrix factorisation~\citep{Koren:2009},
 and makes a prediction by enumerating all ({non-structured}) items $y$ to compute $\argmax_y f(x,y)$.
 
-Another similarity is to structured prediction.
-Here, we wish to predict some structured label $\y \in \mathcal{Y}$ for an input $\x \in \mathcal{X}$,
+%Another similarity is to 
+Consider also structured prediction,
+where we wish to predict some structured label $\y \in \mathcal{Y}$ for an input $\x \in \mathcal{X}$,
 typically via a score function $f(\x,\y)$ that determines the affinity of an (input, label) pair.
 In a structured prediction problem for sequences, the goal is to learn from a set of input vector and output sequence tuples
 $\{ (\x\pb{i}, \y\pb{i}) \}_{i = 1}^n$, where
