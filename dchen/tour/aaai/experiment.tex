@@ -217,10 +217,10 @@ we predict the top $k$ trajectories\footnote{To get $k$ paths, the list Viterbi 
 and then report the best match of any in the top $k$ to any trajectory in the ground truth set.
 
 To perform top-$k$ prediction with \textsc{Popularity}, \textsc{PoiRank} and \textsc{Markov},
-we make use of the 
+we exploit the 
 %same approach 
 list Viterbi algorithm
-we used to deal with multiple ground truths.
+that was used to deal with multiple ground truths.
 For \textsc{Popularity}, the score of a path is the accumulated popularity of all POIs in the path;
 for \textsc{PoiRank} and \textsc{Markov}, the score of a path is the likelihood
 (the ranking scores for POIs are first transformed into a probability distribution using the softmax function, as described in~\cite{cikm16paper}).
