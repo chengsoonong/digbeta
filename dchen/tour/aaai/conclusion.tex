@@ -4,12 +4,17 @@
 \section{Conclusion and future work}
 %\textmoveup
 
-We cast the problem of {\trajrec}
-as a structured prediction problem.
-Our solution extends structured SVMs to account for two challenges:
-(1) the existence of multiple ground truths;
-(2) avoiding predicting loops in the sequence.
-The inference procedures are novel applications of the list Viterbi algorithm.
+We cast the problem of recommending trajectories as a special case of sequence recommendation,
+which we solve by augmenting the structured SVMs.
+This approach not only ensures global cohesion but also accounts for the existence of multiple ground truths for a given input.
+We also propose a novel application of the list Viterbi algorithm to avoid predicting loops in the sequence.
+%
+%
+%as a structured prediction problem.
+%Our solution extends structured SVMs to account for two challenges:
+%(1) the existence of multiple ground truths;
+%(2) avoiding predicting loops in the sequence.
+%The inference procedures are novel applications of the list Viterbi algorithm.
 Experiments on real-world trajectory datasets showed that
 sequence recommendation approaches outperform existing, non-structured approaches.
 
