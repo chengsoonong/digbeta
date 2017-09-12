@@ -133,7 +133,7 @@ The sparsity of this dataset presents a barrier for large-scale evaluations.
 
 
 %\secmoveup
-\subsection{Evaluation settings}
+\subsection{Evaluation setting}
 \label{ssec:methods}
 %\textmoveup
 
@@ -159,14 +159,7 @@ We compare our methods to the following four baselines:
       pairwise features (see supplement). 
 
 \end{itemize}%\itemmoveup
-To perform top-$k$ prediction with \textsc{Popularity}, \textsc{PoiRank} and \textsc{Markov},
-we make use of the 
-%same approach 
-list Viterbi algorithm
-we used to deal with multiple ground truths.
-For \textsc{Popularity}, the score of a path is the accumulated popularity of all POIs in the path;
-for \textsc{PoiRank} and \textsc{Markov}, the score of a path is the likelihood
-(the ranking scores for POIs are first transformed into a probability distribution using the softmax function, as described in~\cite{cikm16paper});
+
 %LX - this is very long-winded
 %To assess the viability of our structured prediction approach, and the necessity of our two extensions (normalising the loss per query and disallowing loops), we consider the following structured methods: %the following versions of our structured prediction methods:
 We consider four variants of sequence recommendation, starting with a structured prediction model, then incorporating multiple ground truths, and finally path constraints:
@@ -183,6 +176,10 @@ We consider four variants of sequence recommendation, starting with a structured
 \item {\sc SPpath} and {\sc SRpath}, %described in Section~\ref{ssec:training} 
       using the same features as SP and SR, but with path constraints for model learning.
 \end{itemize}%\itemmoveup
+We reiterate that irrespective of the training procedure, \textsc{SP}, \textsc{SR},
+\textsc{SPpath} and \textsc{SRpath} all predict paths.
+%use prediction procedures that eliminate loops. % subtours.
+
 %LX - not clear what the sentence below is trying to say, delete.
 %All above methods take into account the specified start location properly.
 
@@ -213,14 +210,20 @@ computes the ratio of concordant (correctly ranked) %pairs
 minus discordant pairs, over all possible pairs after accounting for ties.%taking care of ties.
 %$\frac{1}{2}l(l-1)$) pairs  %DW: this is not correct
 
-Sequence recommendation methods perform ranking on a very large labelset (of size $m^l$).
-We report results on the {\em best of top $k$}~\cite{russakovsky2015imagenet}.
-That is, for all methods, % described in Section~\ref{ssec:methods},
+Sequence recommendation methods perform ranking on a very large label set (of size $m^l$).
+We report results on the {\em best of top $k$}~\cite{russakovsky2015imagenet}:
+for all methods, % described in Section~\ref{ssec:methods},
 we predict the top $k$ trajectories\footnote{To get $k$ paths, the list Viterbi algorithm normally searches a long list which contains sequences with loops.}
 and then report the best match of any in the top $k$ to any trajectory in the ground truth set.
-We reiterate that irrespective of the training procedure, \textsc{SP}, \textsc{SR},
-\textsc{SPpath} and \textsc{SRpath} all predict paths.
-%use prediction procedures that eliminate loops. % subtours.
+
+To perform top-$k$ prediction with \textsc{Popularity}, \textsc{PoiRank} and \textsc{Markov},
+we make use of the 
+%same approach 
+list Viterbi algorithm
+we used to deal with multiple ground truths.
+For \textsc{Popularity}, the score of a path is the accumulated popularity of all POIs in the path;
+for \textsc{PoiRank} and \textsc{Markov}, the score of a path is the likelihood
+(the ranking scores for POIs are first transformed into a probability distribution using the softmax function, as described in~\cite{cikm16paper}).
 
 \eat{
 As described previously, our methods are capable of recommending not merely a single trajectory,
@@ -271,7 +274,7 @@ $\{\hat{\mathbf{y}}^{(ij)}\}_{j=1}^k$ are the top-$k$ recommendations.
 
 Table~\ref{tab:result} summarises the performance of all methods for top-10 recommendations.
 
-\subsubsection{Is sequence recommendation approach helpful?}
+\subsubsection{Is exploiting structure helpful?}
 We can observe from the results that \textsc{POIRank}, \textsc{Markov} and \textsc{SP}
 methods that convert the trajectory recommendation task
 into data that is amenable to off the shelf methods (ranking, Markov chains and structured SVM respectively)
