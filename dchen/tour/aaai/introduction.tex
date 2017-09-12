@@ -42,10 +42,10 @@ To illustrate, consider a na\"{i}ve approach
 which ignores all sequential structure:
 we could learn a user's preference for individual POIs,
 and create a trajectory based on the top ranked items.
-Such an approach is likely sub-optimal,
+Such an approach may be sub-optimal,
 as
 it is unlikely \eg a user will want to visit three restaurants in a row;
-equally,
+more generally,
 while a user's two favourite songs might be in
 the metal and country genres,
 a playlist featuring these songs in succession may be jarring.
@@ -84,7 +84,7 @@ To summarise, our contributions are as follows:
 		\item to predict sequences without repeated elements, we show how to use either the list Viterbi algorithm, or alternately an integer linear program.
 	\end{itemize}
 
-	\item We present experiments on real-world trajectory recommendation datasets, and demonstrate our structured prediction approaches improve over existing baselines. % (\S\ref{sec:experiment}).\itemmoveup
+	\item We present experiments on real-world trajectory datasets, and demonstrate our structured prediction approaches improve over existing non-structured baselines. % (\S\ref{sec:experiment}).\itemmoveup
 
 	%\item We formalise the problem of sequence recommendation, %(\S\ref{sec:seqrec-defn}),
     %      and show how trajectory recommendation can be seen as a special case. % (\S\ref{sec:trajrec}).
@@ -109,7 +109,7 @@ To summarise, our contributions are as follows:
 
 We emphasise that while
 our focus is
-on recommending a travel path in a city, our formulation is abstract and in principle could be
+on recommending a travel trajectory, our formulation is abstract and in principle could be
 used for other sequence recommendation tasks, such as recommending a playlist of songs.
 
 
