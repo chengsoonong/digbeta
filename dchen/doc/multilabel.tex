@@ -418,10 +418,12 @@ To learn the parameters of predictor $\f$, we can minimise the empirical risk (\
 
 \subsection{Baselines}
 
-\paragraph{First song as seed + Hamming loss + Independent logistic regression}
+\paragraph{First song as seed +  Independent logistic regression}
 Suppose the feature of a query induced by a playlist is simply the feature of the first song in the playlist 
 (\ie use the first song in a playlist as the \emph{seed}).
-Further, we choose the Hamming loss $\LCal_\text{Hamm}(\cdot)$, and by replacing the indicator function in (\ref{eq:loss_hamm_pl0}) with 
+
+\paragraph{Hamming loss}
+If we choose the Hamming loss $\LCal_\text{Hamm}(\cdot)$, and by replacing the indicator function in (\ref{eq:loss_hamm_pl0}) with 
 one of its convex surrogate, \eg the logistic loss $\ell(f_i, y_i) = -\log \sigma(f_i \cdot y_i)$ 
 where $\sigma(z) = \frac{1}{1+\exp(-z)}$ is the logistic function,
 \begin{equation}
