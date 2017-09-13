@@ -231,7 +231,7 @@ Table~\ref{tab:symbol} summarises some notation we will use.
 \begin{tabular}{llll}
 \hline \hline
 \multicolumn{3}{l}{\textbf{Symbol}} & \textbf{Quantity} \\ \hline 
-$d$              &  $\in$  &  $\Z^+$  & The number of features for each example \\
+$D$              &  $\in$  &  $\Z^+$  & The number of features for each example \\
 $\w$             &  $\in$  &  $\R^d$  & The vector of model parameters \\
 $\mathbf{1}_m$   &  $\in$  &  $\R^m$  & The $m$ dimensional vector of $1$'s \\
 $\X^+$           &  $\in$  &  $\R^{m \times d}\quad$  & Matrix of features of positive examples \\
@@ -367,10 +367,10 @@ s.t. \quad & \1_m^\top \alphabm = \1_n^\top \betabm.
 %2. Formal problem statement (e.g. input, output)
 %\subsection{Problem formulation}
 
-Given $N$ playlists where songs in each playlist are from a music library with $M$ songs $\{s_i\}_{i=1}^M$,
-we derive a training set $\SCal = \left\{ \left( \x\pb{n}, \y\pb{n} \right) \right\}_{n=1}^N$ where $\x\pb{n} \in \R^d$ is a feature vector of the query 
+Given $N$ playlists where songs in each playlist are from a music library with $K$ songs $\{s_i\}_{i=1}^K$,
+we derive a training set $\SCal = \left\{ \left( \x\pb{n}, \y\pb{n} \right) \right\}_{n=1}^N$ where $\x\pb{n} \in \R^D$ is a feature vector of the query 
 induced by the $n$-th playlist (\eg the feature vector of the first song in the $n$-th playlist),
-$\y\pb{n} \in \{0,1\}^M$ is a binary indicator such that 
+$\y\pb{n} \in \{0,1\}^K$ is a binary indicator such that 
 $$
 y_i\pb{n} = 
 \begin{cases}
@@ -386,26 +386,27 @@ R_{\LCal}(\f; \SCal) = \frac{1}{N} \sum_{n=1}^N \LCal\left(\f(\x\pb{n}), \y\pb{n
 \end{equation}
 where $\LCal(\cdot)$ is a loss function for multi-label learning such as Hamming loss, rank loss, subset 0/1 loss etc.
 
-For training example $(\x, \y)$, let $M_+ = \{i |y_i = 1\}$ and $M_- = \{j |y_j = 0\}$, 
+For training example $(\x, \y)$, let $K_+ = \{i |y_i = 1\}$ and $K_- = \{j |y_j = 0\}$, 
 we consider three options for $\LCal(\cdot)$ here:
 \begin{enumerate}
 \item Hamming loss: 
       \begin{equation}
       \label{eq:loss_hamm_pl0}
-      \LCal_\text{Hamm}(\f(\x), \y) = \frac{1}{M} \sum_{i=1}^M \; \llb f_i \ne y_i \rrb
+      \LCal_\text{Hamm}(\f(\x), \y) = \frac{1}{K} \sum_{i=1}^K \; \llb f_i \ne y_i \rrb
       \end{equation}
 \item Rank loss: 
       \begin{equation}
       \label{eq:loss_rank_pl0}
-      \LCal_\text{Rank}(\f(\x), \y) = \frac{1}{M_+ \cdot M_-} \sum_{i \in M_+} \sum_{j \in M_-} 
+      \LCal_\text{Rank}(\f(\x), \y) = \frac{1}{K_+ \cdot K_-} \sum_{i \in K_+} \sum_{j \in K_-} 
                                       \left( \llb f_i < f_j \rrb + \frac{1}{2} \llb f_i = f_j \rrb \right)
       \end{equation}
+
 \item Top-push loss:
-      $$\LCal_\infty(\f(\x), \y) = \frac{1}{M_+} \sum_{i \in M_+} \max_{j \in M_-} \llb f_i < f_j \rrb,$$
+      $$\LCal_\infty(\f(\x), \y) = \frac{1}{K_+} \sum_{i \in K_+} \max_{j \in K_-} \llb f_i < f_j \rrb,$$
       let $\ell(\cdot)$ be a convex surrogate of the indicator function, we have
       \begin{equation}
       \label{eq:loss_inf_pl}
-      \widetilde{\LCal}_\infty(\f(\x), \y) = \frac{1}{M_+} \sum_{i \in M_+} \ell\left( \max_{j \in M_-} f_j - f_i \right).
+      \widetilde{\LCal}_\infty(\f(\x), \y) = \frac{1}{K_+} \sum_{i \in K_+} \ell\left( \max_{j \in K_-} f_j - f_i \right).
       \end{equation}
 \end{enumerate}
 
@@ -422,6 +423,73 @@ To learn the parameters of predictor $\f$, we can minimise the empirical risk (\
 Suppose the feature of a query induced by a playlist is simply the feature of the first song in the playlist 
 (\ie use the first song in a playlist as the \emph{seed}).
 
+\paragraph{Rank loss (surrogate)}
+Assuming L2 regularisation, the objective is
+\begin{equation*}
+J(\w) = \frac{\lambda}{2}\w^\top \w + \frac{1}{N} \sum_{n=1}^N \LCal(\x\pb{n}, \y\pb{n}; \w),
+\end{equation*}
+where 
+\begin{equation*}
+\LCal(\x, \y; \w) = \frac{1}{K_+} \sum_{i: y_i = 1} \frac{1}{K_-} \sum_{j: y_j = 0} \ell(\w_i^\top \x - \w_j^\top \x),
+\end{equation*}
+where $K_+$ and $K_-$ is the number of positive and negative labels in $\y$ respectively,
+and
+\begin{equation*}
+\ell(v) = \log(1 + \exp(-v)).
+\end{equation*}
+
+In summary, the objective is
+\begin{equation}
+\label{eq:obj_rank}
+J(\w) = \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n \cdot K_-^n} \sum_{i:y_i=1} \sum_{j:y_j=0} 
+        \log(1 + \exp(-(\w_i^\top \x\pb{n} - \w_j^\top \x\pb{n}))).
+\end{equation}
+where $K_+^n$ and $K_-^n$ is the number of positive and negative labels in the $n$-th example respectively.
+The gradient of the weight vector $\w_i$ for positive labels and $\w_j$ for negative labels are
+\begin{align}
+%\label{eq:grad_rank_pos}
+\frac{\partial J(\w)}{\w_i} & = \lambda \cdot \w_i + \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n \cdot K_-^n} \sum_{j:y_j=0} 
+                                \frac{-\x\pb{n}} {1 + \exp(\w_i^\top \x\pb{n} - \w_j^\top \x\pb{n})} \\
+\frac{\partial J(\w)}{\w_j} & = \lambda \cdot \w_j + \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n \cdot K_-^n} \sum_{i:y_i=1} 
+                                \frac{\x\pb{n}} {1 + \exp(\w_i^\top \x\pb{n} - \w_j^\top \x\pb{n})}.
+\end{align}
+
+
+\paragraph{p-norm push loss}
+The objective is (assuming L2 regularisation)
+\begin{equation*}
+J(\w) = \frac{\lambda}{2}\w^\top \w + \frac{1}{N} \sum_{n=1}^N \LCal(\x\pb{n}, \y\pb{n}; \w),
+\end{equation*}
+where
+\begin{equation*}
+\LCal(\x, \y; \w) = \frac{1}{K_+} \sum_{i:y_i=1} \ell(1, \w_i^\top \x) + \frac{1}{K_-} \sum_{j:y_j=0} \ell(0, \w_j^\top \x),
+\end{equation*}
+where $K_+$ and $K_-$ are defined as before, and
+\begin{align}
+\ell(1, v) & = \frac{1}{p} \exp(pv), \\
+\ell(0, v) & = \exp(-v),
+\end{align}
+where $p \gg 1$ is a constant.
+When $p \to +\infty$, the above loss is equivalent to the top-push loss (with exponential surrogate).
+
+In summary, the objective is
+\begin{equation}
+\label{eq:obj_pnorm_push}
+J(\w) = \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \left( \frac{1}{K_+^n} \sum_{i:y_i=1} \frac{1}{p} \exp(p \cdot \w_i^\top \x\pb{n}) +
+        \frac{1}{K_-^n} \sum_{j:y_j=0} \exp(-\w_j^\top \x\pb{n}) \right)
+\end{equation}
+where $K_+^n$ and $K_-^n$ are defined as before.
+The gradient of the weight vector $\w_i$ for positive labels and $\w_j$ for negative labels are
+\begin{align}
+%\label{eq:grad_rank_pos}
+\frac{\partial J(\w)}{\w_i} & = \lambda \cdot \w_i + \frac{1}{N} \sum_{n=1}^N \frac{\x\pb{n}}{K_+^n} \exp(p \cdot \w_i^\top \x\pb{n}) \\
+\frac{\partial J(\w)}{\w_j} & = \lambda \cdot \w_j + \frac{1}{N} \sum_{n=1}^N \frac{-\x\pb{n}}{K_-^n} \exp(-\w_i^\top \x\pb{n}).
+\end{align}
+
+
+
+
+\eat{
 \paragraph{Hamming loss}
 If we choose the Hamming loss $\LCal_\text{Hamm}(\cdot)$, and by replacing the indicator function in (\ref{eq:loss_hamm_pl0}) with 
 one of its convex surrogate, \eg the logistic loss $\ell(f_i, y_i) = -\log \sigma(f_i \cdot y_i)$ 
@@ -429,8 +497,8 @@ where $\sigma(z) = \frac{1}{1+\exp(-z)}$ is the logistic function,
 \begin{equation}
 \label{eq:loss_hamm_pl}
 \widetilde{\LCal}_\text{Hamm}(\f(\x), \y) 
-= \frac{1}{M} \sum_{i=1}^M \left[ -\log \sigma(f_i \cdot y_i) \right]
-= \frac{1}{M} \sum_{i=1}^M \log \left(1 + \exp(-f_i \cdot y_i) \right).
+= \frac{1}{M} \sum_{i=1}^K \left[ -\log \sigma(f_i \cdot y_i) \right]
+= \frac{1}{M} \sum_{i=1}^K \log \left(1 + \exp(-f_i \cdot y_i) \right).
 \end{equation}
 If we assume the predictor $\f$ is chain of logistic regression classifiers,
 and further assume each label can be modelled independently, \ie 
@@ -444,9 +512,9 @@ where $\Phi(\cdot)$ is a feature map, then the optimisation objective in (\ref{e
 J(\w)
 &= \frac{1}{2} \w^\top \w + R_{\LCal}(\f; \SCal) \\
 &= \frac{1}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \widetilde{\LCal}_\text{Hamm}\left(\f(\x\pb{n}), \y\pb{n}\right) \\
-&= \frac{1}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \frac{1}{M} \sum_{i=1}^M 
+&= \frac{1}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \frac{1}{M} \sum_{i=1}^K 
    \log \left(1 + \exp(-f_i\pb{n} \cdot y_i\pb{n}) \right) \\
-&= \frac{1}{2} \sum_{i=1}^M \w_i^\top \w_i + \frac{1}{MN} \sum_{n=1}^N \sum_{i=1}^M 
+&= \frac{1}{2} \sum_{i=1}^K \w_i^\top \w_i + \frac{1}{MN} \sum_{n=1}^N \sum_{i=1}^K 
    \log \left(1 + \exp(-\sigma(\w_i^\top \Phi(\x\pb{n}, s_i)) \cdot y_i\pb{n}) \right)
 \end{align*}
 This objective can be optimised by gradient descent, noting that $\frac{d\sigma(z)}{dz} = \sigma(z) \cdot (1-\sigma(z))$,
@@ -456,7 +524,7 @@ $$
 = \w_i + \frac{1}{MN} \sum_{n=1}^N \frac{-y_i\pb{n} \cdot f_i\pb{n} \cdot (1-f_i\pb{n}) \cdot \Phi(\x\pb{n}, s_i)} {1+\exp(f_i\pb{n} \cdot y_i\pb{n})}
 $$
 where $f_i\pb{n} = \sigma\left( \w_i^\top \Phi(\x\pb{n}, s_i) \right)$.
-
+}
 
 \eat{
 Given $n$ playlists where songs in each playlist are from a music library with $m$ songs $\{s_j\}_{j=1}^m$.
