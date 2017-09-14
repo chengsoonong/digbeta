@@ -448,10 +448,10 @@ where $K_+^n$ and $K_-^n$ is the number of positive and negative labels in the $
 The gradient of the weight vector $\w_i$ for positive labels and $\w_j$ for negative labels are
 \begin{align}
 %\label{eq:grad_rank_pos}
-\frac{\partial J(\w)}{\w_i} & = \lambda \cdot \w_i + \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n \cdot K_-^n} \sum_{j:y_j=0} 
-                                \frac{-\x\pb{n}} {1 + \exp(\w_i^\top \x\pb{n} - \w_j^\top \x\pb{n})} \\
-\frac{\partial J(\w)}{\w_j} & = \lambda \cdot \w_j + \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n \cdot K_-^n} \sum_{i:y_i=1} 
-                                \frac{\x\pb{n}} {1 + \exp(\w_i^\top \x\pb{n} - \w_j^\top \x\pb{n})}.
+\frac{\partial J(\w)}{\partial \w_i} & = \lambda \cdot \w_i + \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n \cdot K_-^n} \sum_{j:y_j=0} 
+                                         \frac{-\x\pb{n}} {1 + \exp(\w_i^\top \x\pb{n} - \w_j^\top \x\pb{n})} \\
+\frac{\partial J(\w)}{\partial \w_j} & = \lambda \cdot \w_j + \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n \cdot K_-^n} \sum_{i:y_i=1} 
+                                         \frac{\x\pb{n}} {1 + \exp(\w_i^\top \x\pb{n} - \w_j^\top \x\pb{n})}.
 \end{align}
 
 
@@ -466,8 +466,8 @@ where
 \end{equation*}
 where $K_+$ and $K_-$ are defined as before, and
 \begin{align}
-\ell(1, v) & = \frac{1}{p} \exp(pv), \\
-\ell(0, v) & = \exp(-v),
+\ell(1, v) & = \exp(-v), \\
+\ell(0, v) & = \frac{1}{p} \exp(pv),
 \end{align}
 where $p \gg 1$ is a constant.
 When $p \to +\infty$, the above loss is equivalent to the top-push loss (with exponential surrogate).
@@ -475,16 +475,98 @@ When $p \to +\infty$, the above loss is equivalent to the top-push loss (with ex
 In summary, the objective is
 \begin{equation}
 \label{eq:obj_pnorm_push}
-J(\w) = \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \left( \frac{1}{K_+^n} \sum_{i:y_i=1} \frac{1}{p} \exp(p \cdot \w_i^\top \x\pb{n}) +
-        \frac{1}{K_-^n} \sum_{j:y_j=0} \exp(-\w_j^\top \x\pb{n}) \right)
+J(\w) = \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \left( \frac{1}{K_+^n} \sum_{i:y_i=0} \exp(-\w_i^\top \x\pb{n}) + 
+        \frac{1}{K_-^n} \sum_{j:y_j=1} \frac{1}{p} \exp(p \cdot \w_j^\top \x\pb{n}) \right), 
 \end{equation}
 where $K_+^n$ and $K_-^n$ are defined as before.
 The gradient of the weight vector $\w_i$ for positive labels and $\w_j$ for negative labels are
 \begin{align}
 %\label{eq:grad_rank_pos}
-\frac{\partial J(\w)}{\w_i} & = \lambda \cdot \w_i + \frac{1}{N} \sum_{n=1}^N \frac{\x\pb{n}}{K_+^n} \exp(p \cdot \w_i^\top \x\pb{n}) \\
-\frac{\partial J(\w)}{\w_j} & = \lambda \cdot \w_j + \frac{1}{N} \sum_{n=1}^N \frac{-\x\pb{n}}{K_-^n} \exp(-\w_i^\top \x\pb{n}).
+\frac{\partial J(\w)}{\partial \w_i} & = \lambda \cdot \w_i + \frac{1}{N} \sum_{n=1}^N \frac{-\x\pb{n}}{K_+^n} \exp(-\w_i^\top \x\pb{n}), \\
+\frac{\partial J(\w)}{\partial \w_j} & = \lambda \cdot \w_j + \frac{1}{N} \sum_{n=1}^N \frac{\x\pb{n}}{K_-^n} \exp(p \cdot \w_j^\top \x\pb{n}).
 \end{align}
+
+
+\newpage
+\thispagestyle{empty}
+
+\section*{Interesting problems}
+
+\subsection*{What precision metric that bipartite ranking is optimising?}
+
+We can derive a precision metric from the loss function of bipartite ranking.
+For example, if the rank loss is used, assuming a linear score function $f_i(\x) = \w_i^\top \x$, then
+\begin{equation*}
+\ell_\text{rank}(\x, \y; \w) = \frac{1}{K_+ \cdot K_-} \sum_{i:y_i=1} \sum_{j:y_j=0} \llb \w_i^\top\x \le \w_j^\top\x \rrb,
+\end{equation*}
+where $K_+$ and $K_-$ is the number of positive and negative labels in $\y$ respectively.
+This function will results in a loss term if any positive label has a lower score than any negative label,
+which leads to the following precision metric:
+\begin{equation}
+\label{eq:precision_rank}
+P_\text{rank} = \frac{\text{\#True Postive}}{\text{\#Positive}} 
+              = \frac{1}{K_+ \cdot K_-} \sum_{i:y_i=1} \sum_{j:y_j=0} \llb \w_i^\top\x > \w_j^\top\x \rrb,
+\end{equation}
+\ie the fraction of correctly predicted positive-negative label pairs among all positive-negative label pairs.
+
+
+\subsection*{What is the difference between logistic regression for binary classification and bipartite ranking?}
+
+It is known that logistic regression is optimising the logistic loss, which is a convex surrogate of the 0/1 loss for binary classification.
+The precision@K for binary classification is 
+\begin{equation}
+\label{eq:precision_k}
+P@K = \frac{\text{\#True Postive}}{\text{\#Positive}} 
+    = \frac{1}{K} \sum_{i:y_i=1} \llb \w_i^\top \x \ge P_K \rrb,
+\end{equation}
+where $K$ is the number of positive labels in $\y$ and $P_K$ is the $K$-th largest probability among the probabilities of all labels.
+
+An simple experiment to check this is filling Table~\ref{tab:precision} by training a logistic regression and a bipartite ranking algorithm (ranking loss and a convex surrogate) on a binary classification dataset.
+\begin{table}[!h]
+\centering
+\begin{tabular}{c|cc} \hline \hline
+Precision Metric                        & Logistic Regression & Bipartite Ranking \\
+$P@K$~\ref{eq:precision_k}              & \textsc{Best}       & ?                 \\
+$P_\text{rank}$~\ref{eq:precision_rank} & ?                   & \textsc{Best}     \\ \hline
+\end{tabular}
+\caption{Evaluation results that compares logistic regression with bipartite ranking.}
+\label{tab:precision}
+\end{table}
+
+
+\subsection*{How to use top-push loss for multi-label classification?}
+
+For each multi-label example $(\x, \y)$, if we construct a training set $\{(\x, y_l)\}_{l=1}^L$ ($L$ is the total number of labels),
+and aggregate over all multi-label training examples, we can then use top-push in multi-label classification. 
+In particular, given training set $\{\x\pb{n}, \y\pb{n}\}_{n=1}^N$, the empirical risk is
+\begin{equation*}
+R(\w) = \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i:y_i^n=1} \llb \w_i^\top \x \le \underset{j:y_j^n=0}{\max} \w_j^\top \x \rrb,
+\end{equation*}
+where $K_+^n$ is the number of positive labels in $\y\pb{n}$.
+
+Assuming L2 regularisation, the optimisation objective is
+\begin{equation*}
+J(\w) = \frac{\lambda}{2}\w^\top \w + R(\w).
+\end{equation*}
+To optimise this objective, we first replace the indicator function in $R(\w)$ with one of its convex surrogate, 
+\eg the logistic loss $\log(1+e^{-z})$ where $z = \w_l^\top \x$ is the ranking score for a label.
+We further derive the \emph{dual} of the objective to overcome the inner maximisation in $R(\w)$.
+Finally, we do gradient descent to optimise the weights $\w$.
+
+
+\subsection*{Active learning for structured prediction}
+
+Popular models for multi-label classification and structured prediction such as the probabilistic classifier chains~\cite{dembczynski:2010},
+and Seq2Seq models~\cite{Vinyals:2017} are limited by sequential inference. 
+Inspired by structured SVM~\cite{taskar2004max,tsochantaridis2004support}, 
+a value network was proposed to directly approximate the loss between the predicted and ground truth labels~\cite{gygli17a}.
+To train the value network, it was shown that examples generated by inference as well as adversarial examples work best empirically. 
+
+Obtain labelled examples is a typical example of the well-known exploration/exploitation trade-off, where there exist rich literatures in active learning and bandit algorithms, it is interesting to explore these strategies for training value networks.
+
+
+
+
 
 
 
