@@ -495,43 +495,68 @@ The gradient of the weight vector $\w_i$ for positive labels and $\w_j$ for nega
 \subsection*{What precision metric that bipartite ranking is optimising?}
 
 We can derive a precision metric from the loss function of bipartite ranking.
-For example, if the rank loss is used, assuming a linear score function $f_i(\x) = \w_i^\top \x$, then
+Given a training set with binary labels $\{\x\pb{n}, y\pb{n}\}_{n=1}^N$, 
+if the rank loss is used, assuming a linear score function $f(\x) = \w^\top \x$, 
+then the empirical loss on training set is 
 \begin{equation*}
-\ell_\text{rank}(\x, \y; \w) = \frac{1}{K_+ \cdot K_-} \sum_{i:y_i=1} \sum_{j:y_j=0} \llb \w_i^\top\x \le \w_j^\top\x \rrb,
+\frac{1}{N_+ \cdot N_-} \sum_{i:y\pb{i}=1} \sum_{j:y\pb{j}=0} \llb \w^\top\x\pb{i} \le \w^\top\x\pb{j} \rrb,
 \end{equation*}
-where $K_+$ and $K_-$ is the number of positive and negative labels in $\y$ respectively.
-This function will results in a loss term if any positive label has a lower score than any negative label,
+where $N_+$ and $N_-$ is the number of positive and negative examples training set respectively.
+This function will results in a penalty if any positive example has a lower score than any negative example,
 which leads to the following precision metric:
 \begin{equation}
 \label{eq:precision_rank}
 P_\text{rank} = \frac{\text{\#True Postive}}{\text{\#Positive}} 
-              = \frac{1}{K_+ \cdot K_-} \sum_{i:y_i=1} \sum_{j:y_j=0} \llb \w_i^\top\x > \w_j^\top\x \rrb,
+              = \frac{1}{N_+ \cdot N_-} \sum_{i:y\pb{i}=1} \sum_{j:y\pb{j}=0} \llb \w^\top\x\pb{i} > \w^\top\x\pb{j} \rrb,
 \end{equation}
-\ie the fraction of correctly predicted positive-negative label pairs among all positive-negative label pairs.
+\ie the fraction of correctly predicted positive-negative example pairs among all positive-negative example pairs.
+
+\paragraph{Comments}
+{\it
+\begin{itemize}
+\item You need to define precision more precisely. What does ``\# positive'' mean? Precision is usually hard to write down as a single summation, since the fraction you are involves a numerator and denominator that both depend on the predictions.
+\item Precision@K is a highly non-trivial measure to directly optimise. Even logistic regression doesn't optimise it directly. Rather, it solves a more general problem of estimating P(y = 1 | x), from which one can find a good threshold to make predictions with high precision@K.
+\item You can view AUC as an average of the balanced error, where one uses all possible classification thresholds. This is something of ``folk-lore'', and (regrettably) the only explicit reference I know is Appendix A.5 of~\cite{menon2015learning}.
+\end{itemize}
+}
 
 
 \subsection*{What is the difference between logistic regression for binary classification and bipartite ranking?}
 
-It is known that logistic regression is optimising the logistic loss, which is a convex surrogate of the 0/1 loss for binary classification.
-The precision@K for binary classification is 
+It is known that logistic regression is optimising the logistic loss derived from the maximum likelihood principle
+$-\log \left( \p(y=1 |\x)^y \cdot (1 - \p(y=1 | \x)^{(1-y)} \right) = -y\log\p(y=1 | \x) - (1-y) \log(1-\p(y=1 | \x))$,
+where $\p(y=1 | \x) = \sigma(\w^\top \x)$ is the probability that $\x$ is a positive example.
+Logistic loss is a convex surrogate of the 0/1 loss for binary classification.
+We can see from logistic loss that there will be a penalty if we predict a low probability for positive examples and 
+a high probability for negative examples,
+\ie logistic regression is trying to predict high probabilities for positive examples and low probabilities for negative examples,
+which means it (indirectly) optimises the accuracy metric,
 \begin{equation}
-\label{eq:precision_k}
-P@K = \frac{\text{\#True Postive}}{\text{\#Positive}} 
-    = \frac{1}{K} \sum_{i:y_i=1} \llb \w_i^\top \x \ge P_K \rrb,
+\label{eq:accuracy}
+Acc = \frac{\text{\#True Postive} + \text{\#True Negative}}{\text{\#Example}} 
+    = \frac{1}{N} \left( \sum_{i:y\pb{i}=1} \llb \w^\top \x\pb{i} \ge P_{Th} \rrb + \sum_{j:y\pb{j}=0} \llb \w^\top \x\pb{j} < P_{Th} \rrb \right),
 \end{equation}
-where $K$ is the number of positive labels in $\y$ and $P_K$ is the $K$-th largest probability among the probabilities of all labels.
+where $P_{Th}$ is the threshold probability.
 
 An simple experiment to check this is filling Table~\ref{tab:precision} by training a logistic regression and a bipartite ranking algorithm (ranking loss and a convex surrogate) on a binary classification dataset.
 \begin{table}[!h]
 \centering
 \begin{tabular}{c|cc} \hline \hline
 Precision Metric                        & Logistic Regression & Bipartite Ranking \\
-$P@K$~\ref{eq:precision_k}              & \textsc{Best}       & ?                 \\
+$Acc$~\ref{eq:accuracy}                 & \textsc{Best}       & ?                 \\
 $P_\text{rank}$~\ref{eq:precision_rank} & ?                   & \textsc{Best}     \\ \hline
 \end{tabular}
 \caption{Evaluation results that compares logistic regression with bipartite ranking.}
 \label{tab:precision}
 \end{table}
+
+\paragraph{Comments}
+{\it
+\begin{itemize}
+\item You might get some insight on the relation between logistic regression and bipartite ranking from~\cite{kotlowski2011bipartite}.
+\item It seems natural to consider structured SVM approaches to optimising precision and/or multilabel measures, as per SVMPerf.
+\end{itemize}
+}
 
 
 \subsection*{How to use top-push loss for multi-label classification?}
@@ -553,6 +578,13 @@ To optimise this objective, we first replace the indicator function in $R(\w)$ w
 We further derive the \emph{dual} of the objective to overcome the inner maximisation in $R(\w)$.
 Finally, we do gradient descent to optimise the weights $\w$.
 
+\paragraph{Comments}
+{\it
+\begin{itemize}
+\item Does the overall dual decompose into a sum of duals, one for each label?
+\end{itemize}
+}
+
 
 \subsection*{Active learning for structured prediction}
 
@@ -564,167 +596,6 @@ To train the value network, it was shown that examples generated by inference as
 
 Obtain labelled examples is a typical example of the well-known exploration/exploitation trade-off, where there exist rich literatures in active learning and bandit algorithms, it is interesting to explore these strategies for training value networks.
 
-
-
-
-
-
-
-
-\eat{
-\paragraph{Hamming loss}
-If we choose the Hamming loss $\LCal_\text{Hamm}(\cdot)$, and by replacing the indicator function in (\ref{eq:loss_hamm_pl0}) with 
-one of its convex surrogate, \eg the logistic loss $\ell(f_i, y_i) = -\log \sigma(f_i \cdot y_i)$ 
-where $\sigma(z) = \frac{1}{1+\exp(-z)}$ is the logistic function,
-\begin{equation}
-\label{eq:loss_hamm_pl}
-\widetilde{\LCal}_\text{Hamm}(\f(\x), \y) 
-= \frac{1}{M} \sum_{i=1}^K \left[ -\log \sigma(f_i \cdot y_i) \right]
-= \frac{1}{M} \sum_{i=1}^K \log \left(1 + \exp(-f_i \cdot y_i) \right).
-\end{equation}
-If we assume the predictor $\f$ is chain of logistic regression classifiers,
-and further assume each label can be modelled independently, \ie 
-%\begin{align*}
-%f_1(\x) &= \p(y_1 = 1 |\x) = \sigma\left( \w_1^\top \Phi(\x, s_1) \right) \\
-%f_i(\x) &= \p(y_i = 1 |\x, y_{1:i-1}) = \sigma\left( \w_i^\top \Phi(\x, s_i, y_{1:i-1}) \right)
-%\end{align*}
-$$f_i(\x) = \p(y_i = 1 |\x) = \sigma\left( \w_i^\top \Phi(\x, s_i) \right)$$
-where $\Phi(\cdot)$ is a feature map, then the optimisation objective in (\ref{eq:minrisk_l2}) becomes:
-\begin{align*}
-J(\w)
-&= \frac{1}{2} \w^\top \w + R_{\LCal}(\f; \SCal) \\
-&= \frac{1}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \widetilde{\LCal}_\text{Hamm}\left(\f(\x\pb{n}), \y\pb{n}\right) \\
-&= \frac{1}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \frac{1}{M} \sum_{i=1}^K 
-   \log \left(1 + \exp(-f_i\pb{n} \cdot y_i\pb{n}) \right) \\
-&= \frac{1}{2} \sum_{i=1}^K \w_i^\top \w_i + \frac{1}{MN} \sum_{n=1}^N \sum_{i=1}^K 
-   \log \left(1 + \exp(-\sigma(\w_i^\top \Phi(\x\pb{n}, s_i)) \cdot y_i\pb{n}) \right)
-\end{align*}
-This objective can be optimised by gradient descent, noting that $\frac{d\sigma(z)}{dz} = \sigma(z) \cdot (1-\sigma(z))$,
-so
-$$
-\frac{\partial J}{\partial \w_i} 
-= \w_i + \frac{1}{MN} \sum_{n=1}^N \frac{-y_i\pb{n} \cdot f_i\pb{n} \cdot (1-f_i\pb{n}) \cdot \Phi(\x\pb{n}, s_i)} {1+\exp(f_i\pb{n} \cdot y_i\pb{n})}
-$$
-where $f_i\pb{n} = \sigma\left( \w_i^\top \Phi(\x\pb{n}, s_i) \right)$.
-}
-
-\eat{
-Given $n$ playlists where songs in each playlist are from a music library with $m$ songs $\{s_j\}_{j=1}^m$.
-%For a query $q$ (\eg a seed song) and each song $s_i, i=\{1,\dots,m\}$,
-%we have a scoring function $f: (q, s_i) \to \R$ (\eg $f(q, s_i) = \w^\top \Psi(q, s_i)$ 
-%where $\w$ is the model parameters and $\Psi(q, s_i)$ is a feature map).
-%Further, for a query related to a particular playlist, we want the songs in the playlist to be ranked higher (get higher scores)
-%than songs that are not in the playlist.
-%The prediction given a query can be simply taking the top-$k$ ranked songs.
-
-For the $i$-th playlist, %we derive a set of examples $\{\x\pb{i}, \y\pb{i}\}$ where
-we derive a vector of labels $\y\pb{i} = y_{1:m}\pb{i}$ where
-$$
-y_j\pb{i} = 
-\begin{cases}
-+1, & \text{song $s_j$ occurred in the $i$-th playlist} \\
--1, & \text{otherwise}
-\end{cases}
-$$
-and a set of training examples
-$$\left\{ \left( \x_j\pb{i}, \y\pb{i} \right) \colon y_j\pb{i} = +1 \right\}_{i=1}^n$$
-where $\x_j\pb{i} = \phi_j$ which denotes the feature vector of song $s_j$.
-
-%The playlist generation problem can be stated as follows:
-%\begin{mdframed}[innertopmargin=3pt,innerbottommargin=3pt,skipbelow=5pt,roundcorner=8pt,backgroundcolor=red!3,topline=false,rightline=false,leftline=false,bottomline=false]
-%	\begin{tabular}{ll}
-%		{\sc Input}:  & training set $\left\{ \left( \x^{(i)}, \y^{(i)} \right) \right\}_{i = 1}^n \in ( \XCal \times \YCal )^n$ \\
-%		{\sc Output}: & a playlist generator $g \colon \XCal \to \YCal$ \\
-%	\end{tabular}
-%\end{mdframed}
-
-Let $m_i$ be the number of songs in the $i$-th playlist, \ie 
-$$
-m_i = \sum_{j=1}^m \llb y_j\pb{i} = +1 \rrb,
-$$
-and $\Psi(\x, s_j)$ be a feature map of song $s_j$ given query $\x$ (\ie the feature vector of a seed song).
-
-Suppose we learn a playlist generator using the probabilistic classifier chains~\cite{dembczynski:2010},
-in particular, we assume a logistic regression classifier for each label $y_j$, \ie
-\begin{align*}
-\p(y_1 |\x) &= \sigma\left( \w_1^\top \Psi(\x, s_1) \right) \\
-\p(y_j |\x, y_{1:j-1}) &= \sigma\left( \w_j^\top \Psi(\x, s_j, y_{1:j-1}) \right), \, j=2,\dots,m
-\end{align*}
-where $\sigma(z) = \frac{1}{1+\exp(-z)}$ is the logistic function.
-
-\emph{$\Psi(\x, s_j, y_{1:j-1})$ looks weird!}
-
-The scoring function
-$$
-f_j(\x) = 
-\begin{cases}
-\p(y_j |\x), & j=1 \\
-\p(y_j |\x, y_{1:j-1}), & j=2,\dots,m
-\end{cases}
-$$
-
-The empirical risk is
-$$
-R(\f) 
-= \frac{1}{n} \sum_{i=1}^n 
-  \frac{1}{m_i} \sum_{q=1}^m \llb y_q\pb{i} = +1 \rrb 
-  \cdot \left[
-  \frac{1}{m_i} \sum_{j=1}^m 
-  \llb y_j\pb{i} = +1 \rrb \cdot \ell \left( \max_{1 \le k \le m} \llb y_k\pb{i} = -1 \rrb \cdot f_k(\phi_q) - f_j(\phi_q) 
-  \right) \right]
-$$
-
-\emph{If we define a query as a song only, we have this ugly formulation} 
-}
-
-\eat{
-%3. Baseline approaches (e.g. song-song matrix factorisation, model each label independently, model label pairs with a number of ranking losses)
-\subsection{Baselines}
-
-\paragraph{Matrix factorisation}
-Let $\phi(s_i)$ be the (hidden) features of song $s_i$, we can construct a $N \times N$ matrix of song co-occurrences (normally very sparse),
-the missing entries can be recovered by factorising this matrix into two low rank matrices.
-The scoring function of this approach is $f(q, s_i) = \phi(q)^\top \phi(s_i)$.
-
-\paragraph{Logistic regression}
-We can model the probability of song $s_i$ in a playlist induced by query $q$ using logistic regression,
-\ie the scoring function is $f(q, s_i) = \sigma(\w^\top \Psi(q, s_i))$ where $\sigma(z) = \frac{1}{1+\exp(-z)}$ is the logistic function.
-To estimate the model parameters $\w$, for each observed playlist, we derive a set of positive examples $\{((q, s_j), +1)\}$ and 
-a set of negative examples $\{(q, s_k), -1)\}$ where $s_j$ are song in the playlist and $s_k$ are songs not in it.
-
-\paragraph{Bipartite ranking by optimising AUC}
-Similar to the logistic regression approach, we derive a set of positive/negative examples for each observed playlist, 
-inspired by bipartite ranking, we can optimise AUC by minimise a loss similar to Equation~\ref{eq:loss_auc}:
-\begin{equation}
-\label{eq:loss_auc_pl}
-\ell_\text{rank}(f; S) = \frac{1}{N} \sum_{i=1}^N \frac{1}{m_i n_i} \sum_{j=1}^{m_i} \sum_{k=1}^{n_i} \llb f(q_i, s_j) \le f(q_i, s_k) \rrb,
-\end{equation}
-where $m_i$ (and $n_i$) is the number of songs (not) in the $i$-th playlist, and $m_i + n_i = M$.
-\\ \emph{describe pros and cons}
-
-\subsection{Proposed approach}
-Inspired by bipartite ranking by optimising accuracy at the top, we can optimise a loss similar to Equation~\ref{eq:loss_inf1}:
-\begin{equation}
-\label{eq:loss_inf_pl}
-\hat{\ell}_{\infty}(f; S) = \frac{1}{N} \sum_{i=1}^N \frac{1}{m_i} \sum_{j=1}^{m_i} \ell\left( \max_{1 \le k \le n_i} f(q_i, s_k) - f(q_i, s_j) \right),
-\end{equation}
-where $m_i$ and $n_i$ is define as before.
-
-\paragraph{Training set}
-We can derive a set of positive/negative examples for each observed playlist as described before, however,
-for the $i$-th playlist, there are $m_i$ songs that can be used as a \emph{seed}, so we have multiple queries for each observed playlist.
-Formally, we have a training set:
-\begin{equation*}
-\left\{ \left\{ 
-        \left\{\left((q_{il}, s_j), +1\right) \right\}_{j=1}^{m_i}, \,
-        \left\{\left((q_{il}, s_k), -1\right) \right\}_{k=1}^{n_i}  \right\}_{l=1}^{m_i} \right\}_{i=1}^N
-\end{equation*}
-\emph{describe approach that considers label correlations}
-
-%The playlist generation problem can be formulated as a multi-label classification problem (we have a label for each song in library).
-%The idea is to replace the loss function (\ref{eq:loss_rank}) in multi-label classification with loss~(\ref{eq:loss_auc}) or (\ref{eq:loss_inf}). \\
-%We can build a probabilistic classifier chains with approximate inference (greedy, Viterbi, Neural net).
-}
 
 
 %4. Evaluation measure (e.g. Precision@k, Average precision, Reciprocal precision)
