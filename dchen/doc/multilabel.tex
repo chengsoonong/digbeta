@@ -61,6 +61,7 @@
 \newcommand{\alphabm}{\bm{\alpha}}
 \newcommand{\betabm}{\bm{\beta}}
 \newcommand{\nubm}{\bm{\nu}}
+\newcommand{\xibm}{\bm{\xi}}
 % madeness: suPer-script in Brackets
 \newcommand{\pb}[1]{^{({#1})}}
 
@@ -487,6 +488,8 @@ The gradient of the weight vector $\w_i$ for positive labels and $\w_j$ for nega
 \end{align}
 
 
+
+
 \newpage
 \thispagestyle{empty}
 
@@ -561,13 +564,25 @@ $P_\text{rank}$~\ref{eq:precision_rank} & ?                   & \textsc{Best}   
 
 \subsection*{How to use top-push loss for multi-label classification?}
 
-For each multi-label example $(\x, \y)$, if we construct a training set $\{(\x, y_l)\}_{l=1}^L$ ($L$ is the total number of labels),
+For each multi-label example $(\x, \y)$, if we construct a training set $\{(\x, y_k)\}_{k=1}^K$ ($K$ is the total number of labels),
 and aggregate over all multi-label training examples, we can then use top-push in multi-label classification. 
 In particular, given training set $\{\x\pb{n}, \y\pb{n}\}_{n=1}^N$, the empirical risk is
+\begin{equation*}
+R(\w) = \frac{1}{N} \sum_{n=1}^N \LCal(\x\pb{n}, \y\pb{n}; \w),
+\end{equation*}
+where $\w = [\w_1^\top, \cdots, \w_K^\top]^\top$ is the flattened weights vector, and
+\begin{equation}
+\label{eq:top-push_loss}
+\LCal(\x, \y; \w) = \frac{1}{K_+} \sum_{i:y_i=1} \llb \w_i^\top \x \le \underset{j:y_j=0}{\max} \w_j^\top \w \rrb,
+\end{equation}
+and $K_+$ is the number of positive labels in $\y$.
+
+\eat{
 \begin{equation*}
 R(\w) = \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i:y_i^n=1} \llb \w_i^\top \x \le \underset{j:y_j^n=0}{\max} \w_j^\top \x \rrb,
 \end{equation*}
 where $K_+^n$ is the number of positive labels in $\y\pb{n}$.
+}
 
 Assuming L2 regularisation, the optimisation objective is
 \begin{equation*}
@@ -584,6 +599,120 @@ Finally, we do gradient descent to optimise the weights $\w$.
 \item Does the overall dual decompose into a sum of duals, one for each label?
 \end{itemize}
 }
+
+
+\paragraph{Dual formulation}
+Let $\ell(\cdot)$ be a convex surrogate of the indicator function, we can rewrite Eq.~\ref{eq:top-push_loss} as
+\begin{equation*}
+\widetilde{\LCal}(\x, \y; \w) = \frac{1}{K_+} \sum_{i:y_i=1} \ell( \w_i^\top \x - \underset{j:y_j=0}{\max} \w_j^\top \x),
+\end{equation*}
+then the optimisation objective becomes
+\begin{equation}
+\label{eq:top-push_obj}
+J(\w) = \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N 
+        \frac{1}{K_+^n} \sum_{i:y_i^n=1} \ell( \w_i^\top \x\pb{n} - \underset{j:y_j^n=0}{\max} \w_j^\top \x\pb{n}),
+\end{equation}
+where $K_+^n$ is the number of positive labels in $\y\pb{n}$.
+
+To learn weights $\w$, we minimise the objective
+\begin{equation}
+\label{eq:top-push_opt}
+\min_{\w} J(\w).
+\end{equation}
+If we further let
+\begin{align*}
+f_0(\w, \xibm)     &= J(\w), \\
+f_{n,j}(\w, \xibm) &= \w_j^\top \x\pb{n} - \xi_n, \, j \in \{j: y_j^n = 0\}, \, n \in \{1,\dots,N\}
+\end{align*}
+where $\xibm \in \R^{N}$ is a vector of $N$ slack variables,
+then problem~(\ref{eq:top-push_opt}) is equivalent to 
+\begin{equation}
+\label{eq:top-push_std}
+\begin{aligned}
+\min_{\w, \xibm} \ & f_0(\w, \xibm), \\
+s.t. \ & f_{n,j}(\w, \xibm), \, j \in \{j: y_j^n = 0\}, \, n \in \{1,\dots,N\}.
+\end{aligned}
+\end{equation}
+%
+The \emph{Lagrangian} of (\ref{eq:top-push_std}) is
+\begin{equation}
+\label{eq:top-push_lg}
+\begin{aligned}
+L(\w, \xibm, \nubm_{1:N}) 
+&= f_0(\w, \xibm) + \sum_{n=1}^N \sum_{j:y_j^n=0} \nu_{n,j} \cdot f_{n,j}(\w, \xibm) \\
+&= \frac{\lambda}{2} \w^\top \w + \left[ \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i:y_i^n=1} \ell(\w_i^\top \x\pb{n} - \xi_n) \right] +
+   \sum_{n=1}^N \sum_{j:y_j^n=0} \nu_{n,j} \cdot (\w_j^\top \x\pb{n} - \xi_n)
+\end{aligned}
+\end{equation}
+%
+Note that the conjugate of the conjugate of a convex function is itself, \eg $f(\z) = f^{**}(\z) = \sup_{\y} \left( \z^\top \y - f^*(\y) \right)$, we have
+\begin{equation}
+\label{eq:conjugate}
+\ell( \w_i^\top \x\pb{n} - \xi_n) = \sup_{\alpha_{n,i}} \left( (\w_i^\top \x\pb{n} - \xi_n) \cdot \alpha_{n,i} - \ell^*(\alpha_{n,i}) \right),
+\end{equation}
+where $\ell^*(\cdot)$ is the conjugate of $\ell(\cdot)$.
+%
+By (\ref{eq:top-push_lg}) and (\ref{eq:conjugate}), the \emph{Lagrangian} becomes
+\begin{align*}
+&L(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) \\
+&= \frac{\lambda}{2} \w^\top \w + \left[ \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i:y_i^n=1} 
+   \sup_{\alpha_{n,i}} \left[ \left( \w_i^\top \x\pb{n} - \xi_n \right) \cdot \alpha_{n,i} - \ell^*(\alpha_{n,i}) \right] \right] +
+   \sum_{n=1}^N \sum_{j:y_j^n=0} \nu_{n,j} \cdot \left( \w_j^\top \x\pb{n} - \xi_n \right) \\
+&= \underset{\alphabm_{1:N}}{\sup} \left[
+   \frac{\lambda}{2} \w^\top \w + \sum_{n=1}^N \frac{1}{N \cdot K_+^n} \sum_{i:y_i^n=1} 
+   \left[ \left( \w_i^\top \x\pb{n} - \xi_n \right) \cdot \alpha_{n,i} - \ell^*(\alpha_{n,i}) \right] +
+   \sum_{n=1}^N \sum_{j:y_j^n=0} \nu_{n,j} \cdot \left( \w_j^\top \x\pb{n} - \xi_n \right) \right] \\
+&= \underset{\alphabm_{1:N}}{\sup} \left[ 
+   g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
+   \sum_{n=1}^N \frac{1}{N \cdot K_+^n} \sum_{i:y_i=1} \ell^*(\alpha_{n,i}) \right],
+\end{align*}
+where 
+\begin{equation*}
+g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N})
+= \frac{\lambda}{2} \w^\top \w + \sum_{n=1}^N \frac{1}{N \cdot K_+^n} \sum_{i:y_i^n=1} (\w_i^\top \x\pb{n} - \xi_n) \cdot \alpha_{n,i}  + 
+  \sum_{n=1}^N \sum_{j:y_j^n=0} \nu_{n,j} \cdot (\w_j^\top \x\pb{n} - \xi_n).
+\end{equation*}
+%
+The \emph{Lagrangian dual function} of (\ref{eq:top-push_std}) is
+\begin{equation}
+\label{eq:top-push_dual_func}
+\begin{aligned}
+&  \inf_{\w, \xibm} \, L(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) \\
+&= \inf_{\w, \xibm} \, \underset{\alphabm_{1:N}}{\sup} \left[ g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
+   \sum_{n=1}^N \frac{1}{N \cdot K_+^n} \sum_{i:y_i=1} \ell^*(\alpha_{n,i}) \right] \\
+&= \underset{\alphabm_{1:N}}{\sup} \, \inf_{\w, \xibm} \left[ g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
+   \sum_{n=1}^N \frac{1}{N \cdot K_+^n} \sum_{i:y_i=1} \ell^*(\alpha_{n,i}) \right] \quad \text{(assuming strong duality)} \\
+&= \underset{\alphabm_{1:N}}{\max} \, \min_{\w, \xibm} \left[ g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
+   \sum_{n=1}^N \frac{1}{N \cdot K_+^n} \sum_{i:y_i=1} \ell^*(\alpha_{n,i}) \right] \quad 
+   \text{(Eq.~(\ref{eq:top-push_obj}) is L2 regularised~\cite{shalev:2007})} \\
+&= \underset{\alphabm_{1:N}}{\max} \left[ \min_{\w, \xibm} \, g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
+   \sum_{n=1}^N \frac{1}{N \cdot K_+^n} \sum_{i:y_i=1} \ell^*(\alpha_{n,i}) \right].
+\end{aligned}
+\end{equation}
+%
+To solve the unconstrained inner minimisation, 
+let the derivatives of $\w_k, k \in \{1,\cdots,K\}$ (weights for the $k$-th label) and $\xi_n, n \in \{1,\cdots,N\}$ be 0, \ie
+\begin{align*}
+\frac{\partial g}{\partial \w_k}
+&= \lambda \w_k + \sum_{n=1}^N \frac{1}{N \cdot K_+^n} \llb y_k^n = 1 \rrb \cdot \alpha_{n,k} \cdot \x\pb{n} + 
+   \sum_{n=1}^N \llb y_k^n = 0 \rrb \cdot \nu_{n,k} \cdot \x\pb{n} = 0 \\
+\frac{\partial g}{\partial \xi_n} 
+&= \frac{1}{N \cdot K_+^n} \llb y_k^n = 1 \rrb \cdot (-\alpha_{n,k}) + \llb y_k^n = 0 \rrb \cdot (-\nu_{n,k}) = 0
+\end{align*}
+then we have 
+\begin{equation}
+\label{eq:sol_part1}
+\w_k^* = -\frac{1}{\lambda} \sum_{n=1}^N \x\pb{n} 
+         \left( \frac{1}{N \cdot K_+^n} \llb y_k^n = 1 \rrb \cdot \alpha_{n,k} + \llb y_{n,k} = 0 \rrb \cdot \nu_{n,k} \right)
+\end{equation}
+and
+\begin{equation}
+\label{eq:sol_part2}
+\frac{1}{N \cdot K_+^n} \llb y_k^n = 1 \rrb \cdot \alpha_{n,k} + \llb y_k^n = 0 \rrb \cdot \nu_{n,k} = 0
+\end{equation}
+
+
+
 
 
 \subsection*{Active learning for structured prediction}
