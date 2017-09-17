@@ -232,7 +232,7 @@ Table~\ref{tab:symbol} summarises some notation we will use.
 \begin{tabular}{llll}
 \hline \hline
 \multicolumn{3}{l}{\textbf{Symbol}} & \textbf{Quantity} \\ \hline 
-$D$              &  $\in$  &  $\Z^+$  & The number of features for each example \\
+$d$              &  $\in$  &  $\Z^+$  & The number of features for each example \\
 $\w$             &  $\in$  &  $\R^d$  & The vector of model parameters \\
 $\mathbf{1}_m$   &  $\in$  &  $\R^m$  & The $m$ dimensional vector of $1$'s \\
 $\X^+$           &  $\in$  &  $\R^{m \times d}\quad$  & Matrix of features of positive examples \\
@@ -349,10 +349,11 @@ Lastly, by (\ref{eq:lg_dual_func}) and (\ref{eq:min_func}), the \emph{Lagrangian
 \begin{align*}
 \max_{\nubm} \, \inf_{\w, \xi} \, L(\w, \xi, \alphabm, \nubm) 
 = \max_{\alphabm, \nubm} \, \left[ \min_{\w, \xi} g(\w, \xi) - \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right]
-= \max_{\alphabm, \nubm} \, \left[ -\frac{1}{2 \lambda m^2} \left\| \alphabm^\top \X^+ - \betabm^\top \X^- \right\|^2 - \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right]
+= \max_{\alphabm, \betabm} \, \left[ -\frac{1}{2 \lambda m^2} \left\| \alphabm^\top \X^+ - \betabm^\top \X^- \right\|^2 - 
+  \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right]
 \end{align*}
 subject to $\1_m^\top \alphabm = m \1_n^\top \nubm$,
-which is equivalent to
+or equivalently 
 \begin{equation}
 \label{eq:minrisk_dual}
 \begin{aligned}
@@ -628,7 +629,7 @@ where $\ell^*(\cdot)$ is the conjugate of $\ell(\cdot)$.
 
 By (\ref{eq:tpush_lg}) and (\ref{eq:conjugate}), the \emph{Lagrangian} becomes
 \begin{align*}
-&L(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) \\
+L(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N})
 &= \frac{\lambda}{2} \w^\top \w + \left[ \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i:y_i^n=1} 
    \sup_{\alpha_{n,i}} \left[ \left( \w_i^\top \x^n - \xi_n \right) \alpha_{n,i} - \ell^*(\alpha_{n,i}) \right] \right] +
    \sum_{n=1}^N \sum_{j:y_j^n=0} \nu_{n,j} \left( \w_j^\top \x^n - \xi_n \right) \\
@@ -650,24 +651,26 @@ g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N})
 &= \frac{\lambda}{2} \w^\top \w + \sum_{n=1}^N t(\x^n, \y^n, \w, \xi_n, \alphabm_n, \nubm_n),
 \end{align*}
 and
-$$
+\begin{equation}
+\label{eq:tmp_func}
 t(\x^n, \y^n, \w, \xi_n, \alphabm_n, \nubm_n) 
 = \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \left( \w_i^\top \x^n - \xi_n \right) \alpha_{n,i}  + 
   \sum_{j:y_j^n=0} \nu_{n,j} \left( \w_j^\top \x^n - \xi_n \right).
-$$
+\end{equation}
 %
 The \emph{Lagrangian dual function} of problem (\ref{eq:tpush_opt}) is
 \begin{equation}
 \label{eq:tpush_dual_func}
 \begin{aligned}
-&  \inf_{\w, \xibm} \, L(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) \\
+\inf_{\w, \xibm} \, L(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N})
 &= \inf_{\w, \xibm} \, \underset{\alphabm_{1:N}}{\sup} \left[ g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
    \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \right] \\
 &= \underset{\alphabm_{1:N}}{\sup} \, \inf_{\w, \xibm} \left[ g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
-   \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \right] \quad \text{(assuming \emph{strong duality})} \\
-&= \underset{\alphabm_{1:N}}{\max} \, \min_{\w, \xibm} \left[ g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
    \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \right] \quad 
-   \text{(Eq.~(\ref{eq:tpush_obj}) is L2 regularised~\cite{shalev:2007})} \\
+   \text{(assuming \emph{strong duality})} \\
+&= \underset{\alphabm_{1:N}}{\max} \, \min_{\w, \xibm} \left[ g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
+   \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \right] \quad
+   \text{(Eq.~\ref{eq:tpush_obj} is L2 regularised~\cite{shalev:2007})} \\
 &= \underset{\alphabm_{1:N}}{\max} \left[ \min_{\w, \xibm} \, g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
    \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \right].
 \end{aligned}
@@ -714,15 +717,80 @@ By Eq.~(\ref{eq:grad_eq_zero}), (\ref{eq:grad_tw}) and (\ref{eq:grad_txi}), we h
 or equivalently
 \begin{equation}
 \label{eq:sol_wk}
-\w_k^* = -\frac{1}{\lambda} \sum_{n=1}^N \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}}{N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) \x^n \\
+\w_k^* = -\frac{1}{\lambda} \sum_{n=1}^N \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}}{N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) \x^n, \ k \in \{1,\cdots,K\}
 \end{equation}
 \begin{equation}
 \label{eq:sol_xin}
-\frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} + \sum_{j:y_j^n=0} \nu_{n,j} = 0
+\frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} + \sum_{j:y_j^n=0} \nu_{n,j} = 0, \ n \in \{1,\cdots,N\}
 \end{equation}
-
-
-
+%
+Note that we can rewrite Eq.~(\ref{eq:sol_xin}) as
+\begin{equation}
+\label{eq:sol_xin2}
+\sum_{k=1}^K \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}} {N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) = 0, \ n \in \{1,\cdots,N\}
+\end{equation}
+%
+Thus, by Eq.~(\ref{eq:tmp_func}), we have
+\begin{align*}
+t(\x^n, \y^n, \w, \xi_n^*, \alphabm_n, \nubm_n) 
+&= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \left( \w_i^\top \x^n - \xi_n^* \right) \alpha_{n,i} + \sum_{j:y_j^n=0} \nu_{n,j} \left( \w_j^\top \x^n - \xi_n^* \right) \\
+&= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} \w_i^\top \x^n - \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} \xi_n^* +
+   \sum_{j:y_j^n=0} \nu_{n,j} \w_j^\top \x^n - \sum_{j:y_j^n=0} \nu_{n,j} \xi_n^* \\
+&= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} \w_i^\top \x^n + \sum_{j:y_j^n=0} \nu_{n,j} \w_j^\top \x^n -
+   \xi_n^* \left( \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} + \sum_{j:y_j^n=0} \nu_{n,j} \right) \\
+&= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} \w_i^\top \x^n + \sum_{j:y_j^n=0} \nu_{n,j} \w_j^\top \x^n - 0 \quad 
+   \text{(by Eq.~\ref{eq:sol_xin})} \\
+&= \sum_{k=1}^K \left( \frac{\llb y_k^n=1 \rrb}{N K_+^n} \alpha_{n,k} \w_k^\top \x^n + \llb y_k^n=0 \rrb \nu_{n,k} \w_k^\top \x^n \right) \\ 
+&= \sum_{k=1}^K \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}}{N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) \w_k^\top \x^n 
+\end{align*}
+%
+As a result,
+\begin{equation}
+\label{eq:tpush_reduce_g}
+\begin{aligned}
+\min_{\w, \xibm} \, g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) 
+&= g(\w^*, \xibm^*, \alphabm_{1:N}, \nubm_{1:N}) \\
+&= \frac{\lambda}{2} {\w^*}^\top \w^* + \sum_{n=1}^N t(\x^n, \y^n, \w^*, \xi_n^*, \alphabm_n, \nubm_n) \\
+&= \frac{\lambda}{2} \sum_{k=1}^K {\w_k^*}^\top \w_k^* + \sum_{n=1}^N \sum_{k=1}^K 
+   \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}}{N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) {\w_k^*}^\top \x^n \\
+&= \frac{\lambda}{2} \sum_{k=1}^K {\w_k^*}^\top \w_k^* + \sum_{k=1}^K \sum_{n=1}^N 
+   \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}}{N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) {\w_k^*}^\top \x^n \\
+&= \frac{\lambda}{2} \sum_{k=1}^K {\w_k^*}^\top \w_k^* + \sum_{k=1}^K {\w_k^*}^\top \left[ \sum_{n=1}^N 
+   \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}}{N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) \x^n \right] \\
+&= \frac{\lambda}{2} \sum_{k=1}^K {\w_k^*}^\top \w_k^* + \sum_{k=1}^K {\w_k^*}^\top (-\lambda \w_k^*) \quad 
+   \text{(by Eq.~\ref{eq:sol_wk})} \\
+&= -\frac{\lambda}{2} \sum_{k=1}^K {\w_k^*}^\top \w_k^* \\
+&= -\frac{1}{2 \lambda} \sum_{k=1}^K \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)^\top \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right) \quad
+   \text{(by Eq.~\ref{eq:sol_wk})}
+\end{aligned}
+\end{equation}
+where
+\begin{equation}
+\label{eq:new_var}
+\gamma_{n,k} = \frac{1}{N K_+^n} \llb y_k^n=1 \rrb \alpha_{n,k} + \llb y_k^n=0 \rrb \nu_{n,k}.
+\end{equation}
+%
+Lastly, by Eq.~(\ref{eq:tpush_dual_func}) and (\ref{eq:tpush_reduce_g}), the \emph{Lagrangian dual problem} of (\ref{eq:tpush_opt}) is
+\begin{align*}
+\underset{\nubm_{1:N}}{\max} \, \inf_{\w, \xibm} \, L(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N})
+&= \underset{\alphabm_{1:N}, \, \nubm_{1:N}}{\max} \left[ \min_{\w, \xibm} \, g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
+   \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \right] \\
+&= \underset{\alphabm_{1:N}, \, \nubm_{1:N}}{\max} \left[ 
+   -\frac{1}{2 \lambda} \sum_{k=1}^K \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)^\top \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)
+   -\sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \right]
+\end{align*}
+subject to constraints (\ref{eq:sol_xin}),
+or equivalently
+\begin{equation}
+\label{eq:tpush_dual}
+\begin{aligned}
+\underset{\alphabm_{1:N}, \, \nubm_{1:N}}{\min} \ &
+    \frac{1}{2 \lambda} \sum_{k=1}^K \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)^\top \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right) +
+    \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \\
+s.t. \ \quad & \sum_{k=1}^K \gamma_{n,k} = 0, \ n \in \{1,\cdots,N\}
+\end{aligned}
+\end{equation}
+where variables $\gamma_{n,k}$ are defined in Eq.~(\ref{eq:new_var}).
 
 %\begin{align*}
 %\frac{\partial g}{\partial \w_k}
