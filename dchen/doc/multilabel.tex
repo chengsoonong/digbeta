@@ -314,17 +314,17 @@ The \emph{Lagrangian dual function} of (\ref{eq:minrisk_lg}) is
 &= \max_{\alphabm} \left[ \min_{\w, \xi} g(\w, \xi) - \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right]
 \end{aligned}
 \end{equation}
-To solve the unconstrained inner minimisation, let
+To solve the (unconstrained) inner minimisation, let
 \begin{align*}
-\frac{\partial g}{\partial \w}  &= \lambda \w - \frac{1}{m} \alphabm^\top \X^+ + \nubm^\top \X^- = 0 \\
+\frac{\partial g}{\partial \w}  &= \lambda \w - \frac{1}{m} \left( \alphabm^\top \X^+ \right)^\top + \left( \nubm^\top \X^- \right)^\top = 0 \\
 \frac{\partial g}{\partial \xi} &= \frac{1}{m} \1_m^\top \alphabm - \1_n^\top \nubm = 0
 \end{align*}
 Then we have
 \begin{equation}
 \label{eq:sol1}
 \w^* 
-= \frac{1}{\lambda m} \left( \alphabm^\top \X^+ - m \nubm^\top \X^- \right) 
-= \frac{1}{\lambda m} \left( \alphabm^\top \X^+ - \betabm^\top \X^- \right) 
+= \frac{1}{\lambda m} \left( \alphabm^\top \X^+ - m \nubm^\top \X^- \right)^\top 
+= \frac{1}{\lambda m} \left( \alphabm^\top \X^+ - \betabm^\top \X^- \right)^\top  
 \end{equation}
 and
 \begin{equation}
@@ -336,10 +336,11 @@ where $\betabm = m \nubm$, and by (\ref{eq:sol1}) and (\ref{eq:sol2}), we have
 \label{eq:min_func}
 \begin{aligned}
 \min_{\w, \xi} g(\w, \xi) 
-&= \frac{\lambda}{2} \w^{*\top} \w^* + \frac{\xi}{m} \1_m^\top \alphabm - \frac{1}{m} \alphabm^\top \X^+ \w^* + \nubm^\top \X^- \w^* - \xi \1_n^\top \nubm \\
+&= \frac{\lambda}{2} \w^{*\top} \w^* + \frac{\xi}{m} \1_m^\top \alphabm -
+   \frac{1}{m} \alphabm^\top \X^+ \w^* + \nubm^\top \X^- \w^* - \xi \1_n^\top \nubm \\
 &= \frac{\lambda}{2} \w^{*\top} \w^* + 
    \frac{\xi}{m} \left( \1_m^\top \alphabm - m \1_n^\top \nubm \right) - 
-   \frac{1}{m} \left( \alphabm^\top \X^+ - m \nubm^\top \X^- \right)^\top \w^* \\
+   \frac{1}{m} \left( \alphabm^\top \X^+ - m \nubm^\top \X^- \right) \w^* \\
 &= \frac{\lambda}{2} \w^{*\top} \w^* + 0 - \lambda \w^{*\top} \w^* \\
 &= -\frac{\lambda}{2} \w^{*\top} \w^* \\
 &= -\frac{1}{2 \lambda m^2} \left\| \alphabm^\top \X^+ - \betabm^\top \X^- \right\|^2
@@ -896,7 +897,7 @@ R(\w) = \frac{1}{N} \sum_{n=1}^N \LCal(\x\pb{n}, \y\pb{n}; \w),
 \end{equation*}
 where $\w = [\w_1^\top, \cdots, \w_K^\top]^\top$ is the flattened weights vector, and
 \begin{equation}
-\label{eq:top-push_loss}
+%\label{eq:tpush_loss}
 \LCal(\x, \y; \w) = \frac{1}{K_+} \sum_{i:y_i=1} \llb \w_i^\top \x \le \underset{j:y_j=0}{\max} \w_j^\top \w \rrb,
 \end{equation}
 and $K_+$ is the number of positive labels in $\y$.
