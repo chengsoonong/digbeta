@@ -132,7 +132,7 @@ we can learn a multi-label classifier by find a model $\h^*$ that minimise the e
 \h^* 
 = \argmin_{\h} \, \E_{\X\Y} \, \ell(\Y,\h(\X))
 = \argmin_{\h} \, \E_{\X} \, \E_{\Y|\X} \, \ell(\Y,\h(X))
-= \argmin_{\h} \, \sum_{\x} \p(\x) \, \E_{\Y|\X} \, \ell(\Y,\h(\x)),
+= \argmin_{\h} \, \sum_{\x} \x \p(\x) \, \E_{\Y|\X} \, \ell(\Y,\h(\x)),
 \end{equation*}
 thanks to the summation, fix $\x$, we have
 \begin{equation*}
