@@ -57,9 +57,9 @@ setting~\cite{kaufmann12bayucb,kaufmann12thosao,korda13thosde}.
       \label{eq:ucb}
       U_a(t) = \sup\left\{
         \mu\in\bar{I}: d(\muhat_a(t), \mu) \leqslant \frac{f(t)}{N_a(t)}
-      \right\}      
+      \right\}
     \end{equation}
-    \State pick an arm 
+    \State pick an arm
     $A_{t+1}\in \argmax_{a\in\{1,\ldots,L\}} U_a(t)$
     \EndFor
   \end{algorithmic}
@@ -102,20 +102,20 @@ The supremum in \eqref{eq:ucb} is achieved.
   times and use Hoeffding's to estimate an initial upper bound.
 \item What happens when we use the opposite KL divergence ($d(\mu, \muhat_a(t))$)?
 \item Following~\cite[Theorem 1]{cappe13kulucb} we set $f(t) = \log(t)
-  + 3\log\log(t)$. 
+  + 3\log\log(t)$.
 \end{itemize}
 
 In this settting, for a given arm $a$, the value of $U_a(t)$ in equation \eqref{eq:ucb} becomes
 \begin{equation}
   \label{eq:ucb-binomial}
   \max_{\mu\in (0,n)} \muhat_a(t) \log \frac{\muhat_a(t)}{\mu} +
-  (n-\muhat_a(t)) \log\frac{n-\muhat_a(t)}{n-\mu} 
+  (n-\muhat_a(t)) \log\frac{n-\muhat_a(t)}{n-\mu}
   \leqslant \frac{\log(t)+3\log\log(t)}{N_a(t)}
 \end{equation}
 
 
 
 \bibliographystyle{plainnat}
-\bibliography{../abcde}
+\bibliography{abcde}
 
 \end{document}
