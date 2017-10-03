@@ -264,7 +264,7 @@ Then problem (\ref{eq:minrisk}) is equivalent to
 s.t. \quad & f_j (\w, \xi) \le 0, \ j \in \{1,\dots,n\}.
 \end{aligned}
 \end{equation}
-The \emph{Lagrangian} of (\ref{eq:minrisk_lg}) is
+For $\nu_j \ge 0, \, j \in \{1,\dots,n\}$, the \emph{Lagrangian} of (\ref{eq:minrisk_lg}) is
 \begin{equation}
 \label{eq:minrisk_lg1}
 \begin{aligned}
@@ -322,7 +322,7 @@ To solve the (unconstrained) inner minimisation, let
 Then we have
 \begin{equation}
 \label{eq:sol1}
-\w^* 
+\widetilde\w 
 = \frac{1}{\lambda m} \left( \alphabm^\top \X^+ - m \nubm^\top \X^- \right)^\top 
 = \frac{1}{\lambda m} \left( \alphabm^\top \X^+ - \betabm^\top \X^- \right)^\top  
 \end{equation}
@@ -331,18 +331,18 @@ and
 \label{eq:sol2}
 \1_m^\top \alphabm = m \1_n^\top \nubm = \1_n^\top \betabm
 \end{equation}
-where $\betabm = m \nubm$, and by (\ref{eq:sol1}) and (\ref{eq:sol2}), we have
+where $\betabm = m \nubm \succeq 0$, and by (\ref{eq:sol1}) and (\ref{eq:sol2}), we have
 \begin{equation}
 \label{eq:min_func}
 \begin{aligned}
 \min_{\w, \xi} g(\w, \xi) 
-&= \frac{\lambda}{2} \w^{*\top} \w^* + \frac{\xi}{m} \1_m^\top \alphabm -
-   \frac{1}{m} \alphabm^\top \X^+ \w^* + \nubm^\top \X^- \w^* - \xi \1_n^\top \nubm \\
-&= \frac{\lambda}{2} \w^{*\top} \w^* + 
+&= \frac{\lambda}{2} \widetilde\w^\top \widetilde\w + \frac{\xi}{m} \1_m^\top \alphabm -
+   \frac{1}{m} \alphabm^\top \X^+ \widetilde\w + \nubm^\top \X^- \widetilde\w - \xi \1_n^\top \nubm \\
+&= \frac{\lambda}{2} \widetilde\w^\top \widetilde\w + 
    \frac{\xi}{m} \left( \1_m^\top \alphabm - m \1_n^\top \nubm \right) - 
-   \frac{1}{m} \left( \alphabm^\top \X^+ - m \nubm^\top \X^- \right) \w^* \\
-&= \frac{\lambda}{2} \w^{*\top} \w^* + 0 - \lambda \w^{*\top} \w^* \\
-&= -\frac{\lambda}{2} \w^{*\top} \w^* \\
+   \frac{1}{m} \left( \alphabm^\top \X^+ - m \nubm^\top \X^- \right) \widetilde\w \\
+&= \frac{\lambda}{2} \widetilde\w^\top \widetilde\w + 0 - \lambda \widetilde\w^\top \widetilde\w \\
+&= -\frac{\lambda}{2} \widetilde\w^\top \widetilde\w \\
 &= -\frac{1}{2 \lambda m^2} \left\| \alphabm^\top \X^+ - \betabm^\top \X^- \right\|^2
 \end{aligned}
 \end{equation}
@@ -353,13 +353,14 @@ Lastly, by (\ref{eq:lg_dual_func}) and (\ref{eq:min_func}), the \emph{Lagrangian
 = \max_{\alphabm, \betabm} \, \left[ -\frac{1}{2 \lambda m^2} \left\| \alphabm^\top \X^+ - \betabm^\top \X^- \right\|^2 - 
   \frac{1}{m} \sum_{i=1}^m \ell^*(\alpha_i) \right]
 \end{align*}
-subject to $\1_m^\top \alphabm = m \1_n^\top \nubm$,
+subject to $\1_m^\top \alphabm = m \1_n^\top \nubm$ and $\nubm \succeq 0$,
 or equivalently 
 \begin{equation}
 \label{eq:minrisk_dual}
 \begin{aligned}
 \min_{\alphabm, \betabm} \quad & \frac{1}{2 \lambda m} \left\| \alphabm^\top \X^+ - \betabm^\top \X^- \right\|^2 + \sum_{i=1}^m \ell^*(\alpha_i) \\
-s.t. \quad & \1_m^\top \alphabm = \1_n^\top \betabm.
+s.t. \quad & \1_m^\top \alphabm = \1_n^\top \betabm \\
+& \betabm \succeq 0.
 \end{aligned}
 \end{equation}
 
@@ -610,7 +611,7 @@ s.t.             \ & f_{n,j}(\w, \xibm) \le 0, \ n \in \{1,\dots,N\}, \, j \in \
 \end{aligned}
 \end{equation}
 %
-The \emph{Lagrangian} of problem (\ref{eq:tpush_opt}) is
+For $\nubm_n \succeq 0, \, n \in \{1,\dots,N\}$, the \emph{Lagrangian} of problem (\ref{eq:tpush_opt}) is
 \begin{equation}
 \label{eq:tpush_lg}
 \begin{aligned}
@@ -718,7 +719,7 @@ By Eq.~(\ref{eq:grad_eq_zero}), (\ref{eq:grad_tw}) and (\ref{eq:grad_txi}), we h
 or equivalently
 \begin{equation}
 \label{eq:sol_wk}
-\w_k^* = -\frac{1}{\lambda} \sum_{n=1}^N \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}}{N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) \x^n, \ k \in \{1,\cdots,K\}
+\widetilde\w_k = -\frac{1}{\lambda} \sum_{n=1}^N \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}}{N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) \x^n, \ k \in \{1,\cdots,K\}
 \end{equation}
 \begin{equation}
 \label{eq:sol_xin}
@@ -731,18 +732,34 @@ Note that we can rewrite Eq.~(\ref{eq:sol_xin}) as
 \sum_{k=1}^K \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}} {N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) = 0, \ n \in \{1,\cdots,N\}
 \end{equation}
 %
+Let 
+\begin{equation}
+\label{eq:new_var}
+\gamma_{n,k} = \frac{1}{N K_+^n} \llb y_k^n=1 \rrb \alpha_{n,k} + \llb y_k^n=0 \rrb \nu_{n,k}.
+\end{equation}
+%
+Eq.~(\ref{eq:sol_wk}) and (\ref{eq:sol_xin2}) become
+\begin{equation}
+\label{eq:sol}
+\begin{aligned}
+\widetilde\w_k = -\frac{1}{\lambda} \sum_{n=1}^N \gamma_{n,k} \x^n, & \quad k \in \{1,\cdots,K\} \\
+\sum_{k=1}^K \gamma_{n,k} = 0, & \quad n \in \{1,\cdots,N\}
+\end{aligned}
+\end{equation}
+%
 Thus, by Eq.~(\ref{eq:tmp_func}), we have
 \begin{align*}
-t(\x^n, \y^n, \w, \xi_n^*, \alphabm_n, \nubm_n) 
-&= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \left( \w_i^\top \x^n - \xi_n^* \right) \alpha_{n,i} + \sum_{j:y_j^n=0} \nu_{n,j} \left( \w_j^\top \x^n - \xi_n^* \right) \\
-&= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} \w_i^\top \x^n - \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} \xi_n^* +
-   \sum_{j:y_j^n=0} \nu_{n,j} \w_j^\top \x^n - \sum_{j:y_j^n=0} \nu_{n,j} \xi_n^* \\
+t(\x^n, \y^n, \w, \xi_n, \alphabm_n, \nubm_n) 
+&= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \left( \w_i^\top \x^n - \xi_n \right) \alpha_{n,i} + \sum_{j:y_j^n=0} \nu_{n,j} \left( \w_j^\top \x^n - \xi_n \right) \\
+&= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} \w_i^\top \x^n - \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} \xi_n +
+   \sum_{j:y_j^n=0} \nu_{n,j} \w_j^\top \x^n - \sum_{j:y_j^n=0} \nu_{n,j} \xi_n \\
 &= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} \w_i^\top \x^n + \sum_{j:y_j^n=0} \nu_{n,j} \w_j^\top \x^n -
-   \xi_n^* \left( \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} + \sum_{j:y_j^n=0} \nu_{n,j} \right) \\
+   \xi_n \left( \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} + \sum_{j:y_j^n=0} \nu_{n,j} \right) \\
 &= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} \w_i^\top \x^n + \sum_{j:y_j^n=0} \nu_{n,j} \w_j^\top \x^n - 0 \quad 
    \text{(by Eq.~\ref{eq:sol_xin})} \\
 &= \sum_{k=1}^K \left( \frac{\llb y_k^n=1 \rrb}{N K_+^n} \alpha_{n,k} \w_k^\top \x^n + \llb y_k^n=0 \rrb \nu_{n,k} \w_k^\top \x^n \right) \\ 
-&= \sum_{k=1}^K \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}}{N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) \w_k^\top \x^n 
+&= \sum_{k=1}^K \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}}{N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) \w_k^\top \x^n \\
+&= \sum_{k=1}^K \gamma_{n,k} \w_k^\top \x^n \quad \text{(by Eq.~\ref{eq:new_var})} \\
 \end{align*}
 %
 As a result,
@@ -750,45 +767,40 @@ As a result,
 \label{eq:tpush_reduce_g}
 \begin{aligned}
 \min_{\w, \xibm} \, g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) 
-&= g(\w^*, \xibm^*, \alphabm_{1:N}, \nubm_{1:N}) \\
-&= \frac{\lambda}{2} {\w^*}^\top \w^* + \sum_{n=1}^N t(\x^n, \y^n, \w^*, \xi_n^*, \alphabm_n, \nubm_n) \\
-&= \frac{\lambda}{2} \sum_{k=1}^K {\w_k^*}^\top \w_k^* + \sum_{n=1}^N \sum_{k=1}^K 
-   \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}}{N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) {\w_k^*}^\top \x^n \\
-&= \frac{\lambda}{2} \sum_{k=1}^K {\w_k^*}^\top \w_k^* + \sum_{k=1}^K \sum_{n=1}^N 
-   \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}}{N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) {\w_k^*}^\top \x^n \\
-&= \frac{\lambda}{2} \sum_{k=1}^K {\w_k^*}^\top \w_k^* + \sum_{k=1}^K {\w_k^*}^\top \left[ \sum_{n=1}^N 
-   \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}}{N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) \x^n \right] \\
-&= \frac{\lambda}{2} \sum_{k=1}^K {\w_k^*}^\top \w_k^* + \sum_{k=1}^K {\w_k^*}^\top (-\lambda \w_k^*) \quad 
+&= \frac{\lambda}{2} \widetilde\w^\top \widetilde\w + \sum_{n=1}^N t(\x^n, \y^n, \widetilde\w, \xi_n, \alphabm_n, \nubm_n) \\
+&= \frac{\lambda}{2} \sum_{k=1}^K \widetilde\w_k^\top \widetilde\w_k + 
+   \sum_{n=1}^N \sum_{k=1}^K \gamma_{n,k} \widetilde\w_k^\top \x^n \\
+&= \frac{\lambda}{2} \sum_{k=1}^K \widetilde\w_k^\top \widetilde\w_k + 
+   \sum_{k=1}^K \sum_{n=1}^N \gamma_{n,k} \widetilde\w_k^\top \x^n \\
+&= \frac{\lambda}{2} \sum_{k=1}^K \widetilde\w_k^\top \widetilde\w_k + \sum_{k=1}^K \widetilde\w_k^\top \left[ \sum_{n=1}^N \gamma_{n,k} \x^n \right] \\
+&= \frac{\lambda}{2} \sum_{k=1}^K \widetilde\w_k^\top \widetilde\w_k + \sum_{k=1}^K \widetilde\w_k^\top (-\lambda \widetilde\w_k) \quad 
    \text{(by Eq.~\ref{eq:sol_wk})} \\
-&= -\frac{\lambda}{2} \sum_{k=1}^K {\w_k^*}^\top \w_k^* \\
-&= -\frac{1}{2 \lambda} \sum_{k=1}^K \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)^\top \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right) \quad
-   \text{(by Eq.~\ref{eq:sol_wk})}
+&= -\frac{\lambda}{2} \sum_{k=1}^K \widetilde\w_k^\top \widetilde\w_k
 \end{aligned}
 \end{equation}
-where
-\begin{equation}
-\label{eq:new_var}
-\gamma_{n,k} = \frac{1}{N K_+^n} \llb y_k^n=1 \rrb \alpha_{n,k} + \llb y_k^n=0 \rrb \nu_{n,k}.
-\end{equation}
 %
-Lastly, by Eq.~(\ref{eq:tpush_dual_func}) and (\ref{eq:tpush_reduce_g}), the \emph{Lagrangian dual problem} of (\ref{eq:tpush_opt}) is
+Lastly, by Eq.~(\ref{eq:tpush_dual_func}), (\ref{eq:sol}) and (\ref{eq:tpush_reduce_g}), the \emph{Lagrangian dual problem} of (\ref{eq:tpush_opt}) is
 \begin{align*}
 \underset{\nubm_{1:N}}{\max} \, \inf_{\w, \xibm} \, L(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N})
 &= \underset{\alphabm_{1:N}, \, \nubm_{1:N}}{\max} \left[ \min_{\w, \xibm} \, g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
    \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \right] \\
+&= \underset{\alphabm_{1:N}, \, \nubm_{1:N}}{\max} \left[ \min_{\w, \xibm} \, g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
+   \sum_{n=1}^N \sum_{k=1}^K \frac{\llb y_k^n = 1 \rrb}{N K_+^n} \ell^*(\alpha_{n,i}) \right] \\
 &= \underset{\alphabm_{1:N}, \, \nubm_{1:N}}{\max} \left[ 
    -\frac{1}{2 \lambda} \sum_{k=1}^K \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)^\top \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)
-   -\sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \right]
+   -\sum_{n=1}^N \sum_{k=1}^K \frac{\llb y_k^n = 1 \rrb}{N K_+^n} \ell^*(\alpha_{n,i}) \right]
 \end{align*}
-subject to constraints (\ref{eq:sol_xin}),
+subject to constraints (\ref{eq:sol_xin2}) and $\nubm_n \succeq 0, \, n \in \{1,\dots,N\}$,
 or equivalently
 \begin{equation}
 \label{eq:tpush_dual}
 \begin{aligned}
 \underset{\alphabm_{1:N}, \, \nubm_{1:N}}{\min} \ &
-    \frac{1}{2 \lambda} \sum_{k=1}^K \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)^\top \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right) +
-    \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \\
-s.t. \ \quad & \sum_{k=1}^K \gamma_{n,k} = 0, \ n \in \{1,\cdots,N\}
+    \sum_{k=1}^K \left[ 
+    \frac{1}{2 \lambda} \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)^\top \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right) +
+    \sum_{n=1}^N \frac{\llb y_k^n = 1 \rrb}{N K_+^n} \ell^*(\alpha_{n,i}) \right] \\
+s.t. \ \quad & \sum_{k=1}^K \gamma_{n,k} = 0, \ n \in \{1,\dots,N\} \\
+             & \nubm_n \succeq 0, \ n \in \{1,\dots,N\}
 \end{aligned}
 \end{equation}
 where variables $\gamma_{n,k}$ are defined in Eq.~(\ref{eq:new_var}).
