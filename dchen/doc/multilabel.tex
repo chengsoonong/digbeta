@@ -804,25 +804,24 @@ s.t. \ \quad & \sum_{k=1}^K \gamma_{n,k} = 0, \ n \in \{1,\dots,N\} \\
 \end{aligned}
 \end{equation}
 where variables $\gamma_{n,k}$ are defined in Eq.~(\ref{eq:new_var}).
-
-%\begin{align*}
-%\frac{\partial g}{\partial \w_k}
-%&= \lambda \w_k + \sum_{n=1}^N \frac{1}{N \cdot K_+^n} \llb y_k^n = 1 \rrb \cdot \alpha_{n,k} \cdot \x\pb{n} + 
-%   \sum_{n=1}^N \llb y_k^n = 0 \rrb \cdot \nu_{n,k} \cdot \x\pb{n} = 0 \\
-%\frac{\partial g}{\partial \xi_n} 
-%&= \frac{1}{N \cdot K_+^n} \llb y_k^n = 1 \rrb \cdot (-\alpha_{n,k}) + \llb y_k^n = 0 \rrb \cdot (-\nu_{n,k}) = 0
-%\end{align*}
-%then we have 
-%\begin{equation}
-%\label{eq:sol_w}
-%\w_k^* = -\frac{1}{\lambda} \sum_{n=1}^N \x\pb{n} 
-%         \left( \frac{1}{N \cdot K_+^n} \llb y_k^n = 1 \rrb \cdot \alpha_{n,k} + \llb y_{n,k} = 0 \rrb \cdot \nu_{n,k} \right)
-%\end{equation}
-%and
-%\begin{equation}
-%\label{eq:sol_xi}
-%\frac{1}{N \cdot K_+^n} \llb y_k^n = 1 \rrb \cdot \alpha_{n,k} + \llb y_k^n = 0 \rrb \cdot \nu_{n,k} = 0
-%\end{equation}
+\\
+Suppose we use the logistic loss $\ell(v) = \log(1 + e^{-v})$, the conjugate of $\ell(v)$ is
+$$
+\ell^*(u) 
+= \sup_v \left[ uv - \ell(v) \right] 
+= \sup_v \left[ uv - \log(1 + e^{-v}) \right]
+$$
+let 
+$$
+\frac{\partial \left[ uv - \log(1 + e^{-v}) \right]} {\partial v} 
+= u - \frac{-e^{-v}} {1 + e^{-v}}
+= 0
+$$
+we have $u = \frac{-1}{1 + e^v} \in [-1, 0)$ and $v = \log(1+u) - \log(-u)$.
+Thus
+$$
+\ell^*(u) = u \left[ \log(1+u) - \log(-u) \right] - \log(\frac{1}{1+u}) = - u\log(-u) + (1+u) \log(1+u)
+$$
 
 
 
