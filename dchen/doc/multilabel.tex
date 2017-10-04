@@ -427,14 +427,72 @@ To learn the parameters of predictor $\f$, we can minimise the empirical risk (\
 %Suppose the feature of a query induced by a playlist is simply the feature of the first song in the playlist 
 %(\ie use the first song in a playlist as the \emph{seed}).
 
-Given a loss function $\LCal(\cdot)$, assuming L2 regularisation, the optimisation objective to learn weights $\w$ is
+Given a loss function $\LCal(\cdot)$, assuming L2 regularisation\footnote{
+The regularisation constant is different from that in scikit-learn~\cite{sklearn-guide}, 
+as the objective there is $J(\w) = \frac{1}{2}\w^\top \w + C \sum_{n=1}^N \LCal(\x^n, \y^n; \w)$, so we have $C = \frac{1}{N \lambda}$.},
+the optimisation objective to learn weights $\w$ is
 \begin{equation}
 \label{eq:obj}
 J(\w) = \frac{\lambda}{2}\w^\top \w + \frac{1}{N} \sum_{n=1}^N \LCal(\x^n, \y^n; \w),
 \end{equation}
 where $\w = [\w_1^\top, \cdots, \w_K^\top]^\top$ is the flattened weight vector.
-
 We further assume the predicted score of a label has a \emph{linear} form, \ie $f_k(\x) = \w_k^\top \x, \, k \in \{1,\cdots,K\}$.
+
+
+
+\subsubsection{Independent logistic regression}
+\label{sssec:logistic}
+The most natural idea is to make predictions for each label, by independently learning a binary classifier (\eg logistic regression) for each label.
+However, this method does not focus on ensuring the top few labels (\ie positive labels) are accurately modelled 
+and also ignores the correlations between labels.
+
+
+
+\subsubsection{Instance weighting with logistic loss}
+Another baseline is to weight the loss for positive/negative labels with different constants, for example,
+the loss of example $(\x, \y)$ given weights $\w$ can be
+$$
+\LCal(\x, \y; \w) = \frac{1}{K_+} \sum_{i:y_i=1} \ell_+(\w_i^\top \x) + \frac{1}{K_-} \sum_{j:y_j=0} \ell_-(\w_j^\top \x),
+$$
+where $K_+$ and $K_-$ are the number of positive and negative labels in $\y$ respectively. \\
+If we use the logistic loss 
+$$
+\ell(v) = \log(1 + e^{-v})
+$$
+then
+\begin{align*}
+\ell_+(v) &= \ell(+1 \cdot v) = \log(1 + e^{-v}) \\
+\ell_-(v) &= \ell(-1 \cdot v) = \log(1 + e^v)
+\end{align*}
+Thus the objective is
+$$
+J(\w) = \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \left(
+        \frac{1}{K_+^n} \sum_{i:y_i^n=1} \log \left( 1 + \exp(-\w_i^\top \x^n) \right) + 
+        \frac{1}{K_-^n} \sum_{j:y_j^n=0} \log \left( 1 + \exp(\w_j^\top \x^n) \right) \right).
+$$
+Where $K_+^n$ and $K_-^n$ are the number of positive and negative labels in $\y^n$ respectively. \\
+Note that $\w^\top \w = \sum_{k=1}^K \w_k^\top \w_k$, the derivative of $\w_k, \, k \in \{1,\dots,K\}$ is
+$$
+\frac{\partial J(\w)} {\partial \w_k} = \lambda \w_k + \frac{1}{N} \sum_{n=1}^N \frac{\partial \LCal(\x^n, \y^n; \w)} {\partial \w_k},
+$$
+where 
+$$
+\frac{\partial \LCal(\x^n, \y^n; \w)} {\partial \w_k} =
+\begin{cases}
+\frac{-\x^n} {K_+^n (1 + \exp( \w_k^\top \x^n))}, & \text{if} \ y_k^n = 1 \\
+\frac{ \x^n} {K_-^n (1 + \exp(-\w_k^\top \x^n))}, & \text{if} \ y_k^n = 0 \\
+\end{cases}
+$$
+as a result,
+$$
+\frac{\partial J(\w)} {\partial \w_k} = \lambda \w_k + \frac{1}{N} \sum_{n=1}^N (a_n + b_n) \x^n,
+$$
+where
+\begin{align*}
+a_n &= \frac{-\llb y_k^n = 1 \rrb} {K_+^n (1 + \exp( \w_k^\top \x^n))} \\
+b_n &= \frac{ \llb y_k^n = 0 \rrb} {K_-^n (1 + \exp(-\w_k^\top \x^n))}
+\end{align*}
+
 
 
 
@@ -513,12 +571,12 @@ b_n &= \frac{1}{N K_+^n K_-^n} \underset{i:y_i^n=1}{\sum} \, \frac{ \llb y_k^n=0
 
 
 
-\subsubsection{p-norm push loss}
-\label{sssec:pnorm}
+\subsubsection{p-classification loss}
+\label{sssec:pclass}
 
-The p-norm push loss of example $(\x, \y)$ given weights $\w$ is
+The p-classification loss~\cite{ertekin2011equivalence} of example $(\x, \y)$ given weights $\w$ is
 \begin{equation}
-\label{eq:loss_pnorm}
+\label{eq:loss_pclass}
 \LCal(\x, \y; \w) = \frac{1}{K_+} \sum_{i:y_i=1} \ell_+(\w_i^\top \x) + \frac{1}{K_-} \sum_{j:y_j=0} \ell_-(\w_j^\top \x),
 \end{equation}
 where $K_+$ and $K_-$ are defined as before, 
@@ -531,9 +589,9 @@ and for constant $p \gg 1$,
 \end{equation}
 When $p \to +\infty$, the above loss is equivalent to the top-push loss (with exponential surrogate).
 
-Then the objective with p-norm push loss is
+Then the objective with p-classification loss is
 \begin{equation}
-\label{eq:obj_pnorm_push}
+\label{eq:obj_pclass}
 J(\w) = \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \left( 
         \frac{1}{K_+^n} \sum_{i:y_i^n=1} \exp(-\w_i^\top \x^n) + 
         \frac{1}{K_-^n} \sum_{j:y_j^n=0} \frac{1}{p} \exp(p \cdot \w_j^\top \x^n) \right), 
@@ -562,7 +620,7 @@ where
 \end{equation}
 as a result,
 \begin{equation}
-\label{eq:grad_pnorm}
+\label{eq:grad_pclass}
 \frac{\partial J(\w)} {\partial \w_k} = \lambda \w_k + \sum_{n=1}^N (a_n + b_n) \x^n,
 \end{equation}
 where
@@ -576,7 +634,7 @@ b_n &= \frac{ \llb y_k^n=0 \rrb} {N K_-^n} \exp(p \w_k^\top \x^n).
 \subsubsection{Top-push loss}
 \label{sssec:tpush}
 
-The top push loss of example $(\x, \y)$ given weights $\w$ is
+The top-push loss~\cite{li2014top} of example $(\x, \y)$ given weights $\w$ is
 \begin{equation}
 \label{eq:tpush_loss}
 \LCal(\x, \y; \w) = \frac{1}{K_+} \sum_{i:y_i=1} \llb \w_i^\top \x \le \underset{j:y_j=0}{\max} \, \w_j^\top \x \rrb,
@@ -622,12 +680,13 @@ L(\w, \xibm, \nubm_{1:N})
 \end{aligned}
 \end{equation}
 %
-Note that the conjugate of the conjugate of a convex function is itself, \ie $f(\z) = f^{**}(\z) = \sup_{\y} \left( \z^\top \y - f^*(\y) \right)$, we have
+Note that the conjugate of the conjugate of a convex function is itself, 
+\ie $f(\z) = f^{**}(\z) = \sup_{\y} \left( \z^\top \y - f^*(\y) \right)$, we have
 \begin{equation}
 \label{eq:conjugate}
 \ell( \w_i^\top \x^n - \xi_n) = \sup_{\alpha_{n,i}} \left[ \left( \w_i^\top \x^n - \xi_n \right) \alpha_{n,i} - \ell^*(\alpha_{n,i}) \right],
 \end{equation}
-where $\ell^*(\cdot)$ is the conjugate of $\ell(\cdot)$.
+where $\ell^*(\cdot)$ is the conjugate of $\ell(\cdot)$ and $\alpha_{n,i} \in \text{dom}(\ell^*)$.
 
 By (\ref{eq:tpush_lg}) and (\ref{eq:conjugate}), the \emph{Lagrangian} becomes
 \begin{align*}
@@ -733,9 +792,17 @@ Note that we can rewrite Eq.~(\ref{eq:sol_xin}) as
 \end{equation}
 %
 Let 
+\begin{equation*}
+\gamma_{n,k} = \frac{1}{N K_+^n} \llb y_k^n=1 \rrb \alpha_{n,k} + \llb y_k^n=0 \rrb \nu_{n,k}
+\end{equation*}
+%
+or more elegantly,
 \begin{equation}
 \label{eq:new_var}
-\gamma_{n,k} = \frac{1}{N K_+^n} \llb y_k^n=1 \rrb \alpha_{n,k} + \llb y_k^n=0 \rrb \nu_{n,k}.
+\begin{aligned}
+\beta_{n,k}  &= \nu_{n,k} N K_-^n \\
+\gamma_{n,k} &= \frac{\llb y_k^n=1 \rrb} {N K_+^n} \alpha_{n,k} + \frac{\llb y_k^n=0 \rrb} {N K_-^n} \beta_{n,k}
+\end{aligned}
 \end{equation}
 %
 Eq.~(\ref{eq:sol_wk}) and (\ref{eq:sol_xin2}) become
@@ -795,12 +862,12 @@ or equivalently
 \begin{equation}
 \label{eq:tpush_dual}
 \begin{aligned}
-\underset{\alphabm_{1:N}, \, \nubm_{1:N}}{\min} \ &
+\underset{\alphabm_{1:N}, \, \betabm_{1:N}}{\min} \ &
     \sum_{k=1}^K \left[ 
     \frac{1}{2 \lambda} \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)^\top \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right) +
     \sum_{n=1}^N \frac{\llb y_k^n = 1 \rrb}{N K_+^n} \ell^*(\alpha_{n,i}) \right] \\
 s.t. \ \quad & \sum_{k=1}^K \gamma_{n,k} = 0, \ n \in \{1,\dots,N\} \\
-             & \nubm_n \succeq 0, \ n \in \{1,\dots,N\}
+             & \betabm_n \succeq 0, \ n \in \{1,\dots,N\}
 \end{aligned}
 \end{equation}
 where variables $\gamma_{n,k}$ are defined in Eq.~(\ref{eq:new_var}).
@@ -819,10 +886,30 @@ $$
 $$
 we have $u = \frac{-1}{1 + e^v} \in [-1, 0)$ and $v = \log(1+u) - \log(-u)$.
 Thus
-$$
+\begin{equation}
+\label{eq:conjugate_logistic}
 \ell^*(u) = u \left[ \log(1+u) - \log(-u) \right] - \log(\frac{1}{1+u}) = - u\log(-u) + (1+u) \log(1+u)
+\end{equation}
+%
+By Eq.~(\ref{eq:tpush_dual}) and (\ref{eq:conjugate_logistic}), we have this convex optimisation problem:
+\begin{equation}
+\label{eq:tpush_dual_logistic}
+\begin{aligned}
+\underset{\alphabm_{1:N}, \, \betabm_{1:N}}{\min} \ &
+    \sum_{k=1}^K \left[ 
+    \frac{1}{2 \lambda} \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)^\top \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right) +
+    \sum_{n=1}^N \frac{\llb y_k^n = 1 \rrb}{N K_+^n} 
+    \left( -\alpha_{n,i}\log(-\alpha_{n,i}) + (1 + \alpha_{n,i}) \log(1 + \alpha_{n,i}) \right) \right] \\
+s.t. \ \quad & \sum_{k=1}^K \gamma_{n,k} = 0, \ n \in \{1,\dots,N\} \\
+             & 0 \succ \alphabm_n \succeq -1, \ n \in \{1,\dots,N\} \\
+             & \betabm_n \succeq 0, \ n \in \{1,\dots,N\}
+\end{aligned}
+\end{equation}
+%
+where
 $$
-
+\gamma_{n,k} = \frac{\llb y_k^n=1 \rrb} {N K_+^n} \alpha_{n,k} + \frac{\llb y_k^n=0 \rrb} {N K_-^n} \beta_{n,k}
+$$
 
 
 
