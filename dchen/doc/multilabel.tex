@@ -465,11 +465,15 @@ then
 \ell_-(v) &= \ell(-1 \cdot v) = \log(1 + e^v)
 \end{align*}
 Thus the objective is
-$$
-J(\w) = \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \left(
-        \frac{1}{K_+^n} \sum_{i:y_i^n=1} \log \left( 1 + \exp(-\w_i^\top \x^n) \right) + 
-        \frac{1}{K_-^n} \sum_{j:y_j^n=0} \log \left( 1 + \exp(\w_j^\top \x^n) \right) \right).
-$$
+\begin{align*}
+J(\w) 
+&= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \left(
+   \frac{1}{K_+^n} \sum_{i:y_i^n=1} \log \left( 1 + \exp(-\w_i^\top \x^n) \right) + 
+   \frac{1}{K_-^n} \sum_{j:y_j^n=0} \log \left( 1 + \exp(\w_j^\top \x^n) \right) \right) \\
+&= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{k=1}^K \sum_{n=1}^N \left[
+   \frac{\llb y_k^n = 1 \rrb}{K_+^n} \log \left( 1 + \exp(-\w_k^\top \x^n) \right) + 
+   \frac{\llb y_k^n = 0 \rrb}{K_-^n} \log \left( 1 + \exp(\w_k^\top \x^n) \right) \right] 
+\end{align*}
 Where $K_+^n$ and $K_-^n$ are the number of positive and negative labels in $\y^n$ respectively. \\
 Note that $\w^\top \w = \sum_{k=1}^K \w_k^\top \w_k$, the derivative of $\w_k, \, k \in \{1,\dots,K\}$ is
 $$
@@ -590,12 +594,15 @@ and for constant $p \gg 1$,
 When $p \to +\infty$, the above loss is equivalent to the top-push loss (with exponential surrogate).
 
 Then the objective with p-classification loss is
-\begin{equation}
-\label{eq:obj_pclass}
-J(\w) = \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \left( 
-        \frac{1}{K_+^n} \sum_{i:y_i^n=1} \exp(-\w_i^\top \x^n) + 
-        \frac{1}{K_-^n} \sum_{j:y_j^n=0} \frac{1}{p} \exp(p \cdot \w_j^\top \x^n) \right), 
-\end{equation}
+\begin{align*}
+J(\w) 
+&= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \left( 
+   \frac{1}{K_+^n} \sum_{i:y_i^n=1} \exp(-\w_i^\top \x^n) + 
+   \frac{1}{K_-^n} \sum_{j:y_j^n=0} \frac{1}{p} \exp(p \cdot \w_j^\top \x^n) \right) \\
+&= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{k=1}^K \sum_{n=1}^N \left[
+   \frac{\llb y_k^n = 1 \rrb}{K_+^n} \exp(-\w_k^\top \x^n) + 
+   \frac{\llb y_k^n = 0 \rrb}{p K_-^n} \exp(p \cdot \w_k^\top \x^n) \right]
+\end{align*}
 where $K_+^n$ and $K_-^n$ are defined as before.
 
 
