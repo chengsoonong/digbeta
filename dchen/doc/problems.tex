@@ -1,0 +1,118 @@
+\section*{Interesting problems}
+
+\subsection*{What precision metric that bipartite ranking is optimising?}
+
+We can derive a precision metric from the loss function of bipartite ranking.
+Given a training set with binary labels $\{\x\pb{n}, y\pb{n}\}_{n=1}^N$, 
+if the rank loss is used, assuming a linear score function $f(\x) = \w^\top \x$, 
+then the empirical loss on training set is 
+\begin{equation*}
+\frac{1}{N_+ \cdot N_-} \sum_{i:y\pb{i}=1} \sum_{j:y\pb{j}=0} \llb \w^\top\x\pb{i} \le \w^\top\x\pb{j} \rrb,
+\end{equation*}
+where $N_+$ and $N_-$ is the number of positive and negative examples training set respectively.
+This function will results in a penalty if any positive example has a lower score than any negative example,
+which leads to the following precision metric:
+\begin{equation}
+\label{eq:precision_rank}
+P_\text{rank} = \frac{\text{\#True Postive}}{\text{\#Positive}} 
+              = \frac{1}{N_+ \cdot N_-} \sum_{i:y\pb{i}=1} \sum_{j:y\pb{j}=0} \llb \w^\top\x\pb{i} > \w^\top\x\pb{j} \rrb,
+\end{equation}
+\ie the fraction of correctly predicted positive-negative example pairs among all positive-negative example pairs.
+
+\paragraph{Comments}
+{\it
+\begin{itemize}
+\item You need to define precision more precisely. What does ``\# positive'' mean? Precision is usually hard to write down as a single summation, since the fraction you are involves a numerator and denominator that both depend on the predictions.
+\item Precision@K is a highly non-trivial measure to directly optimise. Even logistic regression doesn't optimise it directly. Rather, it solves a more general problem of estimating P(y = 1 | x), from which one can find a good threshold to make predictions with high precision@K.
+\item You can view AUC as an average of the balanced error, where one uses all possible classification thresholds. This is something of ``folk-lore'', and (regrettably) the only explicit reference I know is Appendix A.5 of~\cite{menon2015learning}.
+\end{itemize}
+}
+
+
+\subsection*{What is the difference between logistic regression for binary classification and bipartite ranking?}
+
+It is known that logistic regression is optimising the logistic loss derived from the maximum likelihood principle
+$-\log \left( \p(y=1 |\x)^y \cdot (1 - \p(y=1 | \x)^{(1-y)} \right) = -y\log\p(y=1 | \x) - (1-y) \log(1-\p(y=1 | \x))$,
+where $\p(y=1 | \x) = \sigma(\w^\top \x)$ is the probability that $\x$ is a positive example.
+Logistic loss is a convex surrogate of the 0/1 loss for binary classification.
+We can see from logistic loss that there will be a penalty if we predict a low probability for positive examples and 
+a high probability for negative examples,
+\ie logistic regression is trying to predict high probabilities for positive examples and low probabilities for negative examples,
+which means it (indirectly) optimises the accuracy metric,
+\begin{equation}
+\label{eq:accuracy}
+Acc = \frac{\text{\#True Postive} + \text{\#True Negative}}{\text{\#Example}} 
+    = \frac{1}{N} \left( \sum_{i:y\pb{i}=1} \llb \w^\top \x\pb{i} \ge P_{Th} \rrb + \sum_{j:y\pb{j}=0} \llb \w^\top \x\pb{j} < P_{Th} \rrb \right),
+\end{equation}
+where $P_{Th}$ is the threshold probability.
+
+An simple experiment to check this is filling Table~\ref{tab:precision} by training a logistic regression and a bipartite ranking algorithm (ranking loss and a convex surrogate) on a binary classification dataset.
+\begin{table}[!h]
+\centering
+\begin{tabular}{c|cc} \hline \hline
+Precision Metric                        & Logistic Regression & Bipartite Ranking \\
+$Acc$~\ref{eq:accuracy}                 & \textsc{Best}       & ?                 \\
+$P_\text{rank}$~\ref{eq:precision_rank} & ?                   & \textsc{Best}     \\ \hline
+\end{tabular}
+\caption{Evaluation results that compares logistic regression with bipartite ranking.}
+\label{tab:precision}
+\end{table}
+
+\paragraph{Comments}
+{\it
+\begin{itemize}
+\item You might get some insight on the relation between logistic regression and bipartite ranking from~\cite{kotlowski2011bipartite}.
+\item It seems natural to consider structured SVM approaches to optimising precision and/or multilabel measures, as per SVMPerf.
+\end{itemize}
+}
+
+
+\subsection*{How to use top-push loss for multi-label classification?}
+
+For each multi-label example $(\x, \y)$, if we construct a training set $\{(\x, y_k)\}_{k=1}^K$ ($K$ is the total number of labels),
+and aggregate over all multi-label training examples, we can then use top-push in multi-label classification. 
+In particular, given training set $\{\x\pb{n}, \y\pb{n}\}_{n=1}^N$, the empirical risk is
+\begin{equation*}
+R(\w) = \frac{1}{N} \sum_{n=1}^N \LCal(\x\pb{n}, \y\pb{n}; \w),
+\end{equation*}
+where $\w = [\w_1^\top, \cdots, \w_K^\top]^\top$ is the flattened weights vector, and
+\begin{equation}
+%\label{eq:tpush_loss}
+\LCal(\x, \y; \w) = \frac{1}{K_+} \sum_{i:y_i=1} \llb \w_i^\top \x \le \underset{j:y_j=0}{\max} \w_j^\top \w \rrb,
+\end{equation}
+and $K_+$ is the number of positive labels in $\y$.
+
+%\begin{equation*}
+%R(\w) = \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i:y_i^n=1} \llb \w_i^\top \x \le \underset{j:y_j^n=0}{\max} \w_j^\top \x \rrb,
+%\end{equation*}
+%where $K_+^n$ is the number of positive labels in $\y\pb{n}$.
+
+Assuming L2 regularisation, the optimisation objective is
+\begin{equation*}
+J(\w) = \frac{\lambda}{2}\w^\top \w + R(\w).
+\end{equation*}
+To optimise this objective, we first replace the indicator function in $R(\w)$ with one of its convex surrogate, 
+\eg the log loss $\log(1+e^{-z})$ where $z = \w_l^\top \x$ is the ranking score for a label.
+We further derive the \emph{dual} of the objective to overcome the inner maximisation in $R(\w)$.
+Finally, we do gradient descent to optimise the weights $\w$.
+
+\paragraph{Comments}
+{\it
+\begin{itemize}
+\item Does the overall dual decompose into a sum of duals, one for each label?
+\end{itemize}
+}
+
+
+
+\subsection*{Active learning for structured prediction}
+
+Popular models for multi-label classification and structured prediction such as the probabilistic classifier chains~\cite{dembczynski:2010},
+and Seq2Seq models~\cite{Vinyals:2017} are limited by sequential inference. 
+Inspired by structured SVM~\cite{taskar2004max,tsochantaridis2004support}, 
+a value network was proposed to directly approximate the loss between the predicted and ground truth labels~\cite{gygli17a}.
+To train the value network, it was shown that examples generated by inference as well as adversarial examples work best empirically. 
+
+Obtain labelled examples is a typical example of the well-known exploration/exploitation trade-off, where there exist rich literatures in active learning and bandit algorithms, it is interesting to explore these strategies for training value networks.
+
+

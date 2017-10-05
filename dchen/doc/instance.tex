@@ -1,0 +1,139 @@
+\section{Cast playlist generation as multi-label classification: a formalised example}
+
+Suppose we have 
+2 playlists $\{(\textit{user}_1, [\textit{song}_1, \textit{song}_3]), (\textit{user}_2, [\textit{song}_2, \textit{song}_3])\}$
+which include 
+3 songs $\{\textit{song}_1, \textit{song}_2, \textit{song}_3\}$,
+and 2 users $\{\textit{user}_1, \textit{user}_2\}$.
+
+The audio features of songs are shown in Table~\ref{tab:audio}, by factorising the user-song matrix (of ratings), 
+we can learn latent features for users (Table~\ref{tab:user-song}) and songs (Table~\ref{tab:song-user});
+similarly, factorising the artist-song matrix (of ratings) can generate latent features of artists and songs (Table~\ref{tab:song-artist}).
+
+\vspace{1em}
+\begin{minipage}[t][3em][b]{.35\linewidth}
+\begin{tabular}{l|ccc} \hline \hline 
+& feature$_1$ & feature$_2$ & feature$_3$ \\ \hline 
+{\it song}$_1$ & $a_{11}$ & $a_{12}$ & $a_{13}$ \\
+{\it song}$_2$ & $a_{21}$ & $a_{22}$ & $a_{23}$ \\
+{\it song}$_3$ & $a_{31}$ & $a_{32}$ & $a_{33}$ \\ \hline
+\end{tabular}
+\captionof{table}{Audio features of songs}
+\label{tab:audio}
+\end{minipage}
+%
+\quad
+%
+\begin{minipage}{.31\linewidth}
+\begin{tabular}{l|cc} \hline \hline 
+& feature$_1$ & feature$_2$ \\ \hline
+{\it song}$_1$ & $su_{11}$ & $su_{12}$ \\
+{\it song}$_2$ & $su_{21}$ & $su_{22}$ \\
+{\it song}$_3$ & $su_{31}$ & $su_{32}$ \\ \hline
+\end{tabular}
+\captionof{table}{Latent song features learnt by factorising user-song matrix}
+\label{tab:song-user}
+\end{minipage}
+%
+\quad
+%
+\begin{minipage}{.31\linewidth}
+\begin{tabular}{l|cc} \hline \hline 
+& feature$_1$ & feature$_2$ \\ \hline 
+{\it song}$_1$ & $sa_{11}$ & $sa_{12}$ \\
+{\it song}$_2$ & $sa_{21}$ & $sa_{22}$ \\
+{\it song}$_3$ & $sa_{31}$ & $sa_{32}$ \\ \hline
+\end{tabular}
+\captionof{table}{Latent song features learnt by factorising artist-song matrix}
+\label{tab:song-artist}
+\end{minipage}
+
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{l|cc} \hline \hline 
+& feature$_1$ & feature$_2$ \\ \hline
+{\it user}$_1$ & $u_{11}$ & $u_{12}$ \\
+{\it user}$_2$ & $u_{21}$ & $u_{22}$ \\ \hline
+\end{tabular}
+\caption{Latent user features learnt by factorising user-song matrix}
+\label{tab:user-song}
+\end{table}
+
+We concatenate the audio song features, 
+latent song features learnt by factorising user-song matrix,
+and latent song features learnt by factorising artist-song matrix 
+to get the matrix of song features, as shown in Table~\ref{tab:song}.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{l|ccc|cc|cc} \hline \hline 
+& feature$_1$ & feature$_2$ & feature$_3$ & feature$_4$ & feature$_5$ & feature$_6$ & feature$_7$ \\ \hline
+{\it song}$_1$ & $a_{11}$ & $a_{12}$ & $a_{13}$ & $su_{11}$ & $su_{12}$ & $sa_{11}$ & $sa_{12}$ \\          
+{\it song}$_2$ & $a_{21}$ & $a_{22}$ & $a_{23}$ & $su_{21}$ & $su_{22}$ & $sa_{21}$ & $sa_{22}$ \\          
+{\it song}$_3$ & $a_{31}$ & $a_{32}$ & $a_{33}$ & $su_{31}$ & $su_{32}$ & $sa_{31}$ & $sa_{32}$ \\ \hline
+\end{tabular}
+\caption{Features of songs}
+\label{tab:song}
+\end{table}
+
+We assume a query is a tuple of $(\textit{user}, \textit{seed\_song})$.
+For playlist $\{(\textit{user}_1, [\textit{song}_1, \textit{song}_3])$,
+we have a query $\textit{query}_1 = (\textit{user}_1, \textit{song}_1)$;
+for playlist $(\textit{user}_2, [\textit{song}_2, \textit{song}_3])\}$,
+we have a query $\textit{query}_2 = (\textit{user}_2, \textit{song}_2)$;
+
+We compute the song-query feature matrix $\mathbf{X}$ for the training set (with only 2 playlists) 
+by concatenating the features of user in query, features of seed song in query, as shown in Table~\ref{tab:trainx}.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{l|cc|ccccccc} \hline \hline
+& feature$_1$ & feature$_2$ & feature$_3$ & feature$_4$ & feature$_5$ & feature$_6$ & feature$_7$ & feature$_8$ & feature$_9$ \\ \hline
+$\x\pb{1} = \textit{query}_1$
+& $u_{11}$ & $u_{12}$ 
+& $a_{11}$ & $a_{12}$ & $a_{13}$ & $su_{11}$ & $su_{12}$ & $sa_{11}$ & $sa_{12}$ \\
+$\x\pb{2} = \textit{query}_2$ 
+& $u_{21}$ & $u_{22}$ 
+& $a_{21}$ & $a_{22}$ & $a_{23}$ & $su_{21}$ & $su_{22}$ & $sa_{21}$ & $sa_{22}$ \\ \hline
+\end{tabular}
+\caption{Query-song feature matrix $\mathbf{X}$}
+\label{tab:trainx}
+\end{table}
+
+We have a label for each song in the music library, and the labels of these two queries are shown in Table~\ref{tab:trainy}.
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{l|ccc} \hline \hline
+& Label$_1$ & Label$_2$ & Label$_3$ \\ \hline
+$\y\pb{1}$ & $1$ & $0$ & $1$ \\
+$\y\pb{2}$ & $0$ & $1$ & $1$ \\ \hline
+\end{tabular}
+\caption{Labels of playlists}
+\label{tab:trainy}
+\end{table}
+
+Do we need joint features $\Psi(\x, \y)$? Then it will become another structured prediction problem.
+
+
+\eat{
+\begin{table}
+\begin{tabular}{lccccccccc|ccccccc} \hline \hline \\
+& feature$_1$ & feature$_2$ & feature$_3$ & feature$_4$ & feature$_5$ & feature$_6$ & feature$_7$ \hline \\
+(\textit{query}$_1$, \textit{song}$_1$) 
+& $u_{11}$ & $u_{12}$ 
+& $a_{11}$ & $a_{12}$ & $a_{13}$ & $su_{11}$ & $su_{12}$ & $sa_{11}$ & $sa_{12}$ 
+& $a_{11}$ & $a_{12}$ & $a_{13}$ & $su_{11}$ & $su_{12}$ & $sa_{11}$ & $sa_{12}$ \\
+(\textit{query}$_1$, \textit{song}$_2$) 
+& $u_{11}$ & $u_{12}$ 
+& $a_{11}$ & $a_{12}$ & $a_{13}$ & $su_{11}$ & $su_{12}$ & $sa_{11}$ & $sa_{12}$ 
+& $a_{21}$ & $a_{22}$ & $a_{23}$ & $su_{21}$ & $su_{22}$ & $sa_{21}$ & $sa_{22}$ \\          
+(\textit{query}$_1$, \textit{song}$_3$) 
+& $u_{11}$ & $u_{12}$ 
+& $a_{11}$ & $a_{12}$ & $a_{13}$ & $su_{11}$ & $su_{12}$ & $sa_{11}$ & $sa_{12}$ 
+& $a_{31}$ & $a_{32}$ & $a_{33}$ & $su_{31}$ & $su_{32}$ & $sa_{31}$ & $sa_{32}$ \\ \hline
+\end{tabular}
+\caption{Query-song feature matrix}
+\end{table}
+}
