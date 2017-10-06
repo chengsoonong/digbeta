@@ -920,19 +920,33 @@ $$
 %
 Let $J(\alphabm_{1:N}, \betabm_{1:N})$ be the objective in (\ref{eq:tpush_dual_logistic}),
 the gradients of $\alpha_{n,k}$ and $\beta_{n,k}$ are
-\begin{align*}
-\frac{\partial J(\alphabm_{1:N}, \betabm_{1:N})} {\partial \alpha_{n,k}} 
-&= \sum_{k=1}^K \left[ \frac{1}{\lambda} \left( \sum_{n=1}^N \left( \gamma_{n,k} \x^n \right)^\top \x^n \frac{\llb y_k^n = 1 \rrb} {N K_+^n} \right) +
-   \sum_{n=1}^N \frac{\llb y_k^n = 1 \rrb} {N K_+^n} \left( -\log(-\alpha_{n,k}) + \log(1 + \alpha_{n,k}) \right) \right] \\
-&= \sum_{k=1}^K \sum_{n=1}^N \frac{\llb y_k^n = 1 \rrb} {N K_+^n} \left( \frac{ \left( \gamma_{n,k} \x^n \right)^\top \x^n} {\lambda} +
-   \log(1 + \alpha_{n,k}) - \log(-\alpha_{n,k}) \right)
-\end{align*}
+\begin{equation}
+\label{eq:tpush_grad_logistic}
+\begin{aligned}
+&\frac{\partial J(\alphabm_{1:N}, \betabm_{1:N})} {\partial \alpha_{n,k}} \\
+&= \frac{1}{2 \lambda} \cdot 2 \cdot \left( \sum_{m=1}^N \gamma_{m,k} \x^m \right)^\top \x^n \cdot \frac{\llb y_k^n = 1 \rrb} {N K_+^n} +
+   \frac{\llb y_k^n = 1 \rrb} {N K_+^n} \left( 
+   -\log(-\alpha_{n,k}) -\alpha_{n,k} \frac{-1}{-\alpha_{n,k}} + 
+   \log(1 + \alpha_{n,k}) + (1 + \alpha_{n,k}) \frac{1}{1 + \alpha_{n,k}} \right) \\
+&= \frac{\llb y_k^n = 1 \rrb} {N K_+^n} \left[ \frac{1}{\lambda} \left( \sum_{m=1}^N \gamma_{m,k} \x^m \right)^\top \x^n 
+   - \log(-\alpha_{n,k}) + \log(1 + \alpha_{n,k}) \right] \\ \\
 %
-\begin{align*}
-\frac{\partial J(\alphabm_{1:N}, \betabm_{1:N})} {\partial \beta_{n,k}} 
-= \sum_{k=1}^K \frac{1}{\lambda} \sum_{n=1}^N \left( \gamma_{n,k} \x^n \right)^\top \x^n \frac{\llb y_k^n = 0 \rrb} {N K_-^n} 
-= \sum_{k=1}^K \sum_{n=1}^N \frac{\llb y_k^n = 0 \rrb} {N K_-^n} \frac{\left( \gamma_{n,k} \x^n \right)^\top \x^n} {\lambda}  
-\end{align*}
+&\frac{\partial J(\alphabm_{1:N}, \betabm_{1:N})} {\partial \beta_{n,k}} \\
+&= \frac{1}{2 \lambda} \cdot 2 \cdot \left( \sum_{m=1}^N \gamma_{m,k} \x^m \right)^\top \x^n \cdot \frac{\llb y_k^n = 0 \rrb} {N K_-^n} \\
+&= \frac{\llb y_k^n = 0 \rrb} {\lambda N K_-^n} \left( \sum_{m=1}^N \gamma_{m,k} \x^m \right)^\top \x^n 
+\end{aligned}
+\end{equation}
+%
+Note that in Eq.~(\ref{eq:tpush_dual_logistic}) and (\ref{eq:tpush_grad_logistic}),
+$\alpha_{n,k}$ will be used \emph{iff} $y_k^n = 1$, similarly, $\beta_{n,k}$ will be used \emph{iff} $y_k^n = 0$,
+which means we only need to optimise $N \times K$ weights $\Theta \in \R^{N \times K}$ where
+$$
+\theta_{n,k} = 
+\begin{cases}
+\alpha_{n,k}, & \text{if} \ y_k^n = 1 \\
+\beta_{n,k},  & \text{if} \ y_k^n = 0
+\end{cases}
+$$
 %
 Let $\alphabm_{1:N}^*$ and $\betabm_{1:N}^*$ be optimal solutions of problem (~\ref{eq:tpush_dual_logistic}),
 then the corresponding optimal solutions for the primal problem (\ref{eq:tpush_opt}) can be obtained as
@@ -941,6 +955,8 @@ $$
 = -\frac{1}{\lambda} \sum_{n=1}^N \left( 
    \frac{\llb y_k^n=1 \rrb} {N K_+^n} \alpha_{n,k}^* + \frac{\llb y_k^n=0 \rrb} {N K_-^n} \beta_{n,k}^* \right) \x^n, \quad k \in \{1,\cdots,K\}
 $$
+
+
 
 \newpage
 \thispagestyle{empty}
