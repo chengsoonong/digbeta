@@ -13,6 +13,10 @@ scene_ftrain = os.path.join(data_dir, 'scene/scene-train.arff')
 scene_ftest = os.path.join(data_dir, 'scene/scene-test.arff')
 scene_nLabels = 6
 
+emotions_ftrain = os.path.join(data_dir, 'emotions/emotions-train.arff')
+emotions_ftest = os.path.join(data_dir, 'emotions/emotions-test.arff')
+emotions_nLabels = 6
+
 mm_ftrain = os.path.join(data_dir, 'mediamill/mediamill-train.arff')
 mm_ftest = os.path.join(data_dir, 'mediamill/mediamill-test.arff')
 mm_nLabels = 101
@@ -23,86 +27,107 @@ RATIO = 0.05
 
 # The yeast dataset
 def create_dataset_per_label_yeast_train(label_ix):
-    yeast_train, yeast_meta_train = arff.loadarff(yeast_ftrain)
-    return create_dataset_per_label(label_ix, yeast_train, yeast_nLabels)
+    data, meta = arff.loadarff(yeast_ftrain)
+    return create_dataset_per_label(label_ix, data, yeast_nLabels)
 
 
 def create_dataset_per_label_yeast_test(label_ix):
-    yeast_test,  yeast_meta_test = arff.loadarff(yeast_ftest)
-    return create_dataset_per_label(label_ix, yeast_test, yeast_nLabels)
+    data, meta = arff.loadarff(yeast_ftest)
+    return create_dataset_per_label(label_ix, data, yeast_nLabels)
 
 
 def create_dataset_yeast_train():
-    yeast_train, yeast_meta_train = arff.loadarff(yeast_ftrain)
-    return create_dataset(yeast_train, yeast_nLabels)
+    data, meta = arff.loadarff(yeast_ftrain)
+    return create_dataset(data, yeast_nLabels)
 
 
 def create_dataset_yeast_test():
-    yeast_test,  yeast_meta_test = arff.loadarff(yeast_ftest)
-    return create_dataset(yeast_test, yeast_nLabels)
+    data, meta = arff.loadarff(yeast_ftest)
+    return create_dataset(data, yeast_nLabels)
 
 
 # The scene dataset
 def create_dataset_per_label_scene_train(label_ix):
-    scene_train, scene_meta_train = arff.loadarff(scene_ftrain)
-    return create_dataset_per_label(label_ix, scene_train, scene_nLabels)
+    data, meta = arff.loadarff(scene_ftrain)
+    return create_dataset_per_label(label_ix, data, scene_nLabels)
 
 
 def create_dataset_per_label_scene_test(label_ix):
-    scene_test, scene_meta_test = arff.loadarff(scene_ftest)
-    return create_dataset_per_label(label_ix, scene_test, scene_nLabels)
+    data, meta = arff.loadarff(scene_ftest)
+    return create_dataset_per_label(label_ix, data, scene_nLabels)
 
 
 def create_dataset_scene_train():
-    scene_train, scene_meta_train = arff.loadarff(scene_ftrain)
-    return create_dataset(scene_train, scene_nLabels)
+    data, meta = arff.loadarff(scene_ftrain)
+    return create_dataset(data, scene_nLabels)
 
 
 def create_dataset_scene_test():
-    scene_test, scene_meta_test = arff.loadarff(scene_ftest)
-    return create_dataset(scene_test, scene_nLabels)
+    data, meta = arff.loadarff(scene_ftest)
+    return create_dataset(data, scene_nLabels)
+
+
+# The emotions dataset
+def create_dataset_per_label_emotions_train(label_ix):
+    data, meta = arff.loadarff(emotions_ftrain)
+    return create_dataset_per_label(label_ix, data, emotions_nLabels)
+
+
+def create_dataset_per_label_emotions_test(label_ix):
+    data, meta = arff.loadarff(emotions_ftest)
+    return create_dataset_per_label(label_ix, data, emotions_nLabels)
+
+
+def create_dataset_emotions_train():
+    data, meta = arff.loadarff(emotions_ftrain)
+    return create_dataset(data, emotions_nLabels)
+
+
+def create_dataset_emotions_test():
+    data, meta = arff.loadarff(emotions_ftest)
+    return create_dataset(data, emotions_nLabels)
 
 
 # The mediamill dataset
 
 def create_dataset_per_label_mediamill_train(label_ix):
-    mm_train, mm_meta_train = arff.loadarff(mm_ftrain)
-    return create_dataset_per_label(label_ix, mm_train, mm_nLabels)
+    data, meta = arff.loadarff(mm_ftrain)
+    return create_dataset_per_label(label_ix, data, mm_nLabels)
 
 
 def create_dataset_per_label_mediamill_test(label_ix):
-    mm_test,  mm_meta_test = arff.loadarff(mm_ftest)
-    return create_dataset_per_label(label_ix, mm_test, mm_nLabels)
+    data, meta = arff.loadarff(mm_ftest)
+    return create_dataset_per_label(label_ix, data, mm_nLabels)
 
 
 def create_dataset_mediamill_train():
-    mm_train, mm_meta_train = arff.loadarff(mm_ftrain)
-    return create_dataset(mm_train, mm_nLabels)
+    data, meta = arff.loadarff(mm_ftrain)
+    return create_dataset(data, mm_nLabels)
 
 
 def create_dataset_mediamill_test():
-    mm_test,  mm_meta_test = arff.loadarff(mm_ftest)
-    return create_dataset(mm_test, mm_nLabels)
+    data, meta = arff.loadarff(mm_ftest)
+    return create_dataset(data, mm_nLabels)
 
 
 def create_dataset_mediamill_subset_train():
     """ Sample a subset from the original training set """
-    mm_train, mm_meta_train = arff.loadarff(mm_ftrain)
+    data, meta = arff.loadarff(mm_ftrain)
     np.random.seed(SEED)
-    N = mm_train.shape[0]
+    N = data.shape[0]
     sample_ix = np.random.permutation(N)[:int(N*RATIO)]
-    mm_train_subset = mm_train[sample_ix]
-    return create_dataset(mm_train_subset, mm_nLabels)
+    data_subset = data[sample_ix]
+    return create_dataset(data_subset, mm_nLabels)
 
 
 def create_dataset_mediamill_subset_test():
     """ Sample a subset from the original test set """
-    mm_test,  mm_meta_test = arff.loadarff(mm_ftest)
+    data, meta = arff.loadarff(mm_ftest)
     np.random.seed(SEED)
-    N = mm_test.shape[0]
+    N = data.shape[0]
     sample_ix = np.random.permutation(N)[:int(N*RATIO)]
-    mm_test_subset = mm_test[sample_ix]
-    return create_dataset(mm_test_subset, mm_nLabels)
+    data_subset = data[sample_ix]
+    return create_dataset(data_subset, mm_nLabels)
 
 
 # Common utilities
