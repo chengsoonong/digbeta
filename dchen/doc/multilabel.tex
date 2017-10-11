@@ -62,6 +62,7 @@
 \newcommand{\betabm}{\bm{\beta}}
 \newcommand{\nubm}{\bm{\nu}}
 \newcommand{\xibm}{\bm{\xi}}
+\newcommand{\thetabm}{\bm{\theta}}
 % madeness: suPer-script in Brackets
 \newcommand{\pb}[1]{^{({#1})}}
 
@@ -948,6 +949,68 @@ $$
 \end{cases}
 $$
 %
+To compute the Hessian matrix (\ie the second-order partial derivatives), we have
+\begin{align*}
+\frac{\partial^2 J(\Theta_{1:N})} {\partial^2 \alpha_{n,k}} 
+&= \frac{\llb y_{n,k} = 1 \rrb} {N K_+^n} \left[ 
+   \frac{1}{\lambda} \cdot \frac{1}{N K_+^n} {\x^n}^\top \x^n - \frac{1}{\alpha_{n,k}} + \frac{1}{1 + \alpha_{n,k}} \right] \\
+%
+\frac{\partial^2 J(\Theta_{1:N})} {\partial \alpha_{n,k} \, \partial \theta_{m,l}} 
+&= \frac{\llb y_{n,k} = 1 \rrb} {N K_+^n}  
+   \frac{1}{\lambda} \left( \frac{\llb y_l^m = 1 \rrb} {N K_+^m} + \frac{\llb y_l^m = 0 \rrb} {N K_-^m} \right) {\x^m}^\top \x^n, \quad
+   n \neq m \ \text{or} \ k \neq l \\
+%
+\frac{\partial^2 J(\Theta_{1:N})} {\partial^2 \beta_{n,k}} 
+&= \frac{\llb y_k^n = 0 \rrb} {\lambda N K_-^n} \frac{1}{N K_-^n} {\x^n}^\top \x^n \\
+%
+\frac{\partial^2 J(\Theta_{1:N})} {\partial \beta_{n,k} \, \partial \theta_{m,l}} 
+&= \frac{\llb y_k^n = 0 \rrb} {\lambda N K_-^n} \frac{1}{N K_-^n} 
+   \left( \frac{\llb y_l^m = 1 \rrb} {N K_+^m} + \frac{\llb y_l^m = 0 \rrb} {N K_-^m} \right) {\x^m}^\top \x^n, \quad
+   n \neq m \ \text{or} \ k \neq l
+\end{align*}
+%
+In summary,
+$$
+\frac{\partial^2 J(\Theta_{1:N})} {\partial \theta_{n,k} \, \partial \theta_{m,l}} =
+\begin{cases}
+\frac{1} {N K_+^n} \left[ 
+\frac{1}{\lambda N K_+^n} {\x^n}^\top \x^n - \frac{1}{\alpha_{n,k}} + \frac{1}{1 + \alpha_{n,k}} \right],
+& n = m \ \text{and} \ k = l, \, y_k^n = 1 \\
+%
+\frac{1} {\lambda N^2 K_-^n K_-^n} {\x^n}^\top \x^n,
+& n = m \ \text{and} \ k = l, \, y_k^n = 0 \\
+%
+\frac{1} {\lambda N^2 K_+^m K_+^n} {\x^m}^\top \x^n,
+& n \neq m \ \text{or} \ k \neq l, \, y_k^n = y_l^m = 1 \\
+%
+\frac{1} {\lambda N^2 K_-^m K_-^n} {\x^m}^\top \x^n,
+& n \neq m \ \text{or} \ k \neq l, \, y_k^n = y_l^m = 0 \\
+%
+\frac{1} {\lambda N^2 K_-^m K_+^n} {\x^m}^\top \x^n,
+& n \neq m \ \text{or} \ k \neq l, \, y_k^n = 1, \, y_l^m = 0 \\
+%
+\frac{1} {\lambda N^2 K_+^m K_-^n} {\x^m}^\top \x^n,
+& n \neq m \ \text{or} \ k \neq l, \, y_k^n = 0, \, y_l^m = 1
+\end{cases}
+$$
+%
+Note that the Hessian matrix is \emph{symmetric} according to Schwarz's theorem as $J(\Theta_{1:N})$ is continuous and differentiable,
+in practice, only the upper or lower triangular Hessian matrix is required for many optimisation algorithms. 
+%
+Similarly, let $c_n(\thetabm_n) = \sum_{k=1}^K \gamma_{n,k}$,
+we can compute the gradient as
+\begin{align*}
+\frac{\partial c_n(\thetabm_n)} {\partial \theta_{n,k}} 
+&= 
+\begin{cases}
+\frac{1}{N K_+^n}, & \text{if} \ y_k^n = 1 \\
+\frac{1}{N K_-^n}, & \text{if} \ y_k^n = 0
+\end{cases} \\
+%
+\frac{\partial c_n(\thetabm_n)} {\partial \theta_{m,k}} &= 0, \ m \neq n, \, k \in \{1,\dots,K\}
+\end{align*}
+and the Hessian matrices of all constraints are \emph{zeros} matrices as we only have \emph{linear} constraints.
+
 Let $\alphabm_{1:N}^*$ and $\betabm_{1:N}^*$ be optimal solutions of problem (~\ref{eq:tpush_dual_logistic}),
 then the corresponding optimal solutions for the primal problem (\ref{eq:tpush_opt}) can be obtained as
 $$
