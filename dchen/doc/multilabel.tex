@@ -964,7 +964,7 @@ To compute the Hessian matrix (\ie the second-order partial derivatives), we hav
 &= \frac{\llb y_k^n = 0 \rrb} {\lambda N K_-^n} \frac{1}{N K_-^n} {\x^n}^\top \x^n \\
 %
 \frac{\partial^2 J(\Theta_{1:N})} {\partial \beta_{n,k} \, \partial \theta_{m,l}} 
-&= \frac{\llb y_k^n = 0 \rrb} {\lambda N K_-^n} \frac{1}{N K_-^n} 
+&= \frac{\llb y_k^n = 0 \rrb} {\lambda N K_-^n}
    \left( \frac{\llb y_l^m = 1 \rrb} {N K_+^m} + \frac{\llb y_l^m = 0 \rrb} {N K_-^m} \right) {\x^m}^\top \x^n, \quad
    n \neq m \ \text{or} \ k \neq l
 \end{align*}
@@ -994,9 +994,20 @@ $$
 \end{cases}
 $$
 %
-Note that the Hessian matrix is \emph{symmetric} according to Schwarz's theorem as $J(\Theta_{1:N})$ is continuous and differentiable,
+or more compactly,
+$$
+\frac{\partial^2 J(\Theta_{1:N})} {\partial \theta_{n,k} \, \partial \theta_{m,l}} 
+= \frac{1} {\lambda N^2} 
+  \left[ \frac{\x^m} {K_+^m \llb y_l^m = 1 \rrb + K_-^m \llb y_l^m = 0 \rrb} \right]^\top
+  \left[ \frac{\x^n} {K_+^n \llb y_k^n = 1 \rrb + K_-^n \llb y_k^n = 0 \rrb} \right] - \frac{\llb m = n \rrb \llb l = k \rrb \llb y_k^n = 1 \rrb}
+  {\alpha_{n,k} (1 + \alpha_{n,k}) N K_+^n},
+$$
+where $m, n \in \{1,\dots,N\}$ and $k, l \in \{1,\dots,K\}$. 
+
+Note that the Hessian matrix $H \in \R^{NK \times NK}$ is \emph{symmetric} 
+according to Schwarz's theorem as $J(\Theta_{1:N})$ is continuous and differentiable,
 in practice, only the upper or lower triangular Hessian matrix is required for many optimisation algorithms. 
-%
+
 Similarly, let $c_n(\thetabm_n) = \sum_{k=1}^K \gamma_{n,k}$,
 we can compute the gradient as
 \begin{align*}
