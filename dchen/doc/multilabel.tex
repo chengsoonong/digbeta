@@ -665,34 +665,54 @@ Note that the \emph{log-sum-exp} function can be bounded by the \emph{max} funct
 $$
 \max\{x_1, \dots, x_n\} \le \log(e^{x_1} + \dots + e^{x_n}) \le \max\{x_1, \dots, x_n\} + \log n,
 $$
-we can therefore approximate the inner maximisation as
-\begin{equation}
-\label{eq:logsumexp_approx}
-\max_{j:y_j=0} \w_j^\top \x \, \approx \, \log \sum_{j:y_j=0} \exp(\w_j^\top \x),
-\end{equation}
+we can therefore approximate the \emph{max} function as
+$$
+\max_i x_i \approx \log \sum_i e^{x_i},
+$$
+or more generally a parametric form
+$$
+\max_i x_i \approx \frac{1}{r} \log \sum_i e^{r x_i},
+$$
+where $r > 0$ is a parameter.
 %
-let $\ell(\cdot)$ be the logistic loss function, \ie 
+Let $\ell(\cdot)$ be the logistic loss which upper bounds the 0-1 loss, \ie 
 $$
-\ell(v) = \log(1 + e^{-v})
+\ell(v) = \log(1 + e^{-v}),
 $$
-then by Eq.~(\ref{eq:logsumexp_approx}), the loss~(\ref{eq:tpush_loss}) can be approximated as
+by Eq.~(\ref{eq:tpush_loss}) we have
+%\begin{equation}
+%\label{eq:logsumexp_approx}
+%\max_{j:y_j=0} \w_j^\top \x \, \approx \, \log \sum_{j:y_j=0} \exp(\w_j^\top \x),
+%\end{equation}
+%
+%then by Eq.~(\ref{eq:logsumexp_approx}), the loss~(\ref{eq:tpush_loss}) can be approximated as
 \begin{equation}
 \label{eq:tpush_loss_approx}
-\LCal(\x, \y; \w) \approx \frac{1}{K_+} \sum_{k=1}^K {\llb y_k = 1 \rrb} \,
-                          \log \left[ 1 + \exp \left( -\w_k^\top \x + \log \sum_{j:y_j=0} \exp(\w_j^\top \x) \right) \right],
+\begin{aligned}
+\LCal(\x, \y; \w)
+&\le \frac{1}{K_+} \sum_{k=1}^K {\llb y_k = 1 \rrb} \,
+     \log \left[ 1 + e^{- \left[ \w_k^\top \x - \underset{j:y_j=0}{\max} \, \w_j^\top \x \right]} \right] \\
+&\approx \frac{1}{K_+} \sum_{k=1}^K {\llb y_k = 1 \rrb} \,
+         \log \left[ 1 + e^{-\w_k^\top \x + \frac{1}{r} \log \underset{j:y_j=0}{\sum} e^{r \w_j^\top \x}} \right] \\
+&= \frac{1}{K_+} \sum_{k=1}^K {\llb y_k = 1 \rrb} \,
+   \log \left[ 1 + e^{-\w_k^\top \x} \left[ e^{\log \underset{j:y_j=0}{\sum} e^{r \w_j^\top \x}} \right]^{1/r} \right] \\
+&= \frac{1}{K_+} \sum_{k=1}^K {\llb y_k = 1 \rrb} \,
+   \log \left[ 1 + e^{-\w_k^\top \x} \left[ \underset{j:y_j=0}{\sum} e^{r \w_j^\top \x} \right]^{1/r} \right]
+\end{aligned}
 \end{equation}
-and the objective~(\ref{eq:tpush_obj}) can be approximated 
+and objective~(\ref{eq:tpush_obj}) can be approximated as
 \begin{equation}
 \label{eq:tpush_obj_approx}
 J(\w) \approx \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \sum_{k=1}^K \frac{\llb y_k^n = 1 \rrb}{K_+^n} 
-              \log \left[ 1 + \exp \left( -\w_k^\top \x^n + \log \sum_{j:y_j^n=0} \exp(\w_j^\top \x^n) \right) \right].
+              \log \left[ 1 + \exp(-\w_k^\top \x^n) \left[ \underset{j:y_j^n=0}{\sum} \exp(r \w_j^\top \x^n) \right]^{1/r} \right]
 \end{equation}
 
 To compute the gradient of $J(\w)$ with respect to $\w_k$, note that $\w^\top \w = \sum_{k=1}^K \w_k^\top \w_k$ and by (\ref{eq:tpush_loss_approx})
 $$
 \frac{\partial \LCal(\x, \y; \w)} {\partial \w_k} 
 \approx \frac{\llb y_k = 1 \rrb} {K_+} \cdot
-        \frac{-\x} {1 + \exp \left( \w_k^\top \x - \log \sum_{j:y_j=0} \exp(\w_j^\top \x) \right)}
+        \frac{-\x \cdot \left[ \underset{j:y_j=0}{\sum} \exp(r \w_j^\top \x) \right]^{1/r}}
+             {\exp(\w_k^\top \x) + \left[ \underset{j:y_j=0}{\sum} \exp(r \w_j^\top \x) \right]^{1/r}}
 $$
 then by (\ref{eq:tpush_obj_approx})
 \begin{align*}
@@ -700,10 +720,11 @@ then by (\ref{eq:tpush_obj_approx})
 &= \lambda \w_k + \frac{1}{N} \sum_{n=1}^N \frac{\partial \LCal(\x^n, \y^n; \w)} {\partial \w_k} \\
 &\approx \lambda \w_k + \frac{1}{N} \sum_{n=1}^N 
          \frac{\llb y_k^n = 1 \rrb} {K_+^n} \cdot
-         \frac{-\x^n} {1 + \exp \left( \w_k^\top \x^n - \log \sum_{j:y_j^n=0} \exp(\w_j^\top \x^n) \right)}
+         \frac{-\x^n \cdot \left[ \underset{j:y_j^n=0}{\sum} \exp(r \w_j^\top \x^n) \right]^{1/r}}
+              {\exp(\w_k^\top \x^n) + \left[ \underset{j:y_j^n=0}{\sum} \exp(r \w_j^\top \x^n) \right]^{1/r}}
 \end{align*}
 
-
+\newpage
 \input{toppush_dual}
 
 \newpage
