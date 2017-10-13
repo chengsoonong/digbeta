@@ -1,0 +1,373 @@
+%The objective~(\ref{eq:tpush_obj}) is hard to optimise due to the inner maximisation,
+%we therefore resort to optimise its \emph{dual}.
+
+
+\paragraph{Dual formulation}
+Let
+\begin{align*}
+f_0(\w, \xibm)     &= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i:y_i^n=1} \ell \left( \w_i^\top \x^n - \xi_n \right), \\
+f_{n,j}(\w, \xibm) &= \w_j^\top \x^n - \xi_n, \ n \in \{1,\dots,N\}, \, j \in \{j: y_j^n = 0\}
+\end{align*}
+where $\xibm \in \R^{N}$ is a vector of $N$ slack variables.
+%
+Our optimisation problem can be rewritten as
+\begin{equation}
+\label{eq:tpush_opt}
+\begin{aligned}
+\min_{\w, \xibm} \ & f_0(\w, \xibm) \\
+s.t.             \ & f_{n,j}(\w, \xibm) \le 0, \ n \in \{1,\dots,N\}, \, j \in \{j: y_j^n = 0\}
+\end{aligned}
+\end{equation}
+%
+For $\nubm_n \succeq 0, \, n \in \{1,\dots,N\}$, the \emph{Lagrangian} of problem (\ref{eq:tpush_opt}) is
+\begin{equation}
+\label{eq:tpush_lg}
+\begin{aligned}
+L(\w, \xibm, \nubm_{1:N}) 
+&= f_0(\w, \xibm) + \sum_{n=1}^N \sum_{j:y_j^n=0} \nu_{n,j} \cdot f_{n,j}(\w, \xibm) \\
+&= \frac{\lambda}{2} \w^\top \w + \left[ \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i:y_i^n=1} \ell \left( \w_i^\top \x^n - \xi_n \right) \right] +
+   \sum_{n=1}^N \sum_{j:y_j^n=0} \nu_{n,j} \left( \w_j^\top \x^n - \xi_n \right)
+\end{aligned}
+\end{equation}
+%
+Note that the conjugate of the conjugate of a convex function is itself, 
+\ie $f(\z) = f^{**}(\z) = \sup_{\y} \left( \z^\top \y - f^*(\y) \right)$, we have
+\begin{equation}
+\label{eq:conjugate}
+\ell( \w_i^\top \x^n - \xi_n) = \sup_{\alpha_{n,i}} \left[ \left( \w_i^\top \x^n - \xi_n \right) \alpha_{n,i} - \ell^*(\alpha_{n,i}) \right],
+\end{equation}
+where $\ell^*(\cdot)$ is the conjugate of $\ell(\cdot)$ and $\alpha_{n,i} \in \text{dom}(\ell^*)$.
+
+By (\ref{eq:tpush_lg}) and (\ref{eq:conjugate}), the \emph{Lagrangian} becomes
+\begin{align*}
+L(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N})
+&= \frac{\lambda}{2} \w^\top \w + \left[ \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i:y_i^n=1} 
+   \sup_{\alpha_{n,i}} \left[ \left( \w_i^\top \x^n - \xi_n \right) \alpha_{n,i} - \ell^*(\alpha_{n,i}) \right] \right] +
+   \sum_{n=1}^N \sum_{j:y_j^n=0} \nu_{n,j} \left( \w_j^\top \x^n - \xi_n \right) \\
+&= \underset{\alphabm_{1:N}}{\sup} \left[
+   \frac{\lambda}{2} \w^\top \w + \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} 
+   \left[ \left( \w_i^\top \x^n - \xi_n \right) \alpha_{n,i} - \ell^*(\alpha_{n,i}) \right] +
+   \sum_{n=1}^N \sum_{j:y_j^n=0} \nu_{n,j} \left( \w_j^\top \x^n - \xi_n \right) \right] \\
+&= \underset{\alphabm_{1:N}}{\sup} \left[ 
+   g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
+   \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \right],
+\end{align*}
+where 
+\begin{align*}
+g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N})
+&= \frac{\lambda}{2} \w^\top \w + \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \left( \w_i^\top \x^n - \xi_n \right) \alpha_{n,i}  + 
+   \sum_{n=1}^N \sum_{j:y_j^n=0} \nu_{n,j} \left( \w_j^\top \x^n - \xi_n \right), \\
+&= \frac{\lambda}{2} \w^\top \w + \sum_{n=1}^N \left[ \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \left( \w_i^\top \x^n - \xi_n \right) \alpha_{n,i}  + 
+   \sum_{j:y_j^n=0} \nu_{n,j} \left( \w_j^\top \x^n - \xi_n \right) \right], \\
+&= \frac{\lambda}{2} \w^\top \w + \sum_{n=1}^N t(\x^n, \y^n, \w, \xi_n, \alphabm_n, \nubm_n),
+\end{align*}
+and
+\begin{equation}
+\label{eq:tmp_func}
+t(\x^n, \y^n, \w, \xi_n, \alphabm_n, \nubm_n) 
+= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \left( \w_i^\top \x^n - \xi_n \right) \alpha_{n,i}  + 
+  \sum_{j:y_j^n=0} \nu_{n,j} \left( \w_j^\top \x^n - \xi_n \right).
+\end{equation}
+%
+The \emph{Lagrangian dual function} of problem (\ref{eq:tpush_opt}) is
+\begin{equation}
+\label{eq:tpush_dual_func}
+\begin{aligned}
+\inf_{\w, \xibm} \, L(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N})
+&= \inf_{\w, \xibm} \, \underset{\alphabm_{1:N}}{\sup} \left[ g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
+   \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \right] \\
+&= \underset{\alphabm_{1:N}}{\sup} \, \inf_{\w, \xibm} \left[ g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
+   \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \right] \quad 
+   \text{(assuming \emph{strong duality})} \\
+&= \underset{\alphabm_{1:N}}{\max} \, \min_{\w, \xibm} \left[ g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
+   \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \right] \quad
+   \text{(Eq.~\ref{eq:tpush_obj} is L2 regularised~\cite{shalev:2007})} \\
+&= \underset{\alphabm_{1:N}}{\max} \left[ \min_{\w, \xibm} \, g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
+   \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \right].
+\end{aligned}
+\end{equation}
+%
+To solve the (unconstrained) inner minimisation, 
+note that $\w^\top \w = \sum_{k=1}^K \w_k^\top \w_k$,
+let the derivatives of $\w_k, \, k \in \{1,\cdots,K\}$ (weights for the $k$-th label) and $\xi_n, \, n \in \{1,\cdots,N\}$ be 0, \ie
+\begin{equation}
+\label{eq:grad_eq_zero}
+\begin{aligned}
+\frac{\partial g}{\partial \w_k} 
+&= \lambda \w_k + \sum_{n=1}^N \frac{\partial t(\x^n, \y^n, \w, \xi_n, \alphabm_n, \nubm_n)} {\partial \w_k} = 0, \\
+\frac{\partial g}{\partial \xi_n} 
+&= \frac{\partial t(\x^n, \y^n, \w, \xi_n, \alphabm_n, \nubm_n)} {\partial \xi_n} = 0,
+\end{aligned}
+\end{equation}
+where 
+\begin{equation}
+\label{eq:grad_tw}
+\frac{\partial t(\x^n, \y^n, \w, \xi_n, \alphabm_n, \nubm_n)} {\partial \w_k} =
+\begin{cases}
+\frac{1}{N K_+^n} \alpha_{n,k} \x^n, \ & \text{if} \ y_k^n = 1 \\
+\nu_{n,k} \x^n, \ & \text{if} \ y_k^n = 0
+\end{cases}
+\end{equation}
+and 
+\begin{equation}
+\label{eq:grad_txi}
+\frac{\partial t(\x^n, \y^n, \w, \xi_n, \alphabm_n, \nubm_n)} {\partial \xi_n} 
+= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} (-\alpha_{n,i}) + \sum_{j:y_j^n=0} (-\nu_{n,j})
+\end{equation}
+%
+By Eq.~(\ref{eq:grad_eq_zero}), (\ref{eq:grad_tw}) and (\ref{eq:grad_txi}), we have
+\begin{equation}
+\begin{aligned}
+\frac{\partial g}{\partial \w_k} 
+&= \lambda \w_k + \sum_{n=1}^N \left( \frac{\llb y_k^n=1 \rrb}{N K_+^n} \alpha_{n,k} \x^n + \llb y_k^n=0 \rrb \nu_{n,k} \x^n \right) = 0\\
+\frac{\partial g}{\partial \xi_n} 
+&= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} (-\alpha_{n,i}) + \sum_{j:y_j^n=0} (-\nu_{n,j}) = 0
+\end{aligned}
+\end{equation}
+%
+or equivalently
+\begin{equation}
+\label{eq:sol_wk}
+\widetilde\w_k = -\frac{1}{\lambda} \sum_{n=1}^N \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}}{N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) \x^n, \ k \in \{1,\cdots,K\}
+\end{equation}
+\begin{equation}
+\label{eq:sol_xin}
+\frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} + \sum_{j:y_j^n=0} \nu_{n,j} = 0, \ n \in \{1,\cdots,N\}
+\end{equation}
+%
+Note that we can rewrite Eq.~(\ref{eq:sol_xin}) as
+\begin{equation}
+\label{eq:sol_xin2}
+\sum_{k=1}^K \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}} {N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) = 0, \ n \in \{1,\cdots,N\}
+\end{equation}
+%
+Let 
+\begin{equation*}
+\gamma_{n,k} = \frac{1}{N K_+^n} \llb y_k^n=1 \rrb \alpha_{n,k} + \llb y_k^n=0 \rrb \nu_{n,k}
+\end{equation*}
+%
+or more elegantly,
+\begin{equation}
+\label{eq:new_var}
+\begin{aligned}
+\beta_{n,k}  &= \nu_{n,k} N K_-^n \\
+\gamma_{n,k} &= \frac{\llb y_k^n=1 \rrb} {N K_+^n} \alpha_{n,k} + \frac{\llb y_k^n=0 \rrb} {N K_-^n} \beta_{n,k}
+\end{aligned}
+\end{equation}
+%
+Eq.~(\ref{eq:sol_wk}) and (\ref{eq:sol_xin2}) become
+\begin{equation}
+\label{eq:sol}
+\begin{aligned}
+\widetilde\w_k = -\frac{1}{\lambda} \sum_{n=1}^N \gamma_{n,k} \x^n, & \quad k \in \{1,\cdots,K\} \\
+\sum_{k=1}^K \gamma_{n,k} = 0, & \quad n \in \{1,\cdots,N\}
+\end{aligned}
+\end{equation}
+%
+Thus, by Eq.~(\ref{eq:tmp_func}), we have
+\begin{align*}
+t(\x^n, \y^n, \w, \xi_n, \alphabm_n, \nubm_n) 
+&= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \left( \w_i^\top \x^n - \xi_n \right) \alpha_{n,i} + \sum_{j:y_j^n=0} \nu_{n,j} \left( \w_j^\top \x^n - \xi_n \right) \\
+&= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} \w_i^\top \x^n - \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} \xi_n +
+   \sum_{j:y_j^n=0} \nu_{n,j} \w_j^\top \x^n - \sum_{j:y_j^n=0} \nu_{n,j} \xi_n \\
+&= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} \w_i^\top \x^n + \sum_{j:y_j^n=0} \nu_{n,j} \w_j^\top \x^n -
+   \xi_n \left( \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} + \sum_{j:y_j^n=0} \nu_{n,j} \right) \\
+&= \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \alpha_{n,i} \w_i^\top \x^n + \sum_{j:y_j^n=0} \nu_{n,j} \w_j^\top \x^n - 0 \quad 
+   \text{(by Eq.~\ref{eq:sol_xin})} \\
+&= \sum_{k=1}^K \left( \frac{\llb y_k^n=1 \rrb}{N K_+^n} \alpha_{n,k} \w_k^\top \x^n + \llb y_k^n=0 \rrb \nu_{n,k} \w_k^\top \x^n \right) \\ 
+&= \sum_{k=1}^K \left( \frac{\llb y_k^n=1 \rrb \alpha_{n,k}}{N K_+^n} + \llb y_k^n=0 \rrb \nu_{n,k} \right) \w_k^\top \x^n \\
+&= \sum_{k=1}^K \gamma_{n,k} \w_k^\top \x^n \quad \text{(by Eq.~\ref{eq:new_var})} \\
+\end{align*}
+%
+As a result,
+\begin{equation}
+\label{eq:tpush_reduce_g}
+\begin{aligned}
+\min_{\w, \xibm} \, g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) 
+&= \frac{\lambda}{2} \widetilde\w^\top \widetilde\w + \sum_{n=1}^N t(\x^n, \y^n, \widetilde\w, \xi_n, \alphabm_n, \nubm_n) \\
+&= \frac{\lambda}{2} \sum_{k=1}^K \widetilde\w_k^\top \widetilde\w_k + 
+   \sum_{n=1}^N \sum_{k=1}^K \gamma_{n,k} \widetilde\w_k^\top \x^n \\
+&= \frac{\lambda}{2} \sum_{k=1}^K \widetilde\w_k^\top \widetilde\w_k + 
+   \sum_{k=1}^K \sum_{n=1}^N \gamma_{n,k} \widetilde\w_k^\top \x^n \\
+&= \frac{\lambda}{2} \sum_{k=1}^K \widetilde\w_k^\top \widetilde\w_k + \sum_{k=1}^K \widetilde\w_k^\top \left[ \sum_{n=1}^N \gamma_{n,k} \x^n \right] \\
+&= \frac{\lambda}{2} \sum_{k=1}^K \widetilde\w_k^\top \widetilde\w_k + \sum_{k=1}^K \widetilde\w_k^\top (-\lambda \widetilde\w_k) \quad 
+   \text{(by Eq.~\ref{eq:sol_wk})} \\
+&= -\frac{\lambda}{2} \sum_{k=1}^K \widetilde\w_k^\top \widetilde\w_k
+\end{aligned}
+\end{equation}
+%
+Lastly, by Eq.~(\ref{eq:tpush_dual_func}), (\ref{eq:sol}) and (\ref{eq:tpush_reduce_g}), the \emph{Lagrangian dual problem} of (\ref{eq:tpush_opt}) is
+\begin{align*}
+\underset{\nubm_{1:N}}{\max} \, \inf_{\w, \xibm} \, L(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N})
+&= \underset{\alphabm_{1:N}, \, \nubm_{1:N}}{\max} \left[ \min_{\w, \xibm} \, g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
+   \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \right] \\
+&= \underset{\alphabm_{1:N}, \, \nubm_{1:N}}{\max} \left[ \min_{\w, \xibm} \, g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
+   \sum_{n=1}^N \sum_{k=1}^K \frac{\llb y_k^n = 1 \rrb}{N K_+^n} \ell^*(\alpha_{n,i}) \right] \\
+&= \underset{\alphabm_{1:N}, \, \nubm_{1:N}}{\max} \left[ 
+   -\frac{1}{2 \lambda} \sum_{k=1}^K \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)^\top \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)
+   -\sum_{n=1}^N \sum_{k=1}^K \frac{\llb y_k^n = 1 \rrb}{N K_+^n} \ell^*(\alpha_{n,i}) \right]
+\end{align*}
+subject to constraints (\ref{eq:sol_xin2}) and $\nubm_n \succeq 0, \, n \in \{1,\dots,N\}$,
+or equivalently
+\begin{equation}
+\label{eq:tpush_dual}
+\begin{aligned}
+\underset{\alphabm_{1:N}, \, \betabm_{1:N}}{\min} \ &
+    \sum_{k=1}^K \left[ 
+    \frac{1}{2 \lambda} \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)^\top \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right) +
+    \sum_{n=1}^N \frac{\llb y_k^n = 1 \rrb}{N K_+^n} \ell^*(\alpha_{n,i}) \right] \\
+s.t. \ \quad & \sum_{k=1}^K \gamma_{n,k} = 0, \ n \in \{1,\dots,N\} \\
+             & \betabm_n \succeq 0, \ n \in \{1,\dots,N\}
+\end{aligned}
+\end{equation}
+where variables $\gamma_{n,k}$ are defined in Eq.~(\ref{eq:new_var}).
+\\
+Suppose we use the logistic loss $\ell(v) = \log(1 + e^{-v})$, the conjugate of $\ell(v)$ is
+$$
+\ell^*(u) 
+= \sup_v \left[ uv - \ell(v) \right] 
+= \sup_v \left[ uv - \log(1 + e^{-v}) \right]
+$$
+let 
+$$
+\frac{\partial \left[ uv - \log(1 + e^{-v}) \right]} {\partial v} 
+= u - \frac{-e^{-v}} {1 + e^{-v}}
+= 0
+$$
+we have $u = \frac{-1}{1 + e^v} \in (-1, 0)$ and $v = \log(1+u) - \log(-u)$.
+Thus
+\begin{equation}
+\label{eq:conjugate_logistic}
+\ell^*(u) = u \left[ \log(1+u) - \log(-u) \right] - \log(\frac{1}{1+u}) = - u\log(-u) + (1+u) \log(1+u)
+\end{equation}
+%
+By Eq.~(\ref{eq:tpush_dual}) and (\ref{eq:conjugate_logistic}), we have this convex optimisation problem:
+\begin{equation}
+\label{eq:tpush_dual_logistic}
+\begin{aligned}
+\underset{\alphabm_{1:N}, \, \betabm_{1:N}}{\min} \ &
+    \sum_{k=1}^K \left[ 
+    \frac{1}{2 \lambda} \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)^\top \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right) +
+    \sum_{n=1}^N \frac{\llb y_k^n = 1 \rrb}{N K_+^n} 
+    \left( -\alpha_{n,k}\log(-\alpha_{n,k}) + (1 + \alpha_{n,k}) \log(1 + \alpha_{n,k}) \right) \right] \\
+s.t. \ \quad & \sum_{k=1}^K \gamma_{n,k} = 0, \ n \in \{1,\dots,N\} \\
+             & 0 \succ \alphabm_n \succ -1, \ \alphabm_n \in \R^K, \ n \in \{1,\dots,N\} \\
+             & \betabm_n \succeq 0, \ \betabm_n \in \R^K, \ n \in \{1,\dots,N\}
+\end{aligned}
+\end{equation}
+%
+where
+$$
+\gamma_{n,k} = \frac{\llb y_k^n=1 \rrb} {N K_+^n} \alpha_{n,k} + \frac{\llb y_k^n=0 \rrb} {N K_-^n} \beta_{n,k}
+$$
+%
+Let $J(\alphabm_{1:N}, \betabm_{1:N})$ be the objective in (\ref{eq:tpush_dual_logistic}),
+the gradients of $\alpha_{n,k}$ and $\beta_{n,k}$ are
+\begin{equation}
+\label{eq:tpush_grad_logistic}
+\begin{aligned}
+&\frac{\partial J(\alphabm_{1:N}, \betabm_{1:N})} {\partial \alpha_{n,k}} \\
+&= \frac{1}{2 \lambda} \cdot 2 \cdot \left( \sum_{m=1}^N \gamma_{m,k} \x^m \right)^\top \x^n \cdot \frac{\llb y_k^n = 1 \rrb} {N K_+^n} +
+   \frac{\llb y_k^n = 1 \rrb} {N K_+^n} \left( 
+   -\log(-\alpha_{n,k}) -\alpha_{n,k} \frac{-1}{-\alpha_{n,k}} + 
+   \log(1 + \alpha_{n,k}) + (1 + \alpha_{n,k}) \frac{1}{1 + \alpha_{n,k}} \right) \\
+&= \frac{\llb y_k^n = 1 \rrb} {N K_+^n} \left[ \frac{1}{\lambda} \left( \sum_{m=1}^N \gamma_{m,k} \x^m \right)^\top \x^n 
+   - \log(-\alpha_{n,k}) + \log(1 + \alpha_{n,k}) \right] \\ \\
+%
+&\frac{\partial J(\alphabm_{1:N}, \betabm_{1:N})} {\partial \beta_{n,k}} \\
+&= \frac{1}{2 \lambda} \cdot 2 \cdot \left( \sum_{m=1}^N \gamma_{m,k} \x^m \right)^\top \x^n \cdot \frac{\llb y_k^n = 0 \rrb} {N K_-^n} \\
+&= \frac{\llb y_k^n = 0 \rrb} {\lambda N K_-^n} \left( \sum_{m=1}^N \gamma_{m,k} \x^m \right)^\top \x^n 
+\end{aligned}
+\end{equation}
+%
+Note that in Eq.~(\ref{eq:tpush_dual_logistic}) and (\ref{eq:tpush_grad_logistic}),
+$\alpha_{n,k}$ will be used \emph{iff} $y_k^n = 1$, similarly, $\beta_{n,k}$ will be used \emph{iff} $y_k^n = 0$,
+which means we only need to optimise $N \times K$ weights $\Theta \in \R^{N \times K}$ where
+$$
+\theta_{n,k} = 
+\begin{cases}
+\alpha_{n,k}, & \text{if} \ y_k^n = 1 \\
+\beta_{n,k},  & \text{if} \ y_k^n = 0
+\end{cases}
+$$
+%
+To compute the Hessian matrix (\ie the second-order partial derivatives), we have
+\begin{align*}
+\frac{\partial^2 J(\Theta_{1:N})} {\partial^2 \alpha_{n,k}} 
+&= \frac{\llb y_{n,k} = 1 \rrb} {N K_+^n} \left[ 
+   \frac{1}{\lambda} \cdot \frac{1}{N K_+^n} {\x^n}^\top \x^n - \frac{1}{\alpha_{n,k}} + \frac{1}{1 + \alpha_{n,k}} \right] \\
+%
+\frac{\partial^2 J(\Theta_{1:N})} {\partial \alpha_{n,k} \, \partial \theta_{m,l}} 
+&= \frac{\llb y_{n,k} = 1 \rrb} {N K_+^n}  
+   \frac{1}{\lambda} \left( \frac{\llb y_l^m = 1 \rrb} {N K_+^m} + \frac{\llb y_l^m = 0 \rrb} {N K_-^m} \right) {\x^m}^\top \x^n, \quad
+   n \neq m \ \text{or} \ k \neq l \\
+%
+\frac{\partial^2 J(\Theta_{1:N})} {\partial^2 \beta_{n,k}} 
+&= \frac{\llb y_k^n = 0 \rrb} {\lambda N K_-^n} \frac{1}{N K_-^n} {\x^n}^\top \x^n \\
+%
+\frac{\partial^2 J(\Theta_{1:N})} {\partial \beta_{n,k} \, \partial \theta_{m,l}} 
+&= \frac{\llb y_k^n = 0 \rrb} {\lambda N K_-^n}
+   \left( \frac{\llb y_l^m = 1 \rrb} {N K_+^m} + \frac{\llb y_l^m = 0 \rrb} {N K_-^m} \right) {\x^m}^\top \x^n, \quad
+   n \neq m \ \text{or} \ k \neq l
+\end{align*}
+%
+In summary,
+$$
+\frac{\partial^2 J(\Theta_{1:N})} {\partial \theta_{n,k} \, \partial \theta_{m,l}} =
+\begin{cases}
+\frac{1} {N K_+^n} \left[ 
+\frac{1}{\lambda N K_+^n} {\x^n}^\top \x^n - \frac{1}{\alpha_{n,k}} + \frac{1}{1 + \alpha_{n,k}} \right],
+& n = m \ \text{and} \ k = l, \, y_k^n = 1 \\
+%
+\frac{1} {\lambda N^2 K_-^n K_-^n} {\x^n}^\top \x^n,
+& n = m \ \text{and} \ k = l, \, y_k^n = 0 \\
+%
+\frac{1} {\lambda N^2 K_+^m K_+^n} {\x^m}^\top \x^n,
+& n \neq m \ \text{or} \ k \neq l, \, y_k^n = y_l^m = 1 \\
+%
+\frac{1} {\lambda N^2 K_-^m K_-^n} {\x^m}^\top \x^n,
+& n \neq m \ \text{or} \ k \neq l, \, y_k^n = y_l^m = 0 \\
+%
+\frac{1} {\lambda N^2 K_-^m K_+^n} {\x^m}^\top \x^n,
+& n \neq m \ \text{or} \ k \neq l, \, y_k^n = 1, \, y_l^m = 0 \\
+%
+\frac{1} {\lambda N^2 K_+^m K_-^n} {\x^m}^\top \x^n,
+& n \neq m \ \text{or} \ k \neq l, \, y_k^n = 0, \, y_l^m = 1
+\end{cases}
+$$
+%
+or more compactly,
+$$
+\frac{\partial^2 J(\Theta_{1:N})} {\partial \theta_{n,k} \, \partial \theta_{m,l}} 
+= \frac{1} {\lambda N^2} 
+  \left[ \frac{\x^m} {K_+^m \llb y_l^m = 1 \rrb + K_-^m \llb y_l^m = 0 \rrb} \right]^\top
+  \left[ \frac{\x^n} {K_+^n \llb y_k^n = 1 \rrb + K_-^n \llb y_k^n = 0 \rrb} \right] - \frac{\llb m = n \rrb \llb l = k \rrb \llb y_k^n = 1 \rrb}
+  {\alpha_{n,k} (1 + \alpha_{n,k}) N K_+^n},
+$$
+where $m, n \in \{1,\dots,N\}$ and $k, l \in \{1,\dots,K\}$. 
+
+Note that the Hessian matrix $H \in \R^{NK \times NK}$ is \emph{symmetric} 
+according to Schwarz's theorem as $J(\Theta_{1:N})$ is continuous and differentiable,
+in practice, only the upper or lower triangular Hessian matrix is required for many optimisation algorithms. 
+
+Similarly, let $c_n(\thetabm_n) = \sum_{k=1}^K \gamma_{n,k}$,
+we can compute the gradient as
+\begin{align*}
+\frac{\partial c_n(\thetabm_n)} {\partial \theta_{n,k}} 
+&= 
+\begin{cases}
+\frac{1}{N K_+^n}, & \text{if} \ y_k^n = 1 \\
+\frac{1}{N K_-^n}, & \text{if} \ y_k^n = 0
+\end{cases} \\
+%
+\frac{\partial c_n(\thetabm_n)} {\partial \theta_{m,k}} &= 0, \ m \neq n, \, k \in \{1,\dots,K\}
+\end{align*}
+and the Hessian matrices of all constraints are \emph{zeros} matrices as we only have \emph{linear} constraints.
+
+Let $\alphabm_{1:N}^*$ and $\betabm_{1:N}^*$ be optimal solutions of problem (~\ref{eq:tpush_dual_logistic}),
+then the corresponding optimal solutions for the primal problem (\ref{eq:tpush_opt}) can be obtained as
+$$
+\w_k^*
+= -\frac{1}{\lambda} \sum_{n=1}^N \left( 
+   \frac{\llb y_k^n=1 \rrb} {N K_+^n} \alpha_{n,k}^* + \frac{\llb y_k^n=0 \rrb} {N K_-^n} \beta_{n,k}^* \right) \x^n, \quad k \in \{1,\cdots,K\}
+$$
