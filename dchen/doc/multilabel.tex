@@ -711,8 +711,7 @@ To compute the gradient of $J(\w)$ with respect to $\w_k$, note that $\w^\top \w
 $$
 \frac{\partial \LCal(\x, \y; \w)} {\partial \w_k} 
 \approx \frac{\llb y_k = 1 \rrb} {K_+} \cdot
-        \frac{-\x \cdot \left[ \underset{j:y_j=0}{\sum} \exp(r \w_j^\top \x) \right]^{1/r}}
-             {\exp(\w_k^\top \x) + \left[ \underset{j:y_j=0}{\sum} \exp(r \w_j^\top \x) \right]^{1/r}}
+  \frac{-\x} {1 + \left[ \exp(-\w_k^\top \x) \left[ \underset{j:y_j=0}{\sum} \exp(r \w_j^\top \x) \right]^{1/r} \right]^{-1} }
 $$
 then by (\ref{eq:tpush_obj_approx})
 \begin{align*}
@@ -720,8 +719,7 @@ then by (\ref{eq:tpush_obj_approx})
 &= \lambda \w_k + \frac{1}{N} \sum_{n=1}^N \frac{\partial \LCal(\x^n, \y^n; \w)} {\partial \w_k} \\
 &\approx \lambda \w_k + \frac{1}{N} \sum_{n=1}^N 
          \frac{\llb y_k^n = 1 \rrb} {K_+^n} \cdot
-         \frac{-\x^n \cdot \left[ \underset{j:y_j^n=0}{\sum} \exp(r \w_j^\top \x^n) \right]^{1/r}}
-              {\exp(\w_k^\top \x^n) + \left[ \underset{j:y_j^n=0}{\sum} \exp(r \w_j^\top \x^n) \right]^{1/r}}
+         \frac{-\x^n} {1 + \left[ \exp(-\w_k^\top \x^n) \left[ \underset{j:y_j^n=0}{\sum} \exp(r \w_j^\top \x^n) \right]^{1/r} \right]^{-1} }
 \end{align*}
 
 \newpage
