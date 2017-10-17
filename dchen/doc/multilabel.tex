@@ -45,6 +45,7 @@
 \newcommand{\w}{\mathbf{w}}
 \newcommand{\A}{\mathbf{A}}
 \newcommand{\B}{\mathbf{B}}
+\newcommand{\G}{\mathbf{G}}
 \newcommand{\W}{\mathbf{W}}
 \newcommand{\X}{\mathbf{X}}
 \newcommand{\Y}{\mathbf{Y}}
@@ -806,14 +807,28 @@ $$
 \displaystyle\frac{-\x}{K_+}
 \left[ 1 + \exp \left( \w_k^\top \x \right) \left[ \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x \right) \right]^{-\frac{1}{r}} \right]^{-1}, 
 & \text{if} \ y_k = 1 \\ \\
-\displaystyle\frac{\x}{K_+} \sum_{l=1}^K 
-\frac{ \llb y_l = 1 \rrb \exp \left( r \w_k^\top \x \right) } 
-     { \left[ \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x \right) \right]
-       \left( 1 + \left[ \exp \left( -r \w_l^\top \x \right) \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x \right) \right]^{-\frac{1}{r}} \right) }, 
+\displaystyle\frac{\x \, \exp \left( r \w_k^\top \x \right)}{K_+ \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x \right) } 
+\sum_{l=1}^K \, \llb y_l = 1 \rrb 
+\left( 1 + \left[ \exp \left( -r \w_l^\top \x \right) \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x \right) \right]^{-\frac{1}{r}} \right)^{-1}, 
 & \text{if} \ y_k = 0
 \end{cases}
 $$
 
+$$
+\G_+ = \left[ (\A \Y) \circ \left[ 
+             \one_{N \times K} \oslash \left[ \one_{N \times K} + \left( \one_{N \times N} \oslash \B \right) \exp(\X \W^\top) \right] \right] \right]^\top (-\X) 
+$$
+where $\oslash$ denotes the Hadamard division (\ie element-wise division). 
+$$
+\G_- = \left[ \A \Lambda (\one_{N \times K} - \Y) \circ \exp(r \X \W^\top) \right]^\top \X
+$$
+where $\Lambda \in \R^{N \times N}$ is a diagonal matrix and
+\begin{align*}
+\Lambda_{n,n} 
+= \sum_{l=1}^K 
+  \llb y_l^n = 1 \rrb \left[ \underset{j:y_j^n=0}{\sum} \exp \left(r \w_j^\top \x^n \right) \right]^{-1}
+  \left( 1 + \left[ \exp \left( -r \w_l^\top \x^n \right) \underset{j:y_j^n=0}{\sum} \exp \left(r \w_j^\top \x^n \right) \right]^{-\frac{1}{r}} \right)^{-1}
+\end{align*}
 
 
 \newpage
