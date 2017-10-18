@@ -67,6 +67,7 @@
 \newcommand{\nubm}{\bm{\nu}}
 \newcommand{\xibm}{\bm{\xi}}
 \newcommand{\thetabm}{\bm{\theta}}
+\newcommand{\Omegabm}{\bm{\Omega}}
 \newcommand{\one}{\mathbf{1}}
 % madeness: suPer-script in Brackets
 \newcommand{\pb}[1]{^{({#1})}}
@@ -695,74 +696,69 @@ by Eq.~(\ref{eq:tpush_loss}) we have
 \label{eq:tpush_loss_approx}
 \begin{aligned}
 \LCal(\x, \y; \w)
-&\le \frac{1}{K_+} \sum_{k=1}^K {\llb y_k = 1 \rrb} \,
-     \log \left[ 1 + e^{- \left[ \w_k^\top \x - \underset{j:y_j=0}{\max} \, \w_j^\top \x \right]} \right] \\
-&\approx \frac{1}{K_+} \sum_{k=1}^K {\llb y_k = 1 \rrb} \,
-         \log \left[ 1 + e^{-\w_k^\top \x + \frac{1}{r} \log \underset{j:y_j=0}{\sum} e^{r \w_j^\top \x}} \right] \\
-&= \frac{1}{K_+} \sum_{k=1}^K {\llb y_k = 1 \rrb} \,
-   \log \left[ 1 + e^{-\w_k^\top \x} \left[ e^{\log \underset{j:y_j=0}{\sum} e^{r \w_j^\top \x}} \right]^{1/r} \right] \\
-&= \frac{1}{K_+} \sum_{k=1}^K {\llb y_k = 1 \rrb} \,
-   \log \left[ 1 + e^{-\w_k^\top \x} \left[ \underset{j:y_j=0}{\sum} e^{r \w_j^\top \x} \right]^{1/r} \right] \\
-&= \frac{1}{K_+} \sum_{k=1}^K {\llb y_k = 1 \rrb} \,
-   \log \left[ 1 + \left[ \underset{j:y_j=0}{\sum} e^{r (\w_j - \w_k)^\top \x} \right]^{1/r} \right]
+&\le \frac{1}{K_+} \sum_{i:y_i=1}
+     \log \left[ 1 + e^{- \left[ \w_i^\top \x - \underset{j:y_j=0}{\max} \, \w_j^\top \x \right]} \right] \\
+&\approx \frac{1}{K_+} \sum_{i:y_i=1}
+         \log \left[ 1 + e^{-\w_i^\top \x + \frac{1}{r} \log \underset{j:y_j=0}{\sum} e^{r \w_j^\top \x}} \right] \\
+&= \frac{1}{K_+} \sum_{i:y_i=1}
+   \log \left[ 1 + e^{-\w_i^\top \x} \left[ e^{\log \underset{j:y_j=0}{\sum} e^{r \w_j^\top \x}} \right]^{1/r} \right] \\
+&= \frac{1}{K_+} \sum_{i:y_i=1}
+   \log \left[ 1 + e^{-\w_i^\top \x} \left[ \underset{j:y_j=0}{\sum} e^{r \w_j^\top \x} \right]^{1/r} \right] \\
+&= \frac{1}{K_+} \sum_{i:y_i=1}
+   \log \left[ 1 + \left[ \underset{j:y_j=0}{\sum} e^{r (\w_j - \w_i)^\top \x} \right]^{1/r} \right]
 \end{aligned}
 \end{equation}
 and by Eq.~(\ref{eq:obj}), objective~(\ref{eq:tpush_obj}) can be approximated as
 \begin{equation}
 \label{eq:tpush_obj_approx}
-J(\w) \approx \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \sum_{k=1}^K \frac{\llb y_k^n = 1 \rrb}{K_+^n} 
-              \log \left[ 1 + \left[ \underset{j:y_j^n=0}{\sum} \exp \left( r (\w_j - \w_k)^\top \x^n \right) \right]^{1/r} \right]
+J(\w) \approx \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i:y_i^n=1}
+              \log \left[ 1 + \left[ \underset{j:y_j^n=0}{\sum} \exp \left( r (\w_j - \w_i)^\top \x^n \right) \right]^{1/r} \right]
 \end{equation}
 
-To compute the gradient of $J(\w)$ with respect to $\w_k$, note that $\w^\top \w = \sum_{k=1}^K \w_k^\top \w_k$ and 
+To compute the gradient of $J(\w)$ with respect to $\w_k$\footnote{A sanity check is to assume $N=1, \, K=2$, and $y_1 = 1$, $y_2=0$.},
+note that $\w^\top \w = \sum_{k=1}^K \w_k^\top \w_k$ and 
 $$
 \frac{\partial J(\w)} {\partial \w_k} 
-= \lambda \w_k + \frac{1}{N} \sum_{n=1}^N \frac{\partial \LCal(\x^n, \y^n; \w)} {\partial \w_k}.
+= \lambda \w_k + \frac{1}{N} \sum_{n=1}^N 
+  \llb y_k^n = 1 \rrb
+  \frac{\partial \LCal(\x^n, \y^n; \w)} {\partial \w_k} + 
+  \llb y_k^n = 0 \rrb
+  \frac{\partial \LCal(\x^n, \y^n; \w)} {\partial \w_k}
 $$
 %
-The term $\frac{\partial \LCal(\x, \y; \w)}{\partial \w_k}$ is a bit subtle to compute\footnote{
-A sanity check is to assume $K=2$, and $y_1 = 1$, $y_2=0$.},
-to make the derivation clear, %we compute $\frac{\partial \LCal(\x, \y; \w)}{\partial \w_i}$ for $y_i = 1$ and $y_i = 0$ separately. 
-suppose $y_i = 1$, by (\ref{eq:tpush_loss_approx}) we have
-\begin{align*}
-\frac{\partial \LCal(\x, \y; \w)} {\partial \w_i}
-&\approx \frac{1}{K_+} \cdot
-         \frac{ \frac{1}{r} \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_i)^\top \x \right) \right]^{\frac{1}{r} - 1} 
-                \left[ \underset{j:y_j=0}{\sum} (-r \x)  \exp \left( r (\w_j - \w_i)^\top \x \right) \right] }
-              { 1 + \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_i)^\top \x \right) \right]^{\frac{1}{r}} } \\ \\
-&= \frac{1}{K_+} \cdot
-   \frac{ -\x } { 1 + \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_i)^\top \x \right) \right]^{-\frac{1}{r}} }
-\end{align*}
-%
-now suppose $y_i = 0$, we have
-\begin{align*}
-\frac{\partial \LCal(\x, \y; \w)} {\partial \w_i}
-&\approx \frac{1}{K_+} \sum_{l=1}^K {\llb y_l = 1 \rrb} \,
-         \frac{ \frac{1}{r} \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_l)^\top \x \right) \right]^{\frac{1}{r} - 1} 
-                r \x \, \exp \left( r (\w_i - \w_l)^\top \x \right) }
-              { 1 + \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_l)^\top \x \right) \right]^{\frac{1}{r}} } \\ \\
-&= \frac{1}{K_+} \sum_{l=1}^K 
-   \frac{ \llb y_l = 1 \rrb \, \x \, \exp \left( r (\w_i - \w_l)^\top \x \right) }
-        { \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_l)^\top \x \right) \right] +
-          \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_l)^\top \x \right) \right]^{1-\frac{1}{r}} } \\
-\end{align*}
-%
-In summary,
+suppose $y_k = 1$, by (\ref{eq:tpush_loss_approx}) we have
 \begin{equation}
-\label{eq:grad_of_loss_approx}
-\frac{\partial \LCal(\x, \y; \w)} {\partial \w_k} \approx
-\begin{cases}
-\displaystyle\frac{-\x}{K_+}
-\left[ 1 + \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_k)^\top \x \right) \right]^{-\frac{1}{r}} \right]^{-1}, 
-& \text{if} \ y_k = 1 \\ \\
-\displaystyle\frac{\x}{K_+} \sum_{l=1}^K 
-\frac{ \llb y_l = 1 \rrb \exp \left( r (\w_k - \w_l)^\top \x \right) } 
-     { \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_l)^\top \x \right) \right] +
-       \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_l)^\top \x \right) \right]^{1-\frac{1}{r}} },
-& \text{if} \ y_k = 0
-\end{cases}
+\label{eq:grad_of_loss_pos}
+\begin{aligned}
+\frac{\partial \LCal(\x, \y; \w)} {\partial \w_k}
+&\approx \frac{1}{K_+} \cdot
+         \frac{ \frac{1}{r} \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_k)^\top \x \right) \right]^{\frac{1}{r} - 1} 
+                \left[ \underset{j:y_j=0}{\sum} (-r \x)  \exp \left( r (\w_j - \w_k)^\top \x \right) \right] }
+              { 1 + \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_k)^\top \x \right) \right]^{\frac{1}{r}} } \\ \\
+&= \frac{1}{K_+} \cdot
+   \frac{ -\x } { 1 + \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_k)^\top \x \right) \right]^{-\frac{1}{r}} }
+\end{aligned}
+\end{equation}
+%
+now suppose $y_k = 0$, we have
+\begin{equation}
+\label{eq:grad_of_loss_neg}
+\begin{aligned}
+\frac{\partial \LCal(\x, \y; \w)} {\partial \w_k}
+&\approx \frac{1}{K_+} \sum_{i:y_i=1}
+         \frac{ \frac{1}{r} \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_i)^\top \x \right) \right]^{\frac{1}{r} - 1} 
+                r \x \, \exp \left( r (\w_k - \w_i)^\top \x \right) }
+              { 1 + \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_i)^\top \x \right) \right]^{\frac{1}{r}} } \\ \\
+&= \frac{1}{K_+} \sum_{i:y_i=1}
+   \frac{ \x \, \exp \left( r (\w_k - \w_i)^\top \x \right) }
+        { \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_i)^\top \x \right) \right] +
+          \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_i)^\top \x \right) \right]^{1-\frac{1}{r}} }
+\end{aligned}
 \end{equation}
 
+\paragraph{Vectorisation}
+We can vectorise the objective (\ref{eq:tpush_obj_approx}) and gradients (\ref{eq:grad_of_loss_pos}) and (\ref{eq:grad_of_loss_neg}).
+First we introduce notations in Table~\ref{tab:symbol_tpush}.
 \begin{table}[!h]
 \caption{Glossary of commonly used symbols}
 \label{tab:symbol_tpush}
@@ -784,52 +780,70 @@ $\one_{N \times K}$  &  $\in$  &  $\R^{N \times K} \quad$  & The $N \times K$ ma
 \end{tabular}
 \end{table}
 
-To vectorise the objective, we rewrite Eq.~(\ref{eq:tpush_obj_approx}) as
+To vectorise the objective, 
+let $\A, \B \in \R^{N \times N}$ be diagonal matrices such that 
+\begin{align*}
+\A_{n,n} &= \frac{1}{K_+^n} \\
+\B_{n,n} &= \underset{j:y_j^n=0}{\sum} \exp\left( r \w_j^\top \x^n \right), \ n \in \{1,\dots,N\}
+\end{align*}
+where $\circ$ denotes the \emph{Hadamard product} (\ie element-wise multiplication), and
+$\B$ can be computed as
+$$
+\B = \left[ \left( \one_{N \times K} - \Y \right) \circ \exp \left( r \X \W^\top \right) \right] \one_K
+$$
+
+The objective (\ref{eq:tpush_obj_approx}) can be vectorised as
 \begin{equation}
 \label{eq:tpush_obj_vec}
 \begin{aligned}
 J(\w) 
-&\approx \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \sum_{k=1}^K \frac{\llb y_k^n = 1 \rrb}{K_+^n} 
-         \log \left[ 1 + \exp\left(-\w_k^\top \x^n \right) \left[ \underset{j:y_j^n=0}{\sum} \exp\left( r \w_j^\top \x^n \right) \right]^{1/r} \right] \\
+&\approx \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i:y_i^n=1}
+         \log \left[ 1 + \left[ \underset{j:y_j^n=0}{\sum} \exp \left( r (\w_j - \w_i)^\top \x^n \right) \right]^{1/r} \right] \\
+&= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i:y_i^n=1}
+   \log \left[ 1 + \exp \left( -\w_i^\top \x^n \right) \left[ \underset{j:y_j^n=0}{\sum} \exp \left( r \w_j^\top \x^n \right) \right]^{1/r} \right] \\
 &= \frac{\lambda}{2} \w^\top \w + 
-   \frac{1}{N} \one_N^\top \left[ \left( \A \Y \right) \circ \log \left( \one_{N \times K} + \B \exp(-\X \W^\top ) \right) \right] \one_K
+   \frac{1}{N} \one_N^\top \left[ \left( \A \Y \right) \circ \log \left( \one_{N \times K} + \B^{\circ (1/r)} \exp(-\X \W^\top ) \right) \right] \one_K
 \end{aligned}
 \end{equation}
-where $\circ$ denotes the Hadamard product (\ie element-wise multiplication), 
-diagonal matrices $\A, \B \in \R^{N \times N}$, $\A_{n,n} = \frac{1}{K_+^n}$ and 
-$\displaystyle \B_{n,n} = \left[ \left[ \exp(r \X \W^\top) \circ (\one_{N \times K} - \Y) \right] \one_K \right]_{n}^{1/r}$,
-$n \in \{1,\dots,N\}$.
+where $[\cdot]^{\circ c}$ is the \emph{Hadamard power} (of $c$), \ie element-wise power.
 
-Similarly, we rewrite Eq.~(\ref{eq:grad_of_loss_approx}) as
+To vectorise the gradients, we first rewrite (\ref{eq:grad_of_loss_pos}) and (\ref{eq:grad_of_loss_neg}) as
 $$
 \frac{\partial \LCal(\x, \y; \w)} {\partial \w_k} \approx
 \begin{cases}
 \displaystyle\frac{-\x}{K_+}
 \left[ 1 + \exp \left( \w_k^\top \x \right) \left[ \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x \right) \right]^{-\frac{1}{r}} \right]^{-1}, 
 & \text{if} \ y_k = 1 \\ \\
+%
 \displaystyle\frac{\x \, \exp \left( r \w_k^\top \x \right)}{K_+ \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x \right) } 
-\sum_{l=1}^K \, \llb y_l = 1 \rrb 
-\left( 1 + \left[ \exp \left( -r \w_l^\top \x \right) \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x \right) \right]^{-\frac{1}{r}} \right)^{-1}, 
+\sum_{i:y_i=1}
+\left[ 1 + \exp \left( \w_i^\top \x \right) \left[ \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x \right) \right]^{-\frac{1}{r}} \right]^{-1}, 
 & \text{if} \ y_k = 0
 \end{cases}
 $$
-
-$$
-\G_+ = \left[ (\A \Y) \circ \left[ 
-             \one_{N \times K} \oslash \left[ \one_{N \times K} + \left( \one_{N \times N} \oslash \B \right) \exp(\X \W^\top) \right] \right] \right]^\top (-\X) 
-$$
-where $\oslash$ denotes the Hadamard division (\ie element-wise division). 
-$$
-\G_- = \left[ \A \Lambda (\one_{N \times K} - \Y) \circ \exp(r \X \W^\top) \right]^\top \X
-$$
-where $\Lambda \in \R^{N \times N}$ is a diagonal matrix and
+and let $\widetilde\B = \one_{N \times N} \oslash \B = \B^{\circ (-1)}$,
+where $\oslash$ denotes the \emph{Hadamard division} (\ie element-wise division).
+Further, let
 \begin{align*}
-\Lambda_{n,n} 
-= \sum_{l=1}^K 
-  \llb y_l^n = 1 \rrb \left[ \underset{j:y_j^n=0}{\sum} \exp \left(r \w_j^\top \x^n \right) \right]^{-1}
-  \left( 1 + \left[ \exp \left( -r \w_l^\top \x^n \right) \underset{j:y_j^n=0}{\sum} \exp \left(r \w_j^\top \x^n \right) \right]^{-\frac{1}{r}} \right)^{-1}
+\G_+ 
+&= \left[ (\A \Y) \circ \left[ \one_{N \times K} + \widetilde\B^{\circ (1/r)} \exp(\X \W^\top) \right]^{\circ (-1)} \right]^\top (-\X) \\
+\G_- 
+&= \left[ \A \widetilde\B \Omegabm \left[ (\one_{N \times K} - \Y) \circ \exp(r \X \W^\top) \right] \right]^\top \X
 \end{align*}
-
+where $\Omegabm \in \R^{N \times N}$ is a diagonal matrix such that
+$$
+\Omegabm_{n,n}
+= \sum_{i:y_i^n=1} \left[ 1 + 
+  \exp \left( \w_i^\top \x^n \right) \left[ \underset{j:y_j^n=0}{\sum} \exp \left(r \w_j^\top \x^n \right) \right]^{-\frac{1}{r}} \right]^{-1}
+$$
+and $\Omegabm$ can be computed as
+$$
+\Omegabm = \left[ \Y \circ \left[ \one_{N \times K} + \widetilde\B^{\circ (1/r)} \exp(\X \W^\top) \right]^{\circ (-1)} \right] \one_{K}
+$$
+then the gradient of $J(\W)$ w.r.t. $\W$ is
+$$
+\frac{\partial J(\W)} {\partial \W} = \lambda \W + \frac{\G_+ + \G_-}{N}
+$$
 
 \newpage
 \input{toppush_dual}
