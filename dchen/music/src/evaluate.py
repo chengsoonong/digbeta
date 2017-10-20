@@ -1,5 +1,5 @@
 import numpy as np
-
+from sklearn.metrics import f1_score
 
 def evalPred(truth, pred, lossType='Precision@K'):
     """
@@ -107,6 +107,15 @@ def avgPrecision(allTruths, allPreds, k):
     return np.mean(losses)
 
 
+def avgF1(allTruths, allPreds):
+    f1 = []
+    for i in range(allPreds.shape[0]):
+        pred = allPreds[i, :]
+        truth = allTruths[i, :]
+        f1.append(f1_score(truth, pred))
+    return np.mean(f1)
+        
+
 def printEvaluation(allTruths, allPreds):
     N = allTruths.shape[0]
     # print(N)
@@ -122,3 +131,13 @@ def printEvaluation(allTruths, allPreds):
         # print('%24s: %1.4f' % ('Average %s Loss' % lossType, np.mean(losses)))
         print('%s: %1.4f, %.3f' % ('Average %s' % lossType, np.mean(losses), np.std(losses) / np.sqrt(N)))
         # plt.hist(aucs, bins = 10);
+
+
+def printEvaluationF1(allTruths, allPreds):
+    N = allTruths.shape[0]
+    f1 = []
+    for i in range(allPreds.shape[0]):
+        pred = allPreds[i, :]
+        truth = allTruths[i, :]
+        f1.append(f1_score(truth, pred))
+    print('%s: %1.4f, %.3f' % ('Average F1', np.mean(f1), np.std(f1) / np.sqrt(N)))

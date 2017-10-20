@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pickle as pkl
 from scipy.io import arff
 
 
@@ -16,6 +17,10 @@ scene_nLabels = 6
 emotions_ftrain = os.path.join(data_dir, 'emotions/emotions-train.arff')
 emotions_ftest = os.path.join(data_dir, 'emotions/emotions-test.arff')
 emotions_nLabels = 6
+
+bibtex_ftrain = os.path.join(data_dir, 'bibtex/bibtex-train.pkl')
+bibtex_ftest = os.path.join(data_dir, 'bibtex/bibtex-test.pkl')
+bibtex_nLabels = 159
 
 mm_ftrain = os.path.join(data_dir, 'mediamill/mediamill-train.arff')
 mm_ftest = os.path.join(data_dir, 'mediamill/mediamill-test.arff')
@@ -86,6 +91,27 @@ def create_dataset_emotions_train():
 def create_dataset_emotions_test():
     data, meta = arff.loadarff(emotions_ftest)
     return create_dataset(data, emotions_nLabels)
+
+
+# The bibtex dataset
+def create_dataset_per_label_bibtex_train(label_ix):
+    data_dict = pkl.load(open(bibtex_ftrain, 'rb'))
+    return create_dataset_per_label(label_ix, data_dict['data'], bibtex_nLabels)
+
+
+def create_dataset_per_label_bibtex_test(label_ix):
+    data_dict = pkl.load(open(bibtex_ftest, 'rb'))
+    return create_dataset_per_label(label_ix, data_dict['data'], bibtex_nLabels)
+
+
+def create_dataset_bibtex_train():
+    data_dict = pkl.load(open(bibtex_ftrain, 'rb'))
+    return create_dataset(data_dict['data'], bibtex_nLabels)
+
+
+def create_dataset_bibtex_test():
+    data_dict = pkl.load(open(bibtex_ftest, 'rb'))
+    return create_dataset(data_dict['data'], bibtex_nLabels)
 
 
 # The mediamill dataset
