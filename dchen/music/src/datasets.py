@@ -1,4 +1,5 @@
 import os
+import torchfile
 import numpy as np
 import pickle as pkl
 from scipy.io import arff
@@ -22,6 +23,10 @@ bibtex_ftrain = os.path.join(data_dir, 'bibtex/bibtex-train.pkl')
 bibtex_ftest = os.path.join(data_dir, 'bibtex/bibtex-test.pkl')
 bibtex_nLabels = 159
 
+delicious_ftrain = os.path.join(data_dir, 'delicious/delicious-train.pkl')
+delicious_ftest = os.path.join(data_dir, 'delicious/delicious-test.pkl')
+delicious_nLabels = 983
+
 mm_ftrain = os.path.join(data_dir, 'mediamill/mediamill-train.arff')
 mm_ftest = os.path.join(data_dir, 'mediamill/mediamill-test.arff')
 mm_nLabels = 101
@@ -29,8 +34,12 @@ mm_nLabels = 101
 SEED = 123456789
 RATIO = 0.05
 
+bookmarks_nFeatures = 2150
+bookmarks_nLabels = 208
+
 
 # The yeast dataset
+
 def create_dataset_per_label_yeast_train(label_ix):
     data, meta = arff.loadarff(yeast_ftrain)
     return create_dataset_per_label(label_ix, data, yeast_nLabels)
@@ -52,6 +61,7 @@ def create_dataset_yeast_test():
 
 
 # The scene dataset
+
 def create_dataset_per_label_scene_train(label_ix):
     data, meta = arff.loadarff(scene_ftrain)
     return create_dataset_per_label(label_ix, data, scene_nLabels)
@@ -73,6 +83,7 @@ def create_dataset_scene_test():
 
 
 # The emotions dataset
+
 def create_dataset_per_label_emotions_train(label_ix):
     data, meta = arff.loadarff(emotions_ftrain)
     return create_dataset_per_label(label_ix, data, emotions_nLabels)
@@ -94,6 +105,7 @@ def create_dataset_emotions_test():
 
 
 # The bibtex dataset
+
 def create_dataset_per_label_bibtex_train(label_ix):
     data_dict = pkl.load(open(bibtex_ftrain, 'rb'))
     return create_dataset_per_label(label_ix, data_dict['data'], bibtex_nLabels)
@@ -112,6 +124,64 @@ def create_dataset_bibtex_train():
 def create_dataset_bibtex_test():
     data_dict = pkl.load(open(bibtex_ftest, 'rb'))
     return create_dataset(data_dict['data'], bibtex_nLabels)
+
+
+# The bookmarks dataset
+
+def create_dataset_per_label_bookmarks_train(label_ix):
+    assert label_ix >= 0
+    assert label_ix < bookmarks_nLabels
+    X_train, Y_train = load_bookmarks_data(train_data=True)
+    return X_train, Y_train[:, label_ix]
+
+
+def create_dataset_per_label_bookmarks_test(label_ix):
+    assert label_ix >= 0
+    assert label_ix < bookmarks_nLabels
+    X_test, Y_test = load_bookmarks_data(train_data=False)
+    return X_test, Y_test[:, label_ix]
+
+
+def create_dataset_bookmarks_train():
+    return load_bookmarks_data(train_data=True)
+
+
+def create_dataset_bookmarks_test():
+    return load_bookmarks_data(train_data=False)
+
+
+# The delicious dataset
+# filtering out examples with all negative labels
+# no examples with all positive labels (checked)
+
+def create_dataset_per_label_delicious_train(label_ix):
+    data_dict = pkl.load(open(delicious_ftrain, 'rb'))
+    X_train, y_train = create_dataset_per_label(label_ix, data_dict['data'], delicious_nLabels)
+    _, Y_train = create_dataset(data_dict['data'], delicious_nLabels)
+    kpos = Y_train.sum(axis = 1)
+    return X_train[kpos > 0, :], y_train[kpos > 0, :]
+
+
+def create_dataset_per_label_delicious_test(label_ix):
+    data_dict = pkl.load(open(delicious_ftest, 'rb'))
+    X_test, y_test = create_dataset_per_label(label_ix, data_dict['data'], delicious_nLabels)
+    _, Y_test = create_dataset(data_dict['data'], delicious_nLabels)
+    kpos = Y_test.sum(axis = 1)
+    return X_test[kpos > 0, :], y_test[kpos > 0, :]
+
+
+def create_dataset_delicious_train():
+    data_dict = pkl.load(open(delicious_ftrain, 'rb'))
+    X_train, Y_train = create_dataset(data_dict['data'], delicious_nLabels)
+    kpos = Y_train.sum(axis = 1)
+    return X_train[kpos > 0, :], Y_train[kpos > 0, :]
+
+
+def create_dataset_delicious_test():
+    data_dict = pkl.load(open(delicious_ftest, 'rb'))
+    X_test, Y_test = create_dataset(data_dict['data'], delicious_nLabels)
+    kpos = Y_test.sum(axis = 1)
+    return X_test[kpos > 0, :], Y_test[kpos > 0, :]
 
 
 # The mediamill dataset
@@ -219,3 +289,31 @@ def create_dataset(data, nLabels):
         Y[i, :] = list(data[i])[magic:]
 
     return X, Y
+
+
+def load_bookmarks_data(train_data=True):
+    """
+        Load (pre-split) bookmarks dataset, no examples with all positive/negative labels (checked)
+    """
+    features = np.zeros((0, bookmarks_nFeatures))
+    labels = np.zeros((0, bookmarks_nLabels))
+
+    if train_data is True:
+        # load train data
+        for k in range(1, 6):
+            data_dict = torchfile.load(os.path.join(data_dir, 'bookmarks/bookmarks-train-%d.torch' % k))
+            labels = np.concatenate([labels, data_dict[b'labels']], axis=0)
+            features = np.concatenate([features, data_dict[b'data'][:, 0:bookmarks_nFeatures]], axis=0)
+
+        # load dev data
+        data_dict = torchfile.load(os.path.join(data_dir, 'bookmarks/bookmarks-dev.torch'))
+        labels = np.concatenate([labels, data_dict[b'labels']], axis=0)
+        features = np.concatenate([features, data_dict[b'data'][:, 0:bookmarks_nFeatures]], axis=0)
+        
+    else:
+        # load test data
+        for k in range(1, 4):
+            data_dict = torchfile.load(os.path.join(data_dir, 'bookmarks/bookmarks-test-%d.torch' % k))
+            labels = np.concatenate([labels, data_dict[b'labels']], axis=0)
+            features = np.concatenate([features, data_dict[b'data'][:, 0:bookmarks_nFeatures]], axis=0)
+    return features, labels

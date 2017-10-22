@@ -22,3 +22,15 @@ pickle.dump(data_test, open(pkltest, 'wb'))
 
 #from scipy.io import arff
 #data = arff.loadarff('data/bibtex/bibtex-test.arff')  # errors
+
+ftrain = os.path.join(data_dir, 'delicious/delicious-train.arff')
+ftest = os.path.join(data_dir, 'delicious/delicious-test.arff')
+
+pkltrain = os.path.join(data_dir, 'delicious/delicious-train.pkl')
+pkltest = os.path.join(data_dir, 'delicious/delicious-test.pkl')
+
+data_train = arff.load(open(ftrain, 'rb'))  # works in python2 but not in python3
+pickle.dump(data_train, open(pkltrain, 'wb'))
+
+data_test = arff.load(open(ftest, 'rb'))
+pickle.dump(data_test, open(pkltest, 'wb'))
