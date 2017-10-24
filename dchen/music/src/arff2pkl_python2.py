@@ -20,8 +20,8 @@ pickle.dump(data_train, open(pkltrain, 'wb'))
 data_test = arff.load(open(ftest, 'rb'))
 pickle.dump(data_test, open(pkltest, 'wb'))
 
-#from scipy.io import arff
-#data = arff.loadarff('data/bibtex/bibtex-test.arff')  # errors
+# from scipy.io import arff
+# data = arff.loadarff('data/bibtex/bibtex-test.arff')  # errors
 
 ftrain = os.path.join(data_dir, 'delicious/delicious-train.arff')
 ftest = os.path.join(data_dir, 'delicious/delicious-test.arff')

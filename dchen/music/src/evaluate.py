@@ -1,6 +1,7 @@
 import numpy as np
 from sklearn.metrics import f1_score
 
+
 def evalPred(truth, pred, lossType='Precision@K'):
     """
         Compute loss given ground truth and prediction
@@ -14,6 +15,8 @@ def evalPred(truth, pred, lossType='Precision@K'):
     assert(len(truth) == len(pred))
     L = len(truth)
     nPos = np.sum(truth)
+    assert float(nPos).is_integer()
+    nPos = int(nPos)
 
     predBin = np.array((pred > 0), dtype=np.int)
 
@@ -114,7 +117,7 @@ def avgF1(allTruths, allPreds):
         truth = allTruths[i, :]
         f1.append(f1_score(truth, pred))
     return np.mean(f1)
-        
+
 
 def printEvaluation(allTruths, allPreds):
     N = allTruths.shape[0]

@@ -1,5 +1,4 @@
 import os
-import numbers
 import torchfile
 import numpy as np
 import pickle as pkl
@@ -20,36 +19,36 @@ _delicious_nLabels = 983
 _mediamill_nLabels = 101
 
 nLabels_dict = {
-    'yeast':     _yeast_nLabels, 
-    'scene':     _scene_nLabels, 
+    'yeast':     _yeast_nLabels,
+    'scene':     _scene_nLabels,
     'emotions':  _emotions_nLabels,
-    'bibtex':    _bibtex_nLabels, 
-    'bookmarks': _bookmarks_nLabels, 
+    'bibtex':    _bibtex_nLabels,
+    'bookmarks': _bookmarks_nLabels,
     'delicious': _delicious_nLabels,
     'mediamill': _mediamill_nLabels,
 }
 
 
-#def create_dataset_per_label(label_ix, dataset_name, train_data=True):
-#    """
-#        Create a dataset for each label
-#    """
-#    assert dataset_name in dataset_names 
-#    #assert type(label_ix) in [int, np.int]
-#    assert isinstance(label_ix, numbers.Integral)
-#    assert label_ix >= 0
-#    assert label_ix < nLabels_dict[dataset_name]
-#    assert type(train_data) == bool
-#    dname = dataset_name
-#    X, Y = create_dataset(dname, train_data=train_data)
-#    return X, Y[:, label_ix]
+# def create_dataset_per_label(label_ix, dataset_name, train_data=True):
+#     """
+#         Create a dataset for each label
+#     """
+#     assert dataset_name in dataset_names
+#     #assert type(label_ix) in [int, np.int]
+#     assert isinstance(label_ix, numbers.Integral)
+#     assert label_ix >= 0
+#     assert label_ix < nLabels_dict[dataset_name]
+#     assert type(train_data) == bool
+#     dname = dataset_name
+#     X, Y = create_dataset(dname, train_data=train_data)
+#     return X, Y[:, label_ix]
 
 
 def create_dataset(dataset_name, train_data=True):
     """
         Load the dataset, and filter out examples with all positive/negative labels
     """
-    assert dataset_name in dataset_names 
+    assert dataset_name in dataset_names
     assert type(train_data) == bool
     dname = dataset_name
     split = 'train' if train_data else 'test'
@@ -65,9 +64,9 @@ def create_dataset(dataset_name, train_data=True):
             fname = os.path.join(data_dir, '%s/%s-%s.arff' % (dname, dname, split))
             data, meta = arff.loadarff(fname)
         X, Y = _create_dataset(data, nLabels_dict[dname])
-        kpos = Y.sum(axis = 1)
+        kpos = Y.sum(axis=1)
         return X[np.logical_and(kpos > 0, kpos < nLabels_dict[dname]), :], \
-               Y[np.logical_and(kpos > 0, kpos < nLabels_dict[dname]), :]
+            Y[np.logical_and(kpos > 0, kpos < nLabels_dict[dname]), :]
 
 
 def _load_bookmarks_data(train_data=True):
@@ -88,7 +87,7 @@ def _load_bookmarks_data(train_data=True):
         data_dict = torchfile.load(os.path.join(data_dir, 'bookmarks/bookmarks-dev.torch'))
         labels = np.concatenate([labels, data_dict[b'labels']], axis=0)
         features = np.concatenate([features, data_dict[b'data'][:, 0:_bookmarks_nFeatures]], axis=0)
-        
+
     else:
         # load test data
         for k in range(1, 4):
