@@ -6,7 +6,7 @@ import arff  # pip install liac-arff
 import os
 import pickle
 
-data_dir = 'data'
+data_dir = '../data'
 
 ftrain = os.path.join(data_dir, 'bibtex/bibtex-train.arff')
 ftest = os.path.join(data_dir, 'bibtex/bibtex-test.arff')
