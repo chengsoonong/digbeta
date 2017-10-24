@@ -46,6 +46,7 @@
 \newcommand{\A}{\mathbf{A}}
 \newcommand{\B}{\mathbf{B}}
 \newcommand{\G}{\mathbf{G}}
+\newcommand{\M}{\mathbf{M}}
 \newcommand{\W}{\mathbf{W}}
 \newcommand{\X}{\mathbf{X}}
 \newcommand{\Y}{\mathbf{Y}}
@@ -74,6 +75,7 @@
 
 \newcommand{\eg}{e.g.\ }
 \newcommand{\ie}{i.e.\ }
+\newcommand{\diag}{\text{diag}}
 \newcommand{\downto}{\,\textbf{downto}\,}
 \newcommand{\blue}[1]{{\color{blue}{#1}}}
 
@@ -787,9 +789,9 @@ let $\A, \B \in \R^{N \times N}$ be diagonal matrices such that
 \B_{n,n} &= \underset{j:y_j^n=0}{\sum} \exp\left( r \w_j^\top \x^n \right), \ n \in \{1,\dots,N\}
 \end{align*}
 where $\circ$ denotes the \emph{Hadamard product} (\ie element-wise multiplication), and
-$\B$ can be computed as
+$\B$ can be computed as\footnote{We follow MATLAB\textsuperscript{\textregistered}notations \url{https://mathworks.com/help/matlab/matrices-and-arrays.html}}
 $$
-\B = \left[ \left( \one_{N \times K} - \Y \right) \circ \exp \left( r \X \W^\top \right) \right] \one_K
+\B = \diag \left( \left[ \left( \one_{N \times K} - \Y \right) \circ \exp \left( r \X \W^\top \right) \right] \one_K \right)
 $$
 
 The objective (\ref{eq:tpush_obj_approx}) can be vectorised as
@@ -807,38 +809,72 @@ J(\w)
 \end{equation}
 where $[\cdot]^{\circ c}$ is the \emph{Hadamard power} (of $c$), \ie element-wise power.
 
-To vectorise the gradients, we first rewrite (\ref{eq:grad_of_loss_pos}) and (\ref{eq:grad_of_loss_neg}) as
+In practice, $e^x$ may suffer from numerical overflow/underflow when $x$ is a large positive/negative number, to work around this issue\footnote{
+The method proposed here is only a workaround, it can not solve the overflow/underflow problem}, note that
+\begin{equation}
+\label{eq:overflow}
+e^{-\w_i^\top \x^n} \left[ \underset{j:y_j^n=0}{\sum} e^{ r \w_j^\top \x^n } \right]^{1/r} 
+= e^{ -\w_i^\top \x^n } \left[ \underset{j:y_j^n=0}{\sum} e^{ \left( r \w_j^\top \x^n - m_1 + m_1 \right) } \right]^{1/r}
+%= e^{ -\w_i^\top \x^n } \left[ e^{m_1} \underset{j:y_j^n=0}{\sum} e^{ \left( r \w_j^\top \x^n - m_1 \right) } \right]^{1/r}
+= e^{ \left( -\w_i^\top \x^n + m_1 / r \right) } \left[ \underset{j:y_j^n=0}{\sum} e^{ \left( r \w_j^\top \x^n - m_1 \right) } \right]^{1/r} 
+\end{equation}
+where positive constant $m_1$ is large enough so that $e^{(r \w_j^\top \x^n - m_1)}$ will not lead to numerical overflow.
+
+Let $m_1 = \frac{1}{2} \left( \max\{r \X \W^\top\} + \min\{r \X \W^\top\} \right)$ 
+be the mean value of the maximum and minimum elements in matrix $r \X \W^\top$\footnote{This method can not avoid the overflow/underflow problem if
+the \emph{gap} between the maximum and minimum element $|\max\{r \X \W^\top\} - \min\{r \X \W^\top\}|$ is too big. 
+Another useful trick is initialising $\w$ as random numbers in [-1, 1] instead of [0, 1] or [-1, 0] to somehow shrink the \emph{gap}.}
+and
+$$
+\widetilde\B = \diag \left( \left[ \left( \one_{N \times K} - \Y \right) \circ \exp \left( r \X \W^\top - \M_1 \right) \right] \one_K \right)
+$$
+where $\M_1 = m_1 \one_{N \times K}$, we can rewrite (\ref{eq:tpush_obj_vec}) as
+\begin{equation}
+\label{eq:tpush_obj_vec2}
+J(\w) 
+= \frac{\lambda}{2} \w^\top \w + 
+  \frac{1}{N} \one_N^\top \left[ \left( \A \Y \right) \circ \log \left( \one_{N \times K} + 
+  \widetilde\B^{\circ (1/r)} \exp(-\X \W^\top + \M_1 / r) \right) \right] \one_K
+\end{equation}
+
+Similarly, to vectorise the gradients, we first rewrite (\ref{eq:grad_of_loss_pos}) and (\ref{eq:grad_of_loss_neg}) 
+after accounting for (\ref{eq:overflow})
 $$
 \frac{\partial \LCal(\x, \y; \w)} {\partial \w_k} \approx
 \begin{cases}
 \displaystyle\frac{-\x}{K_+}
-\left[ 1 + \exp \left( \w_k^\top \x \right) \left[ \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x \right) \right]^{-\frac{1}{r}} \right]^{-1}, 
+\left[ 1 + \exp \left( \w_k^\top \x - m_1 / r \right) 
+\left[ \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x - m_1 \right) \right]^{-\frac{1}{r}} \right]^{-1}, 
 & \text{if} \ y_k = 1 \\ \\
 %
-\displaystyle\frac{\x \, \exp \left( r \w_k^\top \x \right)}{K_+ \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x \right) } 
+\displaystyle \frac{\x \, \exp \left( r \w_k^\top \x - m_1 \right)} {K_+ \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x - m_1 \right) } 
 \sum_{i:y_i=1}
-\left[ 1 + \exp \left( \w_i^\top \x \right) \left[ \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x \right) \right]^{-\frac{1}{r}} \right]^{-1}, 
+\left[ 1 + \exp \left( \w_i^\top \x - m_1 /r \right) 
+\left[ \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x - m_1 \right) \right]^{-\frac{1}{r}} \right]^{-1}, 
 & \text{if} \ y_k = 0
 \end{cases}
 $$
-and let $\widetilde\B = \one_{N \times N} \oslash \B = \B^{\circ (-1)}$,
-where $\oslash$ denotes the \emph{Hadamard division} (\ie element-wise division).
+%and let $\widetilde\B = \one_{N \times N} \oslash \B = \B^{\circ (-1)}$,
+%where $\oslash$ denotes the \emph{Hadamard division} (\ie element-wise division).
 Further, let
 \begin{align*}
 \G_+ 
-&= \left[ (\A \Y) \circ \left[ \one_{N \times K} + \widetilde\B^{\circ (1/r)} \exp(\X \W^\top) \right]^{\circ (-1)} \right]^\top (-\X) \\
+&= \left[ (\A \Y) \circ \left[ \one_{N \times K} + \widetilde\B^{\circ (-1/r)} \exp(\X \W^\top - \M_1 / r) \right]^{\circ (-1)} \right]^\top (-\X) \\
 \G_- 
-&= \left[ \A \widetilde\B \Omegabm \left[ (\one_{N \times K} - \Y) \circ \exp(r \X \W^\top) \right] \right]^\top \X
+&= \left[ \A \widetilde\B^{\circ (-1)} \Omegabm \left[ (\one_{N \times K} - \Y) \circ \exp(r \X \W^\top - \M_1) \right] \right]^\top \X
 \end{align*}
 where $\Omegabm \in \R^{N \times N}$ is a diagonal matrix such that
 $$
 \Omegabm_{n,n}
 = \sum_{i:y_i^n=1} \left[ 1 + 
-  \exp \left( \w_i^\top \x^n \right) \left[ \underset{j:y_j^n=0}{\sum} \exp \left(r \w_j^\top \x^n \right) \right]^{-\frac{1}{r}} \right]^{-1}
+  \exp \left( \w_i^\top \x^n - m_1 / r \right) 
+  \left[ \underset{j:y_j^n=0}{\sum} \exp \left(r \w_j^\top \x^n - m_1 \right) \right]^{-\frac{1}{r}} \right]^{-1}
 $$
 and $\Omegabm$ can be computed as
 $$
-\Omegabm = \left[ \Y \circ \left[ \one_{N \times K} + \widetilde\B^{\circ (1/r)} \exp(\X \W^\top) \right]^{\circ (-1)} \right] \one_{K}
+\Omegabm = \diag \left( 
+           \left[ \Y \circ \left[ \one_{N \times K} + 
+           \widetilde\B^{\circ (-1/r)} \exp(\X \W^\top - \M_1 / r) \right]^{\circ (-1)} \right] \one_{K} \right)
 $$
 then the gradient of $J(\W)$ w.r.t. $\W$ is
 $$
