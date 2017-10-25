@@ -7,11 +7,10 @@ from scipy.io import arff
 
 data_dir = 'data'
 
-dataset_names = ['yeast', 'scene', 'emotions', 'bibtex', 'bookmarks', 'delicious', 'mediamill']
+dataset_names = ['yeast', 'scene', 'bibtex', 'bookmarks', 'delicious', 'mediamill']
 
 _yeast_nLabels = 14
 _scene_nLabels = 6
-_emotions_nLabels = 6
 _bibtex_nLabels = 159
 _bookmarks_nFeatures = 2150
 _bookmarks_nLabels = 208
@@ -21,7 +20,6 @@ _mediamill_nLabels = 101
 nLabels_dict = {
     'yeast':     _yeast_nLabels,
     'scene':     _scene_nLabels,
-    'emotions':  _emotions_nLabels,
     'bibtex':    _bibtex_nLabels,
     'bookmarks': _bookmarks_nLabels,
     'delicious': _delicious_nLabels,

@@ -2,14 +2,14 @@ import numpy as np
 from sklearn.metrics import f1_score
 
 
-def evalPred(truth, pred, lossType='Precision@K'):
+def evalPred(truth, pred, metricType='Precision@K'):
     """
         Compute loss given ground truth and prediction
 
         Input:
             - truth:    binary array of true labels
             - pred:     real-valued array of predictions
-            - lossType: can be subset 0-1, Hamming, ranking, and Precision@K where K = # positive labels.
+            - metricType: can be subset 0-1, Hamming, ranking, and Precision@K where K = # positive labels.
     """
 
     assert(len(truth) == len(pred))
@@ -20,9 +20,9 @@ def evalPred(truth, pred, lossType='Precision@K'):
 
     predBin = np.array((pred > 0), dtype=np.int)
 
-    if type(lossType) == tuple:
+    if type(metricType) == tuple:
         # Precision@k, k is constant
-        k = lossType[1]
+        k = metricType[1]
         assert k > 0
         assert k <= L
 
@@ -35,13 +35,13 @@ def evalPred(truth, pred, lossType='Precision@K'):
         # fraction of +'ves in the top K predictions
         return np.mean(y[:k]) if nPos > 0 else 0
 
-    elif lossType == 'Subset01':
+    elif metricType == 'Subset01':
         return 1 - int(np.all(truth == predBin))
 
-    elif lossType == 'Hamming':
+    elif metricType == 'Hamming':
         return np.sum(truth != predBin) / L
 
-    elif lossType == 'Ranking':
+    elif metricType == 'Ranking':
         loss = 0
         for i in range(L-1):
             for j in range(i+1, L):
@@ -53,7 +53,7 @@ def evalPred(truth, pred, lossType='Precision@K'):
         # return loss / (nPos * (L-nPos))
         return loss
 
-    elif lossType == 'Precision@K':
+    elif metricType == 'Precision@K':
         # sorted indices of the labels most likely to be +'ve
         idx = np.argsort(pred)[::-1]
 
@@ -63,7 +63,7 @@ def evalPred(truth, pred, lossType='Precision@K'):
         # fraction of +'ves in the top K predictions
         return np.mean(y[:nPos]) if nPos > 0 else 0
 
-    # elif lossType == 'Precision@3':
+    # elif metricType == 'Precision@3':
     #    # sorted indices of the labels most likely to be +'ve
     #    idx = np.argsort(pred)[::-1]
     #
@@ -73,7 +73,7 @@ def evalPred(truth, pred, lossType='Precision@K'):
     #    # fraction of +'ves in the top K predictions
     #    return np.mean(y[:3])
     #
-    # elif lossType == 'Precision@5':
+    # elif metricType == 'Precision@5':
     #    # sorted indices of the labels most likely to be +'ve
     #    idx = np.argsort(pred)[::-1]
     #
@@ -89,11 +89,11 @@ def evalPred(truth, pred, lossType='Precision@K'):
 
 def avgPrecisionK(allTruths, allPreds):
     losses = []
-    lossType = 'Precision@K'
+    metricType = 'Precision@K'
     for i in range(allPreds.shape[0]):
         pred = allPreds[i, :]
         truth = allTruths[i, :]
-        losses.append(evalPred(truth, pred, lossType))
+        losses.append(evalPred(truth, pred, metricType))
     return np.mean(losses)
 
 
@@ -102,11 +102,11 @@ def avgPrecision(allTruths, allPreds, k):
     assert k <= L
 
     losses = []
-    lossType = ('Precision', k)
+    metricType = ('Precision', k)
     for i in range(allPreds.shape[0]):
         pred = allPreds[i, :]
         truth = allTruths[i, :]
-        losses.append(evalPred(truth, pred, lossType))
+        losses.append(evalPred(truth, pred, metricType))
     return np.mean(losses)
 
 
@@ -119,28 +119,50 @@ def avgF1(allTruths, allPreds):
     return np.mean(f1)
 
 
-def printEvaluation(allTruths, allPreds):
+def evaluationPrecision(allTruths, allPreds):
     N = allTruths.shape[0]
-    # print(N)
-
-    for lossType in ['Precision@K']:
-        # ['Subset01', 'Hamming', 'Ranking', 'Precision@K', 'Precision@3', 'Precision@5']:
+    perf_dict = dict()
+    for metricType in [('Precision@3', 3), ('Precision@5', 5), 'Precision@K']:
         losses = []
         for i in range(allPreds.shape[0]):
             pred = allPreds[i, :]
             truth = allTruths[i, :]
-            losses.append(evalPred(truth, pred, lossType))
+            losses.append(evalPred(truth, pred, metricType))
 
-        # print('%24s: %1.4f' % ('Average %s Loss' % lossType, np.mean(losses)))
-        print('%s: %1.4f, %.3f' % ('Average %s' % lossType, np.mean(losses), np.std(losses) / np.sqrt(N)))
-        # plt.hist(aucs, bins = 10);
+        metricStr = metricType[0] if type(metricType) == tuple else metricType
+        mean = np.mean(losses)
+        stderr = np.std(losses) / np.sqrt(N)
+        perf_dict[metricStr] = (mean, stderr)
+        print('%s: %.4f, %.3f' % ('Average %s' % metricStr, mean, stderr))
+    return perf_dict
 
 
-def printEvaluationF1(allTruths, allPreds):
+def evaluationF1(allTruths, allPreds):
     N = allTruths.shape[0]
     f1 = []
     for i in range(allPreds.shape[0]):
         pred = allPreds[i, :]
         truth = allTruths[i, :]
         f1.append(f1_score(truth, pred))
-    print('%s: %1.4f, %.3f' % ('Average F1', np.mean(f1), np.std(f1) / np.sqrt(N)))
+    mean = np.mean(f1)
+    stderr = np.std(f1) / np.sqrt(N)
+    print('%s: %.4f, %.3f' % ('Average F1', mean, stderr))
+    return {'F1': (mean, stderr)}
+
+
+def printEvaluation(allTruths, allPreds):
+    N = allTruths.shape[0]
+    # print(N)
+
+    for metricType in [('Precision@3', 3), ('Precision@5', 5), 'Precision@K']:
+        # ['Subset01', 'Hamming', 'Ranking', 'Precision@K', 'Precision@3', 'Precision@5']:
+        losses = []
+        for i in range(allPreds.shape[0]):
+            pred = allPreds[i, :]
+            truth = allTruths[i, :]
+            losses.append(evalPred(truth, pred, metricType))
+
+        # print('%24s: %1.4f' % ('Average %s Loss' % metricType, np.mean(losses)))
+        metricStr = metricType[0] if type(metricType) == tuple else metricType
+        print('%s: %.4f, %.3f' % ('Average %s' % metricStr, np.mean(losses), np.std(losses) / np.sqrt(N)))
+        # plt.hist(aucs, bins = 10);
