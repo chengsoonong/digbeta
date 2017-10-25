@@ -823,12 +823,20 @@ where positive constant $m_1$ is large enough so that $e^{(r \w_j^\top \x^n - m_
 Let $m_1 = \frac{1}{2} \left( \max\{r \X \W^\top\} + \min\{r \X \W^\top\} \right)$ 
 be the mean value of the maximum and minimum elements in matrix $r \X \W^\top$\footnote{This method can not avoid the overflow/underflow problem if
 the \emph{gap} between the maximum and minimum element $|\max\{r \X \W^\top\} - \min\{r \X \W^\top\}|$ is too big. 
-Another useful trick is initialising $\w$ as random numbers in [-1, 1] instead of [0, 1] or [-1, 0] to somehow shrink the \emph{gap}.}
+Another useful trick is initialising $\w$ as random numbers from $\mathcal{N}(0, 0.001^2)$ instead of from [0, 1], [-1, 0] or [-1, 1]
+to somehow shrink the \emph{gap}.}
 and
 $$
 \widetilde\B = \diag \left( \left[ \left( \one_{N \times K} - \Y \right) \circ \exp \left( r \X \W^\top - \M_1 \right) \right] \one_K \right)
 $$
-where $\M_1 = m_1 \one_{N \times K}$, we can rewrite (\ref{eq:tpush_obj_vec}) as
+where $\M_1 = m_1 \one_{N \times K}$, we can rewrite (\ref{eq:tpush_obj_vec}) as\footnote{
+Computing $\log \left( \one_{N \times K} + \widetilde\B^{\circ (1/r)} \exp(-\X \W^\top + \M_1 / r) \right)$ may lead to numerical overflow since
+we multiply an exponential term (in $\widetilde\B$) with another exponential term, one useful trick for computing $\log(1 + \exp(a) \cdot \exp(b))$ is
+factorising a large term out:
+$$
+\log(1 + e^{a} \cdot e^{b}) = \log(1 + e^{ab - m + m}) = m + \log(e^{-m} + e^{ab - m}).
+$$
+}
 \begin{equation}
 \label{eq:tpush_obj_vec2}
 J(\w) 
@@ -856,7 +864,15 @@ $$
 $$
 %and let $\widetilde\B = \one_{N \times N} \oslash \B = \B^{\circ (-1)}$,
 %where $\oslash$ denotes the \emph{Hadamard division} (\ie element-wise division).
-Further, let
+Further, let\footnote{To avoid numerical overflow/underflow, note that 
+$$
+\frac{1}{1 + e^{-a}} = \frac{e^a}{1 + e^a} = \exp(\log(e^a) - \log(1 + e^a)) = \exp(a - \log(1 + e^{a-m+m})) = \exp(a - m - \log(e^{-m} + e^{a-m}))
+$$
+\hspace{2em}or
+$$
+\frac{1}{1 + e^{-a}} = \exp(-\log(1 + e^{-a})) = \exp(-\log(1 + e^{-a+m-m})) = \exp(m - \log(e^{-m} + e^{-a+m})).
+$$
+}
 \begin{align*}
 \G_+ 
 &= \left[ (\A \Y) \circ \left[ \one_{N \times K} + \widetilde\B^{\circ (-1/r)} \exp(\X \W^\top - \M_1 / r) \right]^{\circ (-1)} \right]^\top (-\X) \\
