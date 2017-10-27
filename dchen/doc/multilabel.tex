@@ -451,7 +451,29 @@ We further assume the predicted score of a label has a \emph{linear} form, \ie $
 
 \subsubsection{Independent logistic regression}
 \label{sssec:logistic}
-The most natural idea is to make predictions for each label, by independently learning a binary classifier (\eg logistic regression) for each label.
+The most natural idea is to make predictions for each label, by independently learning a binary classifier (\eg logistic regression) for each label,
+\ie, to learn the parameters $\w_k$ for the $k$-th label, we minimise the L2 regularised log likelihood:
+\begin{align*}
+J(\w_k) 
+&= \frac{\lambda}{2} \w_k^\top \w_k + 
+   \frac{1}{N} \sum_{n=1}^N -\log \left[ \sigma(\w_k^\top \x^n)^{y_k} (1 - \sigma(\w_k^\top \x^n))^{(1 - y_k)} \right] \\
+&= \frac{\lambda}{2} \w_k^\top \w_k + 
+   \frac{1}{N} \sum_{n=1}^N \left[ -y_k \log \sigma(\w_k^\top \x^n) - (1 - y_k) \log (1 - \sigma(\w_k^\top \x^n)) \right]
+\end{align*}
+where $\sigma(v) = [1 + e^{-v}]^{-1}$ is the sigmoid function.
+To compute the gradient, note that
+$$
+\frac{d \, \sigma(v)}{d \, v} = -(1 + e^{-v})^{-2} (-e^{-v}) = \frac{1}{1 + e^{-v}} \cdot \frac{e^{-v} + 1 - 1}{1 + e^{-v}} = \sigma(v) (1 - \sigma(v)),
+$$
+Then
+\begin{align*}
+\frac{\partial \, J(\w_k)} {\partial \, \w_k} 
+&= \lambda \w_k + \frac{1}{N} \sum_{n=1}^N \left[ -y_k \frac{\sigma(\w_k^\top \x^n) (1 - \sigma(\w_k^\top \x^n)) \x^n} {\sigma(\w_k^\top \x^n)} -
+   (1 - y_k) \frac{- \sigma(\w_k^\top \x^n) (1 - \sigma(\w_k^\top \x^n)) \x^n} {1 - \sigma(\w_k^\top \x^n)} \right] \\
+&= \lambda \w_k + \frac{1}{N} \sum_{n=1}^N \left[ -y_k \x^n (1 - \sigma(\w_k^\top \x^n)) + (1 - y_k) \x^n \sigma(\w_k^\top \x^n) \right] \\
+&= \lambda \w_k + \frac{1}{N} \sum_{n=1}^N \left[ y_k \x^n \right]
+\end{align*}
+
 However, this method does not focus on ensuring the top few labels (\ie positive labels) are accurately modelled 
 and also ignores the correlations between labels.
 
