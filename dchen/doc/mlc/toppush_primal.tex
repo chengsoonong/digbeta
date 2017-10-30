@@ -1,0 +1,228 @@
+\paragraph{Approximate inner maximisation}
+Note that the \emph{log-sum-exp} function can be bounded by the \emph{max} function~\cite[p. 72]{boyd2004convex}
+$$
+\max\{x_1, \dots, x_n\} \le \log(e^{x_1} + \dots + e^{x_n}) \le \max\{x_1, \dots, x_n\} + \log n,
+$$
+we can therefore approximate the \emph{max} function as
+$$
+\max_i x_i \approx \log \sum_i e^{x_i},
+$$
+or more generally a parametric form
+$$
+\max_i x_i \approx \frac{1}{r} \log \sum_i e^{r x_i},
+$$
+where $r > 0$ is a parameter.
+%
+Let $\ell(\cdot)$ be the logistic loss which upper bounds the 0-1 loss, \ie 
+$$
+\ell(v) = \log(1 + e^{-v}),
+$$
+by Eq.~(\ref{eq:tpush_loss}) we have
+%\begin{equation}
+%\label{eq:logsumexp_approx}
+%\max_{j:y_j=0} \w_j^\top \x \, \approx \, \log \sum_{j:y_j=0} \exp(\w_j^\top \x),
+%\end{equation}
+%
+%then by Eq.~(\ref{eq:logsumexp_approx}), the loss~(\ref{eq:tpush_loss}) can be approximated as
+\begin{equation}
+\label{eq:tpush_loss_approx}
+\begin{aligned}
+\LCal(\x, \y; \w)
+&\le \frac{1}{K_+} \sum_{i:y_i=1}
+     \log \left[ 1 + e^{- \left[ \w_i^\top \x - \underset{j:y_j=0}{\max} \, \w_j^\top \x \right]} \right] \\
+&\approx \frac{1}{K_+} \sum_{i:y_i=1}
+         \log \left[ 1 + e^{-\w_i^\top \x + \frac{1}{r} \log \underset{j:y_j=0}{\sum} e^{r \w_j^\top \x}} \right] \\
+&= \frac{1}{K_+} \sum_{i:y_i=1}
+   \log \left[ 1 + e^{-\w_i^\top \x} \left[ e^{\log \underset{j:y_j=0}{\sum} e^{r \w_j^\top \x}} \right]^{1/r} \right] \\
+&= \frac{1}{K_+} \sum_{i:y_i=1}
+   \log \left[ 1 + e^{-\w_i^\top \x} \left[ \underset{j:y_j=0}{\sum} e^{r \w_j^\top \x} \right]^{1/r} \right] \\
+&= \frac{1}{K_+} \sum_{i:y_i=1}
+   \log \left[ 1 + \left[ \underset{j:y_j=0}{\sum} e^{r (\w_j - \w_i)^\top \x} \right]^{1/r} \right]
+\end{aligned}
+\end{equation}
+and by Eq.~(\ref{eq:obj}), objective~(\ref{eq:tpush_obj}) can be approximated as
+\begin{equation}
+\label{eq:tpush_obj_approx}
+J(\w) \approx \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i:y_i^n=1}
+              \log \left[ 1 + \left[ \underset{j:y_j^n=0}{\sum} \exp \left( r (\w_j - \w_i)^\top \x^n \right) \right]^{1/r} \right]
+\end{equation}
+
+To compute the gradient of $J(\w)$ with respect to $\w_k$\footnote{A sanity check is to assume $N=1, \, K=2$, and $y_1 = 1$, $y_2=0$.},
+note that $\w^\top \w = \sum_{k=1}^K \w_k^\top \w_k$ and 
+$$
+\frac{\partial J(\w)} {\partial \w_k} 
+= \lambda \w_k + \frac{1}{N} \sum_{n=1}^N 
+  \llb y_k^n = 1 \rrb
+  \frac{\partial \LCal(\x^n, \y^n; \w)} {\partial \w_k} + 
+  \llb y_k^n = 0 \rrb
+  \frac{\partial \LCal(\x^n, \y^n; \w)} {\partial \w_k}
+$$
+%
+suppose $y_k = 1$, by (\ref{eq:tpush_loss_approx}) we have
+\begin{equation}
+\label{eq:grad_of_loss_pos}
+\begin{aligned}
+\frac{\partial \LCal(\x, \y; \w)} {\partial \w_k}
+&\approx \frac{1}{K_+} \cdot
+         \frac{ \frac{1}{r} \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_k)^\top \x \right) \right]^{\frac{1}{r} - 1} 
+                \left[ \underset{j:y_j=0}{\sum} (-r \x)  \exp \left( r (\w_j - \w_k)^\top \x \right) \right] }
+              { 1 + \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_k)^\top \x \right) \right]^{\frac{1}{r}} } \\ \\
+&= \frac{1}{K_+} \cdot
+   \frac{ -\x } { 1 + \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_k)^\top \x \right) \right]^{-\frac{1}{r}} }
+\end{aligned}
+\end{equation}
+%
+now suppose $y_k = 0$, we have
+\begin{equation}
+\label{eq:grad_of_loss_neg}
+\begin{aligned}
+\frac{\partial \LCal(\x, \y; \w)} {\partial \w_k}
+&\approx \frac{1}{K_+} \sum_{i:y_i=1}
+         \frac{ \frac{1}{r} \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_i)^\top \x \right) \right]^{\frac{1}{r} - 1} 
+                r \x \, \exp \left( r (\w_k - \w_i)^\top \x \right) }
+              { 1 + \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_i)^\top \x \right) \right]^{\frac{1}{r}} } \\ \\
+&= \frac{1}{K_+} \sum_{i:y_i=1}
+   \frac{ \x \, \exp \left( r (\w_k - \w_i)^\top \x \right) }
+        { \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_i)^\top \x \right) \right] +
+          \left[ \underset{j:y_j=0}{\sum} \exp \left(r (\w_j - \w_i)^\top \x \right) \right]^{1-\frac{1}{r}} }
+\end{aligned}
+\end{equation}
+
+\paragraph{Vectorisation}
+We can vectorise the objective (\ref{eq:tpush_obj_approx}) and gradients (\ref{eq:grad_of_loss_pos}) and (\ref{eq:grad_of_loss_neg}).
+First we introduce notations in Table~\ref{tab:symbol_tpush}.
+\begin{table}[!h]
+\caption{Glossary of commonly used symbols}
+\label{tab:symbol_tpush}
+\renewcommand{\arraystretch}{1.5} % tweak the space between rows
+\setlength{\tabcolsep}{1pt} % tweak the space between columns
+\centering
+\begin{tabular}{llll}
+\hline \hline
+\multicolumn{3}{l}{\textbf{Symbol}} & \textbf{Quantity} \\ \hline 
+$D$        &  $\in$  &  $\Z^+$            & The number of features for each example \\
+$N$        &  $\in$  &  $\Z^+$            & The number of examples \\
+$K$        &  $\in$  &  $\Z^+$            & The number of labels \\
+$\w$       &  $\in$  &  $\R^{K D}$        & The vector of model parameters \\
+$\W$       &  $\in$  &  $\R^{K \times D}$ & The matrix of model parameters (reshaping $\w$ into a matrix) \\
+$\X$       &  $\in$  &  $\R^{N \times D}$ & The matrix of features of all examples \\
+$\Y$       &  $\in$  &  $\R^{N \times K}$ & The matrix of labels of all examples \\
+$\one_N$   &  $\in$  &  $\R^N$            & The $N$ dimensional vector of $1$'s \\
+$\one_{N \times K}$  &  $\in$  &  $\R^{N \times K} \quad$  & The $N \times K$ matrix of $1$'s \\ \hline
+\end{tabular}
+\end{table}
+
+To vectorise the objective, 
+let $\A, \B \in \R^{N \times N}$ be diagonal matrices such that 
+\begin{align*}
+\A_{n,n} &= \frac{1}{K_+^n} \\
+\B_{n,n} &= \underset{j:y_j^n=0}{\sum} \exp\left( r \w_j^\top \x^n \right), \ n \in \{1,\dots,N\}
+\end{align*}
+where $\circ$ denotes the \emph{Hadamard product} (\ie element-wise multiplication), and
+$\B$ can be computed as\footnote{We follow MATLAB\textsuperscript{\textregistered}notations \url{https://mathworks.com/help/matlab/matrices-and-arrays.html}}
+$$
+\B = \diag \left( \left[ \left( \one_{N \times K} - \Y \right) \circ \exp \left( r \X \W^\top \right) \right] \one_K \right)
+$$
+
+The objective (\ref{eq:tpush_obj_approx}) can be vectorised as
+\begin{equation}
+\label{eq:tpush_obj_vec}
+\begin{aligned}
+J(\w) 
+&\approx \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i:y_i^n=1}
+         \log \left[ 1 + \left[ \underset{j:y_j^n=0}{\sum} \exp \left( r (\w_j - \w_i)^\top \x^n \right) \right]^{1/r} \right] \\
+&= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i:y_i^n=1}
+   \log \left[ 1 + \exp \left( -\w_i^\top \x^n \right) \left[ \underset{j:y_j^n=0}{\sum} \exp \left( r \w_j^\top \x^n \right) \right]^{1/r} \right] \\
+&= \frac{\lambda}{2} \w^\top \w + 
+   \frac{1}{N} \one_N^\top \left[ \left( \A \Y \right) \circ \log \left( \one_{N \times K} + \B^{\circ (1/r)} \exp(-\X \W^\top ) \right) \right] \one_K
+\end{aligned}
+\end{equation}
+where $[\cdot]^{\circ c}$ is the \emph{Hadamard power} (of $c$), \ie element-wise power.
+
+In practice, $e^x$ may suffer from numerical overflow/underflow when $x$ is a large positive/negative number, to work around this issue\footnote{
+The method proposed here is only a workaround, it can not solve the overflow/underflow problem}, note that
+\begin{equation}
+\label{eq:overflow}
+e^{-\w_i^\top \x^n} \left[ \underset{j:y_j^n=0}{\sum} e^{ r \w_j^\top \x^n } \right]^{1/r} 
+= e^{ -\w_i^\top \x^n } \left[ \underset{j:y_j^n=0}{\sum} e^{ \left( r \w_j^\top \x^n - m_1 + m_1 \right) } \right]^{1/r}
+%= e^{ -\w_i^\top \x^n } \left[ e^{m_1} \underset{j:y_j^n=0}{\sum} e^{ \left( r \w_j^\top \x^n - m_1 \right) } \right]^{1/r}
+= e^{ \left( -\w_i^\top \x^n + m_1 / r \right) } \left[ \underset{j:y_j^n=0}{\sum} e^{ \left( r \w_j^\top \x^n - m_1 \right) } \right]^{1/r} 
+\end{equation}
+where positive constant $m_1$ is large enough so that $e^{(r \w_j^\top \x^n - m_1)}$ will not lead to numerical overflow.
+
+Let $m_1 = \frac{1}{2} \left( \max\{r \X \W^\top\} + \min\{r \X \W^\top\} \right)$ 
+be the mean value of the maximum and minimum elements in matrix $r \X \W^\top$\footnote{This method can not avoid the overflow/underflow problem if
+the \emph{gap} between the maximum and minimum element $|\max\{r \X \W^\top\} - \min\{r \X \W^\top\}|$ is too big. 
+Another useful trick is initialising $\w$ as random numbers from $\mathcal{N}(0, 0.001^2)$ instead of from [0, 1], [-1, 0] or [-1, 1]
+to somehow shrink the \emph{gap}.}
+and
+$$
+\widetilde\B = \diag \left( \left[ \left( \one_{N \times K} - \Y \right) \circ \exp \left( r \X \W^\top - \M_1 \right) \right] \one_K \right)
+$$
+where $\M_1 = m_1 \one_{N \times K}$, we can rewrite (\ref{eq:tpush_obj_vec}) as\footnote{
+Computing $\log \left( \one_{N \times K} + \widetilde\B^{\circ (1/r)} \exp(-\X \W^\top + \M_1 / r) \right)$ may lead to numerical overflow since
+we multiply an exponential term (in $\widetilde\B$) with another exponential term, one useful trick for computing $\log(1 + \exp(a) \cdot \exp(b))$ is
+factorising a large term out:
+$$
+\log(1 + e^{a} \cdot e^{b}) = \log(1 + e^{ab - m + m}) = m + \log(e^{-m} + e^{ab - m}).
+$$
+}
+\begin{equation}
+\label{eq:tpush_obj_vec2}
+J(\w) 
+= \frac{\lambda}{2} \w^\top \w + 
+  \frac{1}{N} \one_N^\top \left[ \left( \A \Y \right) \circ \log \left( \one_{N \times K} + 
+  \widetilde\B^{\circ (1/r)} \exp(-\X \W^\top + \M_1 / r) \right) \right] \one_K
+\end{equation}
+
+Similarly, to vectorise the gradients, we first rewrite (\ref{eq:grad_of_loss_pos}) and (\ref{eq:grad_of_loss_neg}) 
+after accounting for (\ref{eq:overflow})
+$$
+\frac{\partial \LCal(\x, \y; \w)} {\partial \w_k} \approx
+\begin{cases}
+\displaystyle\frac{-\x}{K_+}
+\left[ 1 + \exp \left( \w_k^\top \x - m_1 / r \right) 
+\left[ \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x - m_1 \right) \right]^{-\frac{1}{r}} \right]^{-1}, 
+& \text{if} \ y_k = 1 \\ \\
+%
+\displaystyle \frac{\x \, \exp \left( r \w_k^\top \x - m_1 \right)} {K_+ \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x - m_1 \right) } 
+\sum_{i:y_i=1}
+\left[ 1 + \exp \left( \w_i^\top \x - m_1 /r \right) 
+\left[ \underset{j:y_j=0}{\sum} \exp \left(r \w_j^\top \x - m_1 \right) \right]^{-\frac{1}{r}} \right]^{-1}, 
+& \text{if} \ y_k = 0
+\end{cases}
+$$
+%and let $\widetilde\B = \one_{N \times N} \oslash \B = \B^{\circ (-1)}$,
+%where $\oslash$ denotes the \emph{Hadamard division} (\ie element-wise division).
+Further, let\footnote{To avoid numerical overflow/underflow, note that 
+$$
+\frac{1}{1 + e^{-a}} = \frac{e^a}{1 + e^a} = \exp(\log(e^a) - \log(1 + e^a)) = \exp(a - \log(1 + e^{a-m+m})) = \exp(a - m - \log(e^{-m} + e^{a-m}))
+$$
+\hspace{2em}or
+$$
+\frac{1}{1 + e^{-a}} = \exp(-\log(1 + e^{-a})) = \exp(-\log(1 + e^{-a+m-m})) = \exp(m - \log(e^{-m} + e^{-a+m})).
+$$
+}
+\begin{align*}
+\G_+ 
+&= \left[ (\A \Y) \circ \left[ \one_{N \times K} + \widetilde\B^{\circ (-1/r)} \exp(\X \W^\top - \M_1 / r) \right]^{\circ (-1)} \right]^\top (-\X) \\
+\G_- 
+&= \left[ \A \widetilde\B^{\circ (-1)} \Omegabm \left[ (\one_{N \times K} - \Y) \circ \exp(r \X \W^\top - \M_1) \right] \right]^\top \X
+\end{align*}
+where $\Omegabm \in \R^{N \times N}$ is a diagonal matrix such that
+$$
+\Omegabm_{n,n}
+= \sum_{i:y_i^n=1} \left[ 1 + 
+  \exp \left( \w_i^\top \x^n - m_1 / r \right) 
+  \left[ \underset{j:y_j^n=0}{\sum} \exp \left(r \w_j^\top \x^n - m_1 \right) \right]^{-\frac{1}{r}} \right]^{-1}
+$$
+and $\Omegabm$ can be computed as
+$$
+\Omegabm = \diag \left( 
+           \left[ \Y \circ \left[ \one_{N \times K} + 
+           \widetilde\B^{\circ (-1/r)} \exp(\X \W^\top - \M_1 / r) \right]^{\circ (-1)} \right] \one_{K} \right)
+$$
+then the gradient of $J(\W)$ w.r.t. $\W$ is
+$$
+\frac{\partial J(\W)} {\partial \W} = \lambda \W + \frac{\G_+ + \G_-}{N}
+$$
