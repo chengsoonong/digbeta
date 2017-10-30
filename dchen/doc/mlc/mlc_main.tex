@@ -81,7 +81,7 @@
 
 \setlength{\columnsep}{1.5em} % spacing between columns
 
-\title{Multi-label Classification, Bipartite Ranking and Playlist Generation}
+\title{Playlist Generation with multi-label classification}
 
 \author{Dawei Chen}
 
@@ -92,50 +92,46 @@
 \maketitle
 
 
-
-\section{Playlist generation as multi-label classification}
-\label{sec:playlist}
+\section{Problem statement}
+\label{sec:problem}
 
 Given $N$ playlists where songs in each playlist are from a music library with $K$ songs $\{s_i\}_{i=1}^K$,
-we derive a training set $\SCal = \left\{ \left( \x\pb{n}, \y\pb{n} \right) \right\}_{n=1}^N$ where $\x\pb{n} \in \R^D$ is a feature vector of the query 
-induced by the $n$-th playlist (\eg the feature vector of the first song in the $n$-th playlist),
-$\y\pb{n} \in \{0,1\}^K$ is a binary indicator such that 
+we derive a training set $\SCal = \left\{ \left( \x^n, \y^n \right) \right\}_{n=1}^N$ where $\x^n \in \R^D$ is a feature vector of the query 
+induced by the $n$-th playlist (\eg the feature vector of the first song in the $n$-th playlist, features of the user etc.),
+$\y^n \in \{0,1\}^K$ is a vector of binary indicators such that 
 $$
-y_i\pb{n} = 
+y_i^n = 
 \begin{cases}
 1, & \text{song $s_i$ is in the $n$-the playlist} \\
 0, & \text{otherwise}
 \end{cases}
 $$
-
+The goal is to generate a playlist from prediction $y$ with respect to query $x$ (ignoring the order of songs at the moment),
+and we focus on the scenario the prediction for each query has only very few positive labels (in contrast to the total number of labels $K$).
+%
 The empirical risk of a predictor $\f$ (with parameters $\w$) on training set $\SCal$ is
-\begin{equation}
-\label{eq:risk_pl}
-R_{\LCal}(\f; \SCal) = \frac{1}{N} \sum_{n=1}^N \LCal\left(\f(\x\pb{n}), \y\pb{n}\right),
-\end{equation}
-where $\LCal(\cdot)$ is a loss function for multi-label learning such as Hamming loss, rank loss, subset 0/1 loss etc.
-
-To learn the parameters of predictor $\f$, we can minimise the empirical risk (\ref{eq:risk_pl}) with L2 regularisation:
+\begin{equation*}
+R_{\LCal}(\f; \SCal) = \frac{1}{N} \sum_{n=1}^N \LCal (\x^n, \y^n; \w),
+\end{equation*}
+where $\LCal(\cdot)$ is a loss function. % for multi-label learning such as Hamming loss, rank loss, subset 0/1 loss etc.
+%
+To learn the parameters of predictor $\f$, we can minimise the empirical risk (\ref{eq:risk_pl}) with L2 regularisation\footnote{
+The regularisation constant is different from that in scikit-learn~\cite{sklearn-guide}, 
+as the objective there is $J(\w) = \frac{1}{2}\w^\top \w + C \sum_{n=1}^N \LCal(\x^n, \y^n; \w)$, so we have $C = \frac{1}{N \lambda}$.}:
 \begin{equation}
 \label{eq:minrisk_l2}
-\min_{\w} \, \frac{1}{2} \w^\top \w + R_{\LCal}(\f; \SCal).
+\min_{\w} \, \frac{\lambda}{2} \w^\top \w + R_{\LCal}(\f; \SCal).
 \end{equation}
 
-
-Given a loss function $\LCal(\cdot)$, assuming L2 regularisation\footnote{
-The regularisation constant is different from that in scikit-learn~\cite{sklearn-guide}, 
-as the objective there is $J(\w) = \frac{1}{2}\w^\top \w + C \sum_{n=1}^N \LCal(\x^n, \y^n; \w)$, so we have $C = \frac{1}{N \lambda}$.},
-the optimisation objective to learn weights $\w$ is
-\begin{equation}
-\label{eq:obj}
-J(\w) = \frac{\lambda}{2}\w^\top \w + \frac{1}{N} \sum_{n=1}^N \LCal(\x^n, \y^n; \w),
-\end{equation}
-where $\w = [\w_1^\top, \cdots, \w_K^\top]^\top$ is the flattened weight vector.
-We further assume the predicted score of a label has a \emph{linear} form, \ie $f_k(\x) = \w_k^\top \x, \, k \in \{1,\cdots,K\}$.
+Suppose the predicted score of a label has a \emph{linear} form, \ie $f_k(\x) = \w_k^\top \x, \, k \in \{1,\cdots,K\}$,
+then parameters $\w$ can be represented as a flattened weight vector, \ie $\w  = [\w_1^\top, \cdots, \w_K^\top]^\top$.
+In the next section, we describe several loss functions with different properties.
 
 
+\section{Methods}
+We describe a few methods that learn model parameters by optimising three loss functions.
 
-\subsubsection{Independent logistic regression}
+\subsection{Binary relevance}
 \label{sssec:logistic}
 The most natural idea is to make predictions for each label, by independently learning a binary classifier (\eg logistic regression) for each label,
 \ie, to learn the parameters $\w_k$ for the $k$-th label, we minimise the L2 regularised log likelihood:
@@ -156,7 +152,7 @@ and also ignores the correlations between labels.
 
 
 
-\subsubsection{p-classification loss}
+\subsection{p-classification loss}
 \label{sssec:pclass}
 
 The p-classification loss~\cite{ertekin2011equivalence} of example $(\x, \y)$ given weights $\w$ is
@@ -197,7 +193,7 @@ b_n &= \frac{ \llb y_k^n=0 \rrb} {N K_-^n} \exp(p \w_k^\top \x^n).
 
 
 
-\subsubsection{Top-push loss}
+\subsection{Top-push loss}
 \label{sssec:tpush}
 
 The top-push loss~\cite{li2014top} of example $(\x, \y)$ given weights $\w$ is
@@ -218,7 +214,7 @@ where $K_+^n$ is the number of positive labels in $\y^n$.
 The objective~(\ref{eq:tpush_obj}) is hard to optimise due to the inner maximisation,
 we can either approximate the inner maximisation or resort to optimise the dual problem of the objective.
 
-\paragraph{Approximate inner maximisation}
+\subsubsection{Solve the primal by approximating the inner maximisation}
 Note that the \emph{log-sum-exp} function can be bounded by the \emph{max} function~\cite[p. 72]{boyd2004convex}
 $$
 \max\{x_1, \dots, x_n\} \le \log(e^{x_1} + \dots + e^{x_n}) \le \max\{x_1, \dots, x_n\} + \log n,
@@ -291,7 +287,7 @@ now suppose $y_k = 0$, we have
 \end{equation}
 
 
-\paragraph{Dual formulation}
+\subsubsection{Solve the dual problem}
 Let
 \begin{align*}
 f_0(\w, \xibm)     
