@@ -179,7 +179,7 @@ it also ignores the correlations between labels.
 
 
 \subsection{P-Classification loss}
-\label{sssec:pclass}
+\label{ssec:pclass}
 
 Alternatively, we can use the P-Classification loss~\cite{ertekin2011equivalence}:
 \begin{equation}
@@ -218,7 +218,7 @@ b_n &= \frac{ \llb y_k^n=0 \rrb} {N K_-^n} \exp(p \w_k^\top \x^n).
 
 
 \subsection{Top-push loss}
-\label{sssec:tpush}
+\label{ssec:tpush}
 
 Another loss function that focus on modelling the top ranked elements is the top-push loss~\cite{li2014top}, defined as
 \begin{equation}
@@ -242,6 +242,8 @@ here we propose two approaches to optimise~(\ref{eq:tpush_obj}):
 We describe these two methods in the following sections.
 
 \subsubsection{Solve the primal by approximating the inner maximisation}
+\label{sssec:tp_primal}
+
 Note that the \emph{log-sum-exp} function can be bounded by the \emph{max} function~\cite[p. 72]{boyd2004convex}
 $$
 \max\{x_1, \dots, x_n\} \le \log(e^{x_1} + \dots + e^{x_n}) \le \max\{x_1, \dots, x_n\} + \log n,
@@ -315,6 +317,8 @@ now suppose $y_k = 0$, we have
 
 
 \subsubsection{Solve the dual problem}
+\label{sssec:tp_dual}
+
 Let
 \begin{align*}
 f_0(\w, \xibm)     
@@ -451,8 +455,9 @@ and the Hessian matrices of all constraints are \emph{zeros} matrices as we only
 
 \input{mlc_experiment}
 
+\clearpage
+\newpage 
 \appendix
-\newpage
 \input{mlc_appendix}
 
 \newpage

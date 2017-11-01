@@ -21,30 +21,64 @@ Dataset & \#Examples (train) & \#Examples (test) & \#Features & \#Labels ($K$) &
 \end{tabular}
 \end{table}
 
+\noindent
+We evaluate the performance of algorithms in terms of four metrics:
+\begin{itemize}
+\item Precision@3
+\item Precision@5
+\item Precision@K, where K is the number of positive labels for each example (\ie $K_+^n$)
+\item F1 score
+\end{itemize}
+
+\noindent
+The algorithms in consideration are:
+\begin{itemize}
+\item LR: Binary relevance (\ie independent logistic regression), regularisation constant $C = 1$.
+\item LR-CV: Binary relevance (\ie independent Logistic regression) with \emph{balanced} class weights, $C$ is tuned by cross validation.
+\item TP-MLC: Multi-label classification with top-push loss, $C$ is tuned by cross validation.
+\end{itemize}
+
+\noindent
+The performance of these algorithms are shown in Table~\ref{tab:perf}.
+
+\begin{table}[!h]
+\centering
+\caption{Performance on test set}
+\label{tab:perf}
 \begin{tabular}{llllll}
 \toprule
-       &       & Precision@3 & Precision@5 & Precision@K & F1 \\
-Dataset & Method &             &             &             &    \\
+       &    & Precision@3 & Precision@5 & Precision@K &                      F1 \\
+Dataset & Method &             &             &             &                         \\
 \midrule
-\multirow{2}{*}{yeast} & TP-MLC &      0.6020 &      0.5063 &      0.5690 &  - \\
-       & LR-CV &           - &           - &           - &  - \\
+\multirow{3}{*}{yeast} & LR &      0.7128 &      0.6017 &      0.6348 &                  0.5232 \\
+       & LR-CV &      0.5107 &      0.4624 &      0.5042 &                  0.2892 \\
+       & TP-MLC &      0.5387 &      0.4534 &      0.5094 &  0.4870, 0.3773, 0.4632 \\
 \cline{1-6}
-\multirow{2}{*}{scene} & TP-MLC &      0.3496 &      0.2122 &      0.8852 &  - \\
-       & LR-CV &           - &           - &           - &  - \\
+\multirow{3}{*}{scene} & LR &      0.3450 &      0.2166 &      0.7404 &                  0.5141 \\
+       & LR-CV &      0.3406 &      0.2167 &      0.7136 &                  0.6548 \\
+       & TP-MLC &      0.3456 &      0.2167 &      0.7366 &  0.5056, 0.5480, 0.5462 \\
 \cline{1-6}
-\multirow{2}{*}{bibtex} & TP-MLC &      0.6430 &      0.4420 &      0.9647 &  - \\
-       & LR-CV &           - &           - &           - &  - \\
+\multirow{3}{*}{bibtex} & LR &      0.3836 &      0.2815 &      0.4910 &                  0.3250 \\
+       & LR-CV &      0.3968 &      0.2923 &      0.5056 &                  0.4415 \\
+       & TP-MLC &      0.3931 &      0.2883 &      0.5044 &  0.4042, 0.0675, 0.0675 \\
 \cline{1-6}
-\multirow{2}{*}{bookmarks} & TP-MLC &           - &           - &           - &  - \\
-       & LR-CV &           - &           - &           - &  - \\
+\multirow{3}{*}{bookmarks} & LR &           - &           - &           - &                       - \\
+       & LR-CV &           - &           - &           - &                       - \\
+       & TP-MLC &           - &           - &           - &                       - \\
 \cline{1-6}
-\multirow{2}{*}{delicious} & TP-MLC &           - &           - &           - &  - \\
-       & LR-CV &           - &           - &           - &  - \\
+\multirow{3}{*}{delicious} & LR &           - &           - &           - &                       - \\
+       & LR-CV &           - &           - &           - &                       - \\
+       & TP-MLC &           - &           - &           - &                       - \\
 \cline{1-6}
-\multirow{2}{*}{mediamill} & TP-MLC &           - &           - &           - &  - \\
-       & LR-CV &           - &           - &           - &  - \\
+\multirow{3}{*}{mediamill} & LR &           - &           - &           - &                       - \\
+       & LR-CV &           - &           - &           - &                       - \\
+       & TP-MLC &           - &           - &           - &                       - \\
 \bottomrule
 \end{tabular}
+
+\end{table}
+
+
 
 \begin{table}[!h]
 \centering
