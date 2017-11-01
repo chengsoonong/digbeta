@@ -1,5 +1,16 @@
 import numpy as np
-from sklearn.metrics import f1_score
+#from sklearn.metrics import f1_score
+from sklearn.metrics import precision_recall_fscore_support
+
+
+def f1_score_nowarn(y_true, y_pred, labels=None, pos_label=1, average='binary', sample_weight=None):
+    """
+        Compute F1 score, use the same interface as sklearn.metrics.f1_score, 
+        but disable the warning when both precision and recall are zeros.
+    """
+    _, _, f, _ = precision_recall_fscore_support(y_true, y_pred, beta=1, labels=labels, pos_label=pos_label,
+                                                 average=average, warn_for=(), sample_weight=sample_weight)
+    return f
 
 
 def evalPred(truth, pred, metricType='Precision@K'):
@@ -110,16 +121,7 @@ def avgPrecision(allTruths, allPreds, k):
     return np.mean(losses)
 
 
-def avgF1(allTruths, allPreds):
-    f1 = []
-    for i in range(allPreds.shape[0]):
-        pred = allPreds[i, :]
-        truth = allTruths[i, :]
-        f1.append(f1_score(truth, pred))
-    return np.mean(f1)
-
-
-def evaluationPrecision(allTruths, allPreds):
+def evaluatePrecision(allTruths, allPreds):
     N = allTruths.shape[0]
     perf_dict = dict()
     for metricType in [('Precision@3', 3), ('Precision@5', 5), 'Precision@K']:
@@ -137,13 +139,13 @@ def evaluationPrecision(allTruths, allPreds):
     return perf_dict
 
 
-def evaluationF1(allTruths, allPreds):
+def evaluateF1(allTruths, allPreds):
     N = allTruths.shape[0]
     f1 = []
     for i in range(allPreds.shape[0]):
         pred = allPreds[i, :]
         truth = allTruths[i, :]
-        f1.append(f1_score(truth, pred))
+        f1.append(f1_score_nowarn(truth, pred))
     mean = np.mean(f1)
     stderr = np.std(f1) / np.sqrt(N)
     print('%s: %.4f, %.3f' % ('Average F1', mean, stderr))

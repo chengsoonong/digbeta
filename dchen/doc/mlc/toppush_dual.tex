@@ -11,13 +11,13 @@ f_{n,j}(\w, \xibm) &= \w_j^\top \x^n - \xi_n, \ n \in \{1,\dots,N\}, \, j \in \{
 where $\xibm \in \R^{N}$ is a vector of $N$ slack variables.
 %
 Our optimisation problem can be rewritten as
-\begin{equation}
-\label{eq:tpush_opt}
+\begin{equation*}
+%\label{eq:tpush_opt}
 \begin{aligned}
 \min_{\w, \xibm} \ & f_0(\w, \xibm) \\
 s.t.             \ & f_{n,j}(\w, \xibm) \le 0, \ n \in \{1,\dots,N\}, \, j \in \{j: y_j^n = 0\}
 \end{aligned}
-\end{equation}
+\end{equation*}
 %
 For $\nubm_n \succeq 0, \, n \in \{1,\dots,N\}$, the \emph{Lagrangian} of problem (\ref{eq:tpush_opt}) is
 \begin{equation}
@@ -236,14 +236,14 @@ $$
 $$
 we have $u = \frac{-1}{1 + e^v} \in (-1, 0)$ and $v = \log(1+u) - \log(-u)$.
 Thus
-\begin{equation}
-\label{eq:conjugate_logistic}
+\begin{equation*}
+%\label{eq:conjugate_logistic}
 \ell^*(u) = u \left[ \log(1+u) - \log(-u) \right] - \log(\frac{1}{1+u}) = - u\log(-u) + (1+u) \log(1+u)
-\end{equation}
+\end{equation*}
 %
 By Eq.~(\ref{eq:tpush_dual}) and (\ref{eq:conjugate_logistic}), we have this convex optimisation problem:
-\begin{equation}
-\label{eq:tpush_dual_logistic}
+\begin{equation*}
+%\label{eq:tpush_dual_logistic}
 \begin{aligned}
 \underset{\alphabm_{1:N}, \, \betabm_{1:N}}{\min} \ &
     \sum_{k=1}^K \left[ 
@@ -254,7 +254,7 @@ s.t. \ \quad & \sum_{k=1}^K \gamma_{n,k} = 0, \ n \in \{1,\dots,N\} \\
              & 0 \succ \alphabm_n \succ -1, \ \alphabm_n \in \R^K, \ n \in \{1,\dots,N\} \\
              & \betabm_n \succeq 0, \ \betabm_n \in \R^K, \ n \in \{1,\dots,N\}
 \end{aligned}
-\end{equation}
+\end{equation*}
 %
 where
 $$

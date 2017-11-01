@@ -331,10 +331,10 @@ we consider three options for $\LCal(\cdot)$ here:
 \end{enumerate}
 
 To learn the parameters of predictor $\f$, we can minimise the empirical risk (\ref{eq:risk_pl}) with L2 regularisation:
-\begin{equation}
-\label{eq:minrisk_l2}
+\begin{equation*}
+%\label{eq:minrisk_l2}
 \min_{\w} \, \frac{1}{2} \w^\top \w + R_{\LCal}(\f; \SCal).
-\end{equation}
+\end{equation*}
 
 
 \subsection{Baselines}
@@ -583,18 +583,18 @@ b_n &= \frac{ \llb y_k^n=0 \rrb} {N K_-^n} \exp(p \w_k^\top \x^n).
 \label{sssec:tpush}
 
 The top-push loss~\cite{li2014top} of example $(\x, \y)$ given weights $\w$ is
-\begin{equation}
-\label{eq:tpush_loss}
+\begin{equation*}
+%\label{eq:tpush_loss}
 \LCal(\x, \y; \w) = \frac{1}{K_+} \sum_{i:y_i=1} \llb \w_i^\top \x \le \underset{j:y_j=0}{\max} \, \w_j^\top \x \rrb,
-\end{equation}
+\end{equation*}
 where $K_+$ is the number of positive labels in $\y$.
 
 Let $\ell(\cdot)$ be a convex surrogate of the indicator function, by Eq.~(\ref{eq:obj}) our optimisation objective is
-\begin{equation}
-\label{eq:tpush_obj}
+\begin{equation*}
+%\label{eq:tpush_obj}
 J(\w) = \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N 
         \frac{1}{K_+^n} \sum_{i:y_i^n=1} \ell \left( \w_i^\top \x^n - \underset{j:y_j^n=0}{\max} \, \w_j^\top \x^n \right),
-\end{equation}
+\end{equation*}
 where $K_+^n$ is the number of positive labels in $\y^n$.
 
 The objective~(\ref{eq:tpush_obj}) is hard to optimise due to the inner maximisation,

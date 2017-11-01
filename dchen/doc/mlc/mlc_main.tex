@@ -20,6 +20,7 @@
 \usepackage{setspace}   % set space between lines
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
+\usepackage{booktabs,multirow} % for tables
 \usepackage{xcolor}
 \usepackage{graphicx}
 \graphicspath{{fig/}}   % Location of the graphics files
@@ -27,6 +28,8 @@
 \newtheorem{theorem}{Theorem}
 \newtheorem{corollary}{Corollary}
 \newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
 
 \DeclareMathOperator*{\argmin}{argmin}
 \DeclareMathOperator*{\argmax}{argmax}
@@ -110,12 +113,13 @@ The goal is to generate a playlist from prediction $y$ with respect to query $x$
 and we focus on the scenario the prediction for each query has only very few positive labels (in contrast to the total number of labels $K$).
 %
 The empirical risk of a predictor $\f$ (with parameters $\w$) on training set $\SCal$ is
-\begin{equation*}
+\begin{equation}
+\label{eq:risk}
 R_{\LCal}(\f; \SCal) = \frac{1}{N} \sum_{n=1}^N \LCal (\x^n, \y^n; \w),
-\end{equation*}
+\end{equation}
 where $\LCal(\cdot)$ is a loss function. % for multi-label learning such as Hamming loss, rank loss, subset 0/1 loss etc.
 %
-To learn the parameters of predictor $\f$, we can minimise the empirical risk (\ref{eq:risk_pl}) with L2 regularisation\footnote{
+To learn the parameters of predictor $\f$, we can minimise the empirical risk (\ref{eq:risk}) with L2 regularisation\footnote{
 The regularisation constant is different from that in scikit-learn~\cite{sklearn-guide}, 
 as the objective there is $J(\w) = \frac{1}{2}\w^\top \w + C \sum_{n=1}^N \LCal(\x^n, \y^n; \w)$, so we have $C = \frac{1}{N \lambda}$.}:
 \begin{equation}
@@ -123,7 +127,8 @@ as the objective there is $J(\w) = \frac{1}{2}\w^\top \w + C \sum_{n=1}^N \LCal(
 \min_{\w} \, \frac{\lambda}{2} \w^\top \w + R_{\LCal}(\f; \SCal).
 \end{equation}
 
-Suppose the predicted score of a label has a \emph{linear} form, \ie $f_k(\x) = \w_k^\top \x, \, k \in \{1,\cdots,K\}$,
+Suppose the predicted score of a label has a \emph{linear} form, \ie $f_k(\x) = \sigma(\w_k^\top \x), \, k \in \{1,\cdots,K\}$,
+where $\sigma(v) = [1 + e^{-v}]^{-1}$ is the sigmoid function,
 then parameters $\w$ can be represented as a flattened weight vector, \ie $\w  = [\w_1^\top, \cdots, \w_K^\top]^\top$.
 In the next section, we describe several loss functions with different properties.
 
@@ -132,55 +137,74 @@ In the next section, we describe several loss functions with different propertie
 We describe a few methods that learn model parameters by optimising three loss functions.
 
 \subsection{Binary relevance}
-\label{sssec:logistic}
-The most natural idea is to make predictions for each label, by independently learning a binary classifier (\eg logistic regression) for each label,
-\ie, to learn the parameters $\w_k$ for the $k$-th label, we minimise the L2 regularised log likelihood:
+\label{ssec:br}
+
+If we choose the (unnormalised) Hamming loss:
+$$
+\LCal_\text{Hamm}(\x, \y; \w) = \sum_{k=1}^K \llb f_k \neq y_k \rrb = \sum_{k=1}^K \llb \sigma(\w_k^\top \x) \neq y_k \rrb,
+$$
+the optimisation problem (\ref{eq:minrisk_l2}) becomes:
+$$
+\min_\w \, \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \sum_{k=1}^K \llb \sigma(\w_k^\top \x^n) \neq y_k^n \rrb,
+$$
+note that $\w^\top \w = \sum_{k=1}^K \w_k^\top \w_k$, the above objective can be rewritten as
+$$
+\min_\w \, \sum_{k=1}^K \left[ \frac{\lambda}{2} \w_k^\top \w_k + \frac{1}{N} \sum_{n=1}^N \llb \sigma(\w_k^\top \x^n) \neq y_k^n \rrb \right],
+$$
+in other words, it can be decomposed into $K$ independent optimisation problems.
+Further, if we use log/cross-entropy loss\footnote{We redefine the negative label to $-1$ instead of $0$.}
+$\ell(y \cdot f) = -y\log f - (1-y)\log(1 - f)$ 
+to upper bound the 0/1 loss, then we have $K$ independent logistic regression classifiers,
+and the $k$-th classifier is learnt from training set $\{\x^n, y_k^n\}_{n=1}^N$, 
+which is derived from the original training set $\SCal$ with regards to the $k$-th label.
+
+Intuitively, this approach makes independent predictions for each label, by learning a binary classifier (\eg logistic regression) for every label,
+\ie to learn the parameters $\w_k$ for the $k$-th label, we minimise the L2 regularised log likelihood:
 \begin{align*}
 J(\w_k) 
 &= \frac{\lambda}{2} \w_k^\top \w_k + 
-   \frac{1}{N} \sum_{n=1}^N \left[ -y_k^n \log \sigma(\w_k^\top \x^n) - (1 - y_k^n) \log (1 - \sigma(\w_k^\top \x^n)) \right]
+   \frac{1}{N} \sum_{n=1}^N \left[ -y_k^n \log \sigma(\w_k^\top \x^n) - (1 - y_k^n) \log (1 - \sigma(\w_k^\top \x^n)) \right],
 \end{align*}
-$\sigma(v) = [1 + e^{-v}]^{-1}$ is the sigmoid function.
-To compute the gradient, note that
+the above objective is convex and differentiable, it can be optimised using gradient-based methods, 
+and the gradient can be computed as
 \begin{align*}
 \frac{\partial \, J(\w_k)} {\partial \, \w_k} 
 &= \lambda \w_k + \frac{1}{N} \sum_{n=1}^N \left[ -y_k^n \x^n + \sigma(\w_k^\top \x^n) \x^n \right]
 \end{align*}
 
-However, this method does not focus on ensuring the top few labels (\ie positive labels) are accurately modelled 
-and also ignores the correlations between labels.
+This approach is known as the \emph{binary relevance} model for multi-label classification~\cite{read2011classifier},
+it transforms a multi-label classification problem into several binary classification problems, 
+and does not focus on ensuring the top few labels (\ie positive labels) are accurately modelled,
+it also ignores the correlations between labels.
 
 
-
-\subsection{p-classification loss}
+\subsection{P-Classification loss}
 \label{sssec:pclass}
 
-The p-classification loss~\cite{ertekin2011equivalence} of example $(\x, \y)$ given weights $\w$ is
+Alternatively, we can use the P-Classification loss~\cite{ertekin2011equivalence}:
 \begin{equation}
 \label{eq:loss_pclass}
-\LCal(\x, \y; \w) = \frac{1}{K_+} \sum_{i:y_i=1} \ell_+(\w_i^\top \x) + \frac{1}{K_-} \sum_{j:y_j=0} \ell_-(\w_j^\top \x),
+\LCal_\text{PC}(\x, \y; \w) = \frac{1}{K_+} \sum_{i:y_i=1} \ell_+(\w_i^\top \x) + \frac{1}{K_-} \sum_{j:y_j=0} \ell_-(\w_j^\top \x),
 \end{equation}
-where $K_+$ and $K_-$ are defined as before, 
-and for constant $p \gg 1$,
+where $K_+$ and $K_-$ are the number of positive and negative labels respectively,
+and for constant\footnote{When $p \to +\infty$, the p-classification loss is equivalent to the top-push loss (with exponential surrogate).}
+$p \gg 1$,
 \begin{equation}
 \begin{aligned}
 \ell_+(v) & = \exp(-v), \\
 \ell_-(v) & = \frac{1}{p} \exp(pv).
 \end{aligned}
 \end{equation}
-When $p \to +\infty$, the above loss is equivalent to the top-push loss (with exponential surrogate).
 
-Then the objective with p-classification loss is
+The objective with P-Classification loss is
 \begin{align*}
 J(\w) 
 &= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{k=1}^K \sum_{n=1}^N \left[
    \frac{\llb y_k^n = 1 \rrb}{K_+^n} \exp(-\w_k^\top \x^n) + 
    \frac{\llb y_k^n = 0 \rrb}{p K_-^n} \exp(p \cdot \w_k^\top \x^n) \right]
 \end{align*}
-where $K_+^n$ and $K_-^n$ are defined as before.
-
-
-Similar to Section~\ref{sssec:rank}, we can compute the derivative of weight vector $\w_k, \, k \in \{1,\cdots,K\}$ as follows:
+where $K_+^n$ and $K_-^n$ are the positive and negative labels in $\y^n$.
+We can compute the derivative of weight vector $\w_k, \, k \in \{1,\cdots,K\}$ as follows:
 \begin{equation}
 \label{eq:grad_pclass}
 \frac{\partial J(\w)} {\partial \w_k} = \lambda \w_k + \sum_{n=1}^N (a_n + b_n) \x^n,
@@ -196,23 +220,26 @@ b_n &= \frac{ \llb y_k^n=0 \rrb} {N K_-^n} \exp(p \w_k^\top \x^n).
 \subsection{Top-push loss}
 \label{sssec:tpush}
 
-The top-push loss~\cite{li2014top} of example $(\x, \y)$ given weights $\w$ is
+Another loss function that focus on modelling the top ranked elements is the top-push loss~\cite{li2014top}, defined as
 \begin{equation}
 \label{eq:tpush_loss}
-\LCal(\x, \y; \w) = \frac{1}{K_+} \sum_{i:y_i=1} \llb \w_i^\top \x \le \underset{j:y_j=0}{\max} \, \w_j^\top \x \rrb,
+\LCal_\text{TP}(\x, \y; \w) = \frac{1}{K_+} \sum_{i:y_i=1} \llb \w_i^\top \x \le \underset{j:y_j=0}{\max} \, \w_j^\top \x \rrb.
 \end{equation}
-where $K_+$ is the number of positive labels in $\y$.
 
-Let $\ell(\cdot)$ be a convex surrogate of the indicator function, by Eq.~(\ref{eq:obj}) our optimisation objective is
+Let $\ell(\cdot)$ be a convex surrogate of the indicator function, by Eq.~(\ref{eq:minrisk_l2}) our optimisation objective is
 \begin{equation}
 \label{eq:tpush_obj}
 J(\w) = \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N 
-        \frac{1}{K_+^n} \sum_{i:y_i^n=1} \ell \left( \w_i^\top \x^n - \underset{j:y_j^n=0}{\max} \, \w_j^\top \x^n \right),
+        \frac{1}{K_+^n} \sum_{i:y_i^n=1} \ell \left( \w_i^\top \x^n - \underset{j:y_j^n=0}{\max} \, \w_j^\top \x^n \right).
 \end{equation}
-where $K_+^n$ is the number of positive labels in $\y^n$.
 
-The objective~(\ref{eq:tpush_obj}) is hard to optimise due to the inner maximisation,
-we can either approximate the inner maximisation or resort to optimise the dual problem of the objective.
+This objective is hard to optimise directly due to the inner maximisation,
+here we propose two approaches to optimise~(\ref{eq:tpush_obj}):
+\begin{itemize}
+\item Approximate the inner maximisation;
+\item Resort to solve the dual problem.
+\end{itemize}
+We describe these two methods in the following sections.
 
 \subsubsection{Solve the primal by approximating the inner maximisation}
 Note that the \emph{log-sum-exp} function can be bounded by the \emph{max} function~\cite[p. 72]{boyd2004convex}
@@ -237,7 +264,7 @@ by Eq.~(\ref{eq:tpush_loss}) we have
 \begin{equation}
 \label{eq:tpush_loss_approx}
 \begin{aligned}
-\LCal(\x, \y; \w)
+\LCal_\text{TP}(\x, \y; \w)
 &\le \frac{1}{K_+} \sum_{i:y_i=1}
      \log \left[ 1 + e^{- \left[ \w_i^\top \x - \underset{j:y_j=0}{\max} \, \w_j^\top \x \right]} \right] \\
 &\approx \frac{1}{K_+} \sum_{i:y_i=1}
@@ -246,7 +273,7 @@ by Eq.~(\ref{eq:tpush_loss}) we have
    \log \left[ 1 + \left[ \underset{j:y_j=0}{\sum} e^{r (\w_j - \w_i)^\top \x} \right]^{1/r} \right]
 \end{aligned}
 \end{equation}
-and by Eq.~(\ref{eq:obj}), objective~(\ref{eq:tpush_obj}) can be approximated as
+Then objective~(\ref{eq:tpush_obj}) can be approximated as
 \begin{equation}
 \label{eq:tpush_obj_approx}
 J(\w) \approx \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i:y_i^n=1}
@@ -254,7 +281,7 @@ J(\w) \approx \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \frac{1}{K
 \end{equation}
 
 To compute the gradient of $J(\w)$ with respect to $\w_k$\footnote{A sanity check is to assume $N=1, \, K=2$, and $y_1 = 1$, $y_2=0$.},
-note that $\w^\top \w = \sum_{k=1}^K \w_k^\top \w_k$ and 
+note that 
 $$
 \frac{\partial J(\w)} {\partial \w_k} 
 = \lambda \w_k + \frac{1}{N} \sum_{n=1}^N 
@@ -264,7 +291,7 @@ $$
   \frac{\partial \LCal(\x^n, \y^n; \w)} {\partial \w_k}
 $$
 %
-suppose $y_k = 1$, by (\ref{eq:tpush_loss_approx}) we have
+and suppose $y_k = 1$, we have
 \begin{equation}
 \label{eq:grad_of_loss_pos}
 \begin{aligned}
@@ -307,7 +334,13 @@ s.t.             \ & f_{n,j}(\w, \xibm) \le 0, \ n \in \{1,\dots,N\}, \, j \in \
 \end{aligned}
 \end{equation}
 %
-The \emph{Lagrangian dual problem} of (\ref{eq:tpush_opt}) is
+\begin{theorem}
+\label{th:dual}
+Let
+$$
+\gamma_{n,k} = \frac{\llb y_k^n=1 \rrb} {N K_+^n} \alpha_{n,k} + \frac{\llb y_k^n=0 \rrb} {N K_-^n} \beta_{n,k},
+$$
+the Lagrangian dual problem of problem (\ref{eq:tpush_opt}) is
 \begin{equation}
 \label{eq:tpush_dual}
 \begin{aligned}
@@ -319,20 +352,24 @@ s.t. \ \quad & \sum_{k=1}^K \gamma_{n,k} = 0, \ n \in \{1,\dots,N\} \\
              & \betabm_n \succeq 0, \ n \in \{1,\dots,N\}
 \end{aligned}
 \end{equation}
-where
-\begin{equation}
-\label{eq:new_var}
-\begin{aligned}
-\gamma_{n,k} &= \frac{\llb y_k^n=1 \rrb} {N K_+^n} \alpha_{n,k} + \frac{\llb y_k^n=0 \rrb} {N K_-^n} \beta_{n,k}
-\end{aligned}
-\end{equation}
-
-Suppose we use the logistic loss $\ell(v) = \log(1 + e^{-v})$, the conjugate of $\ell(v)$ is
-\begin{equation*}
-\ell^*(u) = - u\log(-u) + (1+u) \log(1+u)
-\end{equation*}
+Let $\alphabm_{1:N}^*$ and $\betabm_{1:N}^*$ be optimal solutions of problem (~\ref{eq:tpush_dual_logistic}),
+then the optimal solutions for the primal problem (\ref{eq:tpush_opt}) is given by
+$$
+\w_k^*
+= -\frac{1}{\lambda} \sum_{n=1}^N \left( 
+   \frac{\llb y_k^n=1 \rrb} {N K_+^n} \alpha_{n,k}^* + \frac{\llb y_k^n=0 \rrb} {N K_-^n} \beta_{n,k}^* \right) \x^n, \quad k \in \{1,\cdots,K\}.
+$$
+\end{theorem}
 %
-By Eq.~(\ref{eq:tpush_dual}) and (\ref{eq:conjugate_logistic}), we have this convex optimisation problem:
+\vspace{1em}
+%
+Suppose we use the logistic loss $\ell(v) = \log(1 + e^{-v})$, the conjugate of $\ell(v)$ is
+\begin{equation}
+\label{eq:conjugate_logistic}
+\ell^*(u) = - u\log(-u) + (1+u) \log(1+u)
+\end{equation}
+%
+By Theorem~\ref{th:dual} and Eq.~(\ref{eq:conjugate_logistic}), we have this convex optimisation problem:
 \begin{equation}
 \label{eq:tpush_dual_logistic}
 \begin{aligned}
@@ -343,17 +380,16 @@ By Eq.~(\ref{eq:tpush_dual}) and (\ref{eq:conjugate_logistic}), we have this con
     \left( -\alpha_{n,k}\log(-\alpha_{n,k}) + (1 + \alpha_{n,k}) \log(1 + \alpha_{n,k}) \right) \right] \\
 s.t. \ \quad & \sum_{k=1}^K \gamma_{n,k} = 0, \ n \in \{1,\dots,N\} \\
              & 0 \succ \alphabm_n \succ -1, \ \alphabm_n \in \R^K, \ n \in \{1,\dots,N\} \\
-             & \betabm_n \succeq 0, \ \betabm_n \in \R^K, \ n \in \{1,\dots,N\}
+             & \betabm_n \succeq 0, \ \betabm_n \in \R^K, \ n \in \{1,\dots,N\}.
 \end{aligned}
 \end{equation}
 %
-where
-$$
-\gamma_{n,k} = \frac{\llb y_k^n=1 \rrb} {N K_+^n} \alpha_{n,k} + \frac{\llb y_k^n=0 \rrb} {N K_-^n} \beta_{n,k}
-$$
-%
-Let $J(\alphabm_{1:N}, \betabm_{1:N})$ be the objective in (\ref{eq:tpush_dual_logistic}),
-the gradients of $\alpha_{n,k}$ and $\beta_{n,k}$ are
+Let $J(\alphabm_{1:N}, \betabm_{1:N})$ be the objective in problem~(\ref{eq:tpush_dual_logistic}),
+the gradients of $\alpha_{n,k}$ and $\beta_{n,k}$ are given by Proposition~\ref{prop:gradient}.
+
+\begin{proposition}
+\label{prop:gradient}
+The gradients of the objective in problem~(\ref{eq:tpush_dual_logistic}) are given by
 \begin{equation}
 \label{eq:tpush_grad_logistic}
 \begin{aligned}
@@ -362,22 +398,27 @@ the gradients of $\alpha_{n,k}$ and $\beta_{n,k}$ are
    - \log(-\alpha_{n,k}) + \log(1 + \alpha_{n,k}) \right] \\
 %
 \frac{\partial J(\alphabm_{1:N}, \betabm_{1:N})} {\partial \beta_{n,k}}
-&= \frac{\llb y_k^n = 0 \rrb} {\lambda N K_-^n} \left( \sum_{m=1}^N \gamma_{m,k} \x^m \right)^\top \x^n 
+&= \frac{\llb y_k^n = 0 \rrb} {\lambda N K_-^n} \left( \sum_{m=1}^N \gamma_{m,k} \x^m \right)^\top \x^n.
 \end{aligned}
 \end{equation}
+\end{proposition}
 %
-Note that in Eq.~(\ref{eq:tpush_dual_logistic}) and (\ref{eq:tpush_grad_logistic}),
-$\alpha_{n,k}$ will be used \emph{iff} $y_k^n = 1$, similarly, $\beta_{n,k}$ will be used \emph{iff} $y_k^n = 0$,
+\begin{remark}
+By the definition of $\gamma_{n,k}$ in Theorem~\ref{th:dual}, 
+we note that $\alpha_{n,k}$ will be used \emph{iff} $y_k^n = 1$, similarly, $\beta_{n,k}$ will be used \emph{iff} $y_k^n = 0$,
 which means we only need to optimise $N \times K$ weights $\Theta \in \R^{N \times K}$ where
 $$
 \theta_{n,k} = 
 \begin{cases}
 \alpha_{n,k}, & \text{if} \ y_k^n = 1 \\
-\beta_{n,k},  & \text{if} \ y_k^n = 0
+\beta_{n,k},  & \text{if} \ y_k^n = 0.
 \end{cases}
 $$
+\end{remark}
 %
-To compute the Hessian matrix (\ie the second-order partial derivatives), we have
+\begin{proposition}
+\label{prop:hessian}
+The Hessian matrix (\ie the second-order partial derivatives) of the objective in problem~(\ref{eq:tpush_grad_logistic}) is given by
 $$
 \frac{\partial^2 J(\Theta_{1:N})} {\partial \theta_{n,k} \, \partial \theta_{m,l}} 
 = \frac{1} {\lambda N^2} 
@@ -386,12 +427,15 @@ $$
   {\alpha_{n,k} (1 + \alpha_{n,k}) N K_+^n},
 $$
 where $m, n \in \{1,\dots,N\}$ and $k, l \in \{1,\dots,K\}$. 
+\end{proposition}
 
+\begin{remark}
 Note that the Hessian matrix $H \in \R^{NK \times NK}$ is \emph{symmetric} 
 according to Schwarz's theorem as $J(\Theta_{1:N})$ is continuous and differentiable,
 in practice, only the upper or lower triangular Hessian matrix is required for many optimisation algorithms. 
+\end{remark}
 
-Similarly, let $c_n(\thetabm_n) = \sum_{k=1}^K \gamma_{n,k}$,
+Finally, let $c_n(\thetabm_n) = \sum_{k=1}^K \gamma_{n,k}$,
 we can compute the gradient as
 \begin{align*}
 \frac{\partial c_n(\thetabm_n)} {\partial \theta_{n,k}} 
@@ -405,13 +449,7 @@ we can compute the gradient as
 \end{align*}
 and the Hessian matrices of all constraints are \emph{zeros} matrices as we only have \emph{linear} constraints.
 
-Let $\alphabm_{1:N}^*$ and $\betabm_{1:N}^*$ be optimal solutions of problem (~\ref{eq:tpush_dual_logistic}),
-then the corresponding optimal solutions for the primal problem (\ref{eq:tpush_opt}) can be obtained as
-$$
-\w_k^*
-= -\frac{1}{\lambda} \sum_{n=1}^N \left( 
-   \frac{\llb y_k^n=1 \rrb} {N K_+^n} \alpha_{n,k}^* + \frac{\llb y_k^n=0 \rrb} {N K_-^n} \beta_{n,k}^* \right) \x^n, \quad k \in \{1,\cdots,K\}
-$$
+\input{mlc_experiment}
 
 \appendix
 \newpage
