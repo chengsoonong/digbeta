@@ -42,17 +42,21 @@ nLabels_dict = {
 #     return X, Y[:, label_ix]
 
 
-def create_dataset(dataset_name, train_data=True):
+def create_dataset(dataset_name, train_data=True, shuffle=False, random_state=None):
     """
-        Load the dataset, and filter out examples with all positive/negative labels
+        Load the dataset, and filter out examples with all positive/negative labels,
+        examples are shuffled is `shuffle=True`.
+        NOTE that the `StratifiedKFold` or `KFold` used by `GridSearchCV` does not shuffle examples by default,
+        see `scikit-learn/sklearn/model_selection/_split.py` for details.
     """
     assert dataset_name in dataset_names
     assert type(train_data) == bool
+    assert type(shuffle) == bool
     dname = dataset_name
     split = 'train' if train_data else 'test'
 
     if dname == 'bookmarks':
-        return _load_bookmarks_data(train_data=train_data)
+        X, Y = _load_bookmarks_data(train_data=train_data)
     else:
         if dname in ['bibtex', 'delicious']:
             fname = os.path.join(data_dir, '%s/%s-%s.pkl' % (dname, dname, split))
@@ -62,9 +66,21 @@ def create_dataset(dataset_name, train_data=True):
             fname = os.path.join(data_dir, '%s/%s-%s.arff' % (dname, dname, split))
             data, meta = arff.loadarff(fname)
         X, Y = _create_dataset(data, nLabels_dict[dname])
-        kpos = Y.sum(axis=1)
-        return X[np.logical_and(kpos > 0, kpos < nLabels_dict[dname]), :], \
-            Y[np.logical_and(kpos > 0, kpos < nLabels_dict[dname]), :]
+
+    # filtering out examples with all positive/negative labels
+    kpos = Y.sum(axis=1)
+    X1 = X[np.logical_and(kpos > 0, kpos < nLabels_dict[dname]), :]
+    Y1 = Y[np.logical_and(kpos > 0, kpos < nLabels_dict[dname]), :]
+
+    # shuffling
+    if shuffle is True:
+        if random_state is not None:
+            np.random.seed(random_state)
+        ind = np.arange(X1.shape[0])
+        np.random.shuffle(ind)
+        return X1[ind], Y1[ind]
+    else:
+        return X1, Y1
 
 
 def _load_bookmarks_data(train_data=True):

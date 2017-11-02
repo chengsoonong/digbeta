@@ -1,11 +1,11 @@
 import numpy as np
-#from sklearn.metrics import f1_score
+# from sklearn.metrics import f1_score
 from sklearn.metrics import precision_recall_fscore_support
 
 
 def f1_score_nowarn(y_true, y_pred, labels=None, pos_label=1, average='binary', sample_weight=None):
     """
-        Compute F1 score, use the same interface as sklearn.metrics.f1_score, 
+        Compute F1 score, use the same interface as sklearn.metrics.f1_score,
         but disable the warning when both precision and recall are zeros.
     """
     _, _, f, _ = precision_recall_fscore_support(y_true, y_pred, beta=1, labels=labels, pos_label=pos_label,
