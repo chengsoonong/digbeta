@@ -54,14 +54,17 @@ def evalPred(truth, pred, metricType='Precision@K'):
 
     elif metricType == 'Ranking':
         loss = 0
-        for i in range(L-1):
-            for j in range(i+1, L):
+        for i in range(L):
+            for j in range(L):
                 if truth[i] > truth[j]:
                     if pred[i] < pred[j]:
                         loss += 1
-                    if pred[i] == pred[j]:
+                    elif pred[i] == pred[j]:
                         loss += 0.5
-        # return loss / (nPos * (L-nPos))
+                    else:
+                        pass
+        #denom = nPos * (L - nPos)
+        #return loss / denom if denom > 0 else 0
         return loss
 
     elif metricType == 'Precision@K':
@@ -150,6 +153,19 @@ def evaluateF1(allTruths, allPreds):
     stderr = np.std(f1) / np.sqrt(N)
     print('%s: %.4f, %.3f' % ('Average F1', mean, stderr))
     return {'F1': (mean, stderr)}
+
+
+def evaluateRankingLoss(allTruths, allPreds):
+    N = allTruths.shape[0]
+    loss = []
+    for i in range(N):
+        pred = allPreds[i, :]
+        truth = allTruths[i, :]
+        loss.append(evalPred(truth=truth, pred=pred, metricType='Ranking'))
+    mean = np.mean(loss)
+    stderr = np.std(loss) / np.sqrt(N)
+    print('%s: %.4f, %.3f' % ('Average RankingLoss', mean, stderr))
+    return {'RankingLoss': (mean, stderr)}
 
 
 def printEvaluation(allTruths, allPreds):

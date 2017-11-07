@@ -21,6 +21,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[english]{babel}
 \usepackage{booktabs,multirow} % for tables
+\usepackage{colortbl} % cellcolor
 \usepackage{xcolor}
 \usepackage{graphicx}
 \graphicspath{{fig/}}   % Location of the graphics files
@@ -81,6 +82,9 @@
 \newcommand{\diag}{\text{diag}}
 \newcommand{\downto}{\,\textbf{downto}\,}
 \newcommand{\blue}[1]{{\color{blue}{#1}}}
+
+\newcommand{\firstBest}[1]{\cellcolor{green!20}{#1}}
+\newcommand{\secondBest}[1]{\cellcolor{yellow!20}{#1}}
 
 \setlength{\columnsep}{1.5em} % spacing between columns
 
