@@ -63,8 +63,8 @@ def evalPred(truth, pred, metricType='Precision@K'):
                         loss += 0.5
                     else:
                         pass
-        #denom = nPos * (L - nPos)
-        #return loss / denom if denom > 0 else 0
+        # denom = nPos * (L - nPos)
+        # return loss / denom if denom > 0 else 0
         return loss
 
     elif metricType == 'Precision@K':

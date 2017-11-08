@@ -27,6 +27,7 @@ We evaluate the performance of algorithms in terms of four metrics:
 \item Precision@3
 \item Precision@5
 \item Precision@K, where K is the number of positive labels for each example (\ie $K_+^n$)
+\item RankingLoss
 \item F1 score
 \end{itemize}
 
@@ -34,9 +35,16 @@ We evaluate the performance of algorithms in terms of four metrics:
 The algorithms in consideration are:
 \begin{itemize}
 \item LR: Binary relevance (\ie independent logistic regression), regularisation constant $C = 1$.
-\item LR-CV: Binary relevance (\ie independent Logistic regression) with \emph{balanced} class weights, $C$ is tuned by cross validation.
-\item TP-MLC: Multi-label classification with top-push loss, $C$ is tuned by cross validation.
+\item LR-CV: Binary relevance (\ie independent Logistic regression), $C$ is tuned by cross validation.
+\item TP: Multi-label classification with top-push loss, regularisation constant $C=1$.
+\item TP-CV: Multi-label classification with top-push loss, $C$ is tuned by cross validation.
+\item TP-NW: Multi-label classification with top-push loss, without normalise the loss by the number of positive labels (\ie $K_+$)
+             in (\ref{eq:tpush_loss}), and $C$ is tuned by cross validation.
 \end{itemize}
+The set of values for regularisation constant in cross validation is 
+$\{ 1e^{r}, 3e^{r} \}$ where $r \in \{-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6\}$. 
+The number of folds for cross validation is $5$.
+
 
 \noindent
 The performance of these algorithms are shown in Table~\ref{tab:perf}.
@@ -104,29 +112,5 @@ Dataset & Method &             &             &             &             &      
 LR & 0.372 & 0.307 \\
 LR-CV & 0.447   & 0.321 \\
 DVN & 0.447 & 0.371 \\ \hline
-\end{tabular}
-\end{table}
-
-\begin{table}[!h]
-\centering
-\caption{Performance on test set}
-\begin{tabular}{l|cccc} \hline \hline
- & yeast & scene & bibtex & bookmarks \\ \hline
- & \multicolumn{4}{c}{Average Precision@3} \\ \hline
-TP-MLC & $0.5387 \pm  0.011$ & $0.3459 \pm  0.003$ & $0.3931 \pm  0.006$ & $0.2691 \pm  0.001$ \\
-LR-CV & $0.5198 \pm  0.011$ & $0.3244 \pm  0.004$ & $0.3474 \pm  0.006$ & - \\
-DVN & - & - & 0.364 $\pm$ 0.005 & - \\ \hline
- & \multicolumn{4}{c}{Average Precision@5} \\ \hline
-TP-MLC & $0.4534 \pm  0.008$ & $0.2167 \pm  0.002$ & $0.2883 \pm  0.004$ & $0.1943 \pm  0.001$ \\
-LR-CV & $0.4654 \pm  0.009$ & $0.2167 \pm  0.002$ & $0.2564 \pm  0.004$ & - \\
-DVN & - & - & 0.263 $\pm$ 0.004 & - \\ \hline
- & \multicolumn{4}{c}{Average Precision@K} \\ \hline
-TP-MLC & $0.5094 \pm  0.010$ & $0.7358 \pm  0.012$ & $0.5044 \pm  0.008$ & $0.4306 \pm  0.003$ \\
-LR-CV & $0.5031 \pm  0.010$ & $0.6564 \pm  0.013$ & $0.4552 \pm  0.008$ & - \\
-DVN & - & - & 0.474 $\pm$ 0.008 & - \\ \hline
- & \multicolumn{4}{c}{Average F1} \\ \hline
-TP-MLC & $0.4811 \pm  0.008$ & $0.5295 \pm  0.005$ & $0.0669 \pm  0.001$ & $0.0416 \pm  0.000$ \\
-LR-CV & $0.4171 \pm  0.010$ & $0.4971 \pm  0.014$ & $0.4282 \pm  0.007$ & - \\
-DVN & - & - & 0.447 $\pm$ 0.007 & - \\ \hline
 \end{tabular}
 \end{table}
