@@ -1,0 +1,85 @@
+Many thanks for the feedback and questions.
+
+R1:
+
+> Datasets are a bit small
+
+Acquiring a new dataset and setting it up for trajectory recommendation is a highly non-trivial undertaking. The datasets used here were benchmarks in current state of the art approaches in trajectory recommendation (Lim et al. 2015) and (Chen et al. 2016), and are derived from a large public photo repository (YFCC100M).
+
+
+> Time complexities of the proposed SP, SR, SPpath, SRpath models and baselines
+
+The time complexities for the proposed models are:
+
+1) The SP method can be learned as per the vanilla SSVM in polynomial time (Tsochantaridis et al. 2005). Similarly, as the loss augmented inference of SR is polynomial in M (the number of POIs) and K (the maximum number of ground truths for each query), the SR method can thus be learned in polynomial time if K is polynomial in M, which is normally the case.
+
+2) The SPpath and SRpath methods, however, use a loss augmented inference which is polynomial in M and R (the rank of the best loop-free sequence that is not a ground truth) (Nilsson et al. 2001), and R can be an exponential function of M in the worst case.
+
+3) Empirically, we observed that both SP and SR can be learned efficiently, while SPpath and SRpath took significantly more time to learn on larger dataset.
+
+4) The prediction of all these methods can be carried out using SLVA or ILP, the details are available in section "Practical choices: ILP vs SLVA vs other heuristics".
+
+All baselines in experiment can be learned in polynomial time.
+
+
+> Matrix factorization-based approaches and neural network based approaches (e.g., RNN) are not compared
+
+In our dataset, there are insufficient examples per user- (or query-) to learn a personalised latent vector as required by Matrix factorisation (MF) approaches. Further, MF approaches can be understood as providing a ranking over individual items (POIs). Thus, similar to ranking based methods, they will suffer from the homogeneous results.
+
+RNN based techniques have only been proposed for next location prediction instead of recommending an entire trajectory. In addition, these models generally require much more training data than available in our problem.
+
+
+
+R2:
+
+> The motivation is not clear
+
+Our motivation is to recommend cohesive travel trajectories, in the context of observing multiple ground truth trajectories for one query and requiring no repeated visits, as described in the Introduction section. 
+
+
+> Didn't analyze and compare with previous work, didn't illustrate why previous work failed to solve challenges such as global cohesion, multiple ground truths and loop elimination
+
+We mentioned several popular existing approaches (including collaborative filtering and ranking) in the Problem statement section, and highlighted their limitations. To start with, no existing work (to our knowledge) has attempted to ensure global cohesion of the entire sequence of recommended POIs. Ours is the first structured prediction approach to the problem which directly addresses this. 
+
+
+> More analysis of the SLVA algorithm
+
+Details of SLVA algorithm are available in the supplementary material, in section "Model learning and prediction".
+
+
+> Results of the proposed SP, SR methods do not have significant improvements in Table 3
+
+SP is a baseline that does not account for multiple ground truths, SR and SRpath are the proposed methods which were shown to have superior performance in Table 3.
+
+
+> The example in Introduction "while a user's two favourite songs might be in the metal and country genres, a playlist featuring these songs in succession may be jarring" is not clear
+
+The point here is that there may not be a smooth transition between metal and country songs. Thus, users are unlikely to enjoy a playlist with two such songs in succession, even if they like both songs individually.
+
+
+
+R3:
+
+> Distance between two successive POIs is an important factor for trajectory recommendation
+
+We created distance related features which are used in the proposed methods, details of features are available in the supplementary material, in section "Experiment".
+
+
+> Details about the data set is missing, noise and uncertainty of geo-tagged photos is not considered
+
+Trajectories are constructed by first mapping geo-tagged Flickr photos to POIs from Wikipedia, then segmenting photo sequences according to timestamps of photos. In particular, photos with low GPS accuracy were filtered out before mapping to POIs. Details of mapping geo-tagged photos to POIs and the construction of trajectories are available in (Lim et al. 2015) and (De Choudhury et al. 2010).
+
+
+> Real data would be very sparse
+
+We emphasise that we do *not* learn user-identity (or query-identity) specific parameters, as is commonly done in collaborative filtering; rather, we learn parameters on the *features* of the user (or query). Thus, the sparsity of POIs is not as major an issue.
+
+
+> Did not consider Foursquare data set
+
+The Foursquare dataset does not have readily available user trajectories, and hence is not applicable for our problem framework. 
+
+
+> Data set is relatively small
+
+See the first answer of R1 above.

@@ -229,3 +229,14 @@ Marginally below threshold.
 #### 11. CONFIDENCE
 
 Reviewer is knowledgeable in the area.
+
+
+
+### Meta_Reviewer_6
+
+#### Detailed Comments
+
+This paper study the trajectory recommendation problem by the structured SVM algorithm. Reviewers are concerned with the following aspects:
+1. the motivation is not clear. some claims are not supported by any materials.
+2. there are important technical details missing.
+3. the data for evaluation is questionable.
