@@ -22,9 +22,10 @@ def evalPred(truth, pred, metricType='Precision@K'):
             - pred:     real-valued array of predictions
             - metricType: can be subset 0-1, Hamming, ranking, and Precision@K where K = # positive labels.
     """
-
-    assert(len(truth) == len(pred))
-    L = len(truth)
+    truth = np.asarray(truth)
+    pred = np.asarray(pred)
+    assert(truth.shape[0] == pred.shape[0])
+    L = truth.shape[0]
     nPos = np.sum(truth)
     assert float(nPos).is_integer()
     nPos = int(nPos)
@@ -124,7 +125,7 @@ def avgPrecision(allTruths, allPreds, k):
     return np.mean(losses)
 
 
-def evaluatePrecision(allTruths, allPreds):
+def evaluatePrecision(allTruths, allPreds, verbose=0):
     N = allTruths.shape[0]
     perf_dict = dict()
     for metricType in [('Precision@3', 3), ('Precision@5', 5), 'Precision@K']:
@@ -138,7 +139,8 @@ def evaluatePrecision(allTruths, allPreds):
         mean = np.mean(losses)
         stderr = np.std(losses) / np.sqrt(N)
         perf_dict[metricStr] = (mean, stderr)
-        print('%s: %.4f, %.3f' % ('Average %s' % metricStr, mean, stderr))
+        if verbose > 0:
+            print('%s: %.4f, %.3f' % ('Average %s' % metricStr, mean, stderr))
     return perf_dict
 
 
