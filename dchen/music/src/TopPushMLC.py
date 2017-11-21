@@ -36,10 +36,13 @@ def obj_toppush(w, X, Y, C, r=1, weighting=True):
         KPosAll = np.ones(N)
         
     A_diag = 1.0 / KPosAll
-    #AY = Y * A_diag[:, None]
-    A = coo_matrix(([0], ([0], [0])), shape=(N, N), dtype=np.float).tolil()
-    A.setdiag(A_diag)
-    AY = np.dot(A, Y.tocsr())
+    
+    if K > 1e5:
+        A = coo_matrix(([0], ([0], [0])), shape=(N, N), dtype=np.float).tolil()
+        A.setdiag(A_diag)
+        AY = np.dot(A, Y.tocsr())
+    else:
+        AY = Y * A_diag[:, None]
     
     T1 = np.dot(X, W.T)  # N by K
     #m0 = np.max(T1)  # underflow in np.exp(r*T1 - m1)
@@ -74,7 +77,10 @@ def obj_toppush(w, X, Y, C, r=1, weighting=True):
     
     G = W / C + (G1 + G2) / N
     
+    #print(J)
+    
     return (J, G.ravel())
+
 
 class TopPushMLC(BaseEstimator):
     """All methods are necessary for a scikit-learn estimator"""
@@ -90,6 +96,7 @@ class TopPushMLC(BaseEstimator):
         self.weighting = weighting
         self.trained = False
         
+    
     def fit(self, X_train, Y_train):
         """Model fitting by optimising the objective"""
         opt_method = 'L-BFGS-B' #'BFGS' #'Newton-CG'
@@ -109,7 +116,33 @@ class TopPushMLC(BaseEstimator):
             sys.stderr.write('Optimisation failed')
             print(opt.items())
             self.trained = False
-            
+    
+    
+    def fit_SGD(self, X_train, Y_train, learning_rate=0.001, batch_size=200, n_epochs=100):
+        np.random.seed(918273645)
+        N, D = X_train.shape
+        K = Y_train.shape[1]
+        w = 0.001 * np.random.randn(K * D)
+        n_batches = int((N-1) / batch_size) + 1
+        for epoch in range(n_epochs):
+            Je = 0.0
+            indices = np.arange(N)
+            np.random.shuffle(indices)
+            for nb in range(n_batches):
+                ix_start = nb * batch_size
+                ix_end = min((nb+1) * batch_size, N)
+                ix = indices[ix_start:ix_end]
+                X = X_train[ix]
+                Y = Y_train[ix]
+                J, g = obj_toppush(w, X, Y, C=self.C, r=self.r, weighting=self.weighting)
+                w = w - learning_rate * g
+                Je += J
+                #Je += J * len(ix)
+            Je /= n_batches
+            print('epoch: %d, obj: %.4f' % (epoch+1, Je))
+        self.W = np.reshape(w, (K, D))
+        self.trained = True
+        
             
     def decision_function(self, X_test):
         """Make predictions (score is real number)"""
