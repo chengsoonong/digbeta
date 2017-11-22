@@ -95,8 +95,8 @@ class SSVM:
                 print('Ratio of inference time in training: %.1f (sec) / %.1f (sec), %.1f%%' %
                       (inftime, totaltime, 100 * inftime / totaltime))
             print('SSVM training finished.')
-        # except ValueError:
-        except:
+        except ValueError:
+            # except:
             self.trained = False
             sys.stderr.write('SSVM training FAILED.\n')
             # raise

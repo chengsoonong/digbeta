@@ -83,8 +83,8 @@ class SSVM:
             self.osssvm.fit(X_train, y_train, initialize=True)
             self.trained = True
             print('SSVM training finished.')
-        # except ValueError:
-        except:
+        except ValueError:
+            # except:
             self.trained = False
             sys.stderr.write('SSVM training FAILED.\n')
             # raise
