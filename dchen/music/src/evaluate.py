@@ -128,7 +128,7 @@ def avgPrecision(allTruths, allPreds, k):
 def evaluatePrecision(allTruths, allPreds, verbose=0):
     N = allTruths.shape[0]
     perf_dict = dict()
-    for metricType in [('Precision@3', 3), ('Precision@5', 5), 'Precision@K']:
+    for metricType in [('Precision@3', 3), ('Precision@5', 5), ('Precision@10', 10), 'Precision@K']:
         losses = []
         for i in range(allPreds.shape[0]):
             pred = allPreds[i, :]
