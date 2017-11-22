@@ -10,7 +10,7 @@ and we are interested in modelling these positive labels.
 
 \subsection{Multi-label classification}
 
-We cast multi-label classification as ranking labels and experiment the proposed methods on several multi-label datasets~\ref{mulan2011}, 
+We cast multi-label classification as ranking labels and experiment the proposed methods on several multi-label datasets~\cite{mulan2011}, 
 that falls in the interested setting described above, the statistics of these datasets are shown in Table~\ref{tab:dataset}.
 
 \begin{table}[!h]
@@ -75,7 +75,8 @@ The performance of these algorithms are shown in Table~\ref{tab:perf}.
 \subsection{Music recommendation}
 
 Another application of interest is music recommendation, in particular, recommending a small subset of songs from a large music library.
-This problem is different from playlist generation~\ref{} as the target here is a set instead of a list.
+This problem is different from playlist generation%~\ref{} 
+as the target here is a set instead of a list.
 
 To begin with, let $\{\x^i, \y^i\}_{i=1}^N$ the training set where $\x^i$ is the feature vector of the $i$-th \emph{query},
 and $\y^i$ is a binary vector that encode the set of recommended songs for query $\x^i$ (\ie 1 for recommended, 0 otherwise).
@@ -89,26 +90,25 @@ There are many options to specify what a \emph{query} is and its features, for e
 \item we can further add more constraints to the query such that the number of songs we want, 
       and genres or artists that should be covered by the recommendation.
 \end{itemize}
+where the seed song features can be its genre, age/year of release, artist, lyrics, audio features, album, user rating etc,
+and user features can be his/her age, gender, occupation, preference (genre, artist, etc), music purchase history etc.
 
-%song features: genre, age/year of release, artist, lyrics, audio features, album, user rating etc.
-%user features: age, gender, occupation, preference (genre, artist, etc), music purchase history etc.
+In summary, to recommend a set of songs from a music library, we learn a predictor with
+\begin{itemize}
+\item Input: query features
+\item Output: a number of options such as a indicator vector, a distribution, a ranking over all songs in the music library.
+\end{itemize}
+To determine the number of recommended songs $k$, we can either specify $k$ in the query,
+or fit a distribution of $k$ from training set, and sample the value of $k$ from this distribution for recommendation.
+Further, for a ranking based method, we may require that there should be a margin between the ranking scores of recommended songs and 
+those not recommended, thus implicitly specify the value of $k$.
 
-\eat{
-In summary, the 
+Lastly, instead of modelling the ranks of positive labels as described above, 
+we can alternatively formulate the music recommendation problem as a sequential prediction problem,
+\ie sequentially predict each label/song given previously predicted labels/songs.
 
- - specify what a query is, and the input/output of the predictor
-input: query features
-output: a indicator vector, a distribution, a ranking
-
-determine the number of songs to recommend:
-specify in the query
-fit a distribution of the number of songs in training set, sampling a number from this distribution
-for ranking based method, require that there should be a margin between ranking scores of recommended songs and those not recommended.
-
-Alternative formulations:
-instead of ranking, 
-sequential prediction problem (sequentially predict each label given previously predicted labels)
-}
+Table~\ref{tab:dataset_music} shows the preliminary results on the AotM-2011 music playlist dataset~\cite{mcfee2012},
+where we only use the genre of the first song in a playlist as the feature of a query (one-hot encoding).
 
 \begin{table}[!h]
 \centering
