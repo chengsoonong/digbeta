@@ -1,22 +1,42 @@
 \section{Experiment}
 \label{sec:experiment}
 
-We experiment the proposed methods on several multi-label dataset, the statistics are shown in Table~\ref{tab:dataset}.
+The settings that we focus in this work can be described as:
+\begin{itemize}
+\item The total number of labels is large,
+\item the number of positive labels of examples, on average, is very small compared with the total number of labels.
+\end{itemize}
+and we are interested in modelling these positive labels.
+
+\subsection{Multi-label classification}
+
+We cast multi-label classification as ranking labels and experiment the proposed methods on several multi-label datasets~\ref{mulan2011}, 
+that falls in the interested setting described above, the statistics of these datasets are shown in Table~\ref{tab:dataset}.
 
 \begin{table}[!h]
 \centering
 %\setlength{\tabcolsep}{3pt} % tweak the space between columns
 \caption{Statistics of multi-label dataset}
 \label{tab:dataset}
-\begin{tabular}{l*{7}{r}} \hline \hline
-Dataset & \#Examples (train) & \#Examples (test) & \#Features & \#Labels ($K$) & Avg $K_+$ (train) & Avg $K_+$ (test) & $K_+ / K$ \\ \hline
+\begin{tabular}{l*{4}{r}} \hline \hline
+                                  & \texttt{bibtex} & \texttt{bookmarks} & \texttt{delicious} & \texttt{mediamill} \\ \hline 
+\#Examples (train)                & 4,880           & 60,000             & 12,910             & 29,804         \\
+\#Examples (test)                 & 2,515           & 27,856             & 3,181              & 12,373         \\
+\#Features                        & 1,836           & 2,150              & 500                & 120            \\
+\#Labels                          & 159             & 208                & 983                & 101            \\
+\#Average Positive Labels (train) & 2.380 (1.50\%)  & 2.027 (0.97\%)     & 19.062 (1.94\%)    & 4.537 (4.49\%) \\
+\#Average Positive Labels (test)  & 2.444 (1.54\%)  & 2.031 (0.98\%)     & 18.934 (1.93\%)    & 4.599 (4.55\%) \\
+%Sparsity (train)                  & 1.497\%         & 0.974\%            & 1.939\%            & 4.492\%
+%Sparsity (test)                   & 1.537\%         & 0.976\%            & 1.926\%            & 4.553\%
+%
+%Dataset & \#Examples (train) & \#Examples (test) & \#Features & \#Labels ($K$) & Avg $K_+$ (train) & Avg $K_+$ (test) & $K_+ / K$ \\ \hline
 %\texttt{emotions} & 391  & 202  & 6  & 72  \\
-\texttt{yeast}     & 1,500  & 917    & 103  & 14  & 4  & 4  & 29\%  \\
-\texttt{scene}     & 1,211  & 1,196  & 294  & 6   & 1  & 1  & 17\%  \\ 
-\texttt{bibtex}    & 4,880  & 2,515  & 1,836 & 159 & 2  & 2  & 1.3\% \\
-\texttt{bookmarks} & 60,000 & 27,856 & 2,150 & 208 & 2  & 2  & 1\%   \\
-\texttt{delicious} & 12,910 & 3,181  & 500  & 983 & 19 & 18 & 2\%   \\
-\texttt{mediamill} & 29,804 & 12,373 & 120  & 101 & 4  & 4  & 4\%   \\
+%\texttt{yeast}     & 1,500  & 917    & 103  & 14  & 4  & 4  & 29\%  \\
+%\texttt{scene}     & 1,211  & 1,196  & 294  & 6   & 1  & 1  & 17\%  \\ 
+%\texttt{bibtex}    & 4,880  & 2,515  & 1,836 & 159 & 2  & 2  & 1.3\% \\
+%\texttt{bookmarks} & 60,000 & 27,856 & 2,150 & 208 & 2  & 2  & 1\%   \\
+%\texttt{delicious} & 12,910 & 3,181  & 500  & 983 & 19 & 18 & 2\%   \\
+%\texttt{mediamill} & 29,804 & 12,373 & 120  & 101 & 4  & 4  & 4\%   \\
 \hline
 \end{tabular}
 \end{table}
@@ -49,68 +69,62 @@ The number of folds for cross validation is $5$.
 \noindent
 The performance of these algorithms are shown in Table~\ref{tab:perf}.
 
-\begin{table}[!h]
-\centering
-\caption{Performance on test set}
-\label{tab:perf}
-\begin{tabular}{lllllll}
-\toprule
-       &    & Precision@3 & Precision@5 & Precision@K & RankingLoss &                  F1 \\
-Dataset & Method &             &             &             &             &                     \\
-\midrule
-\multirow{5}{*}{yeast} 
-       & LR &    \firstBest{0.7128}  & \firstBest{0.6017}  & \secondBest{0.6348} & \firstBest{6.4002}  &            \firstBest{0.5232} \\
-       & LR-CV & \secondBest{0.7085} & \secondBest{0.5987} & \firstBest{0.6360}  & \secondBest{6.5540} &            0.5190 \\
-       & TP &    $0.5078$            & $0.4425$            & $0.4893$            & $14.6663$           &  $0.3305$, $0.4548$ \\
-       & TP-CV & $0.5387$            & $0.4534$            & $0.5094$            & $14.0862$           &  $0.3426$, $0.4599$ \\
-       & TP-NW & $0.5289$            & $0.4489$            & $0.4981$            & $13.9891$           &  $0.3424$, $0.4599$ \\
-\cline{1-7}
-\multirow{5}{*}{scene} 
-       & LR &       $0.3450$            &    $0.2166$            &    $0.7404$            &    $0.4574$            &            \firstBest{0.5141} \\
-       & LR-CV &    $0.3450$            &    $0.2167$            &    $0.7404$            &    $0.4490$            &            $0.3545$ \\
-       & TP &       $0.3361$            &    $0.2166$            &    $0.5970$            &    $0.6823$            &  $0.3042$, $0.3042$ \\
-       & TP-CV &    \secondBest{0.3475} &    $0.2166$            &    \secondBest{0.7425} &    \secondBest{0.4348} &  $0.3965$, $0.3992$ \\
-       & TP-NW &    \firstBest{0.3478}  &    $0.2166$            &    \firstBest{0.7446}  &    \firstBest{0.4306}  &  $0.3975$, $0.4003$ \\
-\cline{1-7}
-\multirow{5}{*}{bibtex} 
-       & LR &       $0.3836$            &    $0.2815$            &    $0.4910$            &   $26.1237$            &            \firstBest{0.3250} \\
-       & LR-CV &    $0.3917$            &    \secondBest{0.2890} &    \secondBest{0.5021} &   $22.6974$            &            $0.2855$ \\
-       & TP &       $0.1153$            &    $0.0852$            &    $0.1374$            &   $103.1435$           &  $0.0300$, $0.0300$ \\
-       & TP-CV &    \secondBest{0.3931} &    $0.2882$            &    \firstBest{0.5044}  &   \secondBest{22.6378} &  $0.0301$, $0.0301$ \\
-       & TP-NW &    \firstBest{0.3955}  &    \firstBest{0.2899}  &    $0.4965$            &   \firstBest{21.5722}  &  $0.0301$, $0.0301$ \\
-\cline{1-7}
-\multirow{5}{*}{bookmarks} 
-       & LR &       $0.2425$            &    $0.1754$            &    $0.3949$            &   $46.3924$            &            \firstBest{0.2981} \\
-       & LR-CV &    \secondBest{0.2694} &    \secondBest{0.1963} &    \secondBest{0.4270} &   \firstBest{36.5398}  &            $0.2329$ \\
-       & TP &       $0.1146$            &    $0.0908$            &    $0.1991$            &   $93.8866$            &  $0.0192$, $0.0192$ \\
-       & TP-CV &    $0.2691$            &    $0.1944$            &    \firstBest{0.4306}  &   $39.3840$            &  $0.0193$, $0.0193$ \\
-       & TP-NW &    \firstBest{0.2710}  &    \firstBest{0.1971}  &    $0.4244$            &   \secondBest{36.6657} &  $0.0193$, $0.0193$ \\
-\cline{1-7}
-\multirow{5}{*}{delicious} 
-       & LR &       \secondBest{0.5934} &    \secondBest{0.5452} &    \secondBest{0.3734} & \secondBest{1787.7406} &            \firstBest{0.1756} \\
-       & LR-CV &    \firstBest{0.6060}  &    \firstBest{0.5588}  &    \firstBest{0.3782}  & \firstBest{1730.3213}  &            $0.1595$ \\
-       & TP &       $0.2674$            &    $0.2839$            &    $0.2337$            & $2537.2113$            &  $0.0377$, $0.0377$ \\
-       & TP-CV &    $0.5424$ &    $0.5095$            &    $0.3493$            & $2330.8136$            &  $0.0377$, $0.0378$ \\
-       & TP-NW &    $0.5411$            &    $0.5060$            &    $0.3489$            & $2331.8133$            &  $0.0377$, $0.0379$ \\
-\cline{1-7}
-\multirow{5}{*}{mediamill} 
-       & LR &       $0.6930$            &    $0.5446$            &    $0.6167$            &   $24.6113$            &            $0.5004$ \\
-       & LR-CV &    \firstBest{0.7003}  &    \firstBest{0.5552}  &    \firstBest{0.6325}  &   \firstBest{21.9177}  &            \firstBest{0.5285} \\
-       & TP &       $0.6003$            &    $0.4664$            &    $0.5075$            &   $35.6731$            &  $0.0862$, $0.0862$ \\
-       & TP-CV &    $0.6993$            &    $0.5512$            &    \secondBest{0.6299} &   $22.7410$            &  $0.0878$, $0.0983$ \\
-       & TP-NW &    \secondBest{0.7000} &    \secondBest{0.5551} &    $0.6251$            &   \secondBest{21.9690} &  $0.0898$, $0.1025$ \\
-\bottomrule
-\end{tabular}
+\input{tab_mulan}
 
-\end{table}
+
+\subsection{Music recommendation}
+
+Another application of interest is music recommendation, in particular, recommending a small subset of songs from a large music library.
+This problem is different from playlist generation~\ref{} as the target here is a set instead of a list.
+
+To begin with, let $\{\x^i, \y^i\}_{i=1}^N$ the training set where $\x^i$ is the feature vector of the $i$-th \emph{query},
+and $\y^i$ is a binary vector that encode the set of recommended songs for query $\x^i$ (\ie 1 for recommended, 0 otherwise).
+Here we make a assumption that the set of recommended songs for a given query is only a small portion of the music library,
+\ie $\y^i$ is a sparse vector (which could make independent logistic regression and a naive predictor that recommends all songs won't perform good)
+
+There are many options to specify what a \emph{query} is and its features, for example,
+\begin{itemize}
+\item a query is a seed song, and its feature is the feature of the seed song,
+\item or a query is tuple (user, seed song), and its feature combines both the feature of the user and that of the seed song,
+\item we can further add more constraints to the query such that the number of songs we want, 
+      and genres or artists that should be covered by the recommendation.
+\end{itemize}
+
+%song features: genre, age/year of release, artist, lyrics, audio features, album, user rating etc.
+%user features: age, gender, occupation, preference (genre, artist, etc), music purchase history etc.
+
+\eat{
+In summary, the 
+
+ - specify what a query is, and the input/output of the predictor
+input: query features
+output: a indicator vector, a distribution, a ranking
+
+determine the number of songs to recommend:
+specify in the query
+fit a distribution of the number of songs in training set, sampling a number from this distribution
+for ranking based method, require that there should be a margin between ranking scores of recommended songs and those not recommended.
+
+Alternative formulations:
+instead of ranking, 
+sequential prediction problem (sequentially predict each label given previously predicted labels)
+}
 
 \begin{table}[!h]
 \centering
-\caption{F1 score}
-\begin{tabular}{lll} \hline \hline 
- & \texttt{bibtex} & \texttt{bookmarks} \\ \hline
-LR & 0.372 & 0.307 \\
-LR-CV & 0.447   & 0.321 \\
-DVN & 0.447 & 0.371 \\ \hline
+\caption{Statistics of music recommendation dataset}
+\label{tab:dataset_music}
+\begin{tabular}{l*{2}{r}} \hline \hline
+                                  & \texttt{AotM-2011} & \texttt{30Music}  \\ \hline 
+\#Examples (train)                & 32,758             & \\
+\#Examples (test)                 & 16,136             & \\
+\#Features (genres)               & 15                 & \\
+\#Labels (songs)                  & 84,574             & \\
+\#Average Positive Labels (train) & 9.426 (0.01\%)     & \\
+\#Average Positive Labels (test)  & 9.454 (0.01\%)     & \\
+\hline
 \end{tabular}
 \end{table}
+
+
+\input{tab_music}

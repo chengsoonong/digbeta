@@ -1,0 +1,40 @@
+\begin{table}[!h]
+\centering
+\caption{Performance on test set}
+\label{tab:perf}
+\begin{tabular}{llllll}
+\toprule
+       &    & Precision@3 & Precision@5 & Precision@K & RankingLoss  \\
+Dataset & Method &             &             &             &         \\
+\midrule
+\multirow{5}{*}{bibtex} 
+       & LR &       $0.3836$            &    $0.2815$            &    $0.4910$            &   $26.1237$            \\
+       & LR-CV &    $0.3917$            &    \secondBest{0.2890} &    \secondBest{0.5021} &   \secondBest{22.6974} \\
+       & TP &       $0.1153$            &    $0.0852$            &    $0.1374$            &   $103.1435$           \\
+       & TP-CV &    \secondBest{0.3939} &    $0.2866$            &    \firstBest{0.5095}  &   24.5376              \\
+       & TP-NW &    \firstBest{0.3976}  &    \firstBest{0.2907}  &    $0.5011$            &   \firstBest{22.5089}  \\
+\cline{1-6}
+\multirow{5}{*}{bookmarks} 
+       & LR &       $0.2425$            &    $0.1754$            &    $0.3949$            &   $46.3924$            \\
+       & LR-CV &    \secondBest{0.2694} &    \secondBest{0.1963} &    \secondBest{0.4270} &   \firstBest{36.5398}  \\
+       & TP &       $0.1146$            &    $0.0908$            &    $0.1991$            &   $93.8866$            \\
+       & TP-CV &    $0.2691$            &    $0.1944$            &    \firstBest{0.4306}  &   $39.3840$            \\
+       & TP-NW &    \firstBest{0.2710}  &    \firstBest{0.1971}  &    $0.4244$            &   \secondBest{36.6657} \\
+\cline{1-6}
+\multirow{5}{*}{delicious} 
+       & LR &       \secondBest{0.5934} &    \secondBest{0.5452} &    \secondBest{0.3734} & \secondBest{1787.7406} \\
+       & LR-CV &    \firstBest{0.6060}  &    \firstBest{0.5588}  &    \firstBest{0.3782}  & \firstBest{1730.3213}  \\
+       & TP &       $0.2674$            &    $0.2839$            &    $0.2337$            & $2537.2113$            \\
+       & TP-CV &    $0.5424$            &    $0.5095$            &    $0.3493$            & $2330.8136$            \\
+       & TP-NW &    $0.5411$            &    $0.5060$            &    $0.3489$            & $2331.8133$            \\
+\cline{1-6}
+\multirow{5}{*}{mediamill} 
+       & LR &       $0.6930$            &    $0.5446$            &    $0.6167$            &   $24.6113$            \\
+       & LR-CV &    \firstBest{0.7003}  &    \firstBest{0.5552}  &    \firstBest{0.6325}  &   \firstBest{21.9177}  \\
+       & TP &       $0.6003$            &    $0.4664$            &    $0.5075$            &   $35.6731$            \\
+       & TP-CV &    $0.6973$            &    $0.5494$            &    \secondBest{0.6290} &   $23.0649$            \\
+       & TP-NW &    \secondBest{0.7001} &    \secondBest{0.5551} &    $0.6249$            &   \secondBest{21.9677} \\
+\bottomrule
+\end{tabular}
+
+\end{table}
