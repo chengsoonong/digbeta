@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 
 
-import tables
+import tables  # from package pytables
 
 
 def open_h5_file_read(h5filename):
