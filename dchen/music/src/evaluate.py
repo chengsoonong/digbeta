@@ -1,6 +1,7 @@
 import numpy as np
 # from sklearn.metrics import f1_score
 from sklearn.metrics import precision_recall_fscore_support
+from joblib import Parallel, delayed
 
 
 def f1_score_nowarn(y_true, y_pred, labels=None, pos_label=1, average='binary', sample_weight=None):
@@ -125,15 +126,17 @@ def avgPrecision(allTruths, allPreds, k):
     return np.mean(losses)
 
 
-def evaluatePrecision(allTruths, allPreds, verbose=0):
+def evaluatePrecision(allTruths, allPreds, verbose=0, n_jobs=-1):
     N = allTruths.shape[0]
     perf_dict = dict()
     for metricType in [('Precision@3', 3), ('Precision@5', 5), ('Precision@10', 10), 'Precision@K']:
-        losses = []
-        for i in range(allPreds.shape[0]):
-            pred = allPreds[i, :]
-            truth = allTruths[i, :]
-            losses.append(evalPred(truth, pred, metricType))
+        losses = Parallel(n_jobs=n_jobs)(delayed(evalPred)(allTruths[i, :], allPreds[i, :], metricType)
+                                         for i in range(N))
+        # losses = []
+        # for i in range(allPreds.shape[0]):
+        #    pred = allPreds[i, :]
+        #    truth = allTruths[i, :]
+        #    losses.append(evalPred(truth, pred, metricType))
 
         metricStr = metricType[0] if type(metricType) == tuple else metricType
         mean = np.mean(losses)
@@ -157,15 +160,17 @@ def evaluateF1(allTruths, allPreds):
     return {'F1': (mean, stderr)}
 
 
-def evaluateRankingLoss(allTruths, allPreds):
+def evaluateRankingLoss(allTruths, allPreds, n_jobs=-1):
     N = allTruths.shape[0]
-    loss = []
-    for i in range(N):
-        pred = allPreds[i, :]
-        truth = allTruths[i, :]
-        loss.append(evalPred(truth=truth, pred=pred, metricType='Ranking'))
-    mean = np.mean(loss)
-    stderr = np.std(loss) / np.sqrt(N)
+    losses = Parallel(n_jobs=n_jobs)(delayed(evalPred)(allTruths[i, :], allPreds[i, :], metricType='Ranking')
+                                     for i in range(N))
+    # losses = []
+    # for i in range(N):
+    #    pred = allPreds[i, :]
+    #    truth = allTruths[i, :]
+    #    losses.append(evalPred(truth=truth, pred=pred, metricType='Ranking'))
+    mean = np.mean(losses)
+    stderr = np.std(losses) / np.sqrt(N)
     print('%s: %.4f, %.3f' % ('Average RankingLoss', mean, stderr))
     return {'RankingLoss': (mean, stderr)}
 
