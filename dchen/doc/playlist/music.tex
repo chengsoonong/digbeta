@@ -1,0 +1,215 @@
+\section{Introduction}
+\label{sec:intro}
+
+There is a rich collection of literature on music recommendation~\cite{recsysbook2015}, 
+conference and workshop dedicated to music information retrieval including
+\begin{itemize}
+\item International society for music information retrieval conference (ISMIR, in New York last year)
+\item ACM workshop on Audio and music computing multimedia (in ACM international conference on multimedia)
+\end{itemize}
+
+We are interested in music playlist recommendation, 
+that is, given a (properly defined) query, (\ie some seed such as songs, artists, genre etc.), 
+we recommend one or more (potentially personalised) playlists (\ie, sequences of songs).
+Formally, given $N$ playlists $\SCal = \{\x^n, \y^n\}_{n=1}^N$, where $\x$ is a query and $\y$ is a playlist (\ie a list of songs) in which 
+each song is from a music library with $K$ songs $\{s_i\}_{i=1}^K$.
+The detailed form of $\x$ and $\y$ depends on the formulation of the problem which we discuss later.
+
+
+\section{Related work}
+\label{sec:related}
+
+Existing approaches to generate playlist summarised in~\cite{recsysbook2015} including
+constraint programming, ranking, classification and generation approaches, which are described below.
+
+\paragraph{Constraint programming} which encodes user's query using a set of constraints, 
+the generated playlist should satisfy all constraints.
+\begin{description}
+\item Pros: data that can be used to define constraints such as music metadata is abundant. 
+            Recommendations should conform to certain regulations and laws.
+\item Cons: feasible solutions of constraint programming are not necessarily optimal, in addition, 
+            generating constraints can be challenging for users.
+\end{description}
+
+
+\paragraph{Ranking} which ranks available songs by similarity (w.r.t. popularity, acoustic content features, semantic annotations etc.) 
+to the seed song(s) using specified song-level similarity metric.
+Variants of this approach including construct a graph where nodes are songs and edges are relations of songs,
+then employ path-finding algorithms such as shortest path, network flow and TSP.
+\begin{description}
+\item Pros: make use of metadata or content features, highly efficient.
+\item Cons: similarity metric is fixed a priori.
+\end{description}
+
+
+\paragraph{Classification} which trains a classifier using features such as co-occurrence of songs/artists, tags, 
+ordered pairs of songs, bigrams and acoustic features. The output of classifier can then be used to induce a ranking over songs in a library.
+\begin{description}
+\item Pros: similarity metrics are learned from data.
+\item Cons: have to synthesize negative examples from \eg, random samples.
+\end{description}
+
+
+\paragraph{Generative models} which treated playlists as sequences sampled from a probability distribution. 
+Model parameters are learning from training examples (\ie, a set of observed playlists).
+Example of this approach including Markov chain~\cite{chen2012playlist}, latent topic models, Bayesian hierarchical model~\cite{bengroove2017} 
+and co-embedding of songs and users etc.
+%\begin{description}
+%\item Pros: 
+%\item Cons: 
+%\end{description}
+
+
+\section{Problem formulation}
+\label{sec:formulation}
+
+Among the approaches described in Section~\ref{sec:related}, we are interested in \emph{ranking} and \emph{classification} approaches,
+besides, this problem can also be formulated as a \emph{sequential prediction problem}. 
+Before we describe each of these approaches in detail, we first fix the problem settings.
+
+Let a query $\x$ be a $D$ dimensional vector, \ie $\x \in \R^D$, 
+and the corresponding playlist $\y$ be a binary indicator of songs in the music library, \ie $\y \in \{0,1\}^K$ such that 
+$$
+y_i = 
+\begin{cases}
+1, & \text{song $s_i$ in the playlist} \\
+0, & \text{otherwise}
+\end{cases}, \, i \in \{1,\dots,K\}.
+$$
+In this formulation, we expect the indicator vector $\y$ be very sparse, 
+since the number of songs in a playlist is relatively small compared with the total number of songs (\ie $K$) in the music library.
+Further, by using a indicator, we essentially discard the order of songs in a playlist.
+Our goal here is to make a binary prediction for each song in the music library with respect to the given query.
+
+
+Another remark is that there are many options to specify what a \emph{query} is and its features, for example,
+\begin{itemize}
+\item a query is a seed song, and its feature is the feature of the seed song,
+\item or a query is tuple (user, seed song), and its feature combines both the feature of the user and that of the seed song,
+\item we can further add more constraints to the query such that the number of songs we want, 
+      and genres or artists that should be covered by the recommendation.
+\end{itemize}
+where the seed song features can be its genre, age/year of release, artist, lyrics, audio features, album, user rating etc,
+and user features can be his/her age, gender, occupation, preference (genre, artist, etc), music purchase history etc.
+
+
+In summary, to recommend a set of songs from a music library, we learn a predictor with
+\begin{itemize}
+\item Input: query features
+\item Output: a number of options such as a indicator vector, a distribution, a ranking over all songs in the music library.
+\end{itemize}
+To determine the number of recommended songs $k$, we can either specify $k$ in the query,
+or fit a distribution of $k$ from training set, and sample the value of $k$ from this distribution for recommendation.
+Further, for a ranking based method, we may require that there should be a margin between the ranking scores of recommended songs and 
+those not recommended, thus implicitly specify the value of $k$.
+
+
+\subsection{Ranking approach}
+\label{ssec:rank}
+
+The ranking approach that we are interested here is based on the following formulation:
+suppose we have a predictor $\f$ (with parameters $\w$), for a training example $(\x, \y)$, we want:
+\begin{itemize}
+\item the ranks of songs in $\y$ should be higher than those not in $\y$,
+\item for each song $s_i$ in the music library, $\f(s_i)$ is a score which acts as a proxy of the rank of song $s_i$,
+\item we assume a linear form of the score, \ie $\f(s_i) = \w_i^\top \x$.
+\end{itemize}
+
+To learn the parameters $\w  = [\w_1^\top, \cdots, \w_K^\top]^\top$ 
+we can minimise the empirical risk (\ref{eq:risk}) with L2 regularisation on training set $\SCal$,
+\begin{equation}
+\label{eq:minrisk_l2}
+\min_{\w} \, \frac{\lambda}{2} \w^\top \w + R_{\LCal}(\f; \SCal).
+\end{equation}
+where $R_{\LCal}(\f; \SCal)$ is the empirical risk of predictor $\f$ on training set $\SCal$,
+\begin{equation}
+\label{eq:risk}
+R_{\LCal}(\f; \SCal) = \frac{1}{N} \sum_{n=1}^N \LCal (\x^n, \y^n; \w),
+\end{equation}
+and $\LCal(\cdot)$ is a loss function. 
+
+Given a training example $(\x, \y)$, since we want to rank songs in $\y$ above all others, 
+and the fact that the number of songs in $\y$ is much smaller that the total number of songs in library,
+a natural choice is the top-push loss~\cite{li2014top}, which focuses on modelling the top ranked elements, defined as
+\begin{equation}
+\label{eq:tpush_loss}
+\LCal_\text{TP}(\x, \y; \w) = \frac{1}{K_+} \sum_{i:y_i=1} \llb \w_i^\top \x \le \underset{j:y_j=0}{\max} \, \w_j^\top \x \rrb.
+\end{equation}
+
+Let $\ell(\cdot)$ be a convex surrogate of the indicator function, by Eq.~(\ref{eq:minrisk_l2}) our optimisation objective is
+\begin{equation}
+\label{eq:tpush_obj}
+J(\w) = \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N 
+        \frac{1}{K_+^n} \sum_{i:y_i^n=1} \ell \left( \w_i^\top \x^n - \underset{j:y_j^n=0}{\max} \, \w_j^\top \x^n \right).
+\end{equation}
+
+This objective is hard to optimise directly due to the inner maximisation,
+here we propose two approaches to optimise~(\ref{eq:tpush_obj}):
+\begin{itemize}
+\item Approximate the inner maximisation;
+\item Resort to solve the dual problem.
+\end{itemize}
+
+
+
+\subsection{Classification approach}
+\label{ssec:classify}
+
+We can also tackle the playlist recommendation problem using a classification approach.
+In particular, for each song in the music library, 
+we use a binary classifier to independently predict if it will be recommended w.r.t. the given query.
+
+Note that this approach is closely related to using the (unnormalised) Hamming loss in E.q.~(\ref{eq:risk}), \ie,
+$$
+\LCal_\text{Hamm}(\x, \y; \w) = \sum_{k=1}^K \llb f_k \neq y_k \rrb = \sum_{k=1}^K \llb \sigma(\w_k^\top \x) \neq y_k \rrb,
+$$
+the optimisation problem (\ref{eq:minrisk_l2}) becomes:
+$$
+\min_\w \, \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \sum_{k=1}^K \llb \sigma(\w_k^\top \x^n) \neq y_k^n \rrb,
+$$
+note that $\w^\top \w = \sum_{k=1}^K \w_k^\top \w_k$, the above objective can be rewritten as
+$$
+\min_\w \, \sum_{k=1}^K \left[ \frac{\lambda}{2} \w_k^\top \w_k + \frac{1}{N} \sum_{n=1}^N \llb \sigma(\w_k^\top \x^n) \neq y_k^n \rrb \right],
+$$
+in other words, it can be decomposed into $K$ independent optimisation problems.
+Further, if we use log/cross-entropy loss\footnote{We redefine the negative label to $-1$ instead of $0$.}
+$\ell(y \cdot f) = -y\log f - (1-y)\log(1 - f)$ 
+to upper bound the 0/1 loss, then we have $K$ independent logistic regression classifiers,
+and the $k$-th classifier is learnt from training set $\{\x^n, y_k^n\}_{n=1}^N$, 
+which is derived from the original training set $\SCal$ with regards to the $k$-th label.
+
+Intuitively, this approach makes independent predictions for each label, by learning a binary classifier (\eg logistic regression) for every label,
+\ie to learn the parameters $\w_k$ for the $k$-th label, we minimise the L2 regularised log likelihood:
+\begin{align*}
+J(\w_k) 
+&= \frac{\lambda}{2} \w_k^\top \w_k + 
+   \frac{1}{N} \sum_{n=1}^N \left[ -y_k^n \log \sigma(\w_k^\top \x^n) - (1 - y_k^n) \log (1 - \sigma(\w_k^\top \x^n)) \right],
+\end{align*}
+the above objective is convex and differentiable, it can be optimised using gradient-based methods, 
+and the gradient can be computed as
+\begin{align*}
+\frac{\partial \, J(\w_k)} {\partial \, \w_k} 
+&= \lambda \w_k + \frac{1}{N} \sum_{n=1}^N \left[ -y_k^n \x^n + \sigma(\w_k^\top \x^n) \x^n \right]
+\end{align*}
+
+This approach is known as the \emph{binary relevance} model for multi-label classification~\cite{read2011classifier},
+it transforms a multi-label classification problem into several binary classification problems, 
+and does not focus on ensuring the top few labels (\ie positive labels) are accurately modelled,
+it also ignores the correlations between labels.
+Another drawback of this approach is that, for certain songs,
+it is very likely that there is no observation in any training example, 
+so the binary classifier may simply make a negative prediction, however, this is usually sub-optimal, 
+to alleviate this drawback, 
+we may resort to a prior, transfer learning using artist embedding/genre distribution, meta learning or presence-only data models.
+
+
+
+\subsection{Sequential prediction approach}
+\label{ssec:sequential}
+
+The playlist recommendation problem can also be formulated as a sequential prediction problem,
+\ie we sequentially predict each song in library given previously predicted songs (encoded as features).
+This approach has already been applied to playlist recommendation~\cite{bengroove2017}.
+Another approach which is known as (probabilistic) classifier chains~\cite{dembczynski:2010,read2011classifier}
+can be applied to predict a sequence, including playlist.
+

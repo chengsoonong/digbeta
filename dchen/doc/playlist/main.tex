@@ -1,0 +1,107 @@
+\documentclass[9pt]{extarticle}
+\usepackage[a4paper,top=0.79in,left=0.79in,bottom=0.79in,right=0.79in]{geometry} % A4 paper margins in LibreOffice
+\usepackage[numbers,compress]{natbib}
+\usepackage{hyperref}
+\usepackage{mathtools}
+\usepackage{amsthm}
+\usepackage{amsfonts}
+\usepackage{mathrsfs}
+\usepackage{bm}
+\usepackage{bbm}
+%\usepackage{ulem}
+\usepackage{stmaryrd}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage[sc]{mathpazo}
+%\linespread{1.05}       % Palladio needs more leading (space between lines)
+\usepackage[T1]{fontenc}
+%\usepackage{times}
+\usepackage{footmisc}   % \footref, refer the same footnote at different places
+\usepackage{subcaption} % sub-figures
+\usepackage{setspace}   % set space between lines
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{booktabs,multirow} % for tables
+\usepackage{colortbl} % cellcolor
+\usepackage{xcolor}
+\usepackage{graphicx}
+\graphicspath{{fig/}}   % Location of the graphics files
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{corollary}{Corollary}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}{Proposition}
+\newtheorem{remark}{Remark}
+
+\DeclareMathOperator*{\argmin}{argmin}
+\DeclareMathOperator*{\argmax}{argmax}
+\newcommand{\eat}[1]{}
+\newcommand{\given}{\mid}
+\newcommand{\llb}{\llbracket}
+\newcommand{\rrb}{\rrbracket}
+\newcommand{\bu}{\mathbf{u}}
+\newcommand{\bv}{\mathbf{v}}
+\newcommand{\f}{\mathbf{f}}
+\newcommand{\h}{\mathbf{h}}
+\newcommand{\x}{\mathbf{x}}
+\newcommand{\y}{\mathbf{y}}
+\newcommand{\z}{\mathbf{z}}
+\newcommand{\1}{\mathbf{1}}
+\newcommand{\w}{\mathbf{w}}
+\newcommand{\A}{\mathbf{A}}
+\newcommand{\B}{\mathbf{B}}
+\newcommand{\G}{\mathbf{G}}
+\newcommand{\M}{\mathbf{M}}
+\newcommand{\W}{\mathbf{W}}
+\newcommand{\X}{\mathbf{X}}
+\newcommand{\Y}{\mathbf{Y}}
+\newcommand{\p}{\mathbb{P}}
+\newcommand{\E}{\mathbb{E}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\q}{\mathbf{q}}
+\newcommand{\LCal}{\mathcal{L}}
+\newcommand{\SCal}{\mathcal{S}}
+\newcommand{\XCal}{\mathcal{X}}
+\newcommand{\YCal}{\mathcal{Y}}
+\newcommand{\alphat}{\widetilde{\alpha}}
+\newcommand{\betat}{\widetilde{\beta}}
+\newcommand{\gammat}{\widetilde{\gamma}}
+\newcommand{\phit}{\widetilde{\phi}}
+\newcommand{\alphabm}{\bm{\alpha}}
+\newcommand{\betabm}{\bm{\beta}}
+\newcommand{\nubm}{\bm{\nu}}
+\newcommand{\xibm}{\bm{\xi}}
+\newcommand{\thetabm}{\bm{\theta}}
+\newcommand{\Omegabm}{\bm{\Omega}}
+\newcommand{\one}{\mathbf{1}}
+% madeness: suPer-script in Brackets
+\newcommand{\pb}[1]{^{({#1})}}
+
+\newcommand{\eg}{e.g.\ }
+\newcommand{\ie}{i.e.\ }
+\newcommand{\diag}{\text{diag}}
+\newcommand{\downto}{\,\textbf{downto}\,}
+\newcommand{\blue}[1]{{\color{blue}{#1}}}
+
+\newcommand{\firstBest}[1]{\cellcolor{green!20}{#1}}
+\newcommand{\secondBest}[1]{\cellcolor{yellow!20}{#1}}
+
+\setlength{\columnsep}{1.5em} % spacing between columns
+
+\title{Music Playlist Recommendation}
+
+\author{Dawei Chen}
+
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\input{music}
+
+\bibliographystyle{plainnat}
+\bibliography{../ref_music,../mlc/ref_mlc}
+
+\end{document}
