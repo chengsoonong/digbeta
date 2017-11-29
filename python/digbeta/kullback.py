@@ -25,15 +25,15 @@ def klucb(x, d, div, upperbound, lowerbound=-float('inf'), precision=1e-6):
     Input args.: x, d, div, upperbound, lowerbound=-float('inf'), precision=1e-6
     where div is the KL divergence to be used.
     """
-    l = max(x, lowerbound)
-    u = upperbound
-    while u - l > precision:
-        m = (l + u) / 2
-        if div(x, m) > d:
-            u = m
+    low = max(x, lowerbound)
+    up = upperbound
+    while up - low > precision:
+        mid = (low + up) / 2
+        if div(x, mid) > d:
+            up = mid
         else:
-            l = m
-    return (l + u) / 2
+            low = mid
+    return (low + up) / 2
 
 
 def klucbGauss(x, d, sig2=1., precision=0.):
