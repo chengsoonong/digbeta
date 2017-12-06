@@ -60,6 +60,8 @@ The algorithms in consideration are:
 \item TP-CV: Multi-label classification with top-push loss, $C$ is tuned by cross validation.
 \item TP-NW: Multi-label classification with top-push loss, without normalise the loss by the number of positive labels (\ie $K_+$)
              in (\ref{eq:tpush_loss}), and $C$ is tuned by cross validation.
+\item SPEN: Structured prediction energy networks~\cite{belanger2016structured}.
+\item DVN: Deep value networks~\cite{gygli17a}.
 \end{itemize}
 The set of values for regularisation constant in cross validation is 
 $\{ 10^{z}, 3 \times 10^{z} \}$ where $z \in \{-6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6\}$,
@@ -79,37 +81,8 @@ Another application of interest is music recommendation, in particular, recommen
 This problem is different from playlist generation%~\ref{} 
 as the target here is a set instead of a list.
 
-To begin with, let $\{\x^i, \y^i\}_{i=1}^N$ the training set where $\x^i$ is the feature vector of the $i$-th \emph{query},
-and $\y^i$ is a binary vector that encode the set of recommended songs for query $\x^i$ (\ie 1 for recommended, 0 otherwise).
-Here we make a assumption that the set of recommended songs for a given query is only a small portion of the music library,
-\ie $\y^i$ is a sparse vector (which could make independent logistic regression and a naive predictor that recommends all songs won't perform good)
-
-There are many options to specify what a \emph{query} is and its features, for example,
-\begin{itemize}
-\item a query is a seed song, and its feature is the feature of the seed song,
-\item or a query is tuple (user, seed song), and its feature combines both the feature of the user and that of the seed song,
-\item we can further add more constraints to the query such that the number of songs we want, 
-      and genres or artists that should be covered by the recommendation.
-\end{itemize}
-where the seed song features can be its genre, age/year of release, artist, lyrics, audio features, album, user rating etc,
-and user features can be his/her age, gender, occupation, preference (genre, artist, etc), music purchase history etc.
-
-In summary, to recommend a set of songs from a music library, we learn a predictor with
-\begin{itemize}
-\item Input: query features
-\item Output: a number of options such as a indicator vector, a distribution, a ranking over all songs in the music library.
-\end{itemize}
-To determine the number of recommended songs $k$, we can either specify $k$ in the query,
-or fit a distribution of $k$ from training set, and sample the value of $k$ from this distribution for recommendation.
-Further, for a ranking based method, we may require that there should be a margin between the ranking scores of recommended songs and 
-those not recommended, thus implicitly specify the value of $k$.
-
-Lastly, instead of modelling the ranks of positive labels as described above, 
-we can alternatively formulate the music recommendation problem as a sequential prediction problem,
-\ie sequentially predict each label/song given previously predicted labels/songs.
-
 Table~\ref{tab:dataset_music} shows the preliminary results on the AotM-2011 music playlist dataset~\cite{mcfee2012},
-where we only use the genre of the first song in a playlist as the feature of a query (one-hot encoding).
+where we only use the precomputed audio features (from MSD) of the first song in a playlist as the feature of a query.
 
 \begin{table}[!h]
 \centering
@@ -117,12 +90,12 @@ where we only use the genre of the first song in a playlist as the feature of a 
 \label{tab:dataset_music}
 \begin{tabular}{l*{2}{r}} \hline \hline
                                   & \texttt{AotM-2011} & \texttt{30Music}  \\ \hline 
-\#Examples (train)                & 32,758             & \\
-\#Examples (test)                 & 16,136             & \\
-\#Features (genres)               & 15                 & \\
-\#Labels (songs)                  & 84,574             & \\
-\#Average Positive Labels (train) & 9.426 (0.01\%)     & \\
-\#Average Positive Labels (test)  & 9.454 (0.01\%)     & \\
+\#Examples (train)                & 63,849             & \\
+\#Examples (test)                 & 31,449             & \\
+\#Features (genres)               & 91                 & \\
+\#Labels (songs)                  & 119,466            & \\
+\#Average Positive Labels (train) & 9.365 (0.008\%)    & \\
+\#Average Positive Labels (test)  & 9.337 (0.008\%)    & \\
 \hline
 \end{tabular}
 \end{table}
