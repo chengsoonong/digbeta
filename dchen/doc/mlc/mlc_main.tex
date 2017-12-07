@@ -470,7 +470,7 @@ and the Hessian matrices of all constraints are \emph{zeros} matrices as we only
 Observe that we can use either the 0-1 loss or the top-push loss for each \emph{label}, 
 which result in a binary classifier (\eg logistic regression if the 0-1 loss is upper-bounded by log loss) or a bipartite ranking model.
 Further, in the multi-label setting, we can use either 0-1 loss or the top-push loss for each \emph{example}, 
-we summarise these configurations in Table~\ref{tab:config}.
+we summarise these configurations in Table~\ref{tab:config}\footnote{We use log loss to upper-bounded the 0-1 loss in this table.}.
 
 \begin{table}[!h]
 \centering
@@ -482,7 +482,7 @@ we summarise these configurations in Table~\ref{tab:config}.
 Top-push loss    & 0-1 loss        & TP-LR \\
 Top-push loss    & Top-push loss   & TP-TP \\
 0-1 loss         & Top-push loss   & LR-TP \\
-0-1 loss         & 0-1 loss        & LR\tablefootnote{We use log loss to upper-bounded the 0-1 loss in this table.} \\
+0-1 loss         & 0-1 loss        & LR    \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -563,13 +563,25 @@ If we compare Eq.~(\ref{eq:tpush_obj}) with Eq.~(\ref{eq:tp_lr_obj}), what shoul
 J_\textsc{lr}(\w) 
 &= \frac{\lambda_2}{K} \sum_{k=1}^K \frac{1}{N} \sum_{n=1}^N \llb (\w_k^\top \x^n) \cdot \widetilde{y}_k^n \le 0 \rrb \\
 &\le \frac{\lambda_2}{K} \sum_{k=1}^K \frac{1}{N} \sum_{n=1}^N 
-     \left[ -y_k^n \log \sigma(\w_k^\top \x^n) - (1 - y_k^n) \log (1 - \sigma(\w_k^\top \x^n)) \right],
+     \left[ -y_k^n \log \sigma(\w_k^\top \x^n) - (1 - y_k^n) \log (1 - \sigma(\w_k^\top \x^n)) \right] \\
+&= \frac{\lambda_2}{K} \sum_{k=1}^K \frac{1}{N} \sum_{n=1}^N
+   \left[ \log \left( 1 + \exp(\w_k^\top \x^n) \right) + 
+          y_k^n \log \left( \frac{1 + \exp(-\w_k^\top \x^n)} {1 + \exp(\w_k^\top \x^n)} \right) \right],
 \end{align*}
 where we use the fact that 0-1 loss can be upper-bounded by logistic loss which is equivalent to the log/cross-entropy loss as described above.
+The gradient with regards to $\w_k$ is
+$$
+\frac{\partial \, J_\textsc{lr}(\w)} {\partial \, \w_k}
+\approx \frac{\lambda_2}{NK} \sum_{n=1}^N \x^n \left( \frac{1}{1 + \exp(-\w_k^\top \x^n)} - y_k^n \right)
+$$
+
+
+\subsubsection{TP-TP}
+\label{sssec:tp_tp}
 
 
 \subsubsection{LR-TP}
-\label{sssec:lr-tp}
+\label{sssec:lr_tp}
 
 The configuration LR-TP applies the 0-1 loss for each example and the top-push loss for the binary dataset induced by each label.
 The optimisation objective of this configuration is (with L2 regularisation)
