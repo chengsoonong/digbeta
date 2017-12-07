@@ -12,6 +12,7 @@
 \usepackage{stmaryrd}
 \usepackage{algorithm}
 \usepackage{algorithmic}
+\usepackage{tablefootnote}    % footnote in table and tabular env
 \usepackage[sc]{mathpazo}
 \linespread{1.05}       % Palladio needs more leading (space between lines)
 \usepackage[T1]{fontenc}
@@ -121,7 +122,7 @@ The empirical risk of a predictor $\f$ (with parameters $\w$) on training set $\
 \label{eq:risk}
 R_{\LCal}(\f; \SCal) = \frac{1}{N} \sum_{n=1}^N \LCal (\x^n, \y^n; \w),
 \end{equation}
-where $\LCal(\cdot)$ is a loss function. % for multi-label learning such as Hamming loss, rank loss, subset 0/1 loss etc.
+where $\LCal(\cdot)$ is a loss function. % for multi-label learning such as Hamming loss, rank loss, subset 0-1 loss etc.
 %
 To learn the parameters of predictor $\f$, we can minimise the empirical risk (\ref{eq:risk}) with L2 regularisation\footnote{
 The regularisation constant is different from that in scikit-learn~\cite{sklearn-guide}, 
@@ -131,7 +132,8 @@ as the objective there is $J(\w) = \frac{1}{2}\w^\top \w + C \sum_{n=1}^N \LCal(
 \min_{\w} \, \frac{\lambda}{2} \w^\top \w + R_{\LCal}(\f; \SCal).
 \end{equation}
 
-Suppose the predicted score of a label has a \emph{linear} form, \ie $f_k(\x) = \sigma(\w_k^\top \x), \, k \in \{1,\cdots,K\}$,
+Suppose the predicted score of a label has a \emph{linear} form $\w_k^\top \x$, 
+and the prediction $f_k(\x) = \llb \sigma(\w_k^\top \x) \ge \frac{1}{2} \rrb, \, k \in \{1,\cdots,K\}$,
 where $\sigma(v) = [1 + e^{-v}]^{-1}$ is the sigmoid function,
 then parameters $\w$ can be represented as a flattened weight vector, \ie $\w  = [\w_1^\top, \cdots, \w_K^\top]^\top$.
 In the next section, we describe several loss functions with different properties.
@@ -145,20 +147,24 @@ We describe a few methods that learn model parameters by optimising three loss f
 
 If we choose the (unnormalised) Hamming loss:
 $$
-\LCal_\text{Hamm}(\x, \y; \w) = \sum_{k=1}^K \llb f_k \neq y_k \rrb = \sum_{k=1}^K \llb \sigma(\w_k^\top \x) \neq y_k \rrb,
+\LCal_\text{Hamm}(\x, \y; \w) = \sum_{k=1}^K \llb f_k \neq y_k \rrb.
+$$
+If We redefine the negative label to $-1$ instead of $0$, we can rewrite Hamming loss as
+$$
+\LCal_\text{Hamm}(\x, \y; \w) = \sum_{k=1}^K \llb (\w_k^\top \x) y_k \le 0 \rrb,
 $$
 the optimisation problem (\ref{eq:minrisk_l2}) becomes:
 $$
-\min_\w \, \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \sum_{k=1}^K \llb \sigma(\w_k^\top \x^n) \neq y_k^n \rrb,
+\min_\w \, \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \sum_{k=1}^K \llb (\w_k^\top \x^n) y_k^n \le 0 \rrb,
 $$
 note that $\w^\top \w = \sum_{k=1}^K \w_k^\top \w_k$, the above objective can be rewritten as
 $$
-\min_\w \, \sum_{k=1}^K \left[ \frac{\lambda}{2} \w_k^\top \w_k + \frac{1}{N} \sum_{n=1}^N \llb \sigma(\w_k^\top \x^n) \neq y_k^n \rrb \right],
+\min_\w \, \sum_{k=1}^K \left[ \frac{\lambda}{2} \w_k^\top \w_k + \frac{1}{N} \sum_{n=1}^N \llb (\w_k^\top \x^n) y_k^n \le 0 \rrb \right],
 $$
 in other words, it can be decomposed into $K$ independent optimisation problems.
-Further, if we use log/cross-entropy loss\footnote{We redefine the negative label to $-1$ instead of $0$.}
+Further, if we use log/cross-entropy loss\footnote{Here the negative label is $0$ instead of $-1$.}
 $\ell(y \cdot f) = -y\log f - (1-y)\log(1 - f)$ 
-to upper bound the 0/1 loss, then we have $K$ independent logistic regression classifiers,
+to upper bound the 0-1 loss, then we have $K$ independent logistic regression classifiers,
 and the $k$-th classifier is learnt from training set $\{\x^n, y_k^n\}_{n=1}^N$, 
 which is derived from the original training set $\SCal$ with regards to the $k$-th label.
 
@@ -456,6 +462,130 @@ we can compute the gradient as
 \frac{\partial c_n(\thetabm_n)} {\partial \theta_{m,k}} &= 0, \ m \neq n, \, k \in \{1,\dots,K\}
 \end{align*}
 and the Hessian matrices of all constraints are \emph{zeros} matrices as we only have \emph{linear} constraints.
+
+
+\subsection{Hybrid loss}
+\label{ssec:hybrid}
+
+Observe that we can use either the 0-1 loss or the top-push loss for each \emph{label}, 
+which result in a binary classifier (\eg logistic regression if the 0-1 loss is upper-bounded by log loss) or a bipartite ranking model.
+Further, in the multi-label setting, we can use either 0-1 loss or the top-push loss for each \emph{example}, 
+we summarise these configurations in Table~\ref{tab:config}.
+
+\begin{table}[!h]
+\centering
+\caption{Configurations of loss functions for labels and examples.}
+\label{tab:config}
+\begin{tabular}{lll}
+\toprule
+\textbf{Example} & \textbf{Label}  & \textbf{Model} \\ \hline
+Top-push loss    & 0-1 loss        & TP-LR \\
+Top-push loss    & Top-push loss   & TP-TP \\
+0-1 loss         & Top-push loss   & LR-TP \\
+0-1 loss         & 0-1 loss        & LR\tablefootnote{We use log loss to upper-bounded the 0-1 loss in this table.} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Note that we can rewrite the 0-1 loss for each label in a multi-label dataset $\{\x^n, \y^n\}_{n=1}^N$ as
+\begin{equation}
+\label{eq:br_equiv}
+\frac{1}{NK} \sum_{n=1}^N \sum_{k=1}^K \llb (\w_k^\top \x^n) \cdot \widetilde{y}_k^n \le 0 \rrb 
+= \frac{1}{NK} \sum_{k=1}^K \sum_{n=1}^N \llb (\w_k^\top \x^n) \cdot \widetilde{y}_k^n \le 0 \rrb,
+\end{equation}
+where binary label 
+$$
+\widetilde{y}_k^n = \begin{cases}
++1, & y_k^n = 1 \\
+-1, & y_k^n = 0.
+\end{cases}
+$$
+
+Eq.~(\ref{eq:br_equiv}) means using 0-1 loss for both the labels and examples is equivalent to 
+the binary relevance method described Section~\ref{ssec:br}.
+
+For one example $(\x^n, \y^n), \, n \in \{1,\dots,N\}$, let
+\begin{equation}
+\label{eq:log_loss_example}
+\LCal_\textsc{0-1}^n(\x^n, \y^n; \w) = \frac{1}{K} \sum_{k=1}^K \llb (\w_k^\top \x^n) \cdot \widetilde{y}_k^n \le 0 \rrb 
+\end{equation}
+be the 0-1 loss for the example w.r.t. model parameters $\w$, and
+\begin{equation}
+\label{eq:tp_loss_example}
+\LCal_\textsc{tp}^n(\x^n, \y^n; \w) = \frac{1}{K_+^n} \sum_{i: y_i^n=1} \llb \w_i^\top \x^n \le \max_{j: y_j^n=0} \w_j^\top \x^n \rrb
+\end{equation}
+be the top-push loss for the example. 
+
+For a binary dataset $\SCal_k = \{\x^n, y_k^n\}_{n=1}^N, \, k \in \{1,\dots,K\}$, let
+\begin{equation}
+\label{eq:log_loss_label}
+\LCal_\textsc{0-1}^k(\SCal_k; \w) = \frac{1}{N} \sum_{n=1}^N \llb (\w_k^\top \x^n) \cdot \widetilde{y}_k^n \le 0 \rrb,
+\end{equation}
+be the 0-1 loss for the binary dataset $\SCal_k$ w.r.t. model parameters $\w$, and
+\begin{equation}
+\label{eq:tp_loss_label}
+\LCal_\textsc{tp}^k(\SCal_k; \w) = \frac{1}{N_+^k} \sum_{p: y_k^p=1} \llb \w_k^\top \x^p \le \max_{q: y_k^q=0} \w_k^\top \x^q \rrb
+\end{equation}
+be the top-push loss for binary dataset $\SCal_k$.
+
+
+\subsubsection{TP-LR}
+\label{sssec:tp-lr}
+
+The configuration TP-LR in Table~\ref{tab:config} applies the top-push loss for each example and 
+the 0-1 loss for the binary dataset induced by each label, which optimises the objective (with L2 regularisation)
+\begin{equation}
+\label{eq:tp_lr_obj}
+\begin{aligned}
+J(\w)
+&= \frac{1}{2} \w^\top \w +
+   \frac{\lambda_1}{N} \sum_{n=1}^N \LCal_\textsc{tp}^n +
+   \frac{\lambda_2}{K} \sum_{k=1}^K \LCal_\textsc{0-1}^k \\
+&= \frac{1}{2} \w^\top \w +
+   \frac{\lambda_1}{N} \sum_{n=1}^N \frac{1}{K_+^n} \sum_{i: y_i^n=1} \llb \w_i^\top \x^n \le \max_{j: y_j^n=0} \w_j^\top \x^n \rrb +
+   \frac{\lambda_2}{K} \sum_{k=1}^K \frac{1}{N} \sum_{n=1}^N \llb (\w_k^\top \x^n) \cdot \widetilde{y}_k^n \le 0 \rrb %\\
+%&= \frac{1}{2} \w^\top \w +
+%   \frac{1}{N} \sum_{n=1}^N \left[ \frac{\lambda_1}{K_+^n} \sum_{i: y_i^n=1} \llb \w_i^\top \x^n \le \max_{j: y_j^n=0} \w_j^\top \x^n \rrb +
+%   \frac{\lambda_2}{K} \sum_{k=1}^K \llb (\w_k^\top \x^n) y_k^n \le 0 \rrb \right]
+\end{aligned}
+\end{equation}
+we can use the logistic loss to upper bound the 0-1 loss, and use Eq.~(\ref{eq:tpush_loss_approx}) to approximate the inner maximisation.
+
+Note the equivalence between logistic loss and log/cross-entropy loss:
+\begin{itemize}
+\item The logistic loss: $\log(1 + \exp(-\w^\top \x \cdot \widetilde{y}))$ where $\widetilde{y} \in \{-1, +1\}$,
+\item The log/cross-entropy loss: $ -y \log f - (1-y) \log(1-f)$ where $y \in \{0, 1\}$ and $f = \sigma(\w^\top \x)$\footnote{
+$\sigma(v) = [1 + \exp(-v)]^{-1}$ is the sigmoid function.}.
+\end{itemize}
+
+If we compare Eq.~(\ref{eq:tpush_obj}) with Eq.~(\ref{eq:tp_lr_obj}), what should be computed additionally is
+\begin{align*}
+J_\textsc{lr}(\w) 
+&= \frac{\lambda_2}{K} \sum_{k=1}^K \frac{1}{N} \sum_{n=1}^N \llb (\w_k^\top \x^n) \cdot \widetilde{y}_k^n \le 0 \rrb \\
+&\le \frac{\lambda_2}{K} \sum_{k=1}^K \frac{1}{N} \sum_{n=1}^N 
+     \left[ -y_k^n \log \sigma(\w_k^\top \x^n) - (1 - y_k^n) \log (1 - \sigma(\w_k^\top \x^n)) \right],
+\end{align*}
+where we use the fact that 0-1 loss can be upper-bounded by logistic loss which is equivalent to the log/cross-entropy loss as described above.
+
+
+\subsubsection{LR-TP}
+\label{sssec:lr-tp}
+
+The configuration LR-TP applies the 0-1 loss for each example and the top-push loss for the binary dataset induced by each label.
+The optimisation objective of this configuration is (with L2 regularisation)
+$$
+J(\w) = \frac{1}{2} \w^\top \w + \frac{\lambda_1}{N} \sum_{n=1}^N \LCal_\textsc{0-1}^n + C_2 \frac{\lambda_2}{K} \sum_{k=1}^K \LCal_\textsc{tp}^k,
+$$
+where $\lambda_1$ and $\lambda_2$ are positive regularisation parameters.
+By E.q. (\ref{eq:log_loss_example}) and (\ref{eq:tp_loss_label}), we have
+$$
+J(\w) 
+= \frac{1}{2} \w^\top \w + 
+  \frac{\lambda_1}{NK} \sum_{n=1}^N \sum_{k=1}^K \llb (\w_k^\top \x^n) y_k^n \le 0 \rrb +
+  \frac{\lambda_2}{K} \sum_{k=1}^K \frac{1}{N_+^k} \sum_{p: y_k^p=1} \llb \w_k^\top \x^p \le \max_{q: y_k^q=0} \w_k^\top \x^q \rrb.
+$$
+
+
 
 \input{mlc_experiment}
 
