@@ -632,10 +632,19 @@ The gradient with regards to $\w_k$ is
    \frac{\frac{\sum_{q:y_k^q=0} \x^q \exp \left(r \w_k^\top \x^q \right)}
               {\sum_{q:y_k^q=0} \exp \left(r \w_k^\top \x^q \right)} - \x^p }
         {\left[ \sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right) \right]^{-\frac{1}{r}} + 1} \\
-&= \frac{\lambda_2}{KN_+^k} \sum_{p:y_k^p=1} \,
+&= \frac{\lambda_2}{KN_+^k} \sum_{p:y_k^p=1}
    \frac{\frac{\sum_{q:y_k^q=0} \x^q \exp \left(r \w_k^\top \x^q \right)}
               {\sum_{q:y_k^q=0} \exp \left(r \w_k^\top \x^q \right)} - \x^p }
         {\exp \left( \w_k^\top \x^p \right) \left[ \sum_{q:y_k^q=0} \exp \left(r \w_k^\top \x^q \right) \right]^{-\frac{1}{r}} + 1} \\
+&= \frac{\lambda_2}{KN_+^k} 
+   \left[
+   \frac{\sum_{q:y_k^q=0} \x^q e^{r \w_k^\top \x^q}}
+        {\sum_{q:y_k^q=0}      e^{r \w_k^\top \x^q}}
+   \sum_{p:y_k^p=1} 
+   \frac{1} {e^{\w_k^\top \x^p} \left[ \sum_{q:y_k^q=0} e^{r \w_k^\top \x^q} \right]^{-\frac{1}{r}} + 1} +
+   \sum_{p:y_k^p=1} 
+   \frac{-\x^p} {e^{\w_k^\top \x^p} \left[ \sum_{q:y_k^q=0} e^{r \w_k^\top \x^q} \right]^{-\frac{1}{r}} + 1}
+   \right]
 %&= \frac{\lambda_2}{KN_+^k} \sum_{p:y_k^p=1} 
 %&= \frac{\lambda_2}{KN_+^k} \sum_{p:y_k^p=1} 
 %   \frac{\sum_{q:y_k^q=0} (\x^q - \x^p) \exp \left(r \w_k^\top (\x^q - \x^p) \right)}
@@ -666,7 +675,7 @@ Then objective~(\ref{eq:tp_tp_obj_p2}) can be computed as
 $$
 J_\textsc{tp} 
 = \frac{\lambda_2}{K} 
-\one_{K}^\top \left[ \Pb \log \left(1_{K \times N} + \left[ \exp(-\X \W^\top) \circ \Y \right]^\top \Q^{\circ (1/r)} \right) \right] \one_{N},
+\one_{N}^\top \left[ \log \left(1_{N \times K} + \left[ \exp(-\X \W^\top) \circ \Y \right] \Q^{\circ (1/r)} \right) \right] \one_{K},
 $$
 
 
