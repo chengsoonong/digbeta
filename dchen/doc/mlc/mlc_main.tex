@@ -1,5 +1,6 @@
 \documentclass[9pt]{extarticle}
-\usepackage[a4paper,top=0.79in,left=0.79in,bottom=0.79in,right=0.79in]{geometry} % A4 paper margins in LibreOffice
+%\usepackage[a4paper,top=0.79in,left=0.79in,bottom=0.79in,right=0.79in]{geometry} % A4 paper margins in LibreOffice
+\usepackage[a4paper,top=0.5in,left=0.5in,bottom=0.79in,right=0.79in]{geometry} % A4 paper margins in LibreOffice
 \usepackage[numbers,compress]{natbib}
 \usepackage{hyperref}
 \usepackage{mathtools}
@@ -52,6 +53,8 @@
 \newcommand{\B}{\mathbf{B}}
 \newcommand{\G}{\mathbf{G}}
 \newcommand{\M}{\mathbf{M}}
+\newcommand{\Pb}{\mathbf{P}}
+\newcommand{\Q}{\mathbf{Q}}
 \newcommand{\W}{\mathbf{W}}
 \newcommand{\X}{\mathbf{X}}
 \newcommand{\Y}{\mathbf{Y}}
@@ -530,7 +533,7 @@ be the top-push loss for binary dataset $\SCal_k$.
 
 
 \subsubsection{TP-LR}
-\label{sssec:tp-lr}
+\label{sssec:tp_lr}
 
 The configuration TP-LR in Table~\ref{tab:config} applies the top-push loss for each example and 
 the 0-1 loss for the binary dataset induced by each label, which optimises the objective (with L2 regularisation)
@@ -579,6 +582,95 @@ $$
 \subsubsection{TP-TP}
 \label{sssec:tp_tp}
 
+The configuration TP-TP in Table~\ref{tab:config} applies the top-push loss to both the examples and 
+the labels\footnote{For a given label, applying top-push loss is equivalent to train a bipartite ranking model for this label.},
+the optimisation objective (with L2 regularisation) is
+\begin{equation}
+\label{eq:tp_tp_obj}
+J(\w) = \frac{1}{2} \w^\top \w + \frac{\lambda_1}{N} \sum_{n=1}^N \LCal_\textsc{tp}^n + \frac{\lambda_2}{K} \sum_{k=1}^K \LCal_\textsc{tp}^k,
+\end{equation}
+and we can use Eq.~(\ref{eq:tpush_loss_approx}) to approximate the inner maximisation in a similar manner to that in Section~\ref{sssec:tp_lr}.
+
+Compare Eq.~(\ref{eq:tpush_obj}) with Eq.~(\ref{eq:tp_tp_obj}), what should be computed additionally is
+\begin{equation}
+\label{eq:tp_tp_obj_p2}
+\begin{aligned}
+J_\textsc{tp} 
+&= \frac{\lambda_2}{K} \sum_{k=1}^K \LCal_\textsc{tp}^k \\
+&= \frac{\lambda_2}{K} \sum_{k=1}^K \frac{1}{N_+^k} \sum_{p:y_k^p=1} \llb \w_k^\top \x^p \le \max_{q:y_k^q=0} \w_k^\top \x^q \rrb \\
+&\approx \frac{\lambda_2}{K} \sum_{k=1}^K \frac{1}{N_+^k} \sum_{p:y_k^p=1} 
+         \log \left( 1 + \exp \left( -\left[ \w_k^\top \x^p - \frac{1}{r} \log \sum_{q:y_k^q=0} e^{r \w_k^\top \x^q} \right] \right) \right) \\
+&= \frac{\lambda_2}{K} \sum_{k=1}^K \frac{1}{N_+^k} \sum_{p:y_k^p=1} 
+   \log \left( 1 + \exp \left( -\w_k^\top \x^p \right) \left[ \sum_{q:y_k^q=0} \exp \left( r \w_k^\top \x^q \right) \right]^\frac{1}{r} \right) \\
+&= \frac{\lambda_2}{K} \sum_{k=1}^K \frac{1}{N_+^k} \sum_{p:y_k^p=1} 
+   \log \left( 1 + \left[ \sum_{q:y_k^q=0} \exp \left( r \w_k^\top (\x^q - \x^p) \right) \right]^\frac{1}{r} \right)
+\end{aligned}
+\end{equation}
+The gradient with regards to $\w_k$ is
+\begin{equation}
+\label{eq:grad_of_tp_tp_p2}
+\begin{aligned}
+\frac{\partial \, J_\textsc{tp}}{\partial \, \w_k} 
+&= \frac{\lambda_2}{KN_+^k} \sum_{p:y_k^p=1} 
+   \frac{\frac{1}{r} \left[ \sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right) \right]^{\frac{1}{r} - 1} 
+         \sum_{q:y_k^q=0} r (\x^q - \x^p) \exp \left(r \w_k^\top (\x^q - \x^p) \right) }
+        {1 + \left[ \sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right) \right]^\frac{1}{r}} \\
+&= \frac{\lambda_2}{KN_+^k} \sum_{p:y_k^p=1} 
+   \frac{\left[ \sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right) \right]^{\frac{1}{r} - 1} \left[
+         \sum_{q:y_k^q=0} \x^q \exp \left(r \w_k^\top (\x^q - \x^p) \right) - \x^p \sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right) \right]}
+        {1 + \left[ \sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right) \right]^\frac{1}{r}} \\
+&= \frac{\lambda_2}{KN_+^k} \sum_{p:y_k^p=1} 
+   \frac{\left[ \sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right) \right]^{\frac{1}{r}} \left[
+         \frac{\sum_{q:y_k^q=0} \x^q \exp \left(r \w_k^\top (\x^q - \x^p) \right)}
+              {\sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right)} - \x^p \right] }
+        {1 + \left[ \sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right) \right]^\frac{1}{r}} \\
+&= \frac{\lambda_2}{KN_+^k} \sum_{p:y_k^p=1} 
+   \frac{\frac{\sum_{q:y_k^q=0} \x^q \exp \left(r \w_k^\top (\x^q - \x^p) \right)}
+              {\sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right)} - \x^p }
+        {\left[ \sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right) \right]^{-\frac{1}{r}} + 1} \\
+&= \frac{\lambda_2}{KN_+^k} \sum_{p:y_k^p=1} 
+   \frac{\frac{\sum_{q:y_k^q=0} \x^q \exp \left(r \w_k^\top \x^q \right)}
+              {\sum_{q:y_k^q=0} \exp \left(r \w_k^\top \x^q \right)} - \x^p }
+        {\left[ \sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right) \right]^{-\frac{1}{r}} + 1} \\
+&= \frac{\lambda_2}{KN_+^k} \sum_{p:y_k^p=1} \,
+   \frac{\frac{\sum_{q:y_k^q=0} \x^q \exp \left(r \w_k^\top \x^q \right)}
+              {\sum_{q:y_k^q=0} \exp \left(r \w_k^\top \x^q \right)} - \x^p }
+        {\exp \left( \w_k^\top \x^p \right) \left[ \sum_{q:y_k^q=0} \exp \left(r \w_k^\top \x^q \right) \right]^{-\frac{1}{r}} + 1} \\
+%&= \frac{\lambda_2}{KN_+^k} \sum_{p:y_k^p=1} 
+%&= \frac{\lambda_2}{KN_+^k} \sum_{p:y_k^p=1} 
+%   \frac{\sum_{q:y_k^q=0} (\x^q - \x^p) \exp \left(r \w_k^\top (\x^q - \x^p) \right)}
+%        {\left[ \sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right) \right]^{1-\frac{1}{r}} +  
+%         \sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right) } \\
+%&= \frac{\lambda_2}{KN_+^k} \sum_{p:y_k^p=1} 
+%   \frac{\sum_{q:y_k^q=0} \x^q \exp \left(r \w_k^\top (\x^q - \x^p) \right) - \x^p \sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right)}
+%        {\sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right) 
+%         \left[ 1 + \left[ \sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right) \right]^{-\frac{1}{r}} \right] } \\
+%&= \frac{\lambda_2}{KN_+^k} \sum_{p:y_k^p=1} \,
+%   \frac{ \frac{\sum_{q:y_k^q=0} \x^q \exp \left(r \w_k^\top \x^q \right)}
+%               {\sum_{q:y_k^q=0} \exp \left(r \w_k^\top \x^q \right)} - \x^p }
+%        {1 + \left[ \sum_{q:y_k^q=0} \exp \left(r \w_k^\top (\x^q - \x^p) \right) \right]^{-\frac{1}{r}} }
+\end{aligned}
+\end{equation}
+
+\paragraph{Vectorisation} We can vectorise the objective~(\ref{eq:tp_tp_obj_p2}) and the gradient~(\ref{eq:grad_of_tp_tp_p2}). %similar to 
+Let symmetric matrices $\Pb, \Q \in \R^{K \times K}$ such that:
+\begin{align*}
+\Pb_{k, k} &= \frac{1}{N_+^k} \\
+\Q_{k, k} &= \sum_{q:y_k^q=0} \exp \left( r \w_k^\top \x^q \right), \ k \in \{1,\dots,K\}
+\end{align*}
+and $\Q$ can be computed as 
+$$
+\Q = \diag \left( \one_{N}^\top \left[ \exp( r \X \W^\top ) \circ (\one_{N \times K} - \Y) \right] \right),
+$$
+Then objective~(\ref{eq:tp_tp_obj_p2}) can be computed as
+$$
+J_\textsc{tp} 
+= \frac{\lambda_2}{K} 
+\one_{K}^\top \left[ \Pb \log \left(1_{K \times N} + \left[ \exp(-\X \W^\top) \circ \Y \right]^\top \Q^{\circ (1/r)} \right) \right] \one_{N},
+$$
+
+
+
 
 \subsubsection{LR-TP}
 \label{sssec:lr_tp}
@@ -604,10 +696,10 @@ $$
 \clearpage
 \newpage 
 \appendix
-%\input{mlc_appendix}
+\input{mlc_appendix}
 
-%\newpage
-%\input{toppush_primal}
+\newpage
+\input{toppush_primal}
 
 %\newpage
 %\input{toppush_dual}
