@@ -7,17 +7,22 @@
        &    & Precision@3 & Precision@5 & Precision@K & RankingLoss  \\
 Dataset & Method &             &             &             &         \\
 \midrule
-\multirow{7}{*}{bibtex} 
+\multirow{12}{*}{bibtex} 
+       & Naive &    $0.0928$            &    $0.0717$            &    $0.0626$            &   $127.9924$           \\
        & LR &       $0.3836$            &    $0.2815$            &    $0.4910$            &   $26.1237$            \\
        & LR-CV &    $0.3917$            &    $0.2890$            &    $0.5021$            &   \firstBest{22.6974}  \\
        & TP &       $0.2237$            &    $0.1723$            &    $0.3148$            &   $66.9491$            \\
-       & TP-CV &    \secondBest{0.3993} &    \secondBest{0.2906} &    \firstBest{0.5185}  &   \secondBest{24.6835} \\
+       & TP-CV &    \secondBest{0.3993} &    \secondBest{0.2906} &    \secondBest{0.5185} &   \secondBest{24.6835} \\
        & TP-NW &    \firstBest{0.3995}  &    \firstBest{0.2922}  &    $0.5096$            &   $25.3376$            \\
-       & TP-LR &    $0.3931$            &    $0.2831$            &    \secondBest{0.5122} &   $31.3972$            \\
+       & TP-LR &    $0.3910$            &    $0.2824$            &    $0.5105$            &   $31.6565$            \\
+       & TP-LRN&    $0.3928$            &    $0.2839$            &    $0.5132$            &   $28.2282$            \\
+       & LR-TP &    $0.3934$            &    $0.2860$            &    $0.5069$            &   $29.8938$            \\
+       & TP-TP &    $0.3963$            &    $0.2894$            &    \firstBest{0.5191}  &   $25.7412$            \\
        & SPEN  &    $0.3480$            &    $0.2562$            &    $0.4558$            &   $28.7583$            \\
        & DVN   &    $0.3643$            &    $0.2635$            &    $0.4739$            &   $56.1046$            \\
 \cline{1-6}
-\multirow{7}{*}{bookmarks} 
+\multirow{8}{*}{bookmarks} 
+       & Naive &    $0.0633$            &    $0.0539$            &    $0.0885$            &   $121.2968$           \\
        & LR &       $0.2425$            &    $0.1754$            &    $0.3949$            &   $46.3924$            \\
        & LR-CV &    \secondBest{0.2694} &    \secondBest{0.1963} &    \secondBest{0.4270} &   \firstBest{36.5398}  \\
        & TP &       $0.1146$            &    $0.0908$            &    $0.1991$            &   $93.8866$            \\
@@ -26,7 +31,8 @@ Dataset & Method &             &             &             &         \\
        & SPEN  &    $0.2451$            &    $0.1785$            &    $0.3959$            &   $42.4856$            \\
        & DVN   &    $0.2349$            &    $0.1645$            &    $0.3846$            &   $105.6881$           \\
 \cline{1-6}
-\multirow{7}{*}{delicious} 
+\multirow{8}{*}{delicious} 
+       & Naive &    $0.3789$            &    $0.3474$            &    $0.2344$            & $2961.7994$            \\
        & LR &       \secondBest{0.5934} &    \secondBest{0.5452} &    \secondBest{0.3734} & \secondBest{1787.7406} \\
        & LR-CV &    \firstBest{0.6060}  &    \firstBest{0.5588}  &    \firstBest{0.3782}  & \firstBest{1730.3213}  \\
        & TP &       $0.2674$            &    $0.2839$            &    $0.2337$            & $2537.2113$            \\
