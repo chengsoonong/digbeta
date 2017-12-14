@@ -69,6 +69,16 @@ def evalPred(truth, pred, metricType='Precision@K'):
         # return loss / denom if denom > 0 else 0
         return loss
 
+    elif metricType == 'TopPush':
+        posInd = np.nonzero(truth)[0].tolist()
+        negInd = sorted(set(np.arange(L)) - set(posInd))
+        return np.mean(pred[posInd] <= np.max(pred[negInd]))
+
+    elif metricType == 'BottomPush':
+        posInd = np.nonzero(truth)[0].tolist()
+        negInd = sorted(set(np.arange(L)) - set(posInd))
+        return np.mean(pred[negInd] >= np.min(pred[posInd]))
+
     elif metricType == 'Precision@K':
         # sorted indices of the labels most likely to be +'ve
         idx = np.argsort(pred)[::-1]
@@ -101,6 +111,14 @@ def evalPred(truth, pred, metricType='Precision@K'):
 
     else:
         assert(False)
+
+
+def calcLoss(allTruths, allPreds, metricType, njobs=-1):
+    N = allTruths.shape[0]
+    losses = Parallel(n_jobs=njobs)(delayed(evalPred)(allTruths[i, :], allPreds[i, :], metricType)
+                                    for i in range(N))
+
+    return np.asarray(losses)
 
 
 def avgPrecisionK(allTruths, allPreds):
