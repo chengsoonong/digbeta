@@ -699,6 +699,58 @@ J(\w)
 $$
 
 
+\subsection{Bottom push loss}
+\label{ssec:bpush}
+
+Given model parameters $\w$, the bottom push loss for example $(\x, \y)$ is defined as
+\begin{equation}
+\label{eq:bpush_loss}
+\LCal_\textsc{bp}(\x, \y; \w) = \frac{1}{K_-} \sum_{j:y_j=0} \llb \w_j^\top \x \ge \min_{i:y_i=1} \w_i^\top \x \rrb,
+\end{equation}
+where $K_-$ is the number of negative labels in $\y$.
+The optimisation objective for training set $\SCal = \{\x^n, \y^n\}_{n=1}^N$ with L2 regularisation is
+\begin{equation}
+\label{eq:bp_loss_obj}
+\begin{aligned}
+J(\w) 
+&= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \LCal_\textsc{bp}(\x^n, \y^n; \w) \\
+&= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N
+   \frac{1}{K_-^n} \sum_{j:y_j^n=0} \llb \w_j^\top \x^n \ge \min_{i:y_i^n=1} \w_i^\top \x^n \rrb \\
+&= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N
+   \frac{1}{K_-^n} \sum_{j:y_j^n=0} \llb \min_{i:y_i^n=1} \w_i^\top \x^n - \w_j^\top \x^n \le 0\rrb,
+\end{aligned}
+\end{equation}
+if we use the logistic loss $\ell(v) = \log(1 + e^{-v})$ to upper-bound the 0-1 loss $\llb v \le 0 \rrb$, 
+the objective~(\ref{eq:bp_loss_obj}) becomes
+$$
+J(\w) 
+\le \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N
+    \frac{1}{K_-^n} \sum_{j:y_j^n=0} \log \left( 1 + 
+    \exp \left( -\min_{i:y_i^n=1} \w_i^\top \x^n + \w_j^\top \x^n \right) \right),
+$$
+we further note that 
+$$
+\min_i x_i \approx -\frac{1}{r} \log \sum_i e^{-r x_i}, \, r > 0
+$$
+then objective~(\ref{eq:bp_loss_obj}) can be approximated as
+\begin{align*}
+J(\w) 
+&\approx \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N
+         \frac{1}{K_-^n} \sum_{j:y_j^n=0} \log \left( 1 + 
+         \exp \left( \frac{1}{r} \log \sum_{i:y_i^n=1} \exp \left( -r \w_i^\top \x^n \right) + 
+         \w_j^\top \x^n \right) \right) \\
+&= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N
+   \frac{1}{K_-^n} \sum_{j:y_j^n=0} \log \left( 1 + 
+   \left[ \sum_{i:y_i^n=1} \exp \left( -r \w_i^\top \x^n \right) \right]^\frac{1}{r} \exp \left( \w_j^\top \x^n \right) 
+   \right) \\
+&= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N
+   \frac{1}{K_-^n} \sum_{j:y_j^n=0} \log \left( 1 + 
+   \left[ \sum_{i:y_i^n=1} \exp \left( r (\w_j - \w_i)^\top \x^n \right) \right]^\frac{1}{r} 
+   \right) \\
+\end{align*}
+
+
+
 
 \input{mlc_experiment}
 
