@@ -740,15 +740,36 @@ J(\w)
          \exp \left( \frac{1}{r} \log \sum_{i:y_i^n=1} \exp \left( -r \w_i^\top \x^n \right) + 
          \w_j^\top \x^n \right) \right) \\
 &= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N
-   \frac{1}{K_-^n} \sum_{j:y_j^n=0} \log \left( 1 + 
-   \left[ \sum_{i:y_i^n=1} \exp \left( -r \w_i^\top \x^n \right) \right]^\frac{1}{r} \exp \left( \w_j^\top \x^n \right) 
-   \right) \\
+   \frac{1}{K_-^n} \sum_{j:y_j^n=0} 
+   \log \left( 1 + \left[ \sum_{i:y_i^n=1} \exp \left( -r \w_i^\top \x^n \right) \right]^\frac{1}{r} \exp \left( \w_j^\top \x^n \right) \right) \\
 &= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N
-   \frac{1}{K_-^n} \sum_{j:y_j^n=0} \log \left( 1 + 
-   \left[ \sum_{i:y_i^n=1} \exp \left( r (\w_j - \w_i)^\top \x^n \right) \right]^\frac{1}{r} 
+   \frac{1}{K_-^n} \sum_{j:y_j^n=0} \log \left( 1 + \left[ \sum_{i:y_i^n=1} \exp \left( r (\w_j - \w_i)^\top \x^n \right) \right]^\frac{1}{r} 
    \right) \\
 \end{align*}
 
+To compute the gradients, we note that
+$$
+\frac{\partial \, \LCal_\textsc{bp}(\x, \y; \w)} {\partial \, \w_k} 
+= \begin{cases}
+  \frac{1}{K_-} 
+  \frac{\left[ \sum_{i:y_i=1} \exp \left( -r \w_i^\top \x \right) \right]^\frac{1}{r} \exp \left( \w_k^\top \x \right) \x}
+       {1 + \left[ \sum_{i:y_i=1} \exp \left( -r \w_i^\top \x \right) \right]^\frac{1}{r} \exp \left( \w_k^\top \x \right)}, & y_k = 0 \\ \\
+  \frac{1}{K_-} \underset{j:y_j=0}{\sum}
+  \frac{\exp \left( \w_j^\top \x \right) 
+        \left[ \sum_{i:y_i=1} \exp \left( -r \w_i^\top \x \right) \right]^{\frac{1}{r}-1}
+        \exp \left( -r \w_k^\top \x \right) (-\x) }
+       {1 + \left[ \sum_{i:y_i=1} \exp \left( -r \w_i^\top \x \right) \right]^\frac{1}{r} \exp \left( \w_j^\top \x \right)}, & y_k = 1.
+  \end{cases}
+$$
+In summary,
+$$
+\frac{\partial \, J(\w)} {\partial \, \w_k}
+=\lambda \w_k + 
+ \frac{1}{N} \sum_{n=1}^N
+ \frac{\partial \, \LCal_\textsc{bp}(\x^n, \y^n; \w)} {\partial \, \w_k} \llb y_k^n = 0 \rrb + 
+ \frac{1}{N} \sum_{n=1}^N
+ \frac{\partial \, \LCal_\textsc{bp}(\x^n, \y^n; \w)} {\partial \, \w_k} \llb y_k^n = 1 \rrb.
+$$
 
 
 
