@@ -43,5 +43,21 @@ Dataset & Method &             &             &             &         \\
        & DVN   &    N/A                 &    N/A                 &    N/A                 & N/A                    \\
 \bottomrule
 \end{tabular}
-
 \end{table}
+
+
+\begin{table}[!h]
+\caption{F1 score}
+\centering
+\begin{tabular}{lll} 
+\toprule
+& \texttt{bibtex} & \texttt{bookmarks} \\ \hline
+LR & 0.372 & 0.307 \\
+LR-CV-balanced & 0.447   & 0.321 \\
+SPEN & 0.422   & 0.344 \\
+DVN & 0.447 & \firstBest{0.371} \\
+P-Classification & \firstBest{0.465} & 0.369 \\
+\bottomrule 
+\end{tabular}
+\end{table}
+
