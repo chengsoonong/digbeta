@@ -197,7 +197,7 @@ it also ignores the correlations between labels.
 Alternatively, we can use the P-Classification loss~\cite{ertekin2011equivalence}:
 \begin{equation}
 \label{eq:loss_pclass}
-\LCal_\text{PC}(\x, \y; \w) = \frac{1}{K_+} \sum_{i:y_i=1} \ell_+(\w_i^\top \x) + \frac{1}{K_-} \sum_{j:y_j=0} \ell_-(\w_j^\top \x),
+\LCal_\textsc{pc}(\x, \y; \w) = \frac{1}{K_+} \sum_{i:y_i=1} \ell_+(\w_i^\top \x) + \frac{1}{K_-} \sum_{j:y_j=0} \ell_-(\w_j^\top \x),
 \end{equation}
 where $K_+$ and $K_-$ are the number of positive and negative labels respectively,
 and for constant\footnote{When $p \to +\infty$, the p-classification loss is equivalent to the top-push loss (with exponential surrogate).}
@@ -210,23 +210,88 @@ $p \gg 1$,
 \end{equation}
 
 The objective with P-Classification loss is
-\begin{align*}
-J(\w) 
-&= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{k=1}^K \sum_{n=1}^N \left[
-   \frac{\llb y_k^n = 1 \rrb}{K_+^n} \exp(-\w_k^\top \x^n) + 
-   \frac{\llb y_k^n = 0 \rrb}{p K_-^n} \exp(p \cdot \w_k^\top \x^n) \right]
-\end{align*}
-where $K_+^n$ and $K_-^n$ are the positive and negative labels in $\y^n$.
-We can compute the derivative of weight vector $\w_k, \, k \in \{1,\cdots,K\}$ as follows:
 \begin{equation}
-\label{eq:grad_pclass}
-\frac{\partial J(\w)} {\partial \w_k} = \lambda \w_k + \sum_{n=1}^N (a_n + b_n) \x^n,
+\label{eq:obj_pc}
+\begin{aligned}
+J_\textsc{pc}(\w) 
+&= \frac{\lambda}{2} \w^\top \w + \frac{1}{N} \sum_{n=1}^N \left[
+   \frac{1}{K_+^n} \sum_{i:y_i^n=1} \exp(-\w_i^\top \x^n) + 
+   \frac{1}{K_-^n} \sum_{j:y_j^n=0} \frac{1}{p} \exp(p \cdot \w_j^\top \x^n) \right]
+\end{aligned}
 \end{equation}
-where
+where $K_+^n$ and $K_-^n$ are the positive and negative labels in $\y^n$.
+To compute the derivative of weight vector $\w_k, \, k \in \{1,\cdots,K\}$,
+we note that $\w^\top \w = \sum_k \w_k^\top \w_k$ and
+$$
+\frac{\partial \, \LCal_\textsc{pc}(\x, \y; \w)}{\partial \, \w_k}
+= \begin{cases}
+    \frac{-\x}{K_+} \exp(-\w_k^\top \x), & y_k = 1 \\
+    \frac{\x }{K_-} \exp(p \cdot \w_k^\top \x), & y_k = 0
+  \end{cases}
+$$
+As a result,
+\begin{equation}
+\label{eq:grad_pc}
+\begin{aligned}
+\frac{\partial J(\w)} {\partial \w_k} 
+&= \lambda \w_k + \frac{1}{N} \sum_{n=1}^N \frac{\partial \, \LCal_\textsc{pc}(\x^n, \y^n; \w)}{\partial \, \w_k} \\
+&= \lambda \w_k + 
+   \frac{1}{N} \sum_{n=1}^N \llb y_k^n = 1 \rrb \frac{-\x^n}{K_+^n} \exp(-\w_k^\top \x^n) + 
+   \frac{1}{N} \sum_{n=1}^N \llb y_k^n = 0 \rrb \frac{\x^n }{K_-^n} \exp(p \cdot \w_k^\top \x^n).
+\end{aligned}
+\end{equation}
+
+To vectorise the computation of the objective~(\ref{eq:obj_pc}) and gradients~(\ref{eq:grad_pc}), 
+we first define a few symbols, as shown in Table~\ref{tab:symbols}.
+\begin{table}[!h]
+\caption{Glossary of commonly used symbols}
+\label{tab:symbols}
+\renewcommand{\arraystretch}{1.5} % tweak the space between rows
+\setlength{\tabcolsep}{1pt} % tweak the space between columns
+\centering
+\begin{tabular}{llll}
+\toprule
+\multicolumn{3}{l}{\textbf{Symbol}} & \textbf{Quantity} \\ \hline 
+$D$        &  $\in$  &  $\Z^+$            & The number of features for each example \\
+$N$        &  $\in$  &  $\Z^+$            & The number of examples \\
+$K$        &  $\in$  &  $\Z^+$            & The number of labels \\
+$\w$       &  $\in$  &  $\R^{K D}$        & The vector of model parameters \\
+$\W$       &  $\in$  &  $\R^{K \times D}$ & The matrix of model parameters (reshaping $\w$ into a matrix) \\
+$\X$       &  $\in$  &  $\R^{N \times D}$ & The matrix of features of all examples \\
+$\Y$       &  $\in$  &  $\R^{N \times K}$ & The matrix of labels of all examples \\
+$\one_N$   &  $\in$  &  $\R^N$            & The $N$ dimensional vector of $1$'s \\
+$\one_{N \times K}$  &  $\in$  &  $\R^{N \times K} \quad$  & The $N \times K$ matrix of $1$'s \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Let symmetric diagonal matrices $\Pb, \Q \in \R^{N \times N}$ such that
 \begin{align*}
-a_n &= \frac{-\llb y_k^n=1 \rrb} {N K_+^n} \exp( -\w_k^\top \x^n), \\
-b_n &= \frac{ \llb y_k^n=0 \rrb} {N K_-^n} \exp(p \w_k^\top \x^n).
+\Pb_{n,n} &= \frac{1}{N K_+^n}, \\
+\Q_{n,n}  &= \frac{1}{p N K_-^n}, \, n \in \{1,\dots,N\}
 \end{align*}
+Then we compute objective $J_\textsc{pc}$ as
+$$
+J_\textsc{pc}(\w) 
+= \frac{\lambda}{2} \w^\top \w + 
+  \one_N^\top \Pb \left[ \exp(- \X \W^\top) \circ \Y     \right] \one_K +
+  \one_N^\top \Q  \left[ \exp(p \X \W^\top) \circ (1-\Y) \right] \one_K,
+$$
+where $\circ$ denotes the \emph{Hadamard product} (\ie element-wise multiplication).
+
+Let $\G=[\frac{\partial J_\textsc{pc}}{\w_1}^\top,\dots,\frac{\partial J_\textsc{pc}}{\w_K}^\top]$ be the gradients of all weights
+(the $k$-th row of $\G$ is $\frac{\partial J_\textsc{pc}}{\w_k}$),
+then the gradients can be computed in a similar manner,
+\begin{align*}
+\G 
+&= \lambda \W + 
+   \left[ \Pb \left( \exp(-\X \W^\top) \circ \Y     \right) \right]^\top \! (-\X) \ + \,
+   \left[ p\Q \left( \exp(p\X \W^\top) \circ (1-\Y) \right) \right]^\top \! \X \\
+&= \lambda \W -
+   \left[ \Pb \left( \exp(-\X \W^\top) \circ \Y     \right) \right]^\top \! \X \ + \,
+   p \left[\Q \left( \exp(p\X \W^\top) \circ (1-\Y) \right) \right]^\top \! \X.
+\end{align*}
+
 
 
 
