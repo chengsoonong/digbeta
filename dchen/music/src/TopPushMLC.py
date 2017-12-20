@@ -104,7 +104,7 @@ class TopPushMLC(BaseEstimator):
     def fit(self, X_train, Y_train):
         """Model fitting by optimising the objective"""
         opt_method = 'L-BFGS-B'  # 'BFGS' #'Newton-CG'
-        options = {'disp': 1, 'maxiter': 10**5, 'maxfun': 10**5}  # , 'iprint': 99}
+        options = {'disp': 0, 'maxiter': 10**5, 'maxfun': 10**5}  # , 'iprint': 99}
         print('\nC: %g, r: %g' % (self.C, self.r))
 
         N, D = X_train.shape

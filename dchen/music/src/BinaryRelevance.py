@@ -27,4 +27,4 @@ class BinaryRelevance(BaseEstimator):
 
     def predict(self, X_test, binarise=False):
         preds = self.decision_function(X_test)
-        return preds >= 0.5 if binarise is True else preds
+        return preds >= 0 if binarise is True else preds
