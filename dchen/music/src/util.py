@@ -35,8 +35,8 @@ def plot_loss(loss, pak, title):
     # the scatter plot:
     axScatter.scatter(x, y, color='b', alpha=0.5)
     axScatter.plot([0, 1], [0, 1], ls='--', color='g')
-    axScatter.set_xlabel('Top push loss', fontdict={'fontsize': 12})
-    axScatter.set_ylabel('1 - precision@K', fontdict={'fontsize': 12})
+    axScatter.set_xlabel('P-Classification loss', fontdict={'fontsize': 12})
+    axScatter.set_ylabel('1 - F1', fontdict={'fontsize': 12})
 
     # now determine nice limits by hand:
     # binwidth = 0.25

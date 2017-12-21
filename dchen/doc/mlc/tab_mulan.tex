@@ -61,3 +61,28 @@ P-Classification & \firstBest{0.465} & 0.369 \\
 \end{tabular}
 \end{table}
 
+
+\begin{table}[!h]
+\centering
+\label{tab:perf}
+\begin{tabular}{llllll}
+\toprule
+       &                     &      &       F1 & Precision@K & P-Classification Loss \\
+Dataset & Method & Split &          &             &                       \\
+\midrule
+\multirow{4}{*}{yeast} & \multirow{2}{*}{Logistic Regression} & Train & $0.6446$ &    $0.6828$ &              $1.8452$ \\
+       &                     & Test & $0.6139$ &    $0.6412$ &              $2.0258$ \\
+\cline{2-6}
+       & \multirow{2}{*}{P-Classification} & Train & $0.5340$ &    $0.5515$ &              $1.8114$ \\
+       &                     & Test & $0.4862$ &    $0.4907$ &              $1.8769$ \\
+\cline{1-6}
+\cline{2-6}
+\multirow{4}{*}{bibtex} & \multirow{2}{*}{Logistic Regression} & Train & $0.9152$ &    $0.9762$ &              $1.4416$ \\
+       &                     & Test & $0.3864$ &    $0.4846$ &         $376905.0808$ \\
+\cline{2-6}
+       & \multirow{2}{*}{P-Classification} & Train & $0.8583$ &    $0.9397$ &              $0.7368$ \\
+       &                     & Test & $0.4648$ &    $0.5145$ &              $1.0222$ \\
+\bottomrule
+\end{tabular}
+
+\end{table}
