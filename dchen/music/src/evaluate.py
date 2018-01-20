@@ -2,7 +2,86 @@ import numpy as np
 # from sklearn.metrics import f1_score
 from sklearn.metrics import precision_recall_fscore_support
 from joblib import Parallel, delayed
+from scipy.sparse import issparse
 
+
+def evaluate_SGD(clf, eval_func, X_test, Y_test, threshold=None, batch_size=100, verbose=0):
+    assert X_test.shape[0] == Y_test.shape[0]
+    
+    N = X_test.shape[0]
+    metrics_all = []
+    n_batches = int((N-1) / batch_size) + 1
+    indices = np.arange(N)
+    
+    for nb in range(n_batches):
+        if verbose > 0:
+            sys.stdout.write('\r %d / %d' % (nb+1, n_batches))
+            sys.stdout.flush()
+        
+        ix_start = nb * batch_size
+        ix_end = min((nb+1) * batch_size, N)
+        ix = indices[ix_start:ix_end]
+        
+        X = X_test[ix]
+        Y_true = Y_test[ix]
+        if issparse(Y_true):
+            Y_true = Y_true.toarray()
+        Y_pred = clf.decision_function(X)
+        if issparse(Y_pred):
+            Y_pred = Y_pred.toarray()
+        if threshold is not None:
+            Y_pred = Y_pred >= threshold
+            
+        metrics = eval_func(Y_true, Y_pred)
+        metrics_all = np.concatenate((metrics_all, metrics), axis=-1)
+        
+    return metrics_all
+
+def calc_F1(Y_true, Y_pred):
+    """
+    Compute F1 scores for multilabel prediction, one score for each example.
+    precision = true_positive / n_true
+    recall = true_positive / n_positive
+    f1 = (2 * precision * recall) / (precision + recall) = 2 * true_positive / (n_true + n_positive)
+    """
+    assert Y_true.shape == Y_pred.shape
+    N, K = Y_true.shape
+    OneK = np.ones(K)
+    
+    n_true = np.dot(Y_true, OneK)
+    n_positive = np.dot(Y_pred, OneK)
+    true_positive = np.dot(np.multiply(Y_true, Y_pred), OneK)
+    
+    numerator = 2 * true_positive
+    denominator = n_true + n_positive
+    nonzero_ix = np.nonzero(denominator)[0]
+    
+    f1 = np.zeros(N)
+    f1[nonzero_ix] = np.divide(numerator[nonzero_ix], denominator[nonzero_ix])
+    
+    return f1
+
+def calc_precisionK(Y_true, Y_pred):
+    """
+    Compute Precision@K, one score for each example.
+    - thresholding predictions using the K-th largest predicted score, K is #positives in ground truth
+    - Precision@K: #true_positives / #positives_in_ground_truth
+      where by the definition of Precision@K, #positives_in_ground_truth = #positive_in_prediction
+    """
+    assert Y_true.shape == Y_pred.shape
+    N, K = Y_true.shape
+    OneK = np.ones(K)
+    KPosAll = np.dot(Y_true, OneK).astype(np.int)
+    assert np.all(KPosAll > 0)
+    
+    rows = np.arange(N)
+    sortedIx = np.argsort(-Y_pred, axis=1)
+    cols = sortedIx[rows, KPosAll-1]  # index of thresholds (the K-th largest scores, NOTE index starts at 0)
+    thresholds = Y_pred[rows, cols]   # the K-th largest scores
+    Y_pred_bin = Y_pred >= thresholds[:, None]  # convert scores to binary predictions
+    
+    true_positives = np.multiply(Y_true, Y_pred_bin)
+    return np.dot(true_positives, OneK) / KPosAll
 
 def f1_score_nowarn(y_true, y_pred, labels=None, pos_label=1, average='binary', sample_weight=None):
     """

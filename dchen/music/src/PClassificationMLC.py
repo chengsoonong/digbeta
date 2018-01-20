@@ -101,7 +101,7 @@ class PClassificationMLC(BaseEstimator):
             print(opt.items())
             self.trained = False
 
-    def fit_SGD(self, X_train, Y_train, w0=None, learning_rate=0.001, batch_size=200, n_epochs=100):
+    def fit_SGD(self, X_train, Y_train, w0=None, learning_rate=0.001, batch_size=200, n_epochs=100, verbose=0):
         """Model fitting by Stochastic Gradient Descent"""
         # np.random.seed(918273645)
         N, D = X_train.shape
@@ -114,10 +114,14 @@ class PClassificationMLC(BaseEstimator):
         n_batches = int((N-1) / batch_size) + 1
         decay = 0.9
         for epoch in range(n_epochs):
+            print(time.strftime('%Y-%m-%d-%H-%M-%S'))
             Je = 0.0
             indices = np.arange(N)
             np.random.shuffle(indices)
             for nb in range(n_batches):
+                if verbose > 0:
+                    sys.stdout.write('\r %d / %d' % (nb+1, n_batches))
+                    sys.stdout.flush()
                 ix_start = nb * batch_size
                 ix_end = min((nb+1) * batch_size, N)
                 ix = indices[ix_start:ix_end]
@@ -130,12 +134,12 @@ class PClassificationMLC(BaseEstimator):
                 J, g = self.obj_func(w, X, Y, C=self.C, p=self.p, weighting=self.weighting)
                 w = w - learning_rate * g
                 Je += J
+                if np.isnan(Je):
+                    print('Je = NaN, training failed.')
+                    return
                 # Je += J * len(ix)
-                sys.stdout.write('\r %d / %d' % (nb+1, n_batches))
-                sys.stdout.flush()
-            print()
-            Je /= n_batches
-            print('epoch: %d / %d, obj: %.6f' % (epoch+1, n_epochs, Je))
+            #Je /= n_batches  # this makes Je incomparable between different batch sizes
+            print('\nepoch: %d / %d, obj: %.6f' % (epoch+1, n_epochs, Je))
             learning_rate *= decay
         self.b = w[0]
         self.W = np.reshape(w[1:], (K, D))
@@ -166,7 +170,7 @@ class PClassificationMLC(BaseEstimator):
     # def get_params(self, deep = True):
     # def set_params(self, **params):
 
-    def dump_params(fname=None):
+    def dump_params(self, fname=None):
         """Dump the parameters of trained model"""
         if self.trained is False:
             print('Model should be trained first! Do nothing.')
@@ -182,7 +186,7 @@ class PClassificationMLC(BaseEstimator):
             params['W'] = self.W
             pkl.dump(params, open(fname, 'wb'))
 
-    def load_params(fname):
+    def load_params(self, fname):
         """Load the parameters of a trained model"""
         if self.trained is True:
             print('Cannot load to override trained model! Do nothing.')
