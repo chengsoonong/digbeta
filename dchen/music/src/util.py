@@ -28,8 +28,18 @@ def plot_loss(x, y, xlabel, ylabel, title):
     axHistx.xaxis.set_major_formatter(nullfmt)
     axHisty.yaxis.set_major_formatter(nullfmt)
 
+    # project large values back to reasonable range for plotting purpose
+    # set axis limits
+    xlim = min(1.1, max(1.05, max(x)))
+    ylim = xlim
+    axScatter.set_xlim((-0.05, xlim))
+    axScatter.set_ylim((-0.05, ylim))
+    x[x >= xlim] = xlim - 0.01
+    y[y >= ylim] = ylim - 0.01
+
+
     # the scatter plot:
-    axScatter.scatter(x, y, color='b', alpha=0.5)
+    axScatter.scatter(x, y, color='b', alpha=0.3)
     axScatter.plot([0, 1], [0, 1], ls='--', color='g')
     axScatter.set_xlabel(xlabel, fontdict={'fontsize': 12})
     axScatter.set_ylabel(ylabel, fontdict={'fontsize': 12})
@@ -41,7 +51,7 @@ def plot_loss(x, y, xlabel, ylabel, title):
 
     # axScatter.set_xlim((-lim, lim))
     # axScatter.set_ylim((-lim, lim))
-
+    
     # bins = np.arange(-lim, lim + binwidth, binwidth)
 
     axHistx.hist(x, bins=10, color='g', alpha=0.3)
@@ -49,7 +59,7 @@ def plot_loss(x, y, xlabel, ylabel, title):
     axHisty.hist(y, bins=10, color='g', alpha=0.3, orientation='horizontal')
     axHisty.set_xscale('log')
 
-    # axHistx.set_xlim(axScatter.get_xlim())
-    # axHisty.set_ylim(axScatter.get_ylim())
+    #axHistx.set_xlim(axScatter.get_xlim())
+    #axHisty.set_ylim(axScatter.get_ylim())
 
     axHistx.set_title(title, fontdict={'fontsize': 15}, loc='center')

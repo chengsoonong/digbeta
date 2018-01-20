@@ -2,6 +2,7 @@ import sys
 import numpy as np
 from scipy.optimize import minimize
 from sklearn.base import BaseEstimator
+from scipy.sparse import issparse
 
 
 def obj_pclassification(w, X, Y, C, p, weighting=True):
@@ -9,7 +10,7 @@ def obj_pclassification(w, X, Y, C, p, weighting=True):
         Objective with L2 regularisation and p-classification loss
 
         Input:
-            - w: current weight vector, flattened L x D
+            - w: current weight vector, flattened L x D + 1 (bias)
             - X: feature matrix, N x D
             - Y: label matrix,   N x L
             - C: regularisation constant, is consistent with scikit-learn C = 1 / (N * \lambda)
@@ -17,40 +18,49 @@ def obj_pclassification(w, X, Y, C, p, weighting=True):
     """
     N, D = X.shape
     K = Y.shape[1]
-    assert(w.shape[0] == K * D)
+    assert(w.shape[0] == K * D + 1)
     assert(p >= 1)
     assert(C > 0)
 
-    W = w.reshape(K, D)  # reshape weight matrix
+    W = w[1:].reshape(K, D)  # reshape weight matrix
+    b = w[0]           # bias
+    OneN = np.ones(N)  # N by 1
+    OneK = np.ones(K)  # K by 1
 
-    J = 0.0  # cost
-    G = np.zeros_like(W)  # gradient matrix
     if weighting is True:
-        KPosAll = np.sum(Y, axis=1)  # number of positive labels for each example, N by 1
-        KNegAll = K - KPosAll        # number of negative labels for each example, N by 1
+        # KPosAll = np.sum(Y, axis=1)
+        KPosAll = np.dot(Y, OneK)   # number of positive labels for each example, N by 1
+        KNegAll = K - KPosAll       # number of negative labels for each example, N by 1
     else:
         KPosAll = np.ones(N)
         KNegAll = np.ones(N)
     A_diag = np.divide(1, KPosAll)  # N by 1
     P_diag = np.divide(1, KNegAll)  # N by 1
 
-    OneN = np.ones(N)  # N by 1
-    OneK = np.ones(K)  # K by 1
-    T1 = np.dot(X, W.T)  # N by K
+    # T1 = np.dot(X, W.T)  # N by K
+    T1 = np.dot(X, W.T) + b  # N by K
 
     T1p = np.multiply(Y, T1)
     T2 = np.multiply(Y, np.exp(-T1p))  # N by K
     T3 = T2 * A_diag[:, None]  # N by K
 
-    T1n = np.multiply(1-Y, T1)
+    # T1n = np.multiply(1-Y, T1)
+    T1n = T1 - T1p
     T4 = np.multiply(1-Y, np.exp(p * T1n))  # N by K
     T5 = T4 * P_diag[:, None]  # N by K
 
-    J = np.dot(w, w) * 0.5 / C + (np.dot(OneN, np.dot(T3, OneK)) + np.dot(OneN, np.dot(T5/p, OneK))) / N
+    J = np.dot(W.ravel(), W.ravel()) * 0.5 / C
+    J += (np.dot(OneN, np.dot(T3, OneK)) + np.dot(OneN, np.dot(T5/p, OneK))) / N
+    # J = np.dot(W.ravel(), W.ravel()) * 0.5 / C + (np.dot(OneN, np.dot(T3 + T5/p, OneK))) / N  # not as efficient
 
-    G = W / C + (np.dot(T3.T, -X) + np.dot(T5.T, X)) / N
+    # G = W / C + (np.dot(T3.T, -X) + np.dot(T5.T, X)) / N
+    G = W / C + (np.dot((-T3 + T5).T, X)) / N   # more efficient
 
-    return (J, G.ravel())
+    db = np.dot(OneN, np.dot(-T3 + T5, OneK)) / N
+
+    gradients = np.concatenate(([db], G.ravel()), axis=0)
+
+    return (J, gradients)
 
 
 class PClassificationMLC(BaseEstimator):
@@ -71,28 +81,67 @@ class PClassificationMLC(BaseEstimator):
         """Model fitting by optimising the objective"""
         opt_method = 'L-BFGS-B'  # 'BFGS' #'Newton-CG'
         options = {'disp': 1, 'maxiter': 10**5, 'maxfun': 10**5}  # , 'iprint': 99}
-        sys.stdout.write('\nC: %g, p: %g, weighting: %s' % (self.C, self.p, self.weighting))
+        sys.stdout.write('\nC: %g, p: %g, weighting: %s\n' % (self.C, self.p, self.weighting))
         sys.stdout.flush()
 
         N, D = X_train.shape
         K = Y_train.shape[1]
-        # w0 = np.random.rand(K * D) - 0.5  # initial guess in range [-1, 1]
-        w0 = 0.001 * np.random.randn(K * D)
+        # w0 = np.random.rand(K * D + 1) - 0.5  # initial guess in range [-1, 1]
+        w0 = 0.001 * np.random.randn(K * D + 1)
         opt = minimize(self.obj_func, w0, args=(X_train, Y_train, self.C, self.p, self.weighting),
                        method=opt_method, jac=True, options=options)
         if opt.success is True:
-            self.W = np.reshape(opt.x, (K, D))
+            self.b = opt.x[0]
+            self.W = np.reshape(opt.x[1:], (K, D))
             self.trained = True
         else:
             sys.stderr.write('Optimisation failed')
             print(opt.items())
             self.trained = False
 
+    def fit_SGD(self, X_train, Y_train, w=None, learning_rate=0.001, batch_size=200, n_epochs=100):
+        # np.random.seed(918273645)
+        N, D = X_train.shape
+        K = Y_train.shape[1]
+        if w is None:
+            w = 0.001 * np.random.randn(K * D + 1)
+        else:
+            assert w.shape[0] == K * D + 1
+        n_batches = int((N-1) / batch_size) + 1
+        decay = 0.9
+        for epoch in range(n_epochs):
+            Je = 0.0
+            indices = np.arange(N)
+            np.random.shuffle(indices)
+            for nb in range(n_batches):
+                ix_start = nb * batch_size
+                ix_end = min((nb+1) * batch_size, N)
+                ix = indices[ix_start:ix_end]
+                X = X_train[ix]
+                Y = Y_train[ix]
+                if issparse(X):
+                    X = X.toarray()
+                if issparse(Y):
+                    Y = Y.toarray()
+                J, g = self.obj_func(w, X, Y, C=self.C, p=self.p, weighting=self.weighting)
+                w = w - learning_rate * g
+                Je += J
+                # Je += J * len(ix)
+                sys.stdout.write('\r %d / %d' % (nb+1, n_batches))
+                sys.stdout.flush()
+            print()
+            Je /= n_batches
+            print('epoch: %d / %d, obj: %.6f' % (epoch+1, n_epochs, Je))
+            learning_rate *= decay
+        self.b = w[0]
+        self.W = np.reshape(w[1:], (K, D))
+        self.trained = True
+
     def decision_function(self, X_test):
         """Make predictions (score is real number)"""
 
         assert self.trained is True, "Can't make prediction before training"
-        return np.dot(X_test, self.W.T)  # log of prediction score
+        return np.dot(X_test, self.W.T) + self.b  # log of prediction score
 
     def predict(self, X_test):
         return self.decision_function(X_test)
