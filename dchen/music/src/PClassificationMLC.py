@@ -1,8 +1,10 @@
 import sys
+import time
 import numpy as np
 from scipy.optimize import minimize
 from sklearn.base import BaseEstimator
 from scipy.sparse import issparse
+import pickle as pkl
 
 
 def obj_pclassification(w, X, Y, C, p, weighting=True):
@@ -99,14 +101,16 @@ class PClassificationMLC(BaseEstimator):
             print(opt.items())
             self.trained = False
 
-    def fit_SGD(self, X_train, Y_train, w=None, learning_rate=0.001, batch_size=200, n_epochs=100):
+    def fit_SGD(self, X_train, Y_train, w0=None, learning_rate=0.001, batch_size=200, n_epochs=100):
+        """Model fitting by Stochastic Gradient Descent"""
         # np.random.seed(918273645)
         N, D = X_train.shape
         K = Y_train.shape[1]
-        if w is None:
+        if w0 is None:
             w = 0.001 * np.random.randn(K * D + 1)
         else:
-            assert w.shape[0] == K * D + 1
+            assert w0.shape[0] == K * D + 1
+            w = w0
         n_batches = int((N-1) / batch_size) + 1
         decay = 0.9
         for epoch in range(n_epochs):
@@ -136,10 +140,16 @@ class PClassificationMLC(BaseEstimator):
         self.b = w[0]
         self.W = np.reshape(w[1:], (K, D))
         self.trained = True
+        
+    def resume_fit_SGD(self, X_train, Y_train, learning_rate=0.001, batch_size=200, n_epochs=100):
+        """Resume fitting the model using SGD"""
+        assert self.trained is True, "Only trained model can be resumed"
+        w0 = np.concatenate((self.b, self.W.ravel()), axis=-1)
+        self.fit_SGD(X_train=X_train, Y_train=Y_train, w=w0, \
+                     learning_rate=learning_rate, batch_size=batch_size, n_epochs=n_epochs)
 
     def decision_function(self, X_test):
-        """Make predictions (score is real number)"""
-
+        """Make predictions (score is a real number)"""
         assert self.trained is True, "Can't make prediction before training"
         return np.dot(X_test, self.W.T) + self.b  # log of prediction score
 
@@ -155,3 +165,33 @@ class PClassificationMLC(BaseEstimator):
     #
     # def get_params(self, deep = True):
     # def set_params(self, **params):
+
+    def dump_params(fname=None):
+        """Dump the parameters of trained model"""
+        if self.trained is False:
+            print('Model should be trained first! Do nothing.')
+            return
+        else:
+            if fname is None:
+                fname = 'modelPC-' + time.strftime('%Y-%m-%d-%H-%M-%S') + '.pkl'
+            params = dict()
+            params['C'] = self.C
+            params['p'] = self.p
+            params['weighting'] = self.weighting
+            params['b'] = self.b
+            params['W'] = self.W
+            pkl.dump(params, open(fname, 'wb'))
+
+    def load_params(fname):
+        """Load the parameters of a trained model"""
+        if self.trained is True:
+            print('Cannot load to override trained model! Do nothing.')
+            return
+        else:
+            params = pkl.load(open(fname, 'rb'))
+            self.C = params['C']
+            self.p = params['p']
+            self.weighting = params['weighting']
+            self.b = params['b']
+            self.W = params['W']
+            self.trained = True
