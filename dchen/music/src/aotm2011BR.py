@@ -2,12 +2,13 @@ import os, sys
 import numpy as np
 import pickle as pkl
 
-if len(sys.argv) != 3:
-    print('Usage: python', sys.argv[0], 'WORK_DIR  C')
+if len(sys.argv) != 4:
+    print('Usage: python', sys.argv[0], 'WORK_DIR  C  N_JOB')
     sys.exit(0)
 else:
     work_dir = sys.argv[1]
     C = float(sys.argv[2])
+    n_jobs = int(sys.argv[3])
 
 data_dir = os.path.join(work_dir, 'data')
 src_dir = os.path.join(work_dir, 'src')
@@ -28,7 +29,7 @@ Y_train = pkl.load(open(fytrain, 'rb'))
 
 print('C: %g' % C)
 
-clf = BinaryRelevance(C=C)
+clf = BinaryRelevance(C=C, n_jobs=n_jobs)
 clf.fit(X_train, Y_train)
 
 fmodel = os.path.join(pkl_data_dir, 'br-aotm2011-C-%g.pkl' % C)
