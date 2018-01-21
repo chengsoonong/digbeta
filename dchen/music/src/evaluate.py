@@ -5,7 +5,7 @@ from joblib import Parallel, delayed
 from scipy.sparse import issparse
 
 
-def evaluate_SGD(clf, eval_func, X_test, Y_test, threshold=None, batch_size=100, verbose=0):
+def evaluate_minibatch(clf, eval_func, X_test, Y_test, threshold=None, batch_size=100, verbose=0):
     assert X_test.shape[0] == Y_test.shape[0]
     
     N = X_test.shape[0]
