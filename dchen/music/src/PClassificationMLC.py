@@ -77,7 +77,7 @@ class PClassificationMLC(BaseEstimator):
         self.p = p
         self.weighting = weighting
         self.obj_func = obj_pclassification
-        self.cost = [ ]
+        self.cost = []
         self.trained = False
 
     def fit(self, X_train, Y_train):
@@ -113,7 +113,6 @@ class PClassificationMLC(BaseEstimator):
             assert w0.shape[0] == K * D + 1
             w = w0
         n_batches = int((N-1) / batch_size) + 1
-        objs = []
         decay = 0.9
         for epoch in range(n_epochs):
             if verbose > 0:
@@ -144,12 +143,12 @@ class PClassificationMLC(BaseEstimator):
         self.b = w[0]
         self.W = np.reshape(w[1:], (K, D))
         self.trained = True
-        
+
     def resume_fit_minibatch(self, X_train, Y_train, learning_rate=0.001, batch_size=200, n_epochs=100):
         """Resume fitting the model using SGD"""
         assert self.trained is True, "Only trained model can be resumed"
         w0 = np.concatenate((self.b, self.W.ravel()), axis=-1)
-        self.fit_minibatch(X_train=X_train, Y_train=Y_train, w=w0, \
+        self.fit_minibatch(X_train=X_train, Y_train=Y_train, w=w0,
                            learning_rate=learning_rate, batch_size=batch_size, n_epochs=n_epochs)
 
     def decision_function(self, X_test):
@@ -184,7 +183,7 @@ class PClassificationMLC(BaseEstimator):
             params['W'] = self.W
             params['cost'] = self.cost
             return params
- 
+
     def save_params(self, fname=None):
         """Dump the parameters of trained model"""
         if self.trained is False:
@@ -210,4 +209,3 @@ class PClassificationMLC(BaseEstimator):
             self.W = params['W']
             self.cost = params['cost']
             self.trained = True
-

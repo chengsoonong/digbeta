@@ -37,7 +37,6 @@ def plot_loss(x, y, xlabel, ylabel, title):
     x[x >= xlim] = xlim - 0.01
     y[y >= ylim] = ylim - 0.01
 
-
     # the scatter plot:
     axScatter.scatter(x, y, color='b', alpha=0.3)
     axScatter.plot([0, 1], [0, 1], ls='--', color='g')
@@ -51,7 +50,6 @@ def plot_loss(x, y, xlabel, ylabel, title):
 
     # axScatter.set_xlim((-lim, lim))
     # axScatter.set_ylim((-lim, lim))
-    
     # bins = np.arange(-lim, lim + binwidth, binwidth)
 
     axHistx.hist(x, bins=10, color='g', alpha=0.3)
@@ -59,7 +57,7 @@ def plot_loss(x, y, xlabel, ylabel, title):
     axHisty.hist(y, bins=10, color='g', alpha=0.3, orientation='horizontal')
     axHisty.set_xscale('log')
 
-    #axHistx.set_xlim(axScatter.get_xlim())
-    #axHisty.set_ylim(axScatter.get_ylim())
+    # axHistx.set_xlim(axScatter.get_xlim())
+    # axHisty.set_ylim(axScatter.get_ylim())
 
     axHistx.set_title(title, fontdict={'fontsize': 15}, loc='center')
