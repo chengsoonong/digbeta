@@ -202,10 +202,10 @@ Lastly, by Eq.~(\ref{eq:tpush_dual_func}), (\ref{eq:sol}) and (\ref{eq:tpush_red
 &= \underset{\alphabm_{1:N}, \, \nubm_{1:N}}{\max} \left[ \min_{\w, \xibm} \, g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
    \sum_{n=1}^N \frac{1}{N K_+^n} \sum_{i:y_i^n=1} \ell^*(\alpha_{n,i}) \right] \\
 &= \underset{\alphabm_{1:N}, \, \nubm_{1:N}}{\max} \left[ \min_{\w, \xibm} \, g(\w, \xibm, \alphabm_{1:N}, \nubm_{1:N}) -
-   \sum_{n=1}^N \sum_{k=1}^K \frac{\llb y_k^n = 1 \rrb}{N K_+^n} \ell^*(\alpha_{n,i}) \right] \\
+   \sum_{n=1}^N \sum_{k=1}^K \frac{\llb y_k^n = 1 \rrb}{N K_+^n} \ell^*(\alpha_{n,k}) \right] \\
 &= \underset{\alphabm_{1:N}, \, \nubm_{1:N}}{\max} \left[ 
    -\frac{1}{2 \lambda} \sum_{k=1}^K \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)^\top \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)
-   -\sum_{n=1}^N \sum_{k=1}^K \frac{\llb y_k^n = 1 \rrb}{N K_+^n} \ell^*(\alpha_{n,i}) \right]
+   -\sum_{n=1}^N \sum_{k=1}^K \frac{\llb y_k^n = 1 \rrb}{N K_+^n} \ell^*(\alpha_{n,k}) \right]
 \end{align*}
 subject to constraints (\ref{eq:sol_xin2}) and $\nubm_n \succeq 0, \, n \in \{1,\dots,N\}$,
 or equivalently
@@ -215,7 +215,7 @@ or equivalently
 \underset{\alphabm_{1:N}, \, \betabm_{1:N}}{\min} \ &
     \sum_{k=1}^K \left[ 
     \frac{1}{2 \lambda} \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right)^\top \left( \sum_{n=1}^N \gamma_{n,k} \x^n \right) +
-    \sum_{n=1}^N \frac{\llb y_k^n = 1 \rrb}{N K_+^n} \ell^*(\alpha_{n,i}) \right] \\
+    \sum_{n=1}^N \frac{\llb y_k^n = 1 \rrb}{N K_+^n} \ell^*(\alpha_{n,k}) \right] \\
 s.t. \ \quad & \sum_{k=1}^K \gamma_{n,k} = 0, \ n \in \{1,\dots,N\} \\
              & \betabm_n \succeq 0, \ n \in \{1,\dots,N\}
 \end{aligned}
