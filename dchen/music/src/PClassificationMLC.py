@@ -102,7 +102,7 @@ class PClassificationMLC(BaseEstimator):
             print(opt.items())
             self.trained = False
 
-    def fit_minibatch(self, X_train, Y_train, w0=None, learning_rate=0.001, batch_size=200, n_epochs=10, verbose=0):
+    def fit_minibatch(self, X_train, Y_train, w0=None, learning_rate=0.1, batch_size=200, n_epochs=10, verbose=0):
         """Model fitting by mini-batch Gradient Descent"""
         # np.random.seed(918273645)
         N, D = X_train.shape
@@ -113,7 +113,7 @@ class PClassificationMLC(BaseEstimator):
             assert w0.shape[0] == K * D + 1
             w = w0
         n_batches = int((N-1) / batch_size) + 1
-        decay = 0.9
+        decay = 0.8
         for epoch in range(n_epochs):
             if verbose > 0:
                 print(time.strftime('%Y-%m-%d %H:%M:%S'))

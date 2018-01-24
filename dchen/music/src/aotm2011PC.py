@@ -20,7 +20,7 @@ sys.path.append(src_dir)
 from PClassificationMLC import PClassificationMLC
 from evaluate import evaluate_minibatch, calc_F1, calc_precisionK
 
-pkl_data_dir = os.path.join(data_dir, 'aotm-2011')
+pkl_data_dir = os.path.join(data_dir, 'aotm-2011/setting2')
 fxtrain = os.path.join(pkl_data_dir, 'X_train_audio.pkl')
 fytrain = os.path.join(pkl_data_dir, 'Y_train_audio.pkl')
 fxdev = os.path.join(pkl_data_dir, 'X_dev_audio.pkl')
