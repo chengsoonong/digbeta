@@ -50,9 +50,12 @@ def calc_F1(Y_true, Y_pred):
     N, K = Y_true.shape
     OneK = np.ones(K)
 
-    n_true = np.dot(Y_true, OneK)
-    n_positive = np.dot(Y_pred, OneK)
-    true_positive = np.dot(np.multiply(Y_true, Y_pred), OneK)
+    # n_true = np.dot(Y_true, OneK)
+    n_true = np.sum(Y_true, axis=1)
+    # n_positive = np.dot(Y_pred, OneK)
+    n_positive = np.sum(Y_pred, axis=1)
+    # true_positive = np.dot(np.multiply(Y_true, Y_pred), OneK)
+    true_positive = np.sum(np.multiply(Y_true, Y_pred), axis=1)
 
     numerator = 2 * true_positive
     denominator = n_true + n_positive
