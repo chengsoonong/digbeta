@@ -24,12 +24,12 @@ def evaluate_minibatch(clf, eval_func, X_test, Y_test, threshold=None, batch_siz
         ix = indices[ix_start:ix_end]
 
         X = X_test[ix]
-        Y_true = Y_test[ix]
-        if issparse(Y_true):
-            Y_true = Y_true.toarray()
+        Y_true = Y_test[ix].astype(np.bool)
+        #if issparse(Y_true):
+        #    Y_true = Y_true.toarray()
         Y_pred = clf.decision_function(X)
-        if issparse(Y_pred):
-            Y_pred = Y_pred.toarray()
+        #if issparse(Y_pred):
+        #    Y_pred = Y_pred.toarray()
         if threshold is not None:
             Y_pred = Y_pred >= threshold
 
@@ -47,6 +47,7 @@ def calc_F1(Y_true, Y_pred):
     f1 = (2 * precision * recall) / (precision + recall) = 2 * true_positive / (n_true + n_positive)
     """
     assert Y_true.shape == Y_pred.shape
+    assert Y_true.dtype == Y_pred.dtype == np.bool
     N, K = Y_true.shape
     OneK = np.ones(K)
 
@@ -55,7 +56,8 @@ def calc_F1(Y_true, Y_pred):
     # n_positive = np.dot(Y_pred, OneK)
     n_positive = np.sum(Y_pred, axis=1)
     # true_positive = np.dot(np.multiply(Y_true, Y_pred), OneK)
-    true_positive = np.sum(np.multiply(Y_true, Y_pred), axis=1)
+    # true_positive = np.sum(np.multiply(Y_true, Y_pred), axis=1)
+    true_positive = np.sum(np.logical_and(Y_true, Y_pred), axis=1)
 
     numerator = 2 * true_positive
     denominator = n_true + n_positive
@@ -75,9 +77,11 @@ def calc_precisionK(Y_true, Y_pred):
       where by the definition of Precision@K, #positives_in_ground_truth = #positive_in_prediction
     """
     assert Y_true.shape == Y_pred.shape
+    assert Y_true.dtype == np.bool
     N, K = Y_true.shape
     OneK = np.ones(K)
-    KPosAll = np.dot(Y_true, OneK).astype(np.int)
+    #KPosAll = np.dot(Y_true, OneK).astype(np.int)
+    KPosAll = np.sum(Y_true, axis=1).astype(np.int)
     assert np.all(KPosAll > 0)
 
     rows = np.arange(N)
@@ -86,8 +90,10 @@ def calc_precisionK(Y_true, Y_pred):
     thresholds = Y_pred[rows, cols]   # the K-th largest scores
     Y_pred_bin = Y_pred >= thresholds[:, None]  # convert scores to binary predictions
 
-    true_positives = np.multiply(Y_true, Y_pred_bin)
-    return np.dot(true_positives, OneK) / KPosAll
+    #true_positives = np.multiply(Y_true, Y_pred_bin)
+    true_positives = np.logical_and(Y_true, Y_pred_bin)
+    #return np.dot(true_positives, OneK) / KPosAll
+    return np.sum(true_positives, axis=1) / KPosAll
 
 
 def f1_score_nowarn(y_true, y_pred, labels=None, pos_label=1, average='binary', sample_weight=None):
