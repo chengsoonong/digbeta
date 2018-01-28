@@ -4,6 +4,14 @@ from scipy.optimize import minimize
 from sklearn.base import BaseEstimator
 
 
+def avgF1(Y_true, Y_pred):
+    # THs = [0, 0.05, 0.10, 0.15, 0.2, 0.25, 0.30, 0.35, 0.4, 0.45, 0.5, 0.55, 0.60, 0.65, 0.70, 0.75]  # SPEN THs
+    THs = [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85]
+    F1 = Parallel(n_jobs=-1)(delayed(f1_score_nowarn)(Y_true, Y_pred >= th, average='samples') for th in THs)
+    bestix = np.argmax(F1)
+    print('best threshold: %g, best F1: %g, #examples: %g' % (THs[bestix], F1[bestix], Y_true.shape[0]))
+    return F1[bestix]
+
 def obj_pclassification(w, X, Y, C, p, weighting=True):
     """
         Objective with L2 regularisation and p-classification loss
