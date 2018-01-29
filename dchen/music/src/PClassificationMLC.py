@@ -24,41 +24,48 @@ def obj_pclassification(w, X, Y, C, p, weighting=True):
     assert(p >= 1)
     assert(C > 0)
 
+    isnan = np.isnan(Y)
+    if np.any(isnan):
+        Yp = np.nan_to_num(Y)
+        Yn = 1 - Yp - isnan
+    else:
+        Yp = Y
+        Yn = 1 - Y
+
     W = w[1:].reshape(K, D)  # reshape weight matrix
     b = w[0]           # bias
     OneN = np.ones(N)  # N by 1
     OneK = np.ones(K)  # K by 1
 
     if weighting is True:
-        # KPosAll = np.sum(Y, axis=1)
-        KPosAll = np.dot(Y, OneK)   # number of positive labels for each example, N by 1
-        KNegAll = K - KPosAll       # number of negative labels for each example, N by 1
+        KPosAll = np.sum(Yp, axis=1)   # number of positive labels for each example, N by 1
+        KNegAll = np.sum(Yn, axis=1)   # number of negative labels for each example, N by 1
     else:
         KPosAll = np.ones(N)
         KNegAll = np.ones(N)
     A_diag = np.divide(1, KPosAll)  # N by 1
     P_diag = np.divide(1, KNegAll)  # N by 1
 
-    # T1 = np.dot(X, W.T)  # N by K
     T1 = np.dot(X, W.T) + b  # N by K
 
-    T1p = np.multiply(Y, T1)
-    T2 = np.multiply(Y, np.exp(-T1p))  # N by K
+    T1p = np.multiply(Yp, T1)
+    T2 = np.multiply(Yp, np.exp(-T1p))  # N by K
     T3 = T2 * A_diag[:, None]  # N by K
 
-    # T1n = np.multiply(1-Y, T1)
-    T1n = T1 - T1p
-    T4 = np.multiply(1-Y, np.exp(p * T1n))  # N by K
+    #T1n = T1 - T1p
+    T1n = np.multiply(Yn, T1)
+    T4 = np.multiply(Yn, np.exp(p * T1n))  # N by K
     T5 = T4 * P_diag[:, None]  # N by K
 
-    J = np.dot(W.ravel(), W.ravel()) * 0.5 / C
-    J += (np.dot(OneN, np.dot(T3, OneK)) + np.dot(OneN, np.dot(T5/p, OneK))) / N
+    J = np.dot(W.ravel(), W.ravel()) * 0.5 / C + np.sum(T3 + T5/p) / N
+    # J += (np.dot(OneN, np.dot(T3, OneK)) + np.dot(OneN, np.dot(T5/p, OneK))) / N
     # J = np.dot(W.ravel(), W.ravel()) * 0.5 / C + (np.dot(OneN, np.dot(T3 + T5/p, OneK))) / N  # not as efficient
 
     # G = W / C + (np.dot(T3.T, -X) + np.dot(T5.T, X)) / N
     G = W / C + (np.dot((-T3 + T5).T, X)) / N   # more efficient
 
-    db = np.dot(OneN, np.dot(-T3 + T5, OneK)) / N
+    # db = np.dot(OneN, np.dot(-T3 + T5, OneK)) / N
+    db = np.sum(-T3 + T5) / N
 
     gradients = np.concatenate(([db], G.ravel()), axis=0)
 
