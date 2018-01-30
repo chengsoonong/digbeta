@@ -7,7 +7,7 @@ from scipy.sparse import issparse
 import pickle as pkl
 
 
-def obj_pclassification(w, X, Y, C, p, weighting=True):
+def obj_pclassification(w, X, Y, C, p, weighting=True, verticalWeighting=False):
     """
         Objective with L2 regularisation and p-classification loss
 
@@ -34,40 +34,61 @@ def obj_pclassification(w, X, Y, C, p, weighting=True):
 
     W = w[1:].reshape(K, D)  # reshape weight matrix
     b = w[0]           # bias
-    OneN = np.ones(N)  # N by 1
-    OneK = np.ones(K)  # K by 1
+    # OneN = np.ones(N)  # N by 1
+    # OneK = np.ones(K)  # K by 1
 
     if weighting is True:
-        KPosAll = np.sum(Yp, axis=1)   # number of positive labels for each example, N by 1
-        KNegAll = np.sum(Yn, axis=1)   # number of negative labels for each example, N by 1
-    else:
-        KPosAll = np.ones(N)
-        KNegAll = np.ones(N)
-    A_diag = np.divide(1, KPosAll)  # N by 1
-    P_diag = np.divide(1, KNegAll)  # N by 1
+        if verticalWeighting is True:
+            numPosAll = np.sum(Yp, axis=0)  # number of positive examples for each label, K by 1
+            numNegAll = np.sum(Yn, axis=0)  # number of negative examples for each label, K by 1
+            totalNum = K
+        else:
+            numPosAll = np.sum(Yp, axis=1)  # number of positive labels for each example, N by 1
+            numNegAll = np.sum(Yn, axis=1)  # number of negative labels for each example, N by 1
+            totalNum = N
+        A_diag = np.divide(1, numPosAll)  # K by 1 or N by 1
+        P_diag = np.divide(1, numNegAll)  # K by 1 or N by 1
 
     T1 = np.dot(X, W.T) + b  # N by K
 
     T1p = np.multiply(Yp, T1)
+    #print(np.min(T1p))
+    #print(np.max(T1p))
     T2 = np.multiply(Yp, np.exp(-T1p))  # N by K
-    T3 = T2 * A_diag[:, None]  # N by K
+    #print(np.min(T2))
+    #print(np.max(T2))
+    #print('------------')
 
-    #T1n = T1 - T1p
     T1n = np.multiply(Yn, T1)
+    #print(p * np.min(T1n))
+    #print(p * np.max(T1n))
     T4 = np.multiply(Yn, np.exp(p * T1n))  # N by K
-    T5 = T4 * P_diag[:, None]  # N by K
+    #print(np.min(T4))
+    #print(np.max(T4))
+    #print('+++++++++++++')
+
+    if weighting is True:
+        if verticalWeighting is True:
+            #print(np.max(A_diag))
+            T3 = T2 * A_diag[None, :]  # N by K
+            #print(np.max(P_diag))
+            T5 = T4 * P_diag[None, :]  # N by K
+            #print(':::::::::::::::::')
+        else:
+            T3 = T2 * A_diag[:, None]  # N by K
+            T5 = T4 * P_diag[:, None]  # N by K
+    else:
+        T3 = T2
+        T5 = T4
 
     J = np.dot(W.ravel(), W.ravel()) * 0.5 / C + np.sum(T3 + T5/p) / N
-    # J += (np.dot(OneN, np.dot(T3, OneK)) + np.dot(OneN, np.dot(T5/p, OneK))) / N
-    # J = np.dot(W.ravel(), W.ravel()) * 0.5 / C + (np.dot(OneN, np.dot(T3 + T5/p, OneK))) / N  # not as efficient
 
-    # G = W / C + (np.dot(T3.T, -X) + np.dot(T5.T, X)) / N
-    G = W / C + (np.dot((-T3 + T5).T, X)) / N   # more efficient
+    G = W / C + np.dot((-T3 + T5).T, X) / N
 
-    # db = np.dot(OneN, np.dot(-T3 + T5, OneK)) / N
     db = np.sum(-T3 + T5) / N
 
     gradients = np.concatenate(([db], G.ravel()), axis=0)
+    #print('J:', J)
 
     return (J, gradients)
 
@@ -75,7 +96,7 @@ def obj_pclassification(w, X, Y, C, p, weighting=True):
 class PClassificationMLC(BaseEstimator):
     """All methods are necessary for a scikit-learn estimator"""
 
-    def __init__(self, C=1, p=1, weighting=True):
+    def __init__(self, C=1, p=1, weighting=True, verticalWeighting=False):
         """Initialisation"""
 
         assert C > 0
@@ -83,6 +104,7 @@ class PClassificationMLC(BaseEstimator):
         self.C = C
         self.p = p
         self.weighting = weighting
+        self.verticalWeighting = verticalWeighting
         self.obj_func = obj_pclassification
         self.cost = []
         self.trained = False
@@ -90,15 +112,17 @@ class PClassificationMLC(BaseEstimator):
     def fit(self, X_train, Y_train):
         """Model fitting by optimising the objective"""
         opt_method = 'L-BFGS-B'  # 'BFGS' #'Newton-CG'
-        options = {'disp': 1, 'maxiter': 10**5, 'maxfun': 10**5}  # , 'iprint': 99}
+        options = {'disp': 1, 'maxiter': 10**5, 'maxfun': 10**5, 'eps': 1e-6}  # , 'iprint': 99}
         sys.stdout.write('\nC: %g, p: %g, weighting: %s\n' % (self.C, self.p, self.weighting))
         sys.stdout.flush()
 
         N, D = X_train.shape
         K = Y_train.shape[1]
         # w0 = np.random.rand(K * D + 1) - 0.5  # initial guess in range [-1, 1]
+        #w0 = 0.001 * np.random.randn(K * D + 1)
         w0 = 0.001 * np.random.randn(K * D + 1)
-        opt = minimize(self.obj_func, w0, args=(X_train, Y_train, self.C, self.p, self.weighting),
+        opt = minimize(self.obj_func, w0, args=(X_train, Y_train,
+                       self.C, self.p, self.weighting, self.verticalWeighting),
                        method=opt_method, jac=True, options=options)
         if opt.success is True:
             self.b = opt.x[0]
@@ -139,7 +163,8 @@ class PClassificationMLC(BaseEstimator):
                     X = X.toarray()
                 if issparse(Y):
                     Y = Y.toarray()
-                J, g = self.obj_func(w, X, Y, C=self.C, p=self.p, weighting=self.weighting)
+                J, g = self.obj_func(w, X, Y, C=self.C, p=self.p, weighting=self.weighting,
+                                     verticalWeighting=self.verticalWeighting)
                 w = w - learning_rate * g
                 if np.isnan(J):
                     print('J = NaN, training failed.')
