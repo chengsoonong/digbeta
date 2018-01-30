@@ -88,7 +88,7 @@ def obj_pclassification(w, X, Y, C, p, weighting=True, verticalWeighting=False):
     db = np.sum(-T3 + T5) / N
 
     gradients = np.concatenate(([db], G.ravel()), axis=0)
-    #print('J:', J)
+    print('J:', J)
 
     return (J, gradients)
 
@@ -112,7 +112,7 @@ class PClassificationMLC(BaseEstimator):
     def fit(self, X_train, Y_train):
         """Model fitting by optimising the objective"""
         opt_method = 'L-BFGS-B'  # 'BFGS' #'Newton-CG'
-        options = {'disp': 1, 'maxiter': 10**5, 'maxfun': 10**5, 'eps': 1e-6}  # , 'iprint': 99}
+        options = {'disp': 1, 'maxiter': 10**5, 'maxfun': 10**5,}  # 'eps': 1e-5}  # , 'iprint': 99}
         sys.stdout.write('\nC: %g, p: %g, weighting: %s\n' % (self.C, self.p, self.weighting))
         sys.stdout.flush()
 
@@ -120,7 +120,8 @@ class PClassificationMLC(BaseEstimator):
         K = Y_train.shape[1]
         # w0 = np.random.rand(K * D + 1) - 0.5  # initial guess in range [-1, 1]
         #w0 = 0.001 * np.random.randn(K * D + 1)
-        w0 = 0.001 * np.random.randn(K * D + 1)
+        #w0 = 0.001 * np.random.randn(K * D + 1)
+        w0 = np.zeros(K * D + 1)
         opt = minimize(self.obj_func, w0, args=(X_train, Y_train,
                        self.C, self.p, self.weighting, self.verticalWeighting),
                        method=opt_method, jac=True, options=options)
