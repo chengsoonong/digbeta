@@ -6,7 +6,7 @@ from joblib import Parallel, delayed
 from scipy.sparse import issparse
 
 
-def evaluate_minibatch(clf, eval_func, X_test, Y_test, threshold=None, batch_size=100, verbose=0):
+def evaluate_minibatch(clf, eval_func, X_test, Y_test, threshold=None, transposeY=False, batch_size=100, verbose=0):
     assert X_test.shape[0] == Y_test.shape[0]
 
     N = X_test.shape[0]
@@ -33,7 +33,10 @@ def evaluate_minibatch(clf, eval_func, X_test, Y_test, threshold=None, batch_siz
         if threshold is not None:
             Y_pred = Y_pred >= threshold
 
-        metrics = eval_func(Y_true, Y_pred)
+        if transposeY is True:
+            metrics = eval_func(Y_true.T, Y_pred.T)
+        else:
+            metrics = eval_func(Y_true, Y_pred)
         metrics_all = np.concatenate((metrics_all, metrics), axis=-1)
 
     return metrics_all
@@ -82,7 +85,7 @@ def calc_precisionK(Y_true, Y_pred):
     OneK = np.ones(K)
     #KPosAll = np.dot(Y_true, OneK).astype(np.int)
     KPosAll = np.sum(Y_true, axis=1).astype(np.int)
-    assert np.all(KPosAll > 0)
+    #assert np.all(KPosAll > 0)
 
     rows = np.arange(N)
     sortedIx = np.argsort(-Y_pred, axis=1)
@@ -92,8 +95,12 @@ def calc_precisionK(Y_true, Y_pred):
 
     #true_positives = np.multiply(Y_true, Y_pred_bin)
     true_positives = np.logical_and(Y_true, Y_pred_bin)
+    pak = np.ones(N)
+    nonzero_ix = np.nonzero(KPosAll)[0]
+    pak[nonzero_ix] = np.sum(true_positives[nonzero_ix], axis=1) / KPosAll[nonzero_ix]
     #return np.dot(true_positives, OneK) / KPosAll
-    return np.sum(true_positives, axis=1) / KPosAll
+    #return np.sum(true_positives, axis=1) / KPosAll
+    return pak
 
 
 def f1_score_nowarn(y_true, y_pred, labels=None, pos_label=1, average='binary', sample_weight=None):
@@ -179,7 +186,7 @@ def evalPred(truth, pred, metricType='Precision@K'):
         y = truth[idx]
 
         # fraction of +'ves in the top K predictions
-        return np.mean(y[:nPos]) if nPos > 0 else 0
+        return np.mean(y[:nPos]) if nPos > 0 else 1
 
     # elif metricType == 'Precision@3':
     #    # sorted indices of the labels most likely to be +'ve
