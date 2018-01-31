@@ -25,11 +25,11 @@ def evaluate_minibatch(clf, eval_func, X_test, Y_test, threshold=None, transpose
 
         X = X_test[ix]
         Y_true = Y_test[ix].astype(np.bool)
-        #if issparse(Y_true):
-        #    Y_true = Y_true.toarray()
+        if issparse(Y_true):
+            Y_true = Y_true.toarray()
         Y_pred = clf.decision_function(X)
-        #if issparse(Y_pred):
-        #    Y_pred = Y_pred.toarray()
+        if issparse(Y_pred):
+            Y_pred = Y_pred.toarray()
         if threshold is not None:
             Y_pred = Y_pred >= threshold
 
@@ -52,7 +52,7 @@ def calc_F1(Y_true, Y_pred):
     assert Y_true.shape == Y_pred.shape
     assert Y_true.dtype == Y_pred.dtype == np.bool
     N, K = Y_true.shape
-    OneK = np.ones(K)
+    # OneK = np.ones(K)
 
     # n_true = np.dot(Y_true, OneK)
     n_true = np.sum(Y_true, axis=1)
@@ -82,10 +82,10 @@ def calc_precisionK(Y_true, Y_pred):
     assert Y_true.shape == Y_pred.shape
     assert Y_true.dtype == np.bool
     N, K = Y_true.shape
-    OneK = np.ones(K)
-    #KPosAll = np.dot(Y_true, OneK).astype(np.int)
+    # OneK = np.ones(K)
+    # KPosAll = np.dot(Y_true, OneK).astype(np.int)
     KPosAll = np.sum(Y_true, axis=1).astype(np.int)
-    #assert np.all(KPosAll > 0)
+    # assert np.all(KPosAll > 0)
 
     rows = np.arange(N)
     sortedIx = np.argsort(-Y_pred, axis=1)
@@ -93,14 +93,44 @@ def calc_precisionK(Y_true, Y_pred):
     thresholds = Y_pred[rows, cols]   # the K-th largest scores
     Y_pred_bin = Y_pred >= thresholds[:, None]  # convert scores to binary predictions
 
-    #true_positives = np.multiply(Y_true, Y_pred_bin)
+    # true_positives = np.multiply(Y_true, Y_pred_bin)
     true_positives = np.logical_and(Y_true, Y_pred_bin)
     pak = np.ones(N)
     nonzero_ix = np.nonzero(KPosAll)[0]
     pak[nonzero_ix] = np.sum(true_positives[nonzero_ix], axis=1) / KPosAll[nonzero_ix]
-    #return np.dot(true_positives, OneK) / KPosAll
-    #return np.sum(true_positives, axis=1) / KPosAll
+    # return np.dot(true_positives, OneK) / KPosAll
+    # return np.sum(true_positives, axis=1) / KPosAll
     return pak
+
+
+def calc_rank(x, largestFirst=True):
+    """
+        Compute the rank of numbers in an array.
+
+        Input
+        - x: a 1D array of numbers
+        - largestFirst: boolean
+          if True, the largest number has rank 1, the second largest has rank 2, ...
+          if False, the smallest number has rank 1, the second smallest has rank 2, ...
+    """
+    assert x.ndim == 1
+    n = len(x)
+    assert n > 0
+
+    sortix = np.argsort(-x)
+    rank = np.zeros(n, dtype=np.int)
+
+    # use a loop
+    # for i, six in enumerate(sortix):
+    #    rank[six] = i+1
+
+    # without using loop
+    rank[sortix] = np.arange(n) + 1
+
+    if largestFirst is True:
+        return rank
+    else:
+        return n + 1 - rank
 
 
 def f1_score_nowarn(y_true, y_pred, labels=None, pos_label=1, average='binary', sample_weight=None):
