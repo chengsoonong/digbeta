@@ -17,7 +17,8 @@ data_dir = os.path.join(work_dir, 'data')
 src_dir = os.path.join(work_dir, 'src')
 sys.path.append(src_dir)
 
-from PClassificationMLC import PClassificationMLC
+#from PClassificationMLC import PClassificationMLC
+from PCMLC import PCMLC as PClassificationMLC
 from evaluate import evaluate_minibatch, calc_F1, calc_precisionK
 
 pkl_data_dir = os.path.join(data_dir, 'aotm-2011/setting2')
