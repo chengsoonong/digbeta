@@ -8,7 +8,7 @@ from scipy.sparse import issparse
 import pickle as pkl
 
 
-def obj_pclassification(w, X, Y, C, p, weighting=True, verticalWeighting=False):
+def obj_pclassification(w, X, Y, C, p, weighting=True, verticalWeighting=False, similarMat=None):
     """
         Objective with L2 regularisation and p-classification loss
 
@@ -18,12 +18,19 @@ def obj_pclassification(w, X, Y, C, p, weighting=True, verticalWeighting=False):
             - Y: label matrix,   N x L
             - C: regularisation constant, is consistent with scikit-learn C = 1 / (N * \lambda)
             - p: constant for p-classification push loss
+            - weighting: boolean, weight the exponential surrogate by the #positive or #negative labels or samples
+            - verticalWeighting: boolean, weight the exponential surrogate by the #positive or #negative
+                                 samples (True) or labels (False)
+            - similarMat: square symmetric matrix, require the parameters of label_i and label_j should be similar
+                          (by regularising their difference) if entry (i,j) is 1
     """
     N, D = X.shape
     K = Y.shape[1]
-    assert(w.shape[0] == K * D + 1)
-    assert(p >= 1)
-    assert(C > 0)
+    assert w.shape[0] == K * D + 1
+    assert p >= 1
+    assert C > 0
+    if similarMat is not None:
+        assert similarMat.shape == (K, K)
 
     isnan = np.isnan(Y)
     if np.any(isnan):
@@ -92,6 +99,12 @@ def obj_pclassification(w, X, Y, C, p, weighting=True, verticalWeighting=False):
     dW = W / C + np.dot((-T5 + T6).T, X) / totalNum
     db = np.sum(-T5 + T6) / totalNum
 
+    if similarMat is not None:
+        M = -1. * similarMat
+        np.fill_diagonal(M, np.sum(similarMat, axis=1))
+        J += np.sum(np.multiply(np.dot(W, W.T), M)) * 0.5 / C
+        dW += np.dot(M, W) / C
+
     grad = np.concatenate(([db], dW.ravel()), axis=0)
 
     return (J, grad)
@@ -100,7 +113,7 @@ def obj_pclassification(w, X, Y, C, p, weighting=True, verticalWeighting=False):
 class PCMLC(BaseEstimator):
     """All methods are necessary for a scikit-learn estimator"""
 
-    def __init__(self, C=1, p=1, weighting=True, verticalWeighting=False):
+    def __init__(self, C=1, p=1, weighting=True, verticalWeighting=False, similarMat=None):
         """Initialisation"""
 
         assert C > 0
@@ -109,6 +122,7 @@ class PCMLC(BaseEstimator):
         self.p = p
         self.weighting = weighting
         self.verticalWeighting = verticalWeighting
+        self.similarMat = similarMat
         self.obj_func = obj_pclassification
         self.cost = []
         self.trained = False
@@ -127,7 +141,7 @@ class PCMLC(BaseEstimator):
         # w0 = 0.001 * np.random.randn(K * D + 1)
         w0 = np.zeros(K * D + 1)
         opt = minimize(self.obj_func, w0, args=(X_train, Y_train,
-                       self.C, self.p, self.weighting, self.verticalWeighting),
+                       self.C, self.p, self.weighting, self.verticalWeighting, self.similarMat),
                        method=opt_method, jac=True, options=options)
         if opt.success is True:
             self.b = opt.x[0]
@@ -170,7 +184,7 @@ class PCMLC(BaseEstimator):
                 if issparse(Y):
                     Y = Y.toarray()
                 J, g = self.obj_func(w, X, Y, C=self.C, p=self.p, weighting=self.weighting,
-                                     verticalWeighting=self.verticalWeighting)
+                                     verticalWeighting=self.verticalWeighting, similarMat=self.similarMat)
                 w = w - learning_rate * g
                 if np.isnan(J):
                     print('J = NaN, training failed.')
