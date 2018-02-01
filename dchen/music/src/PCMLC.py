@@ -8,7 +8,7 @@ from scipy.sparse import issparse
 import pickle as pkl
 
 
-def obj_pclassification(w, X, Y, C, p, weighting=True, verticalWeighting=False, similarMat=None):
+def obj_pclassification(w, X, Y, C, p, weighting='samples', similarMat=None):
     """
         Objective with L2 regularisation and p-classification loss
 
@@ -18,9 +18,12 @@ def obj_pclassification(w, X, Y, C, p, weighting=True, verticalWeighting=False, 
             - Y: label matrix,   N x L
             - C: regularisation constant, is consistent with scikit-learn C = 1 / (N * \lambda)
             - p: constant for p-classification push loss
-            - weighting: boolean, weight the exponential surrogate by the #positive or #negative labels or samples
-            - verticalWeighting: boolean, weight the exponential surrogate by the #positive or #negative
-                                 samples (True) or labels (False)
+            - weighting: weight the exponential surrogate by the #positive or #negative labels or samples,
+                  valid assignment: None, 'samples', 'labels', 'both'
+                  - None: do not weight
+                  - 'samples': weight by the #positive or #negative samples per label (weighting vertically)
+                  - 'labels': weight by the #positive or #negative labels per example (weighting horizontally)
+                  - 'both': equivalent to turn on both 'samples' and 'labels'
             - similarMat: square symmetric matrix, require the parameters of label_i and label_j should be similar
                           (by regularising their difference) if entry (i,j) is 1
     """
@@ -29,6 +32,8 @@ def obj_pclassification(w, X, Y, C, p, weighting=True, verticalWeighting=False, 
     assert w.shape[0] == K * D + 1
     assert p >= 1
     assert C > 0
+    assert weighting in [None, 'samples', 'labels', 'both'], \
+           'Valid assignment for "weighting" are: None, "samples", "labels", "both".'
     if similarMat is not None:
         assert similarMat.shape == (K, K)
 
@@ -45,59 +50,59 @@ def obj_pclassification(w, X, Y, C, p, weighting=True, verticalWeighting=False, 
     W = w[1:].reshape(K, D)  # reshape weight matrix
     b = w[0]                 # bias
 
-    if weighting is True:
-        if verticalWeighting is True:
-            numPosAll = np.sum(Yp, axis=0)  # number of positive examples for each label, K by 1
-            numNegAll = np.sum(Yn, axis=0)  # number of negative examples for each label, K by 1
-            pnumNegAll = p * numNegAll
-            zero_pix = np.where(numPosAll == 0)[0]
-            zero_nix = np.where(numNegAll == 0)[0]
-            if zero_pix.shape[0] > 0:
-                numPosAll[zero_pix] = 1
-            if zero_nix.shape[0] > 0:
-                numNegAll[zero_nix] = 1
-                pnumNegAll[zero_nix] = 1
-            Tp = Yp * np.log(numPosAll)[None, :]
-            Tn = Yn * np.log(pnumNegAll)[None, :]
-            P = Yp * np.divide(1, numPosAll)[None, :]
-            Q = Yn * np.divide(1, numNegAll)[None, :]
-            totalNum = K
-        else:
-            numPosAll = np.sum(Yp, axis=1)  # number of positive labels for each example, N by 1
-            numNegAll = np.sum(Yn, axis=1)  # number of negative labels for each example, N by 1
-            pnumNegAll = p * numNegAll
-            zero_pix = np.where(numPosAll == 0)[0]
-            zero_nix = np.where(numNegAll == 0)[0]
-            if zero_pix.shape[0] > 0:
-                numPosAll[zero_pix] = 1
-            if zero_nix.shape[0] > 0:
-                numNegAll[zero_nix] = 1
-                pnumNegAll[zero_nix] = 1
-            Tp = Yp * np.log(numPosAll)[:, None]
-            Tn = Yn * np.log(pnumNegAll)[:, None]
-            P = Yp * np.divide(1, numPosAll)[:, None]
-            Q = Yn * np.divide(1, numNegAll)[:, None]
-            totalNum = N
-    else:
-        Tp = 0
-        Tn = 0
-        P = Yp
-        Q = Yn
-        totalNum = 1
-
     T1 = np.dot(X, W.T) + b  # N by K
-    T2 = np.multiply(-Yp + p * Yn, T1) - Tp - Tn
-    cost = logsumexp(T2.ravel()) - np.log(totalNum)
+    T2 = np.multiply(-Yp + p * Yn, T1)
+    T3 = np.multiply(Yp, -T1)
+    T4 = np.multiply(Yn, p * T1)
 
-    J = np.dot(W.ravel(), W.ravel()) * 0.5 / C + cost
+    def _cost_grad(weight):
+        if weight is None:
+            Tp = 0
+            Tn = np.log(p) * Yn
+            P = Yp
+            Q = Yn
+            totalNum = 1
+        else:
+            if weight == 'samples':
+                ax = 0
+                shape = (1, K)
+            elif weight == 'labels':
+                ax = 1
+                shape = (N, 1)
+            numPosAll = np.sum(Yp, axis=ax)
+            numNegAll = np.sum(Yn, axis=ax)
+            pnumNegAll = p * numNegAll
+            zero_pix = np.where(numPosAll == 0)[0]
+            zero_nix = np.where(numNegAll == 0)[0]
+            if zero_pix.shape[0] > 0:
+                numPosAll[zero_pix] = 1
+            if zero_nix.shape[0] > 0:
+                numNegAll[zero_nix] = 1
+                pnumNegAll[zero_nix] = 1
+            Tp = Yp * np.log(numPosAll).reshape(shape)
+            Tn = Yn * np.log(pnumNegAll).reshape(shape)
+            P = Yp * np.divide(1, numPosAll).reshape(shape)
+            Q = Yn * np.divide(1, numNegAll).reshape(shape)
+            totalNum = np.prod(shape)
 
-    T3 = np.multiply(Yp, -T1) - cost
-    T4 = np.multiply(Yn, p * T1) - cost
-    T5 = np.multiply(P, np.exp(T3))
-    T6 = np.multiply(Q, np.exp(T4))
+        _cost = logsumexp((T2 - Tp - Tn).ravel()) - np.log(totalNum)
+        T5 = np.multiply(P, np.exp(T3 - _cost))
+        T6 = np.multiply(Q, np.exp(T4 - _cost))
 
-    dW = W / C + np.dot((-T5 + T6).T, X) / totalNum
-    db = np.sum(-T5 + T6) / totalNum
+        _dW = np.dot((-T5 + T6).T, X) / totalNum
+        _db = np.sum(-T5 + T6) / totalNum
+        return _cost, _dW, _db
+
+    if weighting != 'both':
+        cost, dW, db = _cost_grad(weighting)
+        J = np.dot(W.ravel(), W.ravel()) * 0.5 / C + cost
+        dW += W / C
+    else:
+        cost1, dW1, db1 = _cost_grad(weight='samples')
+        cost2, dW2, db2 = _cost_grad(weight='labels')
+        J = np.dot(W.ravel(), W.ravel()) * 0.5 / C + cost1 + cost2
+        dW = W / C + dW1 + dW2
+        db = db1 + db2
 
     if similarMat is not None:
         M = -1. * similarMat
@@ -106,7 +111,6 @@ def obj_pclassification(w, X, Y, C, p, weighting=True, verticalWeighting=False, 
         dW += np.dot(M, W) / C
 
     grad = np.concatenate(([db], dW.ravel()), axis=0)
-
     return (J, grad)
 
 
