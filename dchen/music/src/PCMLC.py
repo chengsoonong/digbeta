@@ -8,7 +8,7 @@ from scipy.sparse import issparse
 import pickle as pkl
 
 
-def obj_pclassification(w, X, Y, C, p, weighting='samples', similarMat=None):
+def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', similarMat=None):
     """
         Objective with L2 regularisation and p-classification loss
 
@@ -16,8 +16,8 @@ def obj_pclassification(w, X, Y, C, p, weighting='samples', similarMat=None):
             - w: current weight vector, flattened L x D + 1 (bias)
             - X: feature matrix, N x D
             - Y: label matrix,   N x L
-            - C: regularisation constant, is consistent with scikit-learn C = 1 / (N * \lambda)
             - p: constant for p-classification push loss
+            - C1-C3: regularisation constants
             - weighting: weight the exponential surrogate by the #positive or #negative labels or samples,
                   valid assignment: None, 'samples', 'labels', 'both'
                   - None: do not weight
@@ -31,11 +31,14 @@ def obj_pclassification(w, X, Y, C, p, weighting='samples', similarMat=None):
     K = Y.shape[1]
     assert w.shape[0] == K * D + 1
     assert p >= 1
-    assert C > 0
+    assert C1 > 0
+    assert C2 > 0
+    assert C3 > 0
     assert weighting in [None, 'samples', 'labels', 'both'], \
-           'Valid assignment for "weighting" are: None, "samples", "labels", "both".'
+        'Valid assignment for "weighting" are: None, "samples", "labels", "both".'
     if similarMat is not None:
         assert similarMat.shape == (K, K)
+        assert np.isclose(np.sum(similarMat - similarMat.T), 0)
 
     isnan = np.isnan(Y)
     if np.any(isnan):
@@ -51,9 +54,9 @@ def obj_pclassification(w, X, Y, C, p, weighting='samples', similarMat=None):
     b = w[0]                 # bias
 
     T1 = np.dot(X, W.T) + b  # N by K
-    T2 = np.multiply(-Yp + p * Yn, T1)
-    T3 = np.multiply(Yp, -T1)
-    T4 = np.multiply(Yn, p * T1)
+    # T2 = np.multiply(-Yp + p * Yn, T1)
+    T2 = np.multiply(Yp, -T1)
+    T3 = np.multiply(Yn, p * T1)
 
     def _cost_grad(weight):
         if weight is None:
@@ -61,54 +64,58 @@ def obj_pclassification(w, X, Y, C, p, weighting='samples', similarMat=None):
             Tn = np.log(p) * Yn
             P = Yp
             Q = Yn
-            totalNum = 1
-        else:
-            if weight == 'samples':
-                ax = 0
-                shape = (1, K)
-            elif weight == 'labels':
-                ax = 1
-                shape = (N, 1)
-            numPosAll = np.sum(Yp, axis=ax)
-            numNegAll = np.sum(Yn, axis=ax)
-            pnumNegAll = p * numNegAll
-            zero_pix = np.where(numPosAll == 0)[0]
-            zero_nix = np.where(numNegAll == 0)[0]
-            if zero_pix.shape[0] > 0:
-                numPosAll[zero_pix] = 1
-            if zero_nix.shape[0] > 0:
-                numNegAll[zero_nix] = 1
-                pnumNegAll[zero_nix] = 1
-            Tp = Yp * np.log(numPosAll).reshape(shape)
-            Tn = Yn * np.log(pnumNegAll).reshape(shape)
-            P = Yp * np.divide(1, numPosAll).reshape(shape)
-            Q = Yn * np.divide(1, numNegAll).reshape(shape)
-            totalNum = np.prod(shape)
+            num = 1
+            return Tp, Tn, P, Q, num
+        if weight == 'samples':
+            ax = 0
+            shape = (1, K)
+        elif weight == 'labels':
+            ax = 1
+            shape = (N, 1)
+        numPosAll = np.sum(Yp, axis=ax)
+        numNegAll = np.sum(Yn, axis=ax)
+        pnumNegAll = p * numNegAll
+        zero_pix = np.where(numPosAll == 0)[0]
+        zero_nix = np.where(numNegAll == 0)[0]
+        if zero_pix.shape[0] > 0:
+            numPosAll[zero_pix] = 1
+        if zero_nix.shape[0] > 0:
+            numNegAll[zero_nix] = 1
+            pnumNegAll[zero_nix] = 1
+        Tp = Yp * np.log(numPosAll).reshape(shape)
+        Tn = Yn * np.log(pnumNegAll).reshape(shape)
+        P = Yp * np.divide(1, numPosAll).reshape(shape)
+        Q = Yn * np.divide(1, numNegAll).reshape(shape)
+        num = np.prod(shape)
+        return Tp, Tn, P, Q, num
 
-        _cost = logsumexp((T2 - Tp - Tn).ravel()) - np.log(totalNum)
-        T5 = np.multiply(P, np.exp(T3 - _cost))
-        T6 = np.multiply(Q, np.exp(T4 - _cost))
-
-        _dW = np.dot((-T5 + T6).T, X) / totalNum
-        _db = np.sum(-T5 + T6) / totalNum
-        return _cost, _dW, _db
-
-    if weighting != 'both':
-        cost, dW, db = _cost_grad(weighting)
-        J = np.dot(W.ravel(), W.ravel()) * 0.5 / C + cost
-        dW += W / C
+    if weighting == 'both':
+        Tp1, Tn1, P1, Q1, num1 = _cost_grad(weight='samples')
+        Tp2, Tn2, P2, Q2, num2 = _cost_grad(weight='labels')
+        T5 = T2 + T3 - Tp1 - Tn1 - np.log(num1)
+        T6 = T2 + T3 - Tp2 - Tn2 - np.log(num2) + np.log(C2)
+        cost = logsumexp(np.concatenate([T5.ravel(), T6.ravel()], axis=-1))
+        J = np.dot(W.ravel(), W.ravel()) * 0.5 / C1 + cost
+        T7 = np.exp(T2 - cost)
+        T8 = np.exp(T3 - cost)
+        T11 = -np.multiply(P1, T7) + np.multiply(Q1, T8)
+        T12 = -np.multiply(P2, T7) + np.multiply(Q2, T8)
+        dW = W / C1 + np.dot(T11.T, X) / num1 + C2 * np.dot(T12.T, X) / num2
+        db = np.sum(T11) / num1 + C2 * np.sum(T12) / num2
     else:
-        cost1, dW1, db1 = _cost_grad(weight='samples')
-        cost2, dW2, db2 = _cost_grad(weight='labels')
-        J = np.dot(W.ravel(), W.ravel()) * 0.5 / C + cost1 + cost2
-        dW = W / C + dW1 + dW2
-        db = db1 + db2
+        Tp, Tn, P, Q, num = _cost_grad(weighting)
+        cost = logsumexp((T2 + T3 - Tp - Tn).ravel()) - np.log(num)
+        # cost = logsumexp((T2 + T3 - Tp - Tn - np.log(num)).ravel())
+        J = np.dot(W.ravel(), W.ravel()) * 0.5 / C1 + cost
+        T5 = -np.multiply(P, np.exp(T2 - cost)) + np.multiply(Q, np.exp(T3 - cost))
+        dW = W / C1 + np.dot(T5.T, X) / num
+        db = np.sum(T5) / num
 
     if similarMat is not None:
         M = -1. * similarMat
         np.fill_diagonal(M, np.sum(similarMat, axis=1))
-        J += np.sum(np.multiply(np.dot(W, W.T), M)) * 0.5 / C
-        dW += np.dot(M, W) / C
+        J += np.sum(np.multiply(np.dot(W, W.T), M)) * 0.5 / C3
+        dW += np.dot(M, W) / C3
 
     grad = np.concatenate(([db], dW.ravel()), axis=0)
     return (J, grad)
@@ -117,15 +124,18 @@ def obj_pclassification(w, X, Y, C, p, weighting='samples', similarMat=None):
 class PCMLC(BaseEstimator):
     """All methods are necessary for a scikit-learn estimator"""
 
-    def __init__(self, C=1, p=1, weighting=True, verticalWeighting=False, similarMat=None):
+    def __init__(self, p=1, C1=1, C2=1, C3=1, weighting=True, similarMat=None):
         """Initialisation"""
 
-        assert C > 0
+        assert C1 > 0
+        assert C2 > 0
+        assert C3 > 0
         assert p >= 1
-        self.C = C
+        self.C1 = C1
+        self.C2 = C2
+        self.C3 = C3
         self.p = p
         self.weighting = weighting
-        self.verticalWeighting = verticalWeighting
         self.similarMat = similarMat
         self.obj_func = obj_pclassification
         self.cost = []
@@ -135,7 +145,8 @@ class PCMLC(BaseEstimator):
         """Model fitting by optimising the objective"""
         opt_method = 'L-BFGS-B'  # 'BFGS' #'Newton-CG'
         options = {'disp': 1, 'maxiter': 10**5, 'maxfun': 10**5}  # 'eps': 1e-5}  # , 'iprint': 99}
-        sys.stdout.write('\nC: %g, p: %g, weighting: %s\n' % (self.C, self.p, self.weighting))
+        sys.stdout.write('\nC: %g, %g, %g, p: %g, weighting: %s\n' %
+                         (self.C1, self.C2, self.C3, self.p, self.weighting))
         sys.stdout.flush()
 
         N, D = X_train.shape
@@ -144,8 +155,8 @@ class PCMLC(BaseEstimator):
         # w0 = 0.001 * np.random.randn(K * D + 1)
         # w0 = 0.001 * np.random.randn(K * D + 1)
         w0 = np.zeros(K * D + 1)
-        opt = minimize(self.obj_func, w0, args=(X_train, Y_train,
-                       self.C, self.p, self.weighting, self.verticalWeighting, self.similarMat),
+        opt = minimize(self.obj_func, w0,
+                       args=(X_train, Y_train, self.p, self.C1, self.C2, self.C3, self.weighting, self.similarMat),
                        method=opt_method, jac=True, options=options)
         if opt.success is True:
             self.b = opt.x[0]
@@ -187,8 +198,8 @@ class PCMLC(BaseEstimator):
                     X = X.toarray()
                 if issparse(Y):
                     Y = Y.toarray()
-                J, g = self.obj_func(w, X, Y, C=self.C, p=self.p, weighting=self.weighting,
-                                     verticalWeighting=self.verticalWeighting, similarMat=self.similarMat)
+                J, g = self.obj_func(w, X, Y, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3,
+                                     weighting=self.weighting, similarMat=self.similarMat)
                 w = w - learning_rate * g
                 if np.isnan(J):
                     print('J = NaN, training failed.')
