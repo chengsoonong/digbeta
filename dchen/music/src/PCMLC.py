@@ -38,7 +38,7 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
         'Valid assignment for "weighting" are: None, "samples", "labels", "both".'
     if similarMat is not None:
         assert similarMat.shape == (K, K)
-        assert np.isclose(np.sum(similarMat - similarMat.T), 0)
+        assert np.isclose(np.sum(1. * similarMat - 1. * similarMat.T), 0)
 
     isnan = np.isnan(Y)
     if np.any(isnan):

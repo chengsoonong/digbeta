@@ -100,7 +100,8 @@ def calc_precisionK(Y_true, Y_pred):
     pak[nonzero_ix] = np.sum(true_positives[nonzero_ix], axis=1) / KPosAll[nonzero_ix]
     # return np.dot(true_positives, OneK) / KPosAll
     # return np.sum(true_positives, axis=1) / KPosAll
-    return pak
+    valid_indices = nonzero_ix
+    return pak, valid_indices
 
 
 def calc_rank(x, largestFirst=True):
