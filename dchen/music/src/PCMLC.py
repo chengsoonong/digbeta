@@ -4,7 +4,7 @@ import numpy as np
 from scipy.optimize import minimize
 from scipy.special import logsumexp
 from sklearn.base import BaseEstimator
-from scipy.sparse import issparse
+from scipy.sparse import issparse, csr_matrix
 import pickle as pkl
 
 
@@ -40,7 +40,7 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
     if similarMat is not None:
         assert similarMat.shape == (K, K)
         assert np.isclose(np.sum(1. * similarMat - 1. * similarMat.T), 0)
-        assert np.isclose(np.sum(similarMat.diagonal()), 0)
+        assert np.isclose(np.sum(similarMat.diagonal()), 0)  # compatible to sparse matrix
 
     isnan = np.isnan(Y)
     if np.any(isnan):
@@ -114,18 +114,31 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
         db = np.sum(T5) / num
 
     if similarMat is not None:
-        M = -1. * similarMat
-        sumVec = np.sum(similarMat, axis=1)
-        np.fill_diagonal(M, sumVec)
         # user specific regularisation 
         # regVec = np.divide(1, sumVec+1)  # 1 / #playlist_user
-        regVec = np.divide(1, np.log(sumVec + 1) + 1)  # 1 / (log(#playlist_user) + 1)  # maybe helpful
         # regVec = np.divide(1, 2 * np.log(sumVec + 1) + 1)  # 1 / (2 * log(#playlist_user) + 1)
+        # regVec = np.divide(1, np.log(sumVec + 1) + 1)  # 1 / (log(#playlist_user) + 1)  # maybe helpful
         # regVec = np.divide(1, np.log(2 * sumVec + 1) + 1)  # 1 / (log(2 * #playlist_user) + 1)
         # regVec = np.divide(1, np.log(sumVec + 1) + 2)  # 1 / (log(#playlist_user) + 2)
-        M = M * regVec[:, None]
-        J += np.sum(np.multiply(np.dot(W, W.T), M)) * 0.5 / C3
-        dW += np.dot(M, W) / C3
+        if issparse(similarMat):
+            M = csr_matrix(similarMat, dtype=np.float)
+            M = M.multiply(-1.)
+            sumVec = similarMat.sum(axis=1).toarray()
+            regVec = np.divide(1, np.log(sumVec + 1) + 1)
+            M = M.tolil()
+            M.setdiag(sumVec)
+            M = M.tocsr()
+            M = M.multiply(regVec[:, None])
+            J += np.sum(M.multiply(np.dot(W, W.T))) * 0.5 / C3
+            dW += M.dot(W) / C3
+        else:
+            M = -1. * similarMat
+            sumVec = np.sum(similarMat, axis=1)
+            regVec = np.divide(1, np.log(sumVec + 1) + 1)
+            np.fill_diagonal(M, sumVec)
+            M = M * regVec[:, None]
+            J += np.sum(np.multiply(np.dot(W, W.T), M)) * 0.5 / C3
+            dW += np.dot(M, W) / C3
 
     grad = np.concatenate(([db], dW.ravel()), axis=0)
     return (J, grad)
