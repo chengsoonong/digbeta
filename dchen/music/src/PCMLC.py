@@ -25,7 +25,8 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
                   - 'labels': weight by the #positive or #negative labels per example (weighting horizontally)
                   - 'both': equivalent to turn on both 'samples' and 'labels'
             - similarMat: square symmetric matrix, require the parameters of label_i and label_j should be similar
-                          (by regularising their difference) if entry (i,j) is 1
+                          (by regularising their difference) if entry (i,j) is 1.
+                          This is the adjacent matrix of playlists (nodes), and playlists of the same user form a clique.
     """
     N, D = X.shape
     K = Y.shape[1]
@@ -39,6 +40,7 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
     if similarMat is not None:
         assert similarMat.shape == (K, K)
         assert np.isclose(np.sum(1. * similarMat - 1. * similarMat.T), 0)
+        assert np.isclose(np.sum(similarMat.diagonal()), 0)
 
     isnan = np.isnan(Y)
     if np.any(isnan):
@@ -113,7 +115,15 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
 
     if similarMat is not None:
         M = -1. * similarMat
-        np.fill_diagonal(M, np.sum(similarMat, axis=1))
+        sumVec = np.sum(similarMat, axis=1)
+        np.fill_diagonal(M, sumVec)
+        # user specific regularisation 
+        # regVec = np.divide(1, sumVec+1)  # 1 / #playlist_user
+        regVec = np.divide(1, np.log(sumVec + 1) + 1)  # 1 / (log(#playlist_user) + 1)  # maybe helpful
+        # regVec = np.divide(1, 2 * np.log(sumVec + 1) + 1)  # 1 / (2 * log(#playlist_user) + 1)
+        # regVec = np.divide(1, np.log(2 * sumVec + 1) + 1)  # 1 / (log(2 * #playlist_user) + 1)
+        # regVec = np.divide(1, np.log(sumVec + 1) + 2)  # 1 / (log(#playlist_user) + 2)
+        M = M * regVec[:, None]
         J += np.sum(np.multiply(np.dot(W, W.T), M)) * 0.5 / C3
         dW += np.dot(M, W) / C3
 
