@@ -123,7 +123,7 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
         if issparse(similarMat):
             M = csr_matrix(similarMat, dtype=np.float)
             M = M.multiply(-1.)
-            sumVec = similarMat.sum(axis=1).toarray()
+            sumVec = csr_matrix(similarMat.sum(axis=1)).toarray()
             regVec = np.divide(1, np.log(sumVec + 1) + 1)
             M = M.tolil()
             M.setdiag(sumVec)
