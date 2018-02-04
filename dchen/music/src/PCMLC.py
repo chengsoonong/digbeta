@@ -38,9 +38,14 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
     assert weighting in [None, 'samples', 'labels', 'both'], \
         'Valid assignment for "weighting" are: None, "samples", "labels", "both".'
     if similarMat is not None:
-        assert similarMat.shape == (K, K)
+        # assert similarMat.shape == (K, K)
         # assert np.isclose(np.sum(1. * similarMat - 1. * similarMat.T), 0)  # trust the input
         # assert np.isclose(np.sum(similarMat.diagonal()), 0)  # compatible to sparse matrix
+        nrows, ncols = similarMat.shape
+        assert nrows == ncols
+        assert nrows >= K
+        if nrows > K:
+            similarMat = similarMat[:K, :K]
 
     isnan = np.isnan(Y)
     if np.any(isnan):
@@ -180,13 +185,24 @@ class PCMLC(BaseEstimator):
         self.cost = []
         self.trained = False
 
-    def fit(self, X_train, Y_train):
-        """Model fitting by optimising the objective"""
+    def fit(self, X_train, Y_train, PUMat=None):
+        """
+            Model fitting by optimising the objective
+            - PUMat: indicator matrix for additional labels with only positive observations.
+                     If it is sparse, all missing entries are considered unobserved instead of negative;
+                     if it is dense, it contains only 1 and NaN entries, and NaN entries are unobserved.
+        """
         opt_method = 'L-BFGS-B'  # 'BFGS' #'Newton-CG'
         options = {'disp': 1, 'maxiter': 10**5, 'maxfun': 10**5}  # 'eps': 1e-5}  # , 'iprint': 99}
         sys.stdout.write('\nC: %g, %g, %g, p: %g, weighting: %s\n' %
                          (self.C1, self.C2, self.C3, self.p, self.weighting))
         sys.stdout.flush()
+
+        if PUMat is not None:
+            assert PUMat.shape[0] == Y_train.shape[0]
+            if issparse(PUMat):
+                PUMat = PUMat.toarray()
+            Y_train = np.hstack([Y_train, PUMat])
 
         N, D = X_train.shape
         K = Y_train.shape[1]
@@ -206,11 +222,22 @@ class PCMLC(BaseEstimator):
             print(opt.items())
             self.trained = False
 
-    def fit_minibatch(self, X_train, Y_train, w0=None, learning_rate=0.1, batch_size=200, n_epochs=10, verbose=0):
-        """Model fitting by mini-batch Gradient Descent"""
+    def fit_minibatch(self, X_train, Y_train, PUMat=None, w0=None, learning_rate=0.1, batch_size=200, n_epochs=10, verbose=0):
+        """
+            Model fitting by mini-batch Gradient Descent
+            - PUMat: indicator matrix for additional labels with only positive observations.
+                     If it is sparse, all missing entries are considered unobserved instead of negative;
+                     if it is dense, it contains only 1 and NaN entries, and NaN entries are unobserved.
+        """
+        if PUMat is not None:
+            assert PUMat.shape[0] == Y_train.shape[0]
+            assert not np.logical_xor(issparse(PUMat), issparse(Y_train))
+            K = Y_train.shape[1] + PUMat.shape[1]
+        else:
+            K = Y_train.shape[1]
+
         # np.random.seed(918273645)
         N, D = X_train.shape
-        K = Y_train.shape[1]
         if w0 is None:
             # w = 0.001 * np.random.randn(K * D + 1)
             w = np.zeros(K * D + 1)
@@ -237,6 +264,12 @@ class PCMLC(BaseEstimator):
                     X = X.toarray()
                 if issparse(Y):
                     Y = Y.toarray()
+                if PUMat is not None:
+                    PU = PUMat[ix]
+                    if issparse(PU):
+                        PU = PU.toarray().astype(np.float)
+                        PU[PU == 0] = np.nan
+                    Y = np.hstack([Y, PU])
                 J, g = self.obj_func(w, X, Y, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3,
                                      weighting=self.weighting, similarMat=self.similarMat)
                 w = w - learning_rate * g
