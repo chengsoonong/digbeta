@@ -39,8 +39,8 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
         'Valid assignment for "weighting" are: None, "samples", "labels", "both".'
     if similarMat is not None:
         assert similarMat.shape == (K, K)
-        assert np.isclose(np.sum(1. * similarMat - 1. * similarMat.T), 0)
-        assert np.isclose(np.sum(similarMat.diagonal()), 0)  # compatible to sparse matrix
+        # assert np.isclose(np.sum(1. * similarMat - 1. * similarMat.T), 0)  # trust the input
+        # assert np.isclose(np.sum(similarMat.diagonal()), 0)  # compatible to sparse matrix
 
     isnan = np.isnan(Y)
     if np.any(isnan):
@@ -121,20 +121,36 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
         # regVec = np.divide(1, np.log(2 * sumVec + 1) + 1)  # 1 / (log(2 * #playlist_user) + 1)
         # regVec = np.divide(1, np.log(sumVec + 1) + 2)  # 1 / (log(#playlist_user) + 2)
         if issparse(similarMat):
-            M = csr_matrix(similarMat, dtype=np.float)
-            M = M.multiply(-1.)
-            sumVec = csr_matrix(similarMat.sum(axis=1)).toarray()
-            regVec = np.divide(1, np.log(sumVec + 1) + 1)
+            sumVec = similarMat.sum(axis=1)  # K by 1
+            regVec = np.divide(1., np.log1p(sumVec) + 1)
+            M = similarMat.multiply(-1.)
             M = M.tolil()
             M.setdiag(sumVec)
             M = M.tocsr()
-            M = M.multiply(regVec[:, None])
-            J += np.sum(M.multiply(np.dot(W, W.T))) * 0.5 / C3
+            assert M.ndim == regVec.ndim
+            M = M.multiply(regVec).tocsr()
+            # extra_cost =  M.multiply(np.dot(W, W.T)).sum()  # np.dot(W, W.T) is huge & dense
+            # spW = csr_matrix(sumVec.astype(np.bool)).multiply(W).tocsr()
+            # extra_cost =  M.multiply(spW.dot(spW.T)).sum()  # works but too slow
+            # extra_cost =  M.multiply(spW.dot(W.T)).sum()  # memory error
+            extra_cost = 0.
+            nzcols = np.nonzero(sumVec)[0]
+            for k in nzcols:
+                # nzc = M[k, :].nonzero()[1]  # non-zero columns in the k-th row
+                # extra_cost += M[k, nzc].dot(np.dot(W[nzc, :], W[k, :]))
+                # Mk = M[k, nzc].toarray()
+                # extra_cost += np.dot(Mk, np.dot(W[nzc, :], W[k, :]))
+                Mk = M[k, :].toarray()  # expensive
+                nzc = Mk.nonzero()[1]
+                extra_cost += np.dot(Mk[0, nzc], np.dot(W[nzc, :], W[k, :]))
+            J += extra_cost * 0.5 / C3
             dW += M.dot(W) / C3
         else:
             M = -1. * similarMat
             sumVec = np.sum(similarMat, axis=1)
-            regVec = np.divide(1, np.log(sumVec + 1) + 1)
+            # regVec = np.ones(M.shape[0])
+            # regVec = np.divide(1, sumVec + 1)
+            regVec = np.divide(1, np.log1p(sumVec) + 1)
             np.fill_diagonal(M, sumVec)
             M = M * regVec[:, None]
             J += np.sum(np.multiply(np.dot(W, W.T), M)) * 0.5 / C3
