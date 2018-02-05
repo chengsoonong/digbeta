@@ -21,9 +21,9 @@ sys.path.append(src_dir)
 
 from BinaryRelevance import BinaryRelevance
 
-pkl_data_dir = os.path.join(data_dir, 'aotm-2011/setting1')
-fxtrain = os.path.join(pkl_data_dir, 'X_train_dev.pkl.gz')
-fytrain = os.path.join(pkl_data_dir, 'Y_train_dev.pkl.gz')
+pkl_data_dir = os.path.join(data_dir, 'aotm-2011/setting2')
+fxtrain = os.path.join(pkl_data_dir, 'X_train.pkl.gz')
+fytrain = os.path.join(pkl_data_dir, 'PU_test.pkl.gz')
 
 X_train = pkl.load(gzip.open(fxtrain, 'rb'))
 Y_train = pkl.load(gzip.open(fytrain, 'rb'))
@@ -40,6 +40,6 @@ clf.fit(X_train, Y)
 
 print(time.strftime('%Y-%m-%d %H:%M:%S'))
 
-fmodel = os.path.join(pkl_data_dir, 'br1-aotm2011-%d-%d.pkl' % (start, end))
+fmodel = os.path.join(pkl_data_dir, 'br2-aotm2011-%d-%d.pkl' % (start, end))
 pkl.dump(clf, open(fmodel, 'wb'))
 
