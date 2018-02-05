@@ -37,7 +37,10 @@ def evaluate_minibatch(clf, eval_func, X_test, Y_test, threshold=None, transpose
             metrics = eval_func(Y_true.T, Y_pred.T)
         else:
             metrics = eval_func(Y_true, Y_pred)
-        metrics_all = np.concatenate((metrics_all, metrics), axis=-1)
+        if type(metrics) == tuple:
+            metrics_all.append(metrics)
+        else:
+            metrics_all = np.concatenate((metrics_all, metrics), axis=-1)
 
     return metrics_all
 
