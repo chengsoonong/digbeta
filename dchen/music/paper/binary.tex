@@ -1,0 +1,145 @@
+\section{Classification vs. bipartite ranking}
+\label{sec:binary}
+
+
+\subsection{P-Classification loss vs. P-Norm Push loss}
+\label{ssec:pc=pn}
+
+Given a binary dataset $\DCal = \SCal_+ \cup \SCal_-$, where $\SCal_+$ is a set of positive examples, 
+\ie $\SCal_+ = \{(x_+, +1)\}$, and $\SCal_-$ is a set of negative examples, \ie $\SCal_- = \{(x_-, -1)\}$.
+
+The empirical risk of the P-Classification loss is defined as~\cite{ertekin2011equivalence}
+\begin{equation*}
+\RCal_\textsc{pc}(\w, b) 
+= \sum_{x_+ \in \SCal_+} e^{- (\w^\top x_+ + b)} +
+  \frac{1}{p} \sum_{x_- \in \SCal_-} e^{p (\w^\top x_- + b)},
+\end{equation*}
+where $p > 0$ is a parameter.
+
+The empirical risk of the P-Norm Push loss is defined as~\cite{rudin2009p}
+\begin{equation*}
+\begin{aligned}
+\RCal_\textsc{pn}(\w)
+&= \sum_{x_+ \in \SCal_+} \sum_{x_- \in \SCal_-} e^{-(\w^\top x_+ - \w^\top x_-)} \\
+&= \sum_{x_+ \in \SCal_+} e^{-\w^\top x_+} \sum_{x_- \in \SCal_-} e^{\w^\top x_-}.
+\end{aligned}
+\end{equation*}
+
+\citep{ertekin2011equivalence} showed the following equivalence relationship between P-Classification loss and P-Norm Push loss:
+\begin{theorem}
+\label{th:pc=pn}
+If $(\w_\textsc{pc}, b_\textsc{pc}) \in \argmin_{\w,b} \RCal_\textsc{pc}(\w, b)$, 
+then $\w_\textsc{pc} \in \argmin_\w \RCal_\textsc{pn}(\w)$.
+Further, If $\w_\textsc{pn} \in \argmin_\w \RCal_\textsc{pn}(\w)$, 
+then $(\w_\textsc{pn}, b_\textsc{pn}) \in \argmin_{\w,b} \RCal_\textsc{pn}(\w, b)$ where
+$$
+b_\textsc{pn} 
+= \frac{1}{p + 1} \left( 
+  \ln \sum_{x_+ \in \SCal_+} e^{-\w_\textsc{pn}^\top x_+} - 
+  \ln \sum_{x_- \in \SCal_-} e^{p\w_\textsc{pn}^\top x_-} \right).
+$$
+\end{theorem}
+
+It turns out Theorem~\ref{th:pc=pn} is due to a general equivalence relationship 
+between binary classification and bipartite ranking, which we detail in the next section.
+
+
+
+\subsection{Binary classification loss vs. bipartite ranking loss}
+
+Let function $f(\cdot, \cdot)$ be
+$$
+f(x; \w) := g(x; \w) + b,
+$$
+where $\x$ is an input, $\w$ is a weight vector, $b$ is a bias parameter, 
+and function $g(x; \w)$ is differentiable (w.r.t. $\w$) and bounded.
+
+Suppose $\alpha, \beta, c, P, Q \in \R_+$ are \emph{finite} positive numbers, we define 
+$\RCal_\textsc{bc}$ be the following classification risk\footnote{
+We note that there is a equivalent definition:
+$\RCal_\textsc{bc}(\w) = \frac{1}{\alpha} \sum_{x_+ \in \SCal_+} \exp(-\alpha f(x_+; \w)) + 
+\frac{C}{\beta} \sum_{x_- \in \SCal_-} \exp( \beta f(x_-; \w))$
+where $C = Q/P$, since multiplying a positive constant to a loss function will not change its minimiser.}
+:
+\begin{equation*}
+%\label{eq:bc}
+\resizebox{\linewidth}{!}{$
+%\begin{aligned}
+\RCal_\textsc{bc}(\w, b)
+= \displaystyle 
+  \frac{P}{\alpha} \sum_{x_+ \in \SCal_+} e^{-\alpha f(x_+; \w)} +
+  \frac{Q}{\beta}  \sum_{x_- \in \SCal_-} e^{ \beta  f(x_-; \w)},
+%\end{aligned}
+$}
+\end{equation*}
+and let
+$\RCal_\textsc{br}$ be a bipartite ranking risk defined as:
+\begin{equation*}
+%\label{eq:br}
+\resizebox{\linewidth}{!}{$
+\begin{aligned}
+\RCal_\textsc{br}(\w)
+&= \left[ \displaystyle 
+   \sum_{x_+ \in \SCal_+} \left( \sum_{x_- \in \SCal_-} e^{-\beta (f(x_+; \w) - f(x_-; \w))} \right)^\frac{\alpha}{\beta} 
+   \right]^c \\
+&= \left[ \sum_{x_+ \in \SCal_+} e^{-\alpha f(x_+; \w)} \right]^\frac{c}{\alpha}
+   \left[ \sum_{x_- \in \SCal_-} e^{ \beta  f(x_-; \w)} \right]^\frac{c}{\beta}.
+\end{aligned}
+$}
+\end{equation*}
+Note that $\RCal_\textsc{br}$ is independent of $b$.
+
+
+\begin{theorem}
+\label{th:bc=br}
+If $(\w_\textsc{bc}, b_\textsc{bc}) \in \argmin_{\w,b} \RCal_\textsc{bc}(\w, b)$,
+then $\w_\textsc{bc} \in \argmin_\w \RCal_\textsc{br}(\w)$, and
+$$
+\resizebox{\linewidth}{!}{$
+\displaystyle
+b_\textsc{bc} 
+= \frac{1}{\alpha + \beta} \left( 
+  P \ln \sum_{x_+ \in \SCal_+} e^{-\alpha g(x_+; \w_\textsc{bc})} -
+  Q \ln \sum_{x_- \in \SCal_-} e^{  \beta g(x_-; \w_\textsc{bc})} \right).
+$}
+$$
+Further, if $\w_\textsc{br} \in \argmin_\w \RCal_\textsc{br}(\w)$ (assuming minimisers exist),
+then $(\w_\textsc{br}, b_\textsc{br}) \in \argmin_{\w,b} \, \RCal_\textsc{bc}(\w, b)$, where
+$$
+\resizebox{\linewidth}{!}{$
+\displaystyle
+b_\textsc{br} 
+= \frac{1}{\alpha + \beta} \left( 
+  P \ln \sum_{x_+ \in \SCal_+} e^{-\alpha g(x_+; \w_\textsc{br})} -
+  Q \ln \sum_{x_- \in \SCal_-} e^{  \beta g(x_-; \w_\textsc{br})} \right).
+$}
+$$
+\end{theorem}
+
+We can get Theorem~\ref{th:pc=pn} from Theorem~\ref{th:bc=br} by letting $\alpha=c=P=Q=1$ and $\beta=p$.
+Moreover, Theorem~\ref{th:bc=br} summaries a few more well-known special cases.
+
+\TODO
+
+{\it Cost-sensitive AdaBoost == RankBoost, Theorem 3 of~\cite{ertekin2011equivalence}.
+IR Push == P-Classification,
+IR Push = Top Push + exponential surrogate + log-sum-exp, P-Norm Push vs. Top Push vs. IR Push (approximation inside/outside)
+Bottom Push + exponential surrogate + log-sum-exp == a classification loss similar to P-Classification.
+}
+
+\begin{table}[!h]
+\centering
+\caption{Summary of parameters for the equivalence of (risk of rank loss, risk of classification loss) pairs}
+\label{tab:config}
+\begin{tabular}{r*{6}{c}}
+\toprule
+{\bf Loss pairs}                                         & $\alpha$ & $\beta$ & $\gamma$ & $\delta$ & $P$ & $Q$ \\ \hline
+$\RCal_\textsc{pn} \equiva \RCal_\textsc{pc}$            & $1$      & $p$     & $p$      & $1$      & $\frac{1}{p}$ & $\frac{1}{p}$ \\
+$\widetilde\RCal_\textsc{tp} \equiva \RCal_\textsc{pc}$  & $1$      & $r=p$   & $1$      & $\frac{1}{r}=\frac{1}{p}$ & $1$ & $1$ \\
+$\widetilde\RCal_\textsc{bp} \equiva \RCal_\textsc{rc}$  & $r=q$    & $1$     & $\frac{1}{r}=\frac{1}{q}$ & $1$ & $1$ & $1$ \\
+$\widetilde\RCal_\textsc{csa} \equiva \RCal_\textsc{rb}$ & $1$      & $1$     & $1$      & $1$      & $1$ & $C$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+

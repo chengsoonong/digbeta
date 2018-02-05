@@ -1,0 +1,102 @@
+\subsection{From binary setting to multi-label setting}
+\label{ssec:ml}
+
+Given a multi-label dataset $\DCal = \{\x^n, \y^n\}_{n=1}^N$, where $\x^n \in \R^D$ is a feature vector for the $n$-th example,
+and $\y^n \in \{0,1\}^K$ are $K$ labels for the $n$-th example.
+We can generalise Theorem~\ref{theorem:bc2br} and \ref{theorem:br2bc} from the binary setting to multi-label setting.
+
+Let function $f(\cdot, \cdot)$ be
+$$
+\resizebox{\linewidth}{!}{$
+f(\x^n; \w_k) := g(\x^n; \w_k) + b, \ n \in \{1,\dots,N\}, \, k \in \{1,\dots,K\}
+$}
+$$
+where $\w_k$ is a parameter vector, $b$ is a bias parameter, 
+and $g(\x^n; \w_k)$ is a differentiable function (w.r.t. $\w_k$).
+
+Further, let $u(\x, \y), \, v(\x, \y)$ be functions of $(\x, \y)$ (and independent of $\W$), 
+we require both $u(\cdot,\cdot)$ and $v(\cdot,\cdot)$ to be bounded.
+
+We can define $\RCal_\textsc{mc}$ be the following risk:
+\begin{equation*}
+%\label{eq:mc}
+%\resizebox{\linewidth}{!}{$
+\begin{aligned}
+\RCal_\textsc{mc}(\W, b) 
+=& \frac{P}{\alpha} \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 1} e^{-\alpha f(\x^m; \w_i)} \\
+ & \ + \,
+   \frac{Q}{\beta}  \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0} e^{ \beta  f(\x^n; \w_j)},
+\end{aligned}
+%$}
+\end{equation*}
+and let $\RCal_\textsc{mr}$ be a risk defined as
+\begin{equation}
+\label{eq:mr}
+\resizebox{0.91\linewidth}{!}{$
+\begin{aligned}
+\RCal_\textsc{mr}(\W, b) 
+=& \left[ \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 1} e^{-\alpha f(\x^m; \w_i)} \right]^\frac{c}{\alpha}  \\
+ & \left[ \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0} e^{ \beta  f(\x^n; \w_j)} \right]^\frac{c}{\beta}.
+\end{aligned}
+$}
+\end{equation}
+It is not hard to show that $\RCal_\textsc{mr}(\W, b)$ is independent of $b$, and we denote it as $\RCal_\textsc{mr}(\W)$.
+
+
+\begin{theorem}
+\label{theorem:mc2mr}
+If $(\W_\textsc{mc}, b_\textsc{mc}) \in \argmin_{\W,b} \RCal_\textsc{mc}(\W, b)$\footnote{Assuming minimises exist.\label{ft:minexist2}},
+then $\W_\textsc{mc} \in \argmin_\W \RCal_\textsc{mr}(\W)$.
+\end{theorem}
+
+
+\begin{theorem}
+\label{theorem:mr2mc}
+If $\W_\textsc{mr} \in \argmin_\W \RCal_\textsc{mr}(\W)$\footref{ft:minexist2},
+then $(\W_\textsc{mr}, \bt_\textsc{m}) \in \argmin_{\W,b} \, \RCal_\textsc{mc}(\W, b)$, 
+where
+$$
+\resizebox{\linewidth}{!}{$
+\bt_\textsc{m} = \frac{1}{\alpha + \beta} \ln \left.
+      \frac{P \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 1} e^{-\alpha g(\x^m; \w_i)}}
+           {Q \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0} e^{ \beta  g(\x^n; \w_j)}} \right|_{\W = \W_\textsc{mr}}.
+$}
+$$
+\end{theorem}
+
+
+\subsection{Generalise the P-Norm push loss}
+
+If we generalise the P-Norm push loss to the multi-label setting as:
+\begin{equation*}
+%\label{eq:pnorm-ml}
+\resizebox{\linewidth}{!}{$
+\begin{aligned}
+&\RCal_\textsc{mpn}(\W, b) \\
+&= \sum_{n=1}^N \frac{1}{K_-^n} \sum_{j:y_j^n=0} \left( \frac{1}{K_+^n} \sum_{i:y_i^n=1} e^{-(f(\x^n; \w_i) - f(\x^n; \w_j))} \right)^p \\
+&= \sum_{n=1}^N \left[ \left( 
+   \frac{1}{K_+^n} \sum_{i:y_i^n=1} e^{-f(\x^n; \w_i)} \right)^p 
+   \frac{1}{K_-^n} \sum_{j:y_j^n=0} e^{p \cdot f(\x^n; \w_j)} \right].
+\end{aligned}
+$}
+\end{equation*}
+
+
+\begin{theorem}
+\label{theorem:pnorm-ml-ub}
+If $p$ is a positive integer, \ie $p \in \Z_+$, then 
+\begin{equation*}
+%\label{eq:pnorm-ml-ub}
+\resizebox{\linewidth}{!}{$
+\begin{aligned}
+&\RCal_\textsc{mpn}(\W, b) \\
+&\le 
+\left( \sum_{m=1}^N \frac{1}{K_+^m} \sum_{i:y_i^m=1} e^{-f(\x^m; \w_i)} \right)^p 
+\sum_{n=1}^N \frac{1}{K_-^n} \sum_{j:y_j^n=0} e^{p \cdot f(\x^n; \w_j)}.
+\end{aligned}
+$}
+\end{equation*}
+\end{theorem}
+
+\TODO
+{\it three variants of generalisation to multilabel.}

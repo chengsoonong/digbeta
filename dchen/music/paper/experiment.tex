@@ -1,0 +1,53 @@
+\section{Experiment}
+\label{sec:experiment}
+
+We first evaluate the proposed method on the task of tagging text, 
+using two standard multi-label classification dataset~\cite{katakis2008multilabel}.
+
+\subsection{Multi-label classification}
+
+Performance on multi-label dataset\footnote{Results of PRLR are taken from~\citep{lin2014multi}.}
+are shown in terms of F$_1$ scores averaged over both examples and labels, 
+as well as precision at $k$ which focus on the top-$k$ predictions.
+
+The results are summarised in Table~\ref{tab:perf_mlc},
+where the multi-label p-classification method output performance the binary relevance baseline by a large margin.
+Further, it achieves better performance than (\citet{lin2014multi}) which encourages sparse and low-rank predictions.
+Finally, it is encouraging that our method performs better than (\citet{belanger2016structured}) and (\citet{gygli2017deep}),
+both work learn complex non-linear functions using deep neural networks, compared with our method which uses a linear function.
+
+\begin{table}[!h]
+\centering
+\caption{Performance on multi-label dataset}
+\label{tab:perf_mlc}
+\resizebox{\linewidth}{!}{
+\setlength{\tabcolsep}{2pt} % tweak the space between columns
+%\begin{tabular}{l*{6}{c}}
+\begin{tabular}{l|ccc|ccc}
+\toprule
+{} & \multicolumn{3}{c|}{\textbf{bibtex}} & \multicolumn{3}{c}{\textbf{bookmarks}} \\
+{} &   F$_1$ Example & F$_1$ Label &    AUC &      F$_1$ Example & F$_1$ Label &    AUC \\
+\midrule
+Binary Relevance~\cite{}           &          $37.9$ &      $30.1$ & $85.3$ &             $29.5$ &      $21.0$ & $87.2$ \\
+PRLR~\cite{lin2014multi}           &          $44.2$ &      $37.2$ &    N/A &             $34.9$ &      $23.0$ &    N/A \\
+SPEN~\cite{belanger2016structured} &          $41.3$ &      $33.7$ & $92.6$ &             $35.5$ &      $24.1$ & $90.8$ \\
+DVN~\cite{gygli2017deep}           &          $44.7$ &      $32.4$ & $86.7$ &             $37.2$ &      $23.7$ & $76.9$ \\
+MLR (Ours)                         &          ${\bf 47.0}$ & ${\bf 38.8}$ & ${\bf 93.3}$ & ${\bf 37.7}$ & ${\bf 28.4}$ & ${\bf 91.8}$ \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+\subsection{Playlist augmentation}
+
+We further evaluate our proposed approach on a music playlist dataset, 
+where we focus on the task of augmenting user created playlist.
+
+In particular, we split the songs in AotM-2011~\cite{mcfee2012hypergraph} playlist dataset
+according to the ratio 70\%:10\%:20\%, which results in the training, validation and test set, respectively.
+Given a new song which does not appeared in any playlist, 
+we predict, for each playlist, whether to augment it with this song.
+
+
+\subsection{New song recommendation}
