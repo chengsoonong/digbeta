@@ -17,8 +17,13 @@ data_dir = os.path.join(work_dir, 'data')
 src_dir = os.path.join(work_dir, 'src')
 sys.path.append(src_dir)
 
-pkl_data_dir = os.path.join(data_dir, 'aotm-2011/setting2')
-fytrain = os.path.join(pkl_data_dir, 'PU_test.pkl.gz')
+# setting 1
+pkl_data_dir = os.path.join(data_dir, 'aotm-2011/setting1')
+fytrain = os.path.join(pkl_data_dir, 'Y_train.pkl.gz')
+
+# setting 2
+# pkl_data_dir = os.path.join(data_dir, 'aotm-2011/setting2')
+# fytrain = os.path.join(pkl_data_dir, 'PU_test.pkl.gz')
 
 Y_train = pkl.load(gzip.open(fytrain, 'rb'))
 
