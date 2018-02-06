@@ -155,11 +155,11 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
         else:
             M = -1. * similarMat
             sumVec = np.sum(similarMat, axis=1)
-            # regVec = np.ones(M.shape[0])
-            # regVec = np.divide(1, sumVec + 1)
-            regVec = np.divide(1, np.log1p(sumVec) + 1)
             np.fill_diagonal(M, sumVec)
-            M = M * regVec[:, None]
+            if userwiseReg is True:
+                #regVec = np.divide(1, sumVec + 1)
+                regVec = np.divide(1, np.log1p(sumVec) + 1)
+                M = M * regVec[:, None]
             J += np.sum(np.multiply(np.dot(W, W.T), M)) * 0.5 / C3
             dW += np.dot(M, W) / C3
 

@@ -41,6 +41,6 @@ clf = PClassificationMLC(C1=C1, C2=C2, C3=C3, weighting='both', similarMat=same_
 clf.fit_minibatch(X_train, Y_train, PUMat=PU_dev, batch_size=1024, n_epochs=n_epochs, learning_rate=0.1, verbose=0)
 
 if clf.trained is True:
-    fmodel = os.path.join(pkl_data_dir, 'mlr-aotm2011-C-%g-%g-%g-p-%g.pkl' % (C1, C2, C3, p))
+    fmodel = os.path.join(pkl_data_dir, 'pla-aotm2011-C-%g-%g-%g-p-%g.pkl' % (C1, C2, C3, p))
     pkl.dump(clf, open(fmodel, 'wb'))
 

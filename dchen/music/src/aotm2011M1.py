@@ -30,11 +30,12 @@ fadjmat = os.path.join(pkl_data_dir, 'adjacency_mat.pkl.gz')
 X_train = pkl.load(gzip.open(fxtrain, 'rb'))
 Y_train = pkl.load(gzip.open(fytrain, 'rb'))
 same_user_mat = pkl.load(gzip.open(fadjmat, 'rb'))
+userwiseReg = False
 
 print('C: %g, %g, %g, p: %g' % (C1, C2, C3, p))
 
 print(time.strftime('%Y-%m-%d %H:%M:%S'))
-clf = PClassificationMLC(C1=C1, C2=C2, C3=C3, weighting='both', similarMat=same_user_mat)
+clf = PClassificationMLC(C1=C1, C2=C2, C3=C3, weighting='both', similarMat=same_user_mat, userwiseReg=userwiseReg)
 clf.fit_minibatch(X_train, Y_train, batch_size=1024, n_epochs=n_epochs, learning_rate=0.1, verbose=0)
 
 if clf.trained is True:
