@@ -127,13 +127,19 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
         # regVec = np.divide(1, np.log(2 * sumVec + 1) + 1)  # 1 / (log(2 * #playlist_user) + 1)
         # regVec = np.divide(1, np.log(sumVec + 1) + 2)  # 1 / (log(#playlist_user) + 2)
         if issparse(similarMat):
-            sumVec = similarMat.sum(axis=1)  # K by 1
+            sumVec = similarMat.sum(axis=1)  # K by 1: #playlists_of_u - 1
             M = similarMat.multiply(-1.)
             M = M.tolil()
             M.setdiag(sumVec)
             M = M.tocsr()
+            nzcols = np.nonzero(sumVec)[0]
             if userwiseReg is True:
-                regVec = np.divide(1., np.log1p(sumVec) + 1)
+                nplVec = (sumVec + 1)[nzcols]
+                #regVec = np.divide(1., np.log1p(sumVec) + 1)
+                #regVec = np.divide(1., sumVec + 1)
+                regParam = np.divide(2. * np.log(nplVec), np.multiply(nplVec, nplVec-1)) 
+                regVec = np.zeros(K)
+                regVec[nzcols] = regParam
                 assert M.ndim == regVec.ndim
                 M = M.multiply(regVec).tocsr()
                 # extra_cost =  M.multiply(np.dot(W, W.T)).sum()  # np.dot(W, W.T) is huge & dense
@@ -141,7 +147,6 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
                 # extra_cost =  M.multiply(spW.dot(spW.T)).sum()  # works but too slow
                 # extra_cost =  M.multiply(spW.dot(W.T)).sum()  # memory error
             extra_cost = 0.
-            nzcols = np.nonzero(sumVec)[0]
             for k in nzcols:
                 # nzc = M[k, :].nonzero()[1]  # non-zero columns in the k-th row, expensive
                 # extra_cost += M[k, nzc].dot(np.dot(W[nzc, :], W[k, :]))
@@ -158,7 +163,12 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
             np.fill_diagonal(M, sumVec)
             if userwiseReg is True:
                 #regVec = np.divide(1, sumVec + 1)
-                regVec = np.divide(1, np.log1p(sumVec) + 1)
+                #regVec = np.divide(1, np.log1p(sumVec) + 1)
+                nzcols = np.nonzero(sumVec)[0]
+                nplVec = (sumVec + 1)[nzcols]
+                regParam = np.divide(2. * np.log(nplVec), np.multiply(nplVec, nplVec-1))  # log(n)/[n(n-1)/2]
+                regVec = np.zeros(K)
+                regVec[nzcols] = regParam
                 M = M * regVec[:, None]
             J += np.sum(np.multiply(np.dot(W, W.T), M)) * 0.5 / C3
             dW += np.dot(M, W) / C3
@@ -282,6 +292,7 @@ class PCMLC(BaseEstimator):
                 self.cost.append(J)
             print('\nepoch: %d / %d' % (epoch+1, n_epochs))
             learning_rate *= decay
+            np.save('%s-%g-%g-%g-%g-%d.npy' % (self.weighting, self.C1, self.C2, self.C3, self.p, epoch+1), w)
         self.b = w[0]
         self.W = np.reshape(w[1:], (K, D))
         self.trained = True
