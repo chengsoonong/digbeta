@@ -49,5 +49,203 @@ according to the ratio 70\%:10\%:20\%, which results in the training, validation
 Given a new song which does not appeared in any playlist, 
 we predict, for each playlist, whether to augment it with this song.
 
+\newpage
+
+\subsubsection{A few conclusions on a subset}
+%\begin{table}[!h]
+%\centering
+%\caption{Statistics of subset}
+Statistics of subset \\
+\resizebox{\linewidth}{!}{
+\begin{tabular}{cccccc}
+\toprule
+\#Users & \#Songs & \#Playlists (all)  & \#Playlists (incomplete) & \#Unknown entries &\#Song Features (audio + genre) \\
+\midrule
+15      & 786     & 108                & 24   & 18,723  & 217 \\
+\bottomrule
+\end{tabular}
+}
+%\end{table}
+
+
+\paragraph{Which type of loss is most helpful?}
+%\begin{table}[!h]
+%\centering
+%\caption{Empirical results on subset}
+Empirical results on subset \\
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|cccc}
+\toprule
+{}            & Row-wise Loss & Column-wise Loss & Row-wise + Column-wise loss & Independent Logistic Regression \\
+\midrule
+AUC           & {\bf 0.5421}        & 0.5294           & 0.5411     & 0.5162 \\
+HitRates@100  & 0.1481        & 0.1454           & 0.1502     & {\bf 0.1630} \\
+\bottomrule
+\end{tabular}
+}
+%\end{table}
+
+\paragraph{Experimental design:}
+C: 1, 1, 1, p: 1, no multi-task regularisation
+
+
+\paragraph{Is multi-task regularisation helpful?}
+%\begin{table}[!h]
+%\centering
+%\caption{Empirical results on subset}
+Empirical results on subset \\
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|ccc}
+\toprule
+{}            & Multi-task Reg. + Row-wise Loss & Multi-task reg. + Column-wise Loss & Multi-task reg. + Row-wise + Column-wise Loss  \\
+\midrule
+AUC           & {\bf 0.6385}        & 0.6157     & 0.6329  \\
+HitRates@100  & 0.2474        & 0.2443     & {\bf 0.2532}  \\
+\bottomrule
+\end{tabular}
+}
+%\end{table}
+
+\paragraph{Experimental design:}
+C: 1, 1, 1, p: 1, with multi-task regularisation, no user specific regularisation parameter.
+
+
+\paragraph{Is user-specific multi-task regularisation parameter (based on \#playlists) helpful?}
+%\begin{table}[!h]
+%\centering
+%\caption{Empirical results on subset: user-specific regularisation parameter = 1/\#playlists}
+Empirical results on subset: user-specific regularisation parameter = 1/\#playlists \\
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|ccc}
+\toprule
+{}            & Multi-task Reg. + Row-wise Loss + user-spec reg. & Multi-task reg. + Column-wise Loss + user-spec reg. & Multi-task reg. + Row-wise + Column-wise Loss + user-spec reg. \\
+\midrule
+AUC           & 0.5844       & {\bf 0.6091}     & 0.5959  \\
+HitRates@100  & 0.2269       & {\bf 0.2528}     & 0.2317  \\
+\bottomrule
+\end{tabular}
+}
+%\end{table}
+
+
+%\begin{table}[!h]
+%\centering
+%\caption{Empirical results on subset: user-specific regularisation parameter = 1/(1 + log(\#playlists))}
+Empirical results on subset: user-specific regularisation parameter = 1/(1 + log(\#playlists)) \\
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|ccc}
+\toprule
+{}            & Multi-task Reg. + Row-wise Loss + user-spec reg. & Multi-task reg. + Column-wise Loss + user-spec reg. & Multi-task reg. + Row-wise + Column-wise Loss + user-spec reg. \\
+\midrule
+AUC           & 0.6200        & 0.6113     & {\bf 0.6235}  \\
+HitRates@100  & 0.2089        & {\bf 0.2397}     & 0.2254  \\
+\bottomrule
+\end{tabular}
+}
+%\end{table}
+
+\paragraph{Experimental design:}
+C: 1, 1, 1, p: 1, with multi-task regularisation, with user-specific regularisation parameter.
+
+
+\newpage
+
 
 \subsection{New song recommendation}
+
+\subsubsection{A few conclusions on a subset}
+%\begin{table}[!h]
+%\centering
+%\caption{Statistics of subset}
+Statistics of subset \\
+\resizebox{\linewidth}{!}{
+\begin{tabular}{cccccc}
+\toprule
+\#Users & \#Songs (train/test) & \#Playlists & \#Unknown entries &\#Song Features (audio + genre) \\
+\midrule
+15      & 629 / 157  & 108 & 16,956  & 217 \\
+\bottomrule
+\end{tabular}
+}
+%\end{table}
+
+\paragraph{Which type of loss is most helpful?}
+%\begin{table}[!h]
+%\centering
+%\caption{Empirical results on subset}
+Empirical results on subset \\
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|cccc}
+\toprule
+{}            & Row-wise Loss & Column-wise Loss & Row-wise + Column-wise loss & Independent Logistic Regression \\
+\midrule
+AUC           & {\bf 0.6808}        & 0.6689           & 0.6771     & 0.5930 \\
+HitRates@100  & {\bf 0.8844}        & 0.8687           & 0.8690     & 0.7634 \\
+\bottomrule
+\end{tabular}
+}
+%\end{table}
+
+\paragraph{Experimental design:}
+C: 1, 1, 1, p: 1, no multi-task regularisation.
+
+
+
+\paragraph{Is multi-task regularisation helpful?}
+
+%\begin{table}[!h]
+%\centering
+%\caption{Empirical results on subset}
+Empirical results on subset \\
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|ccc}
+\toprule
+{}            & Multi-task Reg. + Row-wise Loss & Multi-task reg. + Column-wise Loss & Multi-task reg. + Row-wise + Column-wise Loss  \\
+\midrule
+AUC           & 0.6811        & {\bf 0.6869}     & 0.6856 \\
+HitRates@100  & {\bf 0.8782}        & 0.8692     & 0.8544 \\
+\bottomrule
+\end{tabular}
+}
+%\end{table}
+
+\paragraph{Experimental design:}
+C: 1, 1, 1, p: 1, with multi-task regularisation, no user specific regularisation parameter.
+
+
+
+\paragraph{Is user-specific multi-task regularisation parameter (based on \#playlists) helpful?}
+%\begin{table}[!h]
+%\centering
+%\caption{Empirical results on subset: user-specific regularisation parameter = 1/\#playlists}
+Empirical results on subset: user-specific regularisation parameter = 1/\#playlists \\
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|ccc}
+\toprule
+{}            & Multi-task Reg. + Row-wise Loss + user-spec reg. & Multi-task reg. + Column-wise Loss + user-spec reg. & Multi-task reg. + Row-wise + Column-wise Loss + user-spec reg. \\
+\midrule
+AUC           & {\bf 0.7116}       & 0.6956     &  0.7106 \\
+HitRates@100  & 0.8843       & 0.8696     &  {\bf 0.8973} \\
+\bottomrule
+\end{tabular}
+}
+%\end{table}
+
+%\begin{table}[!h]
+%\centering
+%\caption{Empirical results on subset: user-specific regularisation parameter = 1/(1 + log(\#playlists))}
+Empirical results on subset: user-specific regularisation parameter = 1/(1 + log(\#playlists)) \\
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|ccc}
+\toprule
+{}            & Multi-task Reg. + Row-wise Loss + user-spec reg. & Multi-task reg. + Column-wise Loss + user-spec reg. & Multi-task reg. + Row-wise + Column-wise Loss + user-spec reg. \\
+\midrule
+AUC           &  0.6914       & {\bf 0.7038}     & 0.7001  \\
+HitRates@100  &  0.8501       & {\bf 0.8787}     & 0.8553  \\
+\bottomrule
+\end{tabular}
+}
+%\end{table}
+
+\paragraph{Experimental design:}
+C: 1, 1, 1, p: 1, with multi-task regularisation, with user-specific regularisation parameter.
