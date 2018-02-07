@@ -165,66 +165,53 @@ and $g(\x^n; \w_k)$ is a differentiable function (w.r.t. $\w_k$).
 Further, let $u(\x, \y), \, v(\x, \y)$ be functions of $(\x, \y)$ (and independent of $\W$), 
 we require both $u(\cdot,\cdot)$ and $v(\cdot,\cdot)$ to be bounded.
 
-Suppose $\alpha, \beta, \gamma, \delta, P, Q \in \R_+$ are \emph{finite} positive numbers, 
-we can define $\RCal_\textsc{mc}$ be the following risk\footnote{
-We note that there is a equivalent definition:
-\begin{equation*}
-\resizebox{\linewidth}{!}{$
-\displaystyle
-\RCal_\textsc{mc}(\W, b)\pb{3}
-= \gamma \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m=1} \exp(-\alpha f(\x^m; \w_i)) + 
-C \delta \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n=0} \exp(\beta  f(\x^n; \w_j)),
-$}
-\end{equation*}
-where $C = Q/P$, since multiplying a positive constant to a loss function will not change its minimiser.}
-:
+Suppose $\alpha, \beta, c, P, Q \in \R_+$ are \emph{finite} positive numbers, 
+we can define $\RCal_\textsc{mc}\pb{3}$ be the following risk:
 \begin{equation}
 \label{eq:mc}
 \resizebox{.9\linewidth}{!}{$
 \displaystyle
-\RCal_\textsc{mc}(\W, b) = P \gamma \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 1} \exp(-\alpha f(\x^m; \w_i)) \, + \,
-                           Q \delta \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0} \exp( \beta  f(\x^n; \w_j)),
+\RCal_\textsc{mc}\pb{3}(\W, b) 
+= \frac{P}{\alpha} \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 1} \exp(-\alpha f(\x^m; \w_i)) \, + \,
+  \frac{Q}{\beta}  \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0} \exp( \beta  f(\x^n; \w_j)),
 $}
 \end{equation}
-and let $\RCal_\textsc{mr}$ be a risk defined as
+and let $\RCal_\textsc{mr}\pb{3}$ be a risk defined as
 \begin{equation}
 \label{eq:mr}
 \resizebox{.9\linewidth}{!}{$
+\begin{aligned}
 \displaystyle
-\RCal_\textsc{mr}(\W, b) 
-= \left[ \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 1} \exp(-\alpha f(\x^m; \w_i)) \right]^\gamma  
-  \left[ \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0} \exp( \beta  f(\x^n; \w_j)) \right]^\delta.
+\RCal_\textsc{mr}\pb{3}(\W) 
+&= \left[ \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 1} \exp(-\alpha f(\x^m; \w_i)) \right]^\frac{c}{\alpha}
+   \left[ \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0} \exp( \beta  f(\x^n; \w_j)) \right]^\frac{c}{\beta} \\
+&= \left[ \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 1} \left( \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0}
+   \exp(-\beta(f(\x^m; \w_i) - f(\x^n; \w_j))) \right)^\frac{\alpha}{\beta} \right]^\frac{c}{\alpha} \\
+&= \left[ \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 1} \left( \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 0}
+   \exp(-\alpha(f(\x^m; \w_i) - f(\x^n; \w_j))) \right)^\frac{\beta}{\alpha} \right]^\frac{c}{\beta}.
+\end{aligned}
 $}
 \end{equation}
-
-Let 
-\begin{equation}
-\label{eq:mr}
-\resizebox{.9\linewidth}{!}{$
-\displaystyle
-\widetilde\RCal_\textsc{mr}(\W) 
-= \left[ \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 1} \exp(-\alpha g(\x^m; \w_i)) \right]^\gamma  
-  \left[ \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0} \exp( \beta  g(\x^n; \w_j)) \right]^\delta.
-$}
-\end{equation}
+Note that $\RCal_\textsc{mr}\pb{3}(\W)$ is independent of $b$ since 
+$f(\x^m; \w_i) - f(\x^n; \w_j) = g(\x^m; \w_i) - g(\x^n; \w_j)$.
 
 
 \begin{theorem}
 \label{theorem:mc2mr}
-If $(\W_\textsc{mc}, b_\textsc{mc}) \in \argmin_{\W,b} \RCal_\textsc{mc}(\W, b)$ (assuming minimisers exist)
-and $\alpha \gamma = \beta \delta$, then $\W_\textsc{mc} \in \argmin_\W \widetilde\RCal_\textsc{mr}(\W)$.
-Further, If $\W_\textsc{mr} \in \argmin_\W \widetilde\RCal_\textsc{mr}(\W)$ (assuming minimisers exist) and $\alpha \gamma = \beta \delta$,
+If $(\W_\textsc{mc}\pb{3}, b_\textsc{mc}\pb{3}) \in \argmin_{\W,b} \RCal_\textsc{mc}\pb{3}(\W, b)$ (assuming minimisers exist),
+then $\W_\textsc{mc}\pb{3} \in \argmin_\W \RCal_\textsc{mr}\pb{3}(\W)$.
+Further, If $\W_\textsc{mr}\pb{3} \in \argmin_\W \RCal_\textsc{mr}\pb{3}(\W)$ (assuming minimisers exist) and $\alpha \gamma = \beta \delta$,
 then 
 $$
-(\W_\textsc{mr}, \bt_\textsc{m}) \in \argmin_{\W,b} \, \RCal_\textsc{mc}(\W, b),
+(\W_\textsc{mr}\pb{3}, b_\textsc{mr}) \in \argmin_{\W,b} \, \RCal_\textsc{mc}\pb{3}(\W, b),
 $$ 
 where
 \begin{equation*}
 \resizebox{.9\linewidth}{!}{$
 \displaystyle
-\bt_\textsc{m} = \frac{1}{\alpha + \beta} \ln 
+b_\textsc{mr} = \frac{1}{\alpha + \beta} \ln 
       \frac{P \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 1} \exp(-\alpha g(\x^m; \w_i))}
-           {Q \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0} \exp( \beta  g(\x^n; \w_j)) \hspace{1em}} \Bigg|_{\W = \W_\textsc{mr}}.
+           {Q \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0} \exp( \beta  g(\x^n; \w_j)) \hspace{1em}} \Bigg|_{\W = \W_\textsc{mr}\pb{3}}.
 $}
 \end{equation*}
 \end{theorem}
