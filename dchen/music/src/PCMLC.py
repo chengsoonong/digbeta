@@ -134,12 +134,12 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
             M = M.tocsr()
             nzcols = np.nonzero(sumVec)[0]
             if userwiseReg is True:
-                nplVec = (sumVec + 1)[nzcols]
                 #regVec = np.divide(1., np.log1p(sumVec) + 1)
-                #regVec = np.divide(1., sumVec + 1)
-                regParam = np.divide(2. * np.log(nplVec), np.multiply(nplVec, nplVec-1)) 
-                regVec = np.zeros(K)
-                regVec[nzcols] = regParam
+                #nplVec = (sumVec + 1)[nzcols]
+                #regParam = np.divide(2. * np.log(nplVec), np.multiply(nplVec, nplVec-1)) 
+                #regVec = np.zeros(K)
+                #regVec[nzcols] = regParam
+                regVec = np.divide(1., sumVec + 1)
                 assert M.ndim == regVec.ndim
                 M = M.multiply(regVec).tocsr()
                 # extra_cost =  M.multiply(np.dot(W, W.T)).sum()  # np.dot(W, W.T) is huge & dense
@@ -162,13 +162,13 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
             sumVec = np.sum(similarMat, axis=1)
             np.fill_diagonal(M, sumVec)
             if userwiseReg is True:
-                #regVec = np.divide(1, sumVec + 1)
                 #regVec = np.divide(1, np.log1p(sumVec) + 1)
-                nzcols = np.nonzero(sumVec)[0]
-                nplVec = (sumVec + 1)[nzcols]
-                regParam = np.divide(2. * np.log(nplVec), np.multiply(nplVec, nplVec-1))  # log(n)/[n(n-1)/2]
-                regVec = np.zeros(K)
-                regVec[nzcols] = regParam
+                #nzcols = np.nonzero(sumVec)[0]
+                #nplVec = (sumVec + 1)[nzcols]
+                #regParam = np.divide(2. * np.log(nplVec), np.multiply(nplVec, nplVec-1))  # log(n)/[n(n-1)/2]
+                #regVec = np.zeros(K)
+                #regVec[nzcols] = regParam
+                regVec = np.divide(1, sumVec + 1)
                 M = M * regVec[:, None]
             J += np.sum(np.multiply(np.dot(W, W.T), M)) * 0.5 / C3
             dW += np.dot(M, W) / C3
