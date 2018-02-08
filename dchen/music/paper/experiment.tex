@@ -109,6 +109,7 @@ and $N_-^{pl}$ is the number of songs in a music library that playlist $pl$ does
 {\bf Row-wise + column-wise loss}: the summation of both: $\RCal_\textsc{row} + C \RCal_\textsc{col}$ 
 where $C$ is a trade-off parameter.
 
+The binary relevance baseline is learning a logistic regression for each playlist independently.
 
 
 %\begin{table}[!h]
@@ -118,15 +119,9 @@ Empirical results on subset \\
 \resizebox{\linewidth}{!}{
 \begin{tabular}{l|cccc}
 \toprule
-{}            & Row-wise Loss & Column-wise Loss & Row-wise + Column-wise loss & Independent Logistic Regression \\
+{}            & $\RCal_\textsc{row}$ & $\RCal_\textsc{col}$ & $\RCal_\textsc{row} + C\RCal_{col}$ & Binary Relevance \\
 \midrule
-Run 1         & 0.5495              & 0.5373           & 0.5404     & 0.5373 \\
-Run 2         & 0.5030              & 0.5040           & 0.5017     & 0.4426 \\
-Run 3         & 0.4509              & 0.4531           & 0.4522     & 0.4916 \\
-Run 4         & 0.5396              & 0.5485           & 0.5459     & 0.5142 \\
-Run 5         & 0.5376              & 0.5670           & 0.5615     & 0.5042 \\
-Mean          & 0.5161              & 0.5220           & 0.5203     &  \\
-Std           & 0.0405              & 0.0448           & 0.0440     & \\
+AUC           &    & $0.6585$  & & $0.6127$ \\
 \bottomrule
 \end{tabular}
 }
@@ -142,7 +137,7 @@ multi-task regularisation: we regularise the difference of playlist parameters
 such that $\|\w_j - \w_k\|_2$ is small if playlist $j$ and $k$ belong to the same user.
 
 \begin{equation*}
-\frac{1}{\sum_u N_u (N_u - 1)} \sum_u \sum_{j, k \in u} (\w_j - \w_k)^\top (\w_j - \w_k)
+\RCal_\textsc{reg} = \frac{1}{\sum_u N_u (N_u - 1)} \sum_u \sum_{j, k \in u} (\w_j - \w_k)^\top (\w_j - \w_k)
 \end{equation*}
 where $N_u$ is the number of playlist user $u$ has.
 
@@ -155,46 +150,10 @@ Empirical results on subset \\
 \toprule
 {}            & Multi-task Reg. + Row-wise Loss & Multi-task reg. + Column-wise Loss & Multi-task reg. + Row-wise + Column-wise Loss  \\
 \midrule
-Run 1         & 0.5783              & 0.5941     & 0.5886  \\
-Run 2         & 0.5272              & 0.5390     & 0.5328  \\
-Run 3         & 0.6452              & 0.6224     & 0.6393  \\
-Run 4         & 0.6163              & 0.6229     & 0.6232  \\
-Run 5         & 0.6561              & 0.6278     & 0.6483  \\
-Mean          & 0.6046              & 0.6012     & 0.6064  \\ 
-Std           & 0.0527              & 0.0372     & 0.0470  \\
 \bottomrule
 \end{tabular}
 }
 %\end{table}
-
-\paragraph{Experimental design:}
-C: 1, 1, 1, p: 1, with multi-task regularisation, no user specific regularisation parameter.
-
-
-\paragraph{Is user-specific multi-task regularisation parameter (based on \#playlists) helpful?}
-%\begin{table}[!h]
-%\centering
-%\caption{Empirical results on subset: user-specific regularisation parameter = 1/\#playlists}
-Empirical results on subset: user-specific regularisation parameter = 1/\#playlists \\
-\resizebox{\linewidth}{!}{
-\begin{tabular}{l|ccc}
-\toprule
-{}            & Multi-task Reg. + Row-wise Loss + user-spec reg. & Multi-task reg. + Column-wise Loss + user-spec reg. & Multi-task reg. + Row-wise + Column-wise Loss + user-spec reg. \\
-\midrule
-Run 1         & 0.5652       & 0.5340           & 0.5470 \\
-Run 2         & 0.5940       & 0.5676           & 0.5772 \\
-Run 3         & 0.5661       & 0.5181           & 0.5315 \\
-Run 4         & 0.6159       & 0.5566           & 0.5790 \\
-Run 5         & 0.5449       & 0.5458           & 0.5460 \\
-Mean          & 0.5772       & 0.5444           & 0.5561 \\
-Std           & 0.0278       & 0.0193           & 0.0210 \\
-\bottomrule
-\end{tabular}
-}
-%\end{table}
-
-
-\newpage
 
 
 \subsection{New song recommendation}
