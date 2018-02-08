@@ -9,7 +9,7 @@ from scipy.sparse import issparse, csr_matrix
 import pickle as pkl
 
 
-def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', similarMat=None):
+def obj_pclassification(w, X, Y_pos, Y_neg, p, C1=1, C2=1, C3=1, weighting='labels', similarMat=None):
     """
         Objective with L2 regularisation and p-classification loss
 
@@ -25,12 +25,14 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
                   - 'samples': weight by the #positive or #negative samples per label (weighting vertically)
                   - 'labels': weight by the #positive or #negative labels per example (weighting horizontally)
                   - 'both': equivalent to turn on both 'samples' and 'labels'
+            - PU: positive only matrix, PU.shape = Y.shape
             - similarMat: square symmetric matrix, require the parameters of label_i and label_j should be similar
                           (by regularising their difference) if entry (i,j) is 1.
                           This is the adjacent matrix of playlists (nodes), and playlists of the same user form a clique.
     """
     N, D = X.shape
-    K = Y.shape[1]
+    K = Y_pos.shape[1]
+    assert Y_pos.shape == Y_neg.shape
     assert w.shape[0] == K * D + 1
     assert p >= 1
     assert C1 > 0
@@ -48,16 +50,8 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
         if nrows > K:
             similarMat = similarMat[:K, :K]
 
-    isnan = np.isnan(Y)
-    if np.any(isnan):
-        Yp = np.nan_to_num(Y)
-        Yn = 1 - Yp - isnan
-        assert np.sum(Yp + Yn + isnan) == np.prod(Y.shape)
-    else:
-        Yp = Y
-        Yn = 1 - Y
-    Yp = Yp.astype(np.int)
-    Yn = Yn.astype(np.int)
+    Yp = Y_pos.astype(np.int)
+    Yn = Y_neg.astype(np.int)
 
     W = w[1:].reshape(K, D)  # reshape weight matrix
     b = w[0]                 # bias
@@ -184,21 +178,22 @@ class PCMLC(BaseEstimator):
         sys.stdout.write('\nC: %g, %g, %g, p: %g, weighting: %s' %
                          (self.C1, self.C2, self.C3, self.p, self.weighting))
         sys.stdout.flush()
-
+        
+        Y_pos = Y_train
+        Y_neg = 1 - Y_train
         if PUMat is not None:
             assert PUMat.shape[0] == Y_train.shape[0]
             if issparse(PUMat):
                 PUMat = PUMat.toarray()
-            Y_train = np.hstack([Y_train, PUMat])
+            Y_pos = np.hstack([Y_pos, PUMat])
+            Y_neg = np.hstack([Y_neg, np.zeros_like(PUMat, dtype=np.bool)])
 
         N, D = X_train.shape
-        K = Y_train.shape[1]
-        # w0 = np.random.rand(K * D + 1) - 0.5  # initial guess in range [-1, 1]
-        # w0 = 0.001 * np.random.randn(K * D + 1)
+        K = Y_pos.shape[1]
         # w0 = 0.001 * np.random.randn(K * D + 1)
         w0 = np.zeros(K * D + 1)
         opt = minimize(self.obj_func, w0,
-                       args=(X_train, Y_train, self.p, self.C1, self.C2, self.C3, self.weighting, self.similarMat),
+                       args=(X_train, Y_pos, Y_neg, self.p, self.C1, self.C2, self.C3, self.weighting, self.similarMat),
                        method=opt_method, jac=True, options=options)
         if opt.success is True:
             self.b = opt.x[0]
@@ -209,44 +204,43 @@ class PCMLC(BaseEstimator):
             print(opt.items())
             self.trained = False
 
-    def fit_minibatch(self, X_train, Y_train, PUMat=None, w0=None, learning_rate=0.1, batch_size=200, n_epochs=10, verbose=0):
+    def fit_minibatch(self, X_train, Y_train, PUMat=None, w0=None, learning_rate=0.1, batch_size=200, n_epochs=10, wLBFGS=False, verbose=0):
         """
             Model fitting by mini-batch Gradient Descent
             - PUMat: indicator matrix for additional labels with only positive observations.
                      If it is sparse, all missing entries are considered unobserved instead of negative;
                      if it is dense, it contains only 1 and NaN entries, and NaN entries are unobserved.
         """
+        N, D = X_train.shape
+        K = Y_train.shape[1]
         if PUMat is not None:
             assert PUMat.shape[0] == Y_train.shape[0]
             assert not np.logical_xor(issparse(PUMat), issparse(Y_train))
-            K = Y_train.shape[1] + PUMat.shape[1]
-        else:
-            K = Y_train.shape[1]
+            K += PUMat.shape[1]
 
         fnpy = ('mlr' if PUMat is None else 'pla') + ('-N-' if self.similarMat is None else '-Y-') + \
                '%s-%g-%g-%g-%g-latest.npy' % (self.weighting, self.C1, self.C2, self.C3, self.p)
-        # np.random.seed(918273645)
-        N, D = X_train.shape
+
         if w0 is None:
-            # w = 0.001 * np.random.randn(K * D + 1)
-            if os.path.exists(fnpy):
-                try:
-                    w = np.load(fnpy, allow_pickle=False)
-                    print('restore from %s' % fnpy)
-                except:
-                    w = np.zeros(K * D + 1)
-            else:
+            try:
+                w = np.load(fnpy, allow_pickle=False)
+                print('restore from %s' % fnpy)
+            except:
                 w = np.zeros(K * D + 1)
         else:
             assert w0.shape[0] == K * D + 1
             w = w0
+
         n_batches = int((N-1) / batch_size) + 1
         decay = 0.8
+
+        # np.random.seed(918273645)
         for epoch in range(n_epochs):
             if verbose > 0:
                 print(time.strftime('%Y-%m-%d %H:%M:%S'))
             indices = np.arange(N)
             np.random.shuffle(indices)
+
             for nb in range(n_batches):
                 if verbose > 0:
                     sys.stdout.write('\r %d / %d' % (nb+1, n_batches))
@@ -255,37 +249,51 @@ class PCMLC(BaseEstimator):
                 ix_end = min((nb+1) * batch_size, N)
                 ix = indices[ix_start:ix_end]
                 X = X_train[ix]
-                Y = Y_train[ix]
-                if issparse(X):
-                    X = X.toarray()
-                if issparse(Y):
-                    Y = Y.toarray()
+                Y_pos = Y_train[ix]
+
+                if issparse(Y_pos):
+                    Y_pos = Y_pos.toarray().astype(np.bool)
+                Y_neg = 1 - Y_pos
                 if PUMat is not None:
                     PU = PUMat[ix]
                     if issparse(PU):
-                        PU = PU.toarray().astype(np.float)
-                        PU[PU == 0] = np.nan
-                    Y = np.hstack([Y, PU])
-                J, g = self.obj_func(w, X, Y, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3, weighting=self.weighting, 
-                                     similarMat=self.similarMat)
-                w = w - learning_rate * g
+                        PU = PU.toarray().astype(np.bool)
+                    Y_pos = np.hstack([Y_pos, PU])
+                    Y_neg = np.hstack([Y_neg, np.zeros_like(PU, dtype=np.bool)])
+
+                if wLBFGS is True:
+                    wo = w.copy()
+                    opt = minimize(self.obj_func, w, method='L-BFGS-B', jac=True, options={'disp': verbose},
+                                   args=(X_train, Y_pos, Y_neg, self.p, self.C1, self.C2, self.C3, self.weighting, self.similarMat))
+                    if opt.success is True:
+                        w = opt.x
+                        J = opt.fun
+                    else:
+                        wLBFGS = False
+                        sys.stderr.write('LBFGS optimisation failed, fall back to Gradient Descent.')
+                        if verbose > 0:
+                            print(opt.items())
+                        w = wo
+                else:
+                    J, g = self.obj_func(w, X, Y_pos=Y_pos, Y_neg=Y_neg, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3,
+                                         weighting=self.weighting,similarMat=self.similarMat)
+                    w = w - learning_rate * g
+
                 if np.isnan(J):
                     print('J = NaN, training failed.')
                     return
+
                 self.cost.append(J)
+                if verbose > 0:
+                    print(' | objective:', J)
+
             print('\nepoch: %d / %d' % (epoch+1, n_epochs))
             learning_rate *= decay
             np.save(fnpy, w, allow_pickle=False)
+
         self.b = w[0]
         self.W = np.reshape(w[1:], (K, D))
         self.trained = True
-
-    def resume_fit_minibatch(self, X_train, Y_train, learning_rate=0.001, batch_size=200, n_epochs=100):
-        """Resume fitting the model using SGD"""
-        assert self.trained is True, "Only trained model can be resumed"
-        w0 = np.concatenate((self.b, self.W.ravel()), axis=-1)
-        self.fit_minibatch(X_train=X_train, Y_train=Y_train, w=w0,
-                           learning_rate=learning_rate, batch_size=batch_size, n_epochs=n_epochs)
 
     def decision_function(self, X_test):
         """Make predictions (score is a real number)"""
@@ -305,43 +313,3 @@ class PCMLC(BaseEstimator):
     # def get_params(self, deep = True):
     # def set_params(self, **params):
 
-    def dump_params(self):
-        """Dump the parameters of trained model"""
-        if self.trained is False:
-            print('Model should be trained first! Do nothing.')
-            return
-        else:
-            params = dict()
-            params['C'] = self.C
-            params['p'] = self.p
-            params['weighting'] = self.weighting
-            params['b'] = self.b
-            params['W'] = self.W
-            params['cost'] = self.cost
-            return params
-
-    def save_params(self, fname=None):
-        """Dump the parameters of trained model"""
-        if self.trained is False:
-            print('Model should be trained first! Do nothing.')
-            return
-        else:
-            if fname is None:
-                fname = 'modelPC-' + time.strftime('%Y-%m-%d-%H-%M-%S') + '.pkl'
-            param_dict = self.dump_params()
-            pkl.dump(param_dict, open(fname, 'wb'))
-
-    def load_params(self, fname):
-        """Load the parameters of a trained model"""
-        if self.trained is True:
-            print('Cannot load to override trained model! Do nothing.')
-            return
-        else:
-            params = pkl.load(open(fname, 'rb'))
-            self.C = params['C']
-            self.p = params['p']
-            self.weighting = params['weighting']
-            self.b = params['b']
-            self.W = params['W']
-            self.cost = params['cost']
-            self.trained = True
