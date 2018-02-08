@@ -292,7 +292,7 @@ class PCMLC(BaseEstimator):
                 self.cost.append(J)
             print('\nepoch: %d / %d' % (epoch+1, n_epochs))
             learning_rate *= decay
-            np.save('%s-%g-%g-%g-%g-%d.npy' % (self.weighting, self.C1, self.C2, self.C3, self.p, epoch+1), w)
+            np.save('%s-%g-%g-%g-%g-latest.npy' % (self.weighting, self.C1, self.C2, self.C3, self.p), w)
         self.b = w[0]
         self.W = np.reshape(w[1:], (K, D))
         self.trained = True

@@ -18,18 +18,21 @@ src_dir = os.path.join(work_dir, 'src')
 sys.path.append(src_dir)
 
 # setting 1
-pkl_data_dir = os.path.join(data_dir, 'aotm-2011/setting1')
-fytrain = os.path.join(pkl_data_dir, 'Y_train.pkl.gz')
+# pkl_data_dir = os.path.join(data_dir, 'aotm-2011/setting1')
+# fytrain = os.path.join(pkl_data_dir, 'Y_train.pkl.gz')
 
 # setting 2
 # pkl_data_dir = os.path.join(data_dir, 'aotm-2011/setting2')
 # fytrain = os.path.join(pkl_data_dir, 'PU_test.pkl.gz')
 
+pkl_data_dir = os.path.join(data_dir, 'aotm-2011/setting2')
+fytrain = os.path.join(pkl_data_dir, 'Y_train_dev.pkl.gz')
+
 Y_train = pkl.load(gzip.open(fytrain, 'rb'))
 
 nLabels = Y_train.shape[1]
 
-ranges = np.arange(0, nLabels, 500).tolist()
+ranges = np.arange(0, nLabels, 1000).tolist()
 ranges.append(nLabels)
 
 for i in range(1, len(ranges)):

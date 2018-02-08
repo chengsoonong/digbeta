@@ -18,3 +18,17 @@ the equivalence between P-Classification loss and P-Norm push loss under exponen
 
 top-push vs. bottom push, top-push vs P-Classification vs p-norm.
 }
+
+Contributions:
+\begin{itemize}
+\item We generalise the equivalence relationships between P-Norm Push loss and P-Classification loss, 
+      with the equivalence between several pairs of bipartite ranking loss and classification loss as special cases,
+      such as the (approximated) Top Push and P-Classification loss, the (approximated) Bottom Push and another classification loss,
+      and the RankBoost and Cost-Sensitive AdaBoot loss.
+\item We generalise the equivalence relationships from binary to multilabel setting, where we described two variants -- 
+      by label and by example, we show that the former holds the equivalence claims similar to the binary setting, 
+      the latter one, however, holds those claims under a few strict assumptions.
+\item We empirically show that one can get good performance on both ranking and classification task by optimising only one loss function,
+      on a standard multilabel classification benchmark as well as a novel application on music playlist augmentation and 
+      new song recommendation.
+\end{itemize}

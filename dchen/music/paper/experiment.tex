@@ -16,6 +16,8 @@ Further, it achieves better performance than (\citet{lin2014multi}) which encour
 Finally, it is encouraging that our method performs better than (\citet{belanger2016structured}) and (\citet{gygli2017deep}),
 both work learn complex non-linear functions using deep neural networks, compared with our method which uses a linear function.
 
+\TODO show the performance with row-wise weighting, column-wise weighting and with both.
+
 \begin{table}[!h]
 \centering
 \caption{Performance on multi-label dataset}
@@ -41,13 +43,15 @@ MLR (Ours)                         &          ${\bf 47.0}$ & ${\bf 38.8}$ & ${\b
 
 \subsection{Playlist augmentation}
 
-We further evaluate our proposed approach on a music playlist dataset, 
-where we focus on the task of augmenting user created playlist.
+{\bf Task:}
+We are interested in augment user created playlists with songs from a music library.
+In particular, for a partial playlist, we would like to augment it using songs from an existing library of songs.
 
-In particular, we split the songs in AotM-2011~\cite{mcfee2012hypergraph} playlist dataset
-according to the ratio 70\%:10\%:20\%, which results in the training, validation and test set, respectively.
-Given a new song which does not appeared in any playlist, 
-we predict, for each playlist, whether to augment it with this song.
+{\bf Experimental design:}
+We hold the last half of about 20\% of all user created playlists, 
+which are chosen uniformly at random from all playlists in the AtoM-2011 playlist dataset.
+We filter out playlist which has less than 5 songs that appeared in the Million Song Dataset~\cite{}.
+
 
 \newpage
 
@@ -69,6 +73,44 @@ Statistics of subset \\
 
 
 \paragraph{Which type of loss is most helpful?}
+
+{\bf Row-wise loss}: weighting by the number of positive/negative labels for each example.
+\ie we perform a classification/bipartite ranking task on each multilabel example 
+which forms a dataset of examples with binary labels: $\{(\x_n, y_k\}_{k=1}^K$ for the $n$-th multilabel example.
+
+\begin{equation*}
+\resizebox{\linewidth}{!}{$
+\RCal_\textsc{row} 
+= \displaystyle \sum_s 
+  \frac{1}{K_+^s} \sum_{s \in pl} e^{-(\w_{pl}^\top \phi(s) + b)} +
+  \frac{1}{K_-^s} \sum_{s \notin pl} \frac{1}{p} e^{p \w_{pl}^\top \phi(s)}.
+$}
+\end{equation*}
+where normalising factor $K_+^s$ is the number of playlists that include song $s$,
+and $K_-^s$ is the number of playlists that do not include song $s$.
+
+
+{\bf Column-wise loss}: weighting by the number of positive/negative examples for each label.
+\ie we perform a classification/bipartite ranking task on each label which forms a binary dataset:
+$\{\x_n, y_k\}_{n=1}^N$ for the $k$-th label.
+
+\begin{equation*}
+\resizebox{\linewidth}{!}{$
+\RCal_\textsc{col} 
+= \displaystyle \sum_{pl}
+  \frac{1}{N_+^{pl}} \sum_{s \in pl} e^{-(\w_{pl}^\top \phi(s) + b)} +
+  \frac{1}{N_-^{pl}} \sum_{s \notin pl} \frac{1}{p} e^{p \w_{pl}^\top \phi(s)}.
+$}
+\end{equation*}
+where normalising factor $N_+^{pl}$ is the number of songs in playlist $pl$,
+and $N_-^{pl}$ is the number of songs in a music library that playlist $pl$ does not include.
+
+
+{\bf Row-wise + column-wise loss}: the summation of both: $\RCal_\textsc{row} + C \RCal_\textsc{col}$ 
+where $C$ is a trade-off parameter.
+
+
+
 %\begin{table}[!h]
 %\centering
 %\caption{Empirical results on subset}
@@ -83,8 +125,8 @@ Run 2         & 0.5030              & 0.5040           & 0.5017     & 0.4426 \\
 Run 3         & 0.4509              & 0.4531           & 0.4522     & 0.4916 \\
 Run 4         & 0.5396              & 0.5485           & 0.5459     & 0.5142 \\
 Run 5         & 0.5376              & 0.5670           & 0.5615     & 0.5042 \\
-Mean          & 0.5161              & 0.5220           & 0.5203     & 0.0440 \\
-Std           & 0.0405              & 0.0448 
+Mean          & 0.5161              & 0.5220           & 0.5203     &  \\
+Std           & 0.0405              & 0.0448           & 0.0440     & \\
 \bottomrule
 \end{tabular}
 }
@@ -95,6 +137,15 @@ C: 1, 1, 1, p: 1, no multi-task regularisation
 
 
 \paragraph{Is multi-task regularisation helpful?}
+
+multi-task regularisation: we regularise the difference of playlist parameters 
+such that $\|\w_j - \w_k\|_2$ is small if playlist $j$ and $k$ belong to the same user.
+
+\begin{equation*}
+\frac{1}{\sum_u N_u (N_u - 1)} \sum_u \sum_{j, k \in u} (\w_j - \w_k)^\top (\w_j - \w_k)
+\end{equation*}
+where $N_u$ is the number of playlist user $u$ has.
+
 %\begin{table}[!h]
 %\centering
 %\caption{Empirical results on subset}
@@ -147,6 +198,21 @@ Std           & 0.0278       & 0.0193           & 0.0210 \\
 
 
 \subsection{New song recommendation}
+
+{\bf Task:} 
+We are interested in the task of recommending newly released songs to users,
+in particular, to augment users' existing playlists with newly released songs.
+
+{\bf Experimental design:} 
+We hold 20\% of latest released songs in AotM-2011~\cite{mcfee2012hypergraph} playlist dataset.
+Given a new song which does not appeared in any playlist, 
+we predict, for each playlist, whether to include it or not.
+
+The objective is the same as $\RCal_\textsc{row}$ and $\RCal_\textsc{col}$ except that,
+for the playlists that we choose to hold the later half, all we observed is the first half, 
+all other songs for these playlists are unobserved (they can be positive/negative examples),
+this is different from the case that we explicitly observed that songs are not in playlists (they are negative examples).
+
 
 \subsubsection{A few conclusions on a subset}
 %\begin{table}[!h]
@@ -240,3 +306,15 @@ Std           & 0.0097             & 0.0082     & 0.0101 \\
 \end{tabular}
 }
 %\end{table}
+
+
+\TODO
+measure performance by AUC and HitRate@K,
+compare with baselines such as independent logistic regression (\ie binary relevance), popularity based recommendation,
+and matrix factorisation.
+
+
+
+\subsection{Discussion}
+
+{\it the choice of playlist dataset?}

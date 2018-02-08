@@ -37,8 +37,8 @@ userwiseReg = False
 print('C: %g, %g, %g, p: %g' % (C1, C2, C3, p))
 
 print(time.strftime('%Y-%m-%d %H:%M:%S'))
-clf = PClassificationMLC(C1=C1, C2=C2, C3=C3, weighting='both', similarMat=same_user_mat, userwiseReg=userwiseReg)
-clf.fit_minibatch(X_train, Y_train, PUMat=PU_dev, batch_size=1024, n_epochs=n_epochs, learning_rate=0.1, verbose=0)
+clf = PClassificationMLC(C1=C1, C2=C2, C3=C3, p=p,  weighting='both', similarMat=same_user_mat, userwiseReg=userwiseReg)
+clf.fit_minibatch(X_train, Y_train, PUMat=PU_dev, batch_size=1024, n_epochs=n_epochs, learning_rate=0.1, verbose=1)
 
 if clf.trained is True:
     fmodel = os.path.join(pkl_data_dir, 'pla-aotm2011-C-%g-%g-%g-p-%g.pkl' % (C1, C2, C3, p))
