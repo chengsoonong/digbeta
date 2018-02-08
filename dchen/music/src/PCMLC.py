@@ -1,3 +1,4 @@
+import os
 import sys
 import time
 import numpy as np
@@ -8,7 +9,7 @@ from scipy.sparse import issparse, csr_matrix
 import pickle as pkl
 
 
-def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', similarMat=None, userwiseReg=False):
+def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', similarMat=None):
     """
         Objective with L2 regularisation and p-classification loss
 
@@ -27,7 +28,6 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
             - similarMat: square symmetric matrix, require the parameters of label_i and label_j should be similar
                           (by regularising their difference) if entry (i,j) is 1.
                           This is the adjacent matrix of playlists (nodes), and playlists of the same user form a clique.
-            - userwiseReg: use user specific regularisation if True. 
     """
     N, D = X.shape
     K = Y.shape[1]
@@ -52,6 +52,7 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
     if np.any(isnan):
         Yp = np.nan_to_num(Y)
         Yn = 1 - Yp - isnan
+        assert np.sum(Yp + Yn + isnan) == np.prod(Y.shape)
     else:
         Yp = Y
         Yn = 1 - Y
@@ -120,12 +121,6 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
         db = np.sum(T5) / num
 
     if similarMat is not None:
-        # user specific regularisation 
-        # regVec = np.divide(1, sumVec+1)  # 1 / #playlist_user
-        # regVec = np.divide(1, 2 * np.log(sumVec + 1) + 1)  # 1 / (2 * log(#playlist_user) + 1)
-        # regVec = np.divide(1, np.log(sumVec + 1) + 1)  # 1 / (log(#playlist_user) + 1)  # maybe helpful
-        # regVec = np.divide(1, np.log(2 * sumVec + 1) + 1)  # 1 / (log(2 * #playlist_user) + 1)
-        # regVec = np.divide(1, np.log(sumVec + 1) + 2)  # 1 / (log(#playlist_user) + 2)
         if issparse(similarMat):
             sumVec = similarMat.sum(axis=1)  # K by 1: #playlists_of_u - 1
             M = similarMat.multiply(-1.)
@@ -133,19 +128,6 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
             M.setdiag(sumVec)
             M = M.tocsr()
             nzcols = np.nonzero(sumVec)[0]
-            if userwiseReg is True:
-                #regVec = np.divide(1., np.log1p(sumVec) + 1)
-                #nplVec = (sumVec + 1)[nzcols]
-                #regParam = np.divide(2. * np.log(nplVec), np.multiply(nplVec, nplVec-1)) 
-                #regVec = np.zeros(K)
-                #regVec[nzcols] = regParam
-                regVec = np.divide(1., sumVec + 1)
-                assert M.ndim == regVec.ndim
-                M = M.multiply(regVec).tocsr()
-                # extra_cost =  M.multiply(np.dot(W, W.T)).sum()  # np.dot(W, W.T) is huge & dense
-                # spW = csr_matrix(sumVec.astype(np.bool)).multiply(W).tocsr()
-                # extra_cost =  M.multiply(spW.dot(spW.T)).sum()  # works but too slow
-                # extra_cost =  M.multiply(spW.dot(W.T)).sum()  # memory error
             extra_cost = 0.
             for k in nzcols:
                 # nzc = M[k, :].nonzero()[1]  # non-zero columns in the k-th row, expensive
@@ -155,23 +137,16 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
                 Mk = M[k, :].toarray()  # less expensive
                 nzc = Mk.nonzero()[1]
                 extra_cost += np.dot(Mk[0, nzc], np.dot(W[nzc, :], W[k, :]))
-            J += extra_cost * 0.5 / C3
-            dW += M.dot(W) / C3
+            normparam = 1. / (C3 * sumVec.sum())
+            J += extra_cost * normparam
+            dW += M.dot(W) * 2. * normparam
         else:
             M = -1. * similarMat
             sumVec = np.sum(similarMat, axis=1)
             np.fill_diagonal(M, sumVec)
-            if userwiseReg is True:
-                #regVec = np.divide(1, np.log1p(sumVec) + 1)
-                #nzcols = np.nonzero(sumVec)[0]
-                #nplVec = (sumVec + 1)[nzcols]
-                #regParam = np.divide(2. * np.log(nplVec), np.multiply(nplVec, nplVec-1))  # log(n)/[n(n-1)/2]
-                #regVec = np.zeros(K)
-                #regVec[nzcols] = regParam
-                regVec = np.divide(1, sumVec + 1)
-                M = M * regVec[:, None]
-            J += np.sum(np.multiply(np.dot(W, W.T), M)) * 0.5 / C3
-            dW += np.dot(M, W) / C3
+            denom = C3 * np.sum(sumVec)
+            J += np.sum(np.multiply(np.dot(W, W.T), M)) / denom
+            dW += np.dot(M, W) * (2. / denom)
 
     grad = np.concatenate(([db], dW.ravel()), axis=0)
     return (J, grad)
@@ -180,7 +155,7 @@ def obj_pclassification(w, X, Y, p, C1=1, C2=1, C3=1, weighting='labels', simila
 class PCMLC(BaseEstimator):
     """All methods are necessary for a scikit-learn estimator"""
 
-    def __init__(self, p=1, C1=1, C2=1, C3=1, weighting=True, similarMat=None, userwiseReg=False):
+    def __init__(self, p=1, C1=1, C2=1, C3=1, weighting=True, similarMat=None):
         """Initialisation"""
 
         assert C1 > 0
@@ -193,7 +168,6 @@ class PCMLC(BaseEstimator):
         self.p = p
         self.weighting = weighting
         self.similarMat = similarMat
-        self.userwiseReg = userwiseReg
         self.obj_func = obj_pclassification
         self.cost = []
         self.trained = False
@@ -207,8 +181,8 @@ class PCMLC(BaseEstimator):
         """
         opt_method = 'L-BFGS-B'  # 'BFGS' #'Newton-CG'
         options = {'disp': 1, 'maxiter': 10**5, 'maxfun': 10**5}  # 'eps': 1e-5}  # , 'iprint': 99}
-        sys.stdout.write('\nC: %g, %g, %g, p: %g, weighting: %s, userwise_reg: %s\n' %
-                         (self.C1, self.C2, self.C3, self.p, self.weighting, self.userwiseReg))
+        sys.stdout.write('\nC: %g, %g, %g, p: %g, weighting: %s' %
+                         (self.C1, self.C2, self.C3, self.p, self.weighting))
         sys.stdout.flush()
 
         if PUMat is not None:
@@ -224,7 +198,7 @@ class PCMLC(BaseEstimator):
         # w0 = 0.001 * np.random.randn(K * D + 1)
         w0 = np.zeros(K * D + 1)
         opt = minimize(self.obj_func, w0,
-                       args=(X_train, Y_train, self.p, self.C1, self.C2, self.C3, self.weighting, self.similarMat, self.userwiseReg),
+                       args=(X_train, Y_train, self.p, self.C1, self.C2, self.C3, self.weighting, self.similarMat),
                        method=opt_method, jac=True, options=options)
         if opt.success is True:
             self.b = opt.x[0]
@@ -249,11 +223,20 @@ class PCMLC(BaseEstimator):
         else:
             K = Y_train.shape[1]
 
+        fnpy = ('mlr' if PUMat is None else 'pla') + ('-N-' if self.similarMat is None else '-Y-') + \
+               '%s-%g-%g-%g-%g-latest.npy' % (self.weighting, self.C1, self.C2, self.C3, self.p)
         # np.random.seed(918273645)
         N, D = X_train.shape
         if w0 is None:
             # w = 0.001 * np.random.randn(K * D + 1)
-            w = np.zeros(K * D + 1)
+            if os.path.exists(fnpy):
+                try:
+                    w = np.load(fnpy, allow_pickle=False)
+                    print('restore from %s' % fnpy)
+                except:
+                    w = np.zeros(K * D + 1)
+            else:
+                w = np.zeros(K * D + 1)
         else:
             assert w0.shape[0] == K * D + 1
             w = w0
@@ -284,7 +267,7 @@ class PCMLC(BaseEstimator):
                         PU[PU == 0] = np.nan
                     Y = np.hstack([Y, PU])
                 J, g = self.obj_func(w, X, Y, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3, weighting=self.weighting, 
-                                     similarMat=self.similarMat, userwiseReg=self.userwiseReg)
+                                     similarMat=self.similarMat)
                 w = w - learning_rate * g
                 if np.isnan(J):
                     print('J = NaN, training failed.')
@@ -292,7 +275,7 @@ class PCMLC(BaseEstimator):
                 self.cost.append(J)
             print('\nepoch: %d / %d' % (epoch+1, n_epochs))
             learning_rate *= decay
-            np.save('%s-%g-%g-%g-%g-latest.npy' % (self.weighting, self.C1, self.C2, self.C3, self.p), w)
+            np.save(fnpy, w, allow_pickle=False)
         self.b = w[0]
         self.W = np.reshape(w[1:], (K, D))
         self.trained = True
