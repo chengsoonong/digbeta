@@ -1,10 +1,59 @@
 \TODO
 
 \begin{itemize}
-\item experiment both the row and column, row+column  wise loss on bibtex and bookmarks.
-\item for new song recommendation, experiment the three loss above, and then pick the best one, add multi-task regularisation
-\item for playlist augmentation, do the same as new song augmentation.
-\item for playlist augmentation, experiment matrix factorisation as a baseline.
-\item get 30music playlists work on both new song recommendation and playlist augmentation.
-\item refactor code into python packages so that flake8 won't complain that some imports are not at the top.
+\item Title placeholder: Playlist recommendation and augmentation using multi-label ranking
+
+\item Loss types: 
+      \begin{itemize}
+      \item rename:  row-wise $\to$ example, column-wise $\to$ label, row+column $\to$ ? (example + label, both)
+      \item explain: why example + label $\ne$ example or label loss
+      \item Rename the python variables corresponding to those losses
+      \end{itemize}
+\item Explain multi-task regulariser:
+      \begin{itemize}
+      \item why the name ``multi-task reulariser"? \\
+            recommending/augmenting each playlist is considered a task
+      \item why it will improve performance
+      \end{itemize}
+\item Multi-label dataset, \ie bibtex and bookmarks:
+      \begin{itemize}
+      \item Add evaluation metric for rank: \eg P@K
+      \item Add results of two more methods: with label loss, with example + label loss (currently method with example loss)
+      \item One more method: using multi-task regulariser?
+      \item Conclusion: example loss is the best?
+      \end{itemize}
+
+\item Connect equations/theory to playlist tasks (new song recommendation, playlist augmentation)
+
+\item New song recommendation:
+      \begin{itemize}
+      \item explain what is new song recommendation
+      \item methods to compare with: independent logistic regression, proposed method using example/label/both losses, 
+            the best of (example/label/both) + multi-task regulariser, 
+            the best of (example/label/both) + multi-task regulariser with user specific regularisation parameter
+      \item a better name (than ``new song recommendation") for this task?
+      \end{itemize}
+
+\item Playlist augmentation:
+      \begin{itemize}
+      \item explain what is playlist augmentation
+      \item methods to compare with: the same as (new song recommendation), with new baselines (matrix factorisation, popularity based ranking)
+      \end{itemize}
+
+\item Multi-task regulariser with user specific regularisation parameter
+      \begin{itemize}
+      \item use the AUC score of (best of example/label/both + multi-task regulariser), 
+            produce a scatter plot: AUC (y axis) vs. users' \#playlist or (average cosine distance between playlists of the same user) (x axis),
+            each point in the scatter plot represents a user
+      \item if the scatter plot has a trend such as rising first then dropping down, 
+            then multi-task regulariser with user specific regularisation parameter will probably help
+      \end{itemize}
+
+\item Experiment on AotM-2011 and 30music dataset for both tasks (new song recommendation, playlist augmentation)
+
+\item Refactor code 
+      \begin{itemize}
+      \item no large piece of shared code in notebooks
+      \item refactor shared code into python packages so that flake8 won't complain that some imports are not at the top
+      \end{itemize}
 \end{itemize}
