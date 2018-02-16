@@ -113,6 +113,7 @@ def obj_pclassification(w, X, Y_pos, Y_neg, p, C1=1, C2=1, C3=1, weighting='labe
         T5 = -np.multiply(P, np.exp(T2 - cost)) + np.multiply(Q, np.exp(T3 - cost))
         dW = W / C1 + np.dot(T5.T, X) / num
         db = np.sum(T5) / num
+    print('\n%.6f' % cost)
 
     if similarMat is not None:
         if issparse(similarMat):
@@ -190,8 +191,10 @@ class PCMLC(BaseEstimator):
 
         N, D = X_train.shape
         K = Y_pos.shape[1]
-        # w0 = 0.001 * np.random.randn(K * D + 1)
-        w0 = np.zeros(K * D + 1)
+        if PUMat is None:
+            w0 = np.zeros(K * D + 1)
+        else:
+            w0 = np.concatenate([np.zeros(Y_train.shape[1] * D + 1), 0.001 * np.random.randn(PUMat.shape[1] * D)], axis=-1)
         opt = minimize(self.obj_func, w0,
                        args=(X_train, Y_pos, Y_neg, self.p, self.C1, self.C2, self.C3, self.weighting, self.similarMat),
                        method=opt_method, jac=True, options=options)
@@ -204,7 +207,7 @@ class PCMLC(BaseEstimator):
             print(opt.items())
             self.trained = False
 
-    def fit_minibatch(self, X_train, Y_train, PUMat=None, w0=None, learning_rate=0.1, batch_size=200, n_epochs=10, wLBFGS=False, verbose=0):
+    def fit_minibatch(self, X_train, Y_train, PUMat=None, w0=None, learning_rate=0.001, batch_size=256, n_epochs=10, verbose=0):
         """
             Model fitting by mini-batch Gradient Descent
             - PUMat: indicator matrix for additional labels with only positive observations.
@@ -226,14 +229,23 @@ class PCMLC(BaseEstimator):
                 w = np.load(fnpy, allow_pickle=False)
                 print('restore from %s' % fnpy)
             except:
-                w = np.zeros(K * D + 1)
+                if PUMat is None:
+                    w = np.zeros(K * D + 1)
+                else:
+                    w = np.concatenate([np.zeros(Y_train.shape[1] * D + 1), 0.001 * np.random.randn(PUMat.shape[1] * D)], axis=-1)
         else:
             assert w0.shape[0] == K * D + 1
             w = w0
 
+        beta1 = .9
+        beta2 = .999
+        eps = 1e-8
+        m_t = 0.
+        v_t = 0.
+        beta1_t = beta1
+        beta2_t = beta2
         n_batches = int((N-1) / batch_size) + 1
-        decay = 0.8
-
+        
         # np.random.seed(918273645)
         for epoch in range(n_epochs):
             if verbose > 0:
@@ -261,23 +273,16 @@ class PCMLC(BaseEstimator):
                     Y_pos = np.hstack([Y_pos, PU])
                     Y_neg = np.hstack([Y_neg, np.zeros_like(PU, dtype=np.bool)])
 
-                if wLBFGS is True:
-                    wo = w.copy()
-                    opt = minimize(self.obj_func, w, method='L-BFGS-B', jac=True, options={'disp': verbose},
-                                   args=(X_train, Y_pos, Y_neg, self.p, self.C1, self.C2, self.C3, self.weighting, self.similarMat))
-                    if opt.success is True:
-                        w = opt.x
-                        J = opt.fun
-                    else:
-                        wLBFGS = False
-                        sys.stderr.write('LBFGS optimisation failed, fall back to Gradient Descent.')
-                        if verbose > 0:
-                            print(opt.items())
-                        w = wo
-                else:
-                    J, g = self.obj_func(w, X, Y_pos=Y_pos, Y_neg=Y_neg, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3,
-                                         weighting=self.weighting,similarMat=self.similarMat)
-                    w = w - learning_rate * g
+                J, dw = self.obj_func(w, X, Y_pos=Y_pos, Y_neg=Y_neg, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3,
+                                     weighting=self.weighting,similarMat=self.similarMat)
+             
+                # https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer
+                alpha_t = learning_rate * np.sqrt(1. - beta2_t) / (1. - beta1_t)
+                m_t = beta1 * m_t + (1. - beta1) * dw
+                v_t = beta2 * v_t + (1. - beta2) * np.multiply(dw, dw)
+                w -= alpha_t * m_t / (np.sqrt(v_t) + eps)
+                beta1_t *= beta1
+                beta2_t *= beta2
 
                 if np.isnan(J):
                     print('J = NaN, training failed.')
@@ -285,10 +290,9 @@ class PCMLC(BaseEstimator):
 
                 self.cost.append(J)
                 if verbose > 0:
-                    print(' | objective:', J)
+                    print(' | alpha: %.6f, |dw|: %.6f, objective: %.6f' % (alpha_t, np.sqrt(np.dot(dw, dw)), J))
 
             print('\nepoch: %d / %d' % (epoch+1, n_epochs))
-            learning_rate *= decay
             np.save(fnpy, w, allow_pickle=False)
 
         self.b = w[0]
