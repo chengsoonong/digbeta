@@ -7,7 +7,7 @@ from sklearn.base import BaseEstimator
 from scipy.sparse import issparse
 
 
-def obj_pclassification(w, X, Y, p=1, C1=1, C2=1, C3=1, loss_type='example', PU=None, similarMat=None):
+def obj_pclassification(w, X, Y, p=1, C1=1, C2=1, C3=1, loss_type='example', PU=None, user_playlist_indices=None):
     """
         Objective with L2 regularisation and p-classification loss
 
@@ -24,9 +24,9 @@ def obj_pclassification(w, X, Y, p=1, C1=1, C2=1, C3=1, loss_type='example', PU=
                   - 'label': weighting each label, by the #positive or #negative samples per label
                   - 'both': equivalent to turn on both 'example' and 'label'
             - PU: positive only matrix (with additional positive labels), PU.shape[0] = Y.shape[0]
-            - similarMat: the adjacent matrix of playlists (nodes), and playlists of the same user form a clique.
-                          To require require the parameters of label_i and label_j be similar by regularising 
-                          the diff if entry (i,j) is 1 (i.e. belong to the same user).
+            - user_playlist_indices: a list of arrays, each array is the indices of playlists of the same user.
+              To require require the parameters of label_i and label_j be similar by regularising the diff if 
+              entry (i,j) is 1 (i.e. belong to the same user).
     """
     N, D = X.shape
     K = Y.shape[1]
@@ -46,15 +46,6 @@ def obj_pclassification(w, X, Y, p=1, C1=1, C2=1, C3=1, loss_type='example', PU=
     assert C3 > 0
     assert loss_type in [None, 'example', 'label', 'both'], \
         'Valid assignment for "loss_type" are: None, "example", "label", "both".'
-    if similarMat is not None:
-        # assert similarMat.shape == (K, K)
-        # assert np.isclose(np.sum(1. * similarMat - 1. * similarMat.T), 0)  # trust the input
-        # assert np.isclose(np.sum(similarMat.diagonal()), 0)  # compatible to sparse matrix
-        nrows, ncols = similarMat.shape
-        assert nrows == ncols
-        assert nrows >= K
-        if nrows > K:
-            similarMat = similarMat[:K, :K]
 
     def _cost_grad(loss_type):
         if loss_type is None:
@@ -93,11 +84,6 @@ def obj_pclassification(w, X, Y, p=1, C1=1, C2=1, C3=1, loss_type='example', PU=
     T2 = np.multiply(Yp, -T1)
     T3 = np.multiply(Yn, p * T1)
 
-    # No L2 regularisation for weights corresponding to PU
-    W1 = W.copy()
-    #if PU is not None:
-    #    W1[-PU.shape[1]:, :] = 0
-
     if loss_type == 'both':
         Tp1, Tn1, P1, Q1, num1 = _cost_grad(loss_type='label')
         Tp2, Tn2, P2, Q2, num2 = _cost_grad(loss_type='example')
@@ -108,48 +94,38 @@ def obj_pclassification(w, X, Y, p=1, C1=1, C2=1, C3=1, loss_type='example', PU=
         T8 = np.exp(T3 - cost)
         T11 = -np.multiply(P1, T7) + np.multiply(Q1, T8)
         T12 = -np.multiply(P2, T7) + np.multiply(Q2, T8)
-        dW = W1 / C1 + np.dot(T11.T, X) / num1 + C2 * np.dot(T12.T, X) / num2
+        dW = W / C1 + np.dot(T11.T, X) / num1 + C2 * np.dot(T12.T, X) / num2
         db = np.sum(T11) / num1 + C2 * np.sum(T12) / num2
     else:
         Tp, Tn, P, Q, num = _cost_grad(loss_type=loss_type)
         cost = logsumexp((T2 + T3 - Tp - Tn).ravel()) - np.log(num)
         # cost = logsumexp((T2 + T3 - Tp - Tn - np.log(num)).ravel())
         T5 = -np.multiply(P, np.exp(T2 - cost)) + np.multiply(Q, np.exp(T3 - cost))
-        dW = W1 / C1 + np.dot(T5.T, X) / num
+        dW = W / C1 + np.dot(T5.T, X) / num
         db = np.sum(T5) / num
 
-    J = np.dot(W1.ravel(), W1.ravel()) * 0.5 / C1 + cost
+    J = np.dot(W.ravel(), W.ravel()) * 0.5 / C1 + cost
 
-    # Multi-task regularisation, including regularise weights corresponding to PU
-    if similarMat is not None:
-        if issparse(similarMat):
-            sumVec = similarMat.sum(axis=1)  # K by 1: #playlists_of_u - 1
-            M = similarMat.multiply(-1.)
-            M = M.tolil()
-            M.setdiag(sumVec)
-            M = M.tocsr()
-            nzcols = np.nonzero(sumVec)[0]
-            extra_cost = 0.
-            for k in nzcols:
-                # nzc = M[k, :].nonzero()[1]  # non-zero columns in the k-th row, expensive
-                # extra_cost += M[k, nzc].dot(np.dot(W[nzc, :], W[k, :]))
-                # Mk = M[k, nzc].toarray()
-                # extra_cost += np.dot(Mk, np.dot(W[nzc, :], W[k, :]))
-                Mk = M[k, :].toarray()  # less expensive
-                nzc = Mk.nonzero()[1]
-                extra_cost += np.dot(Mk[0, nzc], np.dot(W[nzc, :], W[k, :]))
-            normparam = 1. / (C3 * sumVec.sum())
-            J += extra_cost * normparam
-            dW += M.dot(W) * 2. * normparam
-        else:
-            M = -1. * similarMat
-            sumVec = np.sum(similarMat, axis=1)
-            np.fill_diagonal(M, sumVec)
-            denom = C3 * np.sum(sumVec)
-            J += np.sum(np.multiply(np.dot(W, W.T), M)) / denom
-            dW += np.dot(M, W) * (2. / denom)
-
-    grad = np.concatenate(([db], dW.ravel()), axis=0)
+    # Multi-task regularisation
+    if user_playlist_indices is not None:
+        denom = 0.
+        extra_cost = 0.
+        dW1 = np.zeros_like(dW)
+        for pls in user_playlist_indices:
+            # if len(pls) < 2: continue
+            # assert len(pls) > 1  # trust the input
+            npl = len(pls)
+            denom += npl * (npl - 1)
+            M = -1 * np.ones((npl, npl), dtype=np.float)
+            np.fill_diagonal(M, npl-1)
+            Wu = W[pls, :]
+            extra_cost += np.multiply(M, np.dot(Wu, Wu.T)).sum()
+            dW1[pls, :] = np.dot(M, Wu)  # assume one playlist belongs to only one user
+        normparam = 1. / (C3 * denom)
+        J += extra_cost * normparam
+        dW += dW1 * 2. * normparam
+        
+    grad = np.r_[db, dW.ravel()]
     return (J, grad)
 
 
@@ -172,7 +148,7 @@ class PCMLC(BaseEstimator):
         self.cost = []
         self.trained = False
 
-    def fit(self, X_train, Y_train, PUMat=None, similarMat=None):
+    def fit(self, X_train, Y_train, PUMat=None, user_playlist_indices=None):
         """
             Model fitting by optimising the objective
             - PUMat: indicator matrix for additional labels with only positive observations.
@@ -201,7 +177,7 @@ class PCMLC(BaseEstimator):
         opt_method = 'L-BFGS-B'  # 'BFGS' #'Newton-CG'
         options = {'disp': 1, 'maxiter': 10**5, 'maxfun': 10**5}  # 'eps': 1e-5}  # , 'iprint': 99}
         opt = minimize(self.obj_func, w0,
-                       args=(X_train, Y_train, self.p, self.C1, self.C2, self.C3, self.loss_type, PUMat, similarMat),
+                       args=(X_train, Y_train, self.p, self.C1, self.C2, self.C3, self.loss_type, PUMat, user_playlist_indices),
                        method=opt_method, jac=True, options=options)
         if opt.success is True:
             self.b = opt.x[0]
@@ -212,7 +188,7 @@ class PCMLC(BaseEstimator):
             print(opt.items())
             self.trained = False
 
-    def fit_minibatch(self, X_train, Y_train, PUMat=None, similarMat=None, w0=None,
+    def fit_minibatch(self, X_train, Y_train, PUMat=None, user_playlist_indices=None, w0=None,
                       learning_rate=0.001, batch_size=256, n_epochs=10, verbose=0):
         """
             Model fitting by mini-batch Gradient Descent
@@ -227,7 +203,7 @@ class PCMLC(BaseEstimator):
             assert not np.logical_xor(issparse(PUMat), issparse(Y_train))
             K += PUMat.shape[1]
 
-        fnpy = ('mlr' if PUMat is None else 'pla') + ('-N-' if similarMat is None else '-Y-') + \
+        fnpy = ('mlr' if PUMat is None else 'pla') + ('-N-' if user_playlist_indices is None else '-Y-') + \
             '%s-%g-%g-%g-%g-latest.npy' % (self.loss_type, self.C1, self.C2, self.C3, self.p)
 
         if w0 is None:
@@ -287,8 +263,8 @@ class PCMLC(BaseEstimator):
                     if issparse(PU):
                         PU = PU.toarray().astype(np.bool)
 
-                J, dw = self.obj_func(w=w, X=X, Y=Y, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3,
-                                      loss_type=self.loss_type, PU=PU, similarMat=similarMat)
+                J, dw = self.obj_func(w=w, X=X, Y=Y, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3, PU=PU,
+                                      loss_type=self.loss_type, user_playlist_indices=user_playlist_indices)
 
                 # https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer
                 alpha_t = learning_rate * np.sqrt(1. - beta2_t) / (1. - beta1_t)
