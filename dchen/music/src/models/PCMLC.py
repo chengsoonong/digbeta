@@ -188,86 +188,54 @@ class PCMLC(BaseEstimator):
             print(opt.items())
             self.trained = False
 
-    def fit_minibatch(self, X_train, Y_train, PUMat=None, user_playlist_indices=None, w0=None,
-                      learning_rate=0.001, batch_size=256, n_epochs=10, verbose=0):
+    def fit_minibatch_mlr(self, X_train, Y_train, user_playlist_indices=None, w0=None,
+                          learning_rate=0.001, batch_size=256, n_epochs=10, verbose=0):
         """
             Model fitting by mini-batch Gradient Descent
-            - PUMat: indicator matrix for additional labels with only positive observations.
-                     If it is sparse, all missing entries are considered unobserved instead of negative;
-                     if it is dense, it contains only 1 and NaN entries, and NaN entries are unobserved.
         """
         N, D = X_train.shape
         K = Y_train.shape[1]
-        if PUMat is not None:
-            assert PUMat.shape[0] == Y_train.shape[0]
-            assert not np.logical_xor(issparse(PUMat), issparse(Y_train))
-            K += PUMat.shape[1]
-
-        fnpy = ('mlr' if PUMat is None else 'pla') + ('-N-' if user_playlist_indices is None else '-Y-') + \
-            '%s-%g-%g-%g-%g-latest.npy' % (self.loss_type, self.C1, self.C2, self.C3, self.p)
+        beta1 = .9
+        beta2 = .999
+        eps = 1e-8
+        fnpy = 'mlr-' + ('N' if user_playlist_indices is None else 'Y') + \
+            '-%s-%g-%g-%g-%g-latest.npy' % (self.loss_type, self.C1, self.C2, self.C3, self.p)
 
         if w0 is None:
             try:
                 w = np.load(fnpy, allow_pickle=False)
                 print('Restore from %s' % fnpy)
             except (IOError, ValueError):
-                if PUMat is None:
-                    w = np.zeros(K * D + 1)
-                else:
-                    K1 = PUMat.shape[1]
-                    w = np.r_[np.zeros((K-K1) * D + 1), 0.001 * np.random.randn(K1 * D)]
+                w = np.zeros(K * D + 1)
         else:
             assert w0.shape[0] == K * D + 1
             w = w0
 
-        beta1 = .9
-        beta2 = .999
-        eps = 1e-8
-        m_t = 0.
-        v_t = 0.
+        m_t = np.zeros(K * D + 1, dtype=np.float)
+        v_t = np.zeros(K * D + 1, dtype=np.float)
         beta1_t = beta1
         beta2_t = beta2
         n_batches = int((N-1) / batch_size) + 1
-
-        if PUMat is not None:
-            pusum = np.asarray(PUMat.sum(axis=1)).reshape(-1)
-            prows = []
-            urows = []
-            for row in range(N):
-                if pusum[row] > 0:
-                    prows.append(row)
-                else:
-                    urows.append(row)
-
         np.random.seed(91827365)
         for epoch in range(n_epochs):
             if verbose > 0:
                 print(time.strftime('%Y-%m-%d %H:%M:%S'))
 
-            if PUMat is None:
-                indices = np.arange(N)
-                np.random.shuffle(indices)
-            else:
-                indices = np.r_[np.random.permutation(prows), np.random.permutation(urows)]
+            indices = np.arange(N)
+            np.random.shuffle(indices)
 
             for nb in range(n_batches):
                 if verbose > 0:
-                    sys.stdout.write('%d / %d' % (nb+1, n_batches))
+                    sys.stdout.write('%d / %d' % (nb + 1, n_batches))
                 ix_start = nb * batch_size
-                ix_end = min((nb+1) * batch_size, N)
+                ix_end = min((nb + 1) * batch_size, N)
                 ix = indices[ix_start:ix_end]
                 X = X_train[ix]
                 Y = Y_train[ix]
                 if issparse(Y):
                     Y = Y.toarray().astype(np.bool)
 
-                PU = None
-                if PUMat is not None:
-                    PU = PUMat[ix]
-                    if issparse(PU):
-                        PU = PU.toarray().astype(np.bool)
-
-                J, dw = self.obj_func(w=w, X=X, Y=Y, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3, PU=PU,
+                J, dw = self.obj_func(w=w, X=X, Y=Y, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3,
                                       loss_type=self.loss_type, user_playlist_indices=user_playlist_indices)
 
                 # https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer
@@ -287,11 +255,115 @@ class PCMLC(BaseEstimator):
                     print(' | alpha: %.6f, |dw|: %.6f, objective: %.6f' % (alpha_t, np.sqrt(np.dot(dw, dw)), J))
                     sys.stdout.flush()
 
-            print('\nepoch: %d / %d' % (epoch+1, n_epochs))
-            np.save(fnpy, w, allow_pickle=False)
+            print('\nepoch: %d / %d' % (epoch + 1, n_epochs))
+            #np.save(fnpy, w, allow_pickle=False)
 
         self.b = w[0]
         self.W = np.reshape(w[1:], (K, D))
+        self.trained = True
+
+
+    def fit_minibatch_pla(self, X_train, Y_train, PUMat, user_playlist_indices=None, w0=None,
+                      learning_rate=0.001, batch_size=256, n_epochs=10, verbose=0):
+        """
+            Model fitting by mini-batch Gradient Descent.
+            - PUMat: indicator matrix for additional labels with only positive observations.
+                     If it is sparse, all missing entries are considered unobserved instead of negative;
+                     if it is dense, it contains only 1 and NaN entries, and NaN entries are unobserved.
+            First consume batches with positive labels in PUMat, then consume batches without labels in
+            PUMat, which does not touch the weights corresponding to PUMat.
+            The latter is the same as fit_minibatch_mlr().
+        """
+        assert PUMat.shape[0] == Y_train.shape[0] == X_train.shape[0]
+        assert not np.logical_xor(issparse(PUMat), issparse(Y_train))
+        D = X_train.shape[1]
+        K1 = Y_train.shape[1]
+        K2 = PUMat.shape[1]
+        beta1 = .9
+        beta2 = .999
+        eps = 1e-8
+        fnpy = 'pla-' + ('N' if user_playlist_indices is None else 'Y') + \
+            '-%s-%g-%g-%g-%g-latest.npy' % (self.loss_type, self.C1, self.C2, self.C3, self.p)
+
+        if w0 is None:
+            try:
+                w = np.load(fnpy, allow_pickle=False)
+                print('Restore from %s' % fnpy)
+            except (IOError, ValueError):
+                w = np.r_[np.zeros(K1 * D + 1), 0.001 * np.random.randn(K2 * D)]
+        else:
+            assert w0.shape[0] == (K1 + K2) * D + 1
+            w = w0
+
+        pusum = np.asarray(PUMat.sum(axis=1)).reshape(-1)
+        prows = []
+        urows = []
+        for row in range(PUMat.shape[0]):
+            if pusum[row] > 0:
+                prows.append(row)
+            else:
+                urows.append(row)
+        nbp = int((len(prows)-1) / batch_size) + 1
+        nbu = int((len(urows)-1) / batch_size) + 1
+        n_batches = nbp + nbu
+        print(nbp, nbu)
+
+        m_t = np.zeros((K1 + K2) * D + 1, dtype=np.float)
+        v_t = np.zeros((K1 + K2) * D + 1, dtype=np.float)
+        beta1_t = beta1
+        beta2_t = beta2
+        np.random.seed(91827365)
+        for epoch in range(n_epochs):
+            if verbose > 0:
+                print(time.strftime('%Y-%m-%d %H:%M:%S'))
+
+            pindices = np.random.permutation(prows)
+            uindices = np.random.permutation(urows)
+            
+            for nb in range(n_batches):
+                if verbose > 0:
+                    sys.stdout.write('%d / %d' % (nb + 1, n_batches))
+                
+                # first consume batches with positive labels in PUMat then batches without labels
+                PU = None
+                if nb < nbp:
+                    ix_start = nb * batch_size
+                    ix_end = min((nb + 1) * batch_size, len(prows))
+                    ix = pindices[ix_start:ix_end]
+                    PU = PUMat[ix]
+                else:
+                    ix_start = (nb - nbp) * batch_size
+                    ix_end = min((nb - nbp + 1) * batch_size, len(urows))
+                    ix = uindices[ix_start:ix_end]
+                X = X_train[ix]
+                Y = Y_train[ix]
+                if issparse(Y):
+                    Y = Y.toarray().astype(np.bool)
+                if PU is not None and issparse(PU):
+                    PU = PU.toarray().astype(np.bool)
+
+                nparam = K1 * D + 1 if PU is None else (K1 + K2) * D + 1
+                J, dw = self.obj_func(w=w[:nparam], X=X, Y=Y, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3, PU=PU,
+                                      loss_type=self.loss_type, user_playlist_indices=user_playlist_indices)
+                assert len(dw) == nparam
+                alpha_t = learning_rate * np.sqrt(1. - beta2_t) / (1. - beta1_t)
+                m_t[:nparam] = beta1 * m_t[:nparam] + (1. - beta1) * dw
+                v_t[:nparam] = beta2 * v_t[:nparam] + (1. - beta2) * np.multiply(dw, dw)
+                w[:nparam] -= alpha_t * m_t[:nparam] / (np.sqrt(v_t[:nparam]) + eps)
+                beta1_t *= beta1
+                beta2_t *= beta2
+
+                if np.isnan(J):
+                    print('\nJ = NaN, training failed.')
+                    return
+                self.cost.append(J)
+                if verbose > 0:
+                    print(' | alpha: %.6f, |dw|: %.6f, objective: %.6f' % (alpha_t, np.sqrt(np.dot(dw, dw)), J))
+                    sys.stdout.flush()
+            print('\nepoch: %d / %d' % (epoch + 1, n_epochs))
+            #np.save(fnpy, w, allow_pickle=False)
+        self.b = w[0]
+        self.W = np.reshape(w[1:], ((K1 + K2), D))
         self.trained = True
 
     def decision_function(self, X_test):
