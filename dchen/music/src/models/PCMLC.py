@@ -229,22 +229,26 @@ class PCMLC(BaseEstimator):
         beta2_t = beta2
         n_batches = int((N-1) / batch_size) + 1
 
-        pusum = np.asarray(PUMat.sum(axis=1)).reshape(-1)
-        prows = []
-        urows = []
-        for row in range(N):
-            if pusum[row] > 0:
-                prows.append(row)
-            else:
-                urows.append(row)
+        if PUMat is not None:
+            pusum = np.asarray(PUMat.sum(axis=1)).reshape(-1)
+            prows = []
+            urows = []
+            for row in range(N):
+                if pusum[row] > 0:
+                    prows.append(row)
+                else:
+                    urows.append(row)
 
         np.random.seed(91827365)
         for epoch in range(n_epochs):
             if verbose > 0:
                 print(time.strftime('%Y-%m-%d %H:%M:%S'))
-            # indices = np.arange(N)
-            # np.random.shuffle(indices)
-            indices = np.r_[np.random.permutation(prows), np.random.permutation(urows)]
+
+            if PUMat is None:
+                indices = np.arange(N)
+                np.random.shuffle(indices)
+            else:
+                indices = np.r_[np.random.permutation(prows), np.random.permutation(urows)]
 
             for nb in range(n_batches):
                 if verbose > 0:
