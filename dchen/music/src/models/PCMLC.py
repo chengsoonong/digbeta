@@ -342,8 +342,9 @@ class PCMLC(BaseEstimator):
                     PU = PU.toarray().astype(np.bool)
 
                 nparam = K1 * D + 1 if PU is None else (K1 + K2) * D + 1
+                cliques = None if PU is None else user_playlist_indices
                 J, dw = self.obj_func(w=w[:nparam], X=X, Y=Y, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3, PU=PU,
-                                      loss_type=self.loss_type, user_playlist_indices=user_playlist_indices)
+                                      loss_type=self.loss_type, user_playlist_indices=cliques)
                 assert len(dw) == nparam
                 alpha_t = learning_rate * np.sqrt(1. - beta2_t) / (1. - beta1_t)
                 m_t[:nparam] = beta1 * m_t[:nparam] + (1. - beta1) * dw

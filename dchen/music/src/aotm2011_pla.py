@@ -4,6 +4,7 @@ import gzip
 import time
 import numpy as np
 import pickle as pkl
+from models import PCMLC
 
 if len(sys.argv) != 8:
     print('Usage: python', sys.argv[0], 'WORK_DIR  C1  C2  C3  P  N_EPOCH LOSS_TYPE(example/label/both)')
@@ -20,10 +21,8 @@ else:
 assert loss in ['example', 'label', 'both']
 
 data_dir = os.path.join(work_dir, 'data')
-src_dir = os.path.join(work_dir, 'src')
-sys.path.append(src_dir)
-
-from models import PCMLC
+# src_dir = os.path.join(work_dir, 'src')
+# sys.path.append(src_dir)
 
 pkl_data_dir = os.path.join(data_dir, 'aotm-2011/setting2')
 fxtrain = os.path.join(pkl_data_dir, 'X_train.pkl.gz')
@@ -40,8 +39,8 @@ cliques = pkl.load(gzip.open(fcliques, 'rb'))
 print('C: %g, %g, %g, p: %g' % (C1, C2, C3, p))
 
 print(time.strftime('%Y-%m-%d %H:%M:%S'))
-clf = PCMLC(C1=1, C2=1, C3=1, p=1,  loss_type=loss)
-clf.fit_minibatch(X_train, Y_train, PUMat=PU_dev, user_playlist_indices=cliques, batch_size=512, n_epochs=n_epochs, verbose=1)
+clf = PCMLC(C1=C1, C2=C2, C3=C3, p=p,  loss_type=loss)
+clf.fit_minibatch_pla(X_train, Y_train, PUMat=PU_dev, user_playlist_indices=cliques, batch_size=512, n_epochs=n_epochs, verbose=1)
 
 if clf.trained is True:
     fmodel = os.path.join(pkl_data_dir, 'pla-%s-%g-%g-%g-%g.pkl.gz' % (loss, C1, C2, C3, p))
