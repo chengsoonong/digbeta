@@ -191,7 +191,7 @@ class PCMLC(BaseEstimator):
     def fit_minibatch_mlr(self, X_train, Y_train, user_playlist_indices=None, w0=None,
                           learning_rate=0.001, batch_size=256, n_epochs=10, verbose=0):
         """
-            Model fitting by mini-batch Gradient Descent
+            Model fitting by mini-batch Gradient Descent.
         """
         N, D = X_train.shape
         K = Y_train.shape[1]
@@ -270,9 +270,8 @@ class PCMLC(BaseEstimator):
             - PUMat: indicator matrix for additional labels with only positive observations.
                      If it is sparse, all missing entries are considered unobserved instead of negative;
                      if it is dense, it contains only 1 and NaN entries, and NaN entries are unobserved.
-            First consume batches with positive labels in PUMat, then consume batches without labels in
-            PUMat, which does not touch the weights corresponding to PUMat.
-            The latter is the same as fit_minibatch_mlr().
+            First consume batches without labels in PUMat, then consume batches with positive labels in PUMat. 
+            The former does not touch the weights corresponding to PUMat, and is the same as fit_minibatch_mlr().
         """
         assert PUMat.shape[0] == Y_train.shape[0] == X_train.shape[0]
         assert not np.logical_xor(issparse(PUMat), issparse(Y_train))
@@ -303,10 +302,10 @@ class PCMLC(BaseEstimator):
                 prows.append(row)
             else:
                 urows.append(row)
-        nbp = int((len(prows)-1) / batch_size) + 1
         nbu = int((len(urows)-1) / batch_size) + 1
+        nbp = int((len(prows)-1) / batch_size) + 1
         n_batches = nbp + nbu
-        print(nbp, nbu)
+        print(nbu, nbp)
 
         m_t = np.zeros((K1 + K2) * D + 1, dtype=np.float)
         v_t = np.zeros((K1 + K2) * D + 1, dtype=np.float)
@@ -317,24 +316,24 @@ class PCMLC(BaseEstimator):
             if verbose > 0:
                 print(time.strftime('%Y-%m-%d %H:%M:%S'))
 
-            pindices = np.random.permutation(prows)
             uindices = np.random.permutation(urows)
+            pindices = np.random.permutation(prows)
             
             for nb in range(n_batches):
                 if verbose > 0:
                     sys.stdout.write('%d / %d' % (nb + 1, n_batches))
                 
-                # first consume batches with positive labels in PUMat then batches without labels
+                # first consume batches without labels in PUMat then batches with positive labels
                 PU = None
-                if nb < nbp:
+                if nb < nbu:
                     ix_start = nb * batch_size
-                    ix_end = min((nb + 1) * batch_size, len(prows))
+                    ix_end = min((nb + 1) * batch_size, len(urows))
+                    ix = uindices[ix_start:ix_end]
+                else:
+                    ix_start = (nb - nbu) * batch_size
+                    ix_end = min((nb - nbu + 1) * batch_size, len(prows))
                     ix = pindices[ix_start:ix_end]
                     PU = PUMat[ix]
-                else:
-                    ix_start = (nb - nbp) * batch_size
-                    ix_end = min((nb - nbp + 1) * batch_size, len(urows))
-                    ix = uindices[ix_start:ix_end]
                 X = X_train[ix]
                 Y = Y_train[ix]
                 if issparse(Y):
