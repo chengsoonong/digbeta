@@ -6,8 +6,8 @@ import numpy as np
 import pickle as pkl
 from models import PCMLC
 
-if len(sys.argv) != 8:
-    print('Usage: python', sys.argv[0], 'WORK_DIR  C1  C2  C3  P  N_EPOCH LOSS_TYPE(example/label/both)')
+if len(sys.argv) != 9:
+    print('Usage: python', sys.argv[0], 'WORK_DIR  C1  C2  C3  P  N_EPOCH  LOSS_TYPE(example/label/both)  MT_REG(Y/N)')
     sys.exit(0)
 else:
     work_dir = sys.argv[1]
@@ -17,8 +17,10 @@ else:
     p = float(sys.argv[5])
     n_epochs = int(sys.argv[6])
     loss = sys.argv[7]
+    multitask = sys.argv[8]
 
 assert loss in ['example', 'label', 'both']
+assert multitask in ['Y', 'N']
 
 data_dir = os.path.join(work_dir, 'data')
 # src_dir = os.path.join(work_dir, 'src')
@@ -33,8 +35,10 @@ fcliques = os.path.join(pkl_data_dir, 'cliques_train_dev.pkl.gz')
 X_train = pkl.load(gzip.open(fxtrain, 'rb'))
 Y_train = pkl.load(gzip.open(fytrain, 'rb'))
 PU_dev = pkl.load(gzip.open(fydev, 'rb'))
-cliques = pkl.load(gzip.open(fcliques, 'rb'))
-#cliques = None
+if multitask == 'Y':
+    cliques = pkl.load(gzip.open(fcliques, 'rb'))
+else:
+    cliques = None
 
 print('C: %g, %g, %g, p: %g' % (C1, C2, C3, p))
 
