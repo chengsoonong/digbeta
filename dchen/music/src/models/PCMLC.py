@@ -256,7 +256,7 @@ class PCMLC(BaseEstimator):
                     sys.stdout.flush()
 
             print('\nepoch: %d / %d' % (epoch + 1, n_epochs))
-            #np.save(fnpy, w, allow_pickle=False)
+            np.save(fnpy, w, allow_pickle=False)
 
         self.b = w[0]
         self.W = np.reshape(w[1:], (K, D))
@@ -284,6 +284,12 @@ class PCMLC(BaseEstimator):
         fnpy = 'pla-' + ('N' if user_playlist_indices is None else 'Y') + \
             '-%s-%g-%g-%g-%g-latest.npy' % (self.loss_type, self.C1, self.C2, self.C3, self.p)
 
+        cliques_train = None
+        if user_playlist_indices is not None:
+            cliques_train = []
+            for clq in user_playlist_indices:
+                cliques_train.append(clq[clq < Y_train.shape[1]])
+
         if w0 is None:
             try:
                 w = np.load(fnpy, allow_pickle=False)
@@ -305,7 +311,8 @@ class PCMLC(BaseEstimator):
         nbu = int((len(urows)-1) / batch_size) + 1
         nbp = int((len(prows)-1) / batch_size) + 1
         n_batches = nbp + nbu
-        print(nbu, nbp)
+        if verbose > 0:
+            print('U batches: %d, P batches: %d' % (nbu, nbp))
 
         m_t = np.zeros((K1 + K2) * D + 1, dtype=np.float)
         v_t = np.zeros((K1 + K2) * D + 1, dtype=np.float)
@@ -342,7 +349,7 @@ class PCMLC(BaseEstimator):
                     PU = PU.toarray().astype(np.bool)
 
                 nparam = K1 * D + 1 if PU is None else (K1 + K2) * D + 1
-                cliques = None if PU is None else user_playlist_indices
+                cliques = cliques_train if PU is None else user_playlist_indices
                 J, dw = self.obj_func(w=w[:nparam], X=X, Y=Y, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3, PU=PU,
                                       loss_type=self.loss_type, user_playlist_indices=cliques)
                 assert len(dw) == nparam
@@ -361,7 +368,7 @@ class PCMLC(BaseEstimator):
                     print(' | alpha: %.6f, |dw|: %.6f, objective: %.6f' % (alpha_t, np.sqrt(np.dot(dw, dw)), J))
                     sys.stdout.flush()
             print('\nepoch: %d / %d' % (epoch + 1, n_epochs))
-            #np.save(fnpy, w, allow_pickle=False)
+            np.save(fnpy, w, allow_pickle=False)
         self.b = w[0]
         self.W = np.reshape(w[1:], ((K1 + K2), D))
         self.trained = True
