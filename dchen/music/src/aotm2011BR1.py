@@ -4,7 +4,8 @@ import gzip
 import time
 import numpy as np
 import pickle as pkl
-from scipy.sparse import issparse, vstack
+from scipy.sparse import issparse
+from models import BinaryRelevance
 
 
 if len(sys.argv) != 4:
@@ -16,10 +17,8 @@ else:
     end = int(sys.argv[3])
 
 data_dir = os.path.join(work_dir, 'data')
-src_dir = os.path.join(work_dir, 'src')
-sys.path.append(src_dir)
-
-from BinaryRelevance import BinaryRelevance
+# src_dir = os.path.join(work_dir, 'src')
+# sys.path.append(src_dir)
 
 pkl_data_dir = os.path.join(data_dir, 'aotm-2011/setting1')
 fxtrain = os.path.join(pkl_data_dir, 'X_train_dev.pkl.gz')
@@ -40,6 +39,6 @@ clf.fit(X_train, Y)
 
 print(time.strftime('%Y-%m-%d %H:%M:%S'))
 
-fmodel = os.path.join(pkl_data_dir, 'br1-aotm2011-%d-%d.pkl' % (start, end))
-pkl.dump(clf, open(fmodel, 'wb'))
+fmodel = os.path.join(pkl_data_dir, 'br1-aotm2011-%d-%d.pkl.gz' % (start, end))
+pkl.dump(clf, gzip.open(fmodel, 'wb'))
 
