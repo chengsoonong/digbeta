@@ -256,7 +256,10 @@ class PCMLC(BaseEstimator):
                     sys.stdout.flush()
 
             print('\nepoch: %d / %d' % (epoch + 1, n_epochs))
-            np.save(fnpy, w, allow_pickle=False)
+            try:
+                np.save(fnpy, w, allow_pickle=False)
+            except (OSError, IOError, ValueError):
+                sys.stderr.write('Save params to .npy file failed\n')
 
         self.b = w[0]
         self.W = np.reshape(w[1:], (K, D))
@@ -368,7 +371,10 @@ class PCMLC(BaseEstimator):
                     print(' | alpha: %.6f, |dw|: %.6f, objective: %.6f' % (alpha_t, np.sqrt(np.dot(dw, dw)), J))
                     sys.stdout.flush()
             print('\nepoch: %d / %d' % (epoch + 1, n_epochs))
-            np.save(fnpy, w, allow_pickle=False)
+            try:
+                np.save(fnpy, w, allow_pickle=False)
+            except (OSError, IOError, ValueError):
+                sys.stderr.write('Save params to .npy file failed\n')
         self.b = w[0]
         self.W = np.reshape(w[1:], ((K1 + K2), D))
         self.trained = True
