@@ -155,7 +155,7 @@ class PCMLC(BaseEstimator):
                      If it is sparse, all missing entries are considered unobserved instead of negative;
                      if it is dense, it contains only 1 and NaN entries, and NaN entries are unobserved.
         """
-        sys.stdout.write('\nC: %g, %g, %g, p: %g, loss_type: %s' %
+        sys.stdout.write('\nC: %g, %g, %g, p: %g, loss_type: %s\n' %
                          (self.C1, self.C2, self.C3, self.p, self.loss_type))
         sys.stdout.flush()
 
@@ -212,7 +212,8 @@ class PCMLC(BaseEstimator):
             w = w0
 
         m_t = np.zeros(K * D + 1, dtype=np.float)
-        v_t = np.zeros(K * D + 1, dtype=np.float)
+        v_t = np.zeros_like(m_t)
+        v_max = np.zeros_like(v_t)
         beta1_t = beta1
         beta2_t = beta2
         n_batches = int((N-1) / batch_size) + 1
@@ -238,11 +239,11 @@ class PCMLC(BaseEstimator):
                 J, dw = self.obj_func(w=w, X=X, Y=Y, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3,
                                       loss_type=self.loss_type, user_playlist_indices=user_playlist_indices)
 
-                # https://www.tensorflow.org/api_docs/python/tf/train/AdamOptimizer
                 alpha_t = learning_rate * np.sqrt(1. - beta2_t) / (1. - beta1_t)
                 m_t = beta1 * m_t + (1. - beta1) * dw
                 v_t = beta2 * v_t + (1. - beta2) * np.multiply(dw, dw)
-                w -= alpha_t * m_t / (np.sqrt(v_t) + eps)
+                v_max = np.max(np.vstack([v_max, v_t]), axis=0)
+                w -= alpha_t * m_t / (np.sqrt(v_max) + eps)
                 beta1_t *= beta1
                 beta2_t *= beta2
 
@@ -319,7 +320,8 @@ class PCMLC(BaseEstimator):
             print('U batches: %d, P batches: %d' % (nbu, nbp))
 
         m_t = np.zeros((K1 + K2) * D + 1, dtype=np.float)
-        v_t = np.zeros((K1 + K2) * D + 1, dtype=np.float)
+        v_t = np.zeros_like(m_t)
+        v_max = np.zeros_like(v_t)
         beta1_t = beta1
         beta2_t = beta2
         np.random.seed(91827365)
@@ -360,7 +362,8 @@ class PCMLC(BaseEstimator):
                 alpha_t = learning_rate * np.sqrt(1. - beta2_t) / (1. - beta1_t)
                 m_t[:nparam] = beta1 * m_t[:nparam] + (1. - beta1) * dw
                 v_t[:nparam] = beta2 * v_t[:nparam] + (1. - beta2) * np.multiply(dw, dw)
-                w[:nparam] -= alpha_t * m_t[:nparam] / (np.sqrt(v_t[:nparam]) + eps)
+                v_max[:nparam] = np.max(np.vstack([v_max[:nparam], v_t[:nparam]]), axis=0)
+                w[:nparam] -= alpha_t * m_t[:nparam] / (np.sqrt(v_max[:nparam]) + eps)
                 beta1_t *= beta1
                 beta2_t *= beta2
 
