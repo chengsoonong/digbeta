@@ -195,9 +195,6 @@ class PCMLC(BaseEstimator):
         """
         N, D = X_train.shape
         K = Y_train.shape[1]
-        beta1 = .9
-        beta2 = .999
-        eps = 1e-8
         fnpy = 'mlr-' + ('N' if user_playlist_indices is None else 'Y') + \
             '-%s-%g-%g-%g-%g-latest.npy' % (self.loss_type, self.C1, self.C2, self.C3, self.p)
 
@@ -211,12 +208,8 @@ class PCMLC(BaseEstimator):
             assert w0.shape[0] == K * D + 1
             w = w0
 
-        m_t = np.zeros(K * D + 1, dtype=np.float)
-        v_t = np.zeros_like(m_t)
-        v_max = np.zeros_like(v_t)
-        beta1_t = beta1
-        beta2_t = beta2
         n_batches = int((N-1) / batch_size) + 1
+        alpha = learning_rate
         np.random.seed(91827365)
         for epoch in range(n_epochs):
             if verbose > 0:
@@ -238,14 +231,7 @@ class PCMLC(BaseEstimator):
 
                 J, dw = self.obj_func(w=w, X=X, Y=Y, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3,
                                       loss_type=self.loss_type, user_playlist_indices=user_playlist_indices)
-
-                alpha_t = learning_rate * np.sqrt(1. - beta2_t) / (1. - beta1_t)
-                m_t = beta1 * m_t + (1. - beta1) * dw
-                v_t = beta2 * v_t + (1. - beta2) * np.multiply(dw, dw)
-                v_max = np.max(np.vstack([v_max, v_t]), axis=0)
-                w -= alpha_t * m_t / (np.sqrt(v_max) + eps)
-                beta1_t *= beta1
-                beta2_t *= beta2
+                w -= alpha * dw 
 
                 if np.isnan(J):
                     print('\nJ = NaN, training failed.')
@@ -253,10 +239,11 @@ class PCMLC(BaseEstimator):
 
                 self.cost.append(J)
                 if verbose > 0:
-                    print(' | alpha: %.6f, |dw|: %.6f, objective: %.6f' % (alpha_t, np.sqrt(np.dot(dw, dw)), J))
+                    print(' | alpha: %.6f, |dw|: %.6f, objective: %.6f' % (alpha, np.sqrt(np.dot(dw, dw)), J))
                     sys.stdout.flush()
 
             print('\nepoch: %d / %d' % (epoch + 1, n_epochs))
+            alpha *= 0.9
             if verbose > 1:
                 try:
                     np.save(fnpy, w, allow_pickle=False)
@@ -283,9 +270,6 @@ class PCMLC(BaseEstimator):
         D = X_train.shape[1]
         K1 = Y_train.shape[1]
         K2 = PUMat.shape[1]
-        beta1 = .9
-        beta2 = .999
-        eps = 1e-8
         fnpy = 'pla-' + ('N' if user_playlist_indices is None else 'Y') + \
             '-%s-%g-%g-%g-%g-latest.npy' % (self.loss_type, self.C1, self.C2, self.C3, self.p)
 
@@ -319,11 +303,7 @@ class PCMLC(BaseEstimator):
         if verbose > 0:
             print('U batches: %d, P batches: %d' % (nbu, nbp))
 
-        m_t = np.zeros((K1 + K2) * D + 1, dtype=np.float)
-        v_t = np.zeros_like(m_t)
-        v_max = np.zeros_like(v_t)
-        beta1_t = beta1
-        beta2_t = beta2
+        alpha = learning_rate
         np.random.seed(91827365)
         for epoch in range(n_epochs):
             if verbose > 0:
@@ -359,22 +339,17 @@ class PCMLC(BaseEstimator):
                 J, dw = self.obj_func(w=w[:nparam], X=X, Y=Y, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3, PU=PU,
                                       loss_type=self.loss_type, user_playlist_indices=cliques)
                 assert len(dw) == nparam
-                alpha_t = learning_rate * np.sqrt(1. - beta2_t) / (1. - beta1_t)
-                m_t[:nparam] = beta1 * m_t[:nparam] + (1. - beta1) * dw
-                v_t[:nparam] = beta2 * v_t[:nparam] + (1. - beta2) * np.multiply(dw, dw)
-                v_max[:nparam] = np.max(np.vstack([v_max[:nparam], v_t[:nparam]]), axis=0)
-                w[:nparam] -= alpha_t * m_t[:nparam] / (np.sqrt(v_max[:nparam]) + eps)
-                beta1_t *= beta1
-                beta2_t *= beta2
+                w[:nparam] -= alpha_t * dw
 
                 if np.isnan(J):
                     print('\nJ = NaN, training failed.')
                     return
                 self.cost.append(J)
                 if verbose > 0:
-                    print(' | alpha: %.6f, |dw|: %.6f, objective: %.6f' % (alpha_t, np.sqrt(np.dot(dw, dw)), J))
+                    print(' | alpha: %.6f, |dw|: %.6f, objective: %.6f' % (alpha, np.sqrt(np.dot(dw, dw)), J))
                     sys.stdout.flush()
             print('\nepoch: %d / %d' % (epoch + 1, n_epochs))
+            alpha *= 0.9
             if verbose > 1:
                 try:
                     np.save(fnpy, w, allow_pickle=False)
