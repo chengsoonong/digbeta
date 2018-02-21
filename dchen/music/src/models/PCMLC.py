@@ -210,6 +210,7 @@ class PCMLC(BaseEstimator):
 
         n_batches = int((N-1) / batch_size) + 1
         alpha = learning_rate
+        decay = 0.98
         np.random.seed(91827365)
         for epoch in range(n_epochs):
             if verbose > 0:
@@ -233,8 +234,11 @@ class PCMLC(BaseEstimator):
                                       loss_type=self.loss_type, user_playlist_indices=user_playlist_indices)
                 w -= alpha * dw 
 
-                if np.isnan(J):
-                    print('\nJ = NaN, training failed.')
+                if (nb + 1) % 30 == 0:
+                    alpha *= decay
+
+                if np.isnan(J) or np.isinf(J):
+                    print('\nJ = NaN or INF, training failed.')
                     return
 
                 self.cost.append(J)
@@ -243,7 +247,7 @@ class PCMLC(BaseEstimator):
                     sys.stdout.flush()
 
             print('\nepoch: %d / %d' % (epoch + 1, n_epochs))
-            alpha *= 0.9
+            alpha *= decay
             if verbose > 1:
                 try:
                     np.save(fnpy, w, allow_pickle=False)
@@ -304,6 +308,7 @@ class PCMLC(BaseEstimator):
             print('U batches: %d, P batches: %d' % (nbu, nbp))
 
         alpha = learning_rate
+        decay = 0.98
         np.random.seed(91827365)
         for epoch in range(n_epochs):
             if verbose > 0:
@@ -339,17 +344,20 @@ class PCMLC(BaseEstimator):
                 J, dw = self.obj_func(w=w[:nparam], X=X, Y=Y, p=self.p, C1=self.C1, C2=self.C2, C3=self.C3, PU=PU,
                                       loss_type=self.loss_type, user_playlist_indices=cliques)
                 assert len(dw) == nparam
-                w[:nparam] -= alpha_t * dw
+                w[:nparam] -= alpha * dw
+                
+                if (nb + 1) % 30 == 0:
+                    alpha *= decay
 
-                if np.isnan(J):
-                    print('\nJ = NaN, training failed.')
+                if np.isnan(J) or np.isinf(J):
+                    print('\nJ = NaN or INF, training failed.')
                     return
                 self.cost.append(J)
                 if verbose > 0:
                     print(' | alpha: %.6f, |dw|: %.6f, objective: %.6f' % (alpha, np.sqrt(np.dot(dw, dw)), J))
                     sys.stdout.flush()
             print('\nepoch: %d / %d' % (epoch + 1, n_epochs))
-            alpha *= 0.9
+            alpha *= decay
             if verbose > 1:
                 try:
                     np.save(fnpy, w, allow_pickle=False)
