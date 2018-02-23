@@ -30,9 +30,10 @@ assert np.all(np.array(pl1) == np.array(pl2))
 
 print('checking features ...')
 
-x1 = pkl.load(gzip.open(os.path.join(dir1, 'X_train.pkl.gz'), 'rb'))
-x2 = pkl.load(gzip.open(os.path.join(dir2, 'X_train.pkl.gz'), 'rb'))
-assert np.all(np.isclose(x1, x2))
+for fname in ['X_train', 'X_train_dev']:
+    x1 = pkl.load(gzip.open(os.path.join(dir1, fname + '.pkl.gz'), 'rb'))
+    x2 = pkl.load(gzip.open(os.path.join(dir2, fname + '.pkl.gz'), 'rb'))
+    assert np.all(np.isclose(x1, x2))
 
 
 print('checking labels (sparse boolean matrices) ...')
