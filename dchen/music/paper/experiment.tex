@@ -41,6 +41,94 @@ MLR (Ours)                         &          ${\bf 47.0}$ & ${\bf 38.8}$ & ${\b
 \end{table}
 
 
+
+\subsection{New song recommendation}
+
+{\bf Task:} 
+We are interested in the task of recommending newly released songs to users,
+in particular, to augment users' existing playlists with newly released songs.
+
+{\bf Experimental design:} 
+We hold 40\% of latest released songs in AotM-2011~\cite{mcfee2012hypergraph} playlist dataset,
+and half of that were used for testing and the other half for validation.
+Given a new song which does not appeared in any playlist, 
+we predict, for each playlist, whether to include it or not.
+
+The objective is the same as $\RCal_\textsc{row}$ and $\RCal_\textsc{col}$ except that,
+for the playlists that we choose to hold the later half, all we observed is the first half, 
+all other songs for these playlists are unobserved (they can be positive/negative examples),
+this is different from the case that we explicitly observed that songs are not in playlists (they are negative examples).
+
+
+\subsubsection{A few conclusions}
+\begin{table}[!h]
+\centering
+\caption{Statistics of dataset}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{ccccccc}
+\toprule
+Dataset & \#Users & \#Songs (train/dev/test) & \#Playlists & \#Song Features (audio + genre) \\
+\midrule
+AotM-2011 & 14,182  & 68,657 / 22,885 / 22,886 & 84,710 & 217 \\
+30Music   & 11,339  & 31,296 / 10,431 / 10,432 & 29,803 & 217 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\paragraph{Which type of loss is most helpful?}
+\begin{table}[!h]
+\centering
+\caption{Empirical results (AUC)}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|cccc}
+\toprule
+{}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & Independent Logistic Regression \\
+\midrule
+AotM-2011     & 0.64792  & 0.67782 &   & 0.62226 \\
+30Music       &          &         &   & 0.53698 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\paragraph{Experimental design:}
+C: 1, 1, 1, p: 1, no multi-task regularisation.
+
+\paragraph{Is multi-task regularisation helpful?}
+
+\begin{table}[!h]
+\centering
+\caption{Empirical results}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|ccc}
+\toprule
+{}            & Multi-task Reg. + Row-wise Loss & Multi-task reg. + Column-wise Loss & Multi-task reg. + Row-wise + Column-wise Loss  \\
+\midrule
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+\paragraph{Experimental design:}
+C: 1, 1, 1, p: 1, with multi-task regularisation, no user specific regularisation parameter.
+
+\paragraph{Is user-specific multi-task regularisation parameter (based on \#playlists) helpful?}
+\begin{table}[!h]
+\centering
+\caption{Empirical results}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{l|ccc}
+\toprule
+{}            & Multi-task Reg. + Row-wise Loss + user-spec reg. & Multi-task reg. + Column-wise Loss + user-spec reg. & Multi-task reg. + Row-wise + Column-wise Loss + user-spec reg. \\
+\midrule
+\bottomrule
+\end{tabular}
+}
+\end{table}
+
+
+
 \subsection{Playlist augmentation}
 
 {\bf Task:}
@@ -53,23 +141,21 @@ which are chosen uniformly at random from all playlists in the AtoM-2011 playlis
 We filter out playlist which has less than 5 songs that appeared in the Million Song Dataset~\cite{}.
 
 
-\newpage
-
-\subsubsection{A few conclusions on a subset}
-%\begin{table}[!h]
-%\centering
-%\caption{Statistics of subset}
-Statistics of subset \\
+\subsubsection{A few conclusions}
+\begin{table}[!h]
+\centering
+\caption{Statistics of dataset}
 \resizebox{\linewidth}{!}{
-\begin{tabular}{cccccc}
+\begin{tabular}{ccccccc}
 \toprule
-\#Users & \#Songs & \#Playlists (all)  & \#Playlists (incomplete) & \#Unknown entries &\#Song Features (audio + genre) \\
+Dataset & \#Users & \#Songs & \#Playlists (train/dev/test)  & \#Song Features (audio + genre) \\
 \midrule
-15      & 786     & 108                & 24   & 18,723  & 217 \\
+AotM-2011 & 14,182 (train/dev/test?) & 114,428 & 50,826 / 16,942 / 16,942 & 217 \\
+30Music   & 11,339 (train/dev/test?) & 52,159  & 17,883 / 5,960  / 5,960  & 217 \\
 \bottomrule
 \end{tabular}
 }
-%\end{table}
+\end{table}
 
 
 \paragraph{Which type of loss is most helpful?}
@@ -112,24 +198,23 @@ where $C$ is a trade-off parameter.
 The binary relevance baseline is learning a logistic regression for each playlist independently.
 
 
-%\begin{table}[!h]
-%\centering
-%\caption{Empirical results on subset}
-Empirical results on subset \\
+\begin{table}[!h]
+\centering
+\caption{Empirical results}
 \resizebox{\linewidth}{!}{
 \begin{tabular}{l|cccc}
 \toprule
-{}            & $\RCal_\textsc{row}$ & $\RCal_\textsc{col}$ & $\RCal_\textsc{row} + C\RCal_{col}$ & Binary Relevance \\
+{}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & Independent Logistic Regression \\
 \midrule
-AUC           &    & $0.6585$  & & $0.6127$ \\
+AotM-2011     &  & & 0.62709 \\
+30Music       &  & & 0.57372 \\
 \bottomrule
 \end{tabular}
 }
-%\end{table}
+\end{table}
 
 \paragraph{Experimental design:}
 C: 1, 1, 1, p: 1, no multi-task regularisation
-
 
 \paragraph{Is multi-task regularisation helpful?}
 
@@ -141,130 +226,20 @@ such that $\|\w_j - \w_k\|_2$ is small if playlist $j$ and $k$ belong to the sam
 \end{equation*}
 where $N_u$ is the number of playlist user $u$ has.
 
-%\begin{table}[!h]
-%\centering
-%\caption{Empirical results on subset}
-Empirical results on subset \\
+\begin{table}[!h]
+\centering
+\caption{Empirical results}
 \resizebox{\linewidth}{!}{
 \begin{tabular}{l|ccc}
 \toprule
-{}            & Multi-task Reg. + Row-wise Loss & Multi-task reg. + Column-wise Loss & Multi-task reg. + Row-wise + Column-wise Loss  \\
+{}            & Multi-task Reg. + $\RCal_\textsc{example}$ & Multi-task reg. + $\RCal_\textsc{label}$ & Multi-task reg. + $\RCal_\textsc{both}$  \\
 \midrule
+AUC           & 0.66583  & 0.68517  &  \\
 \bottomrule
 \end{tabular}
 }
-%\end{table}
+\end{table}
 
-
-\subsection{New song recommendation}
-
-{\bf Task:} 
-We are interested in the task of recommending newly released songs to users,
-in particular, to augment users' existing playlists with newly released songs.
-
-{\bf Experimental design:} 
-We hold 20\% of latest released songs in AotM-2011~\cite{mcfee2012hypergraph} playlist dataset.
-Given a new song which does not appeared in any playlist, 
-we predict, for each playlist, whether to include it or not.
-
-The objective is the same as $\RCal_\textsc{row}$ and $\RCal_\textsc{col}$ except that,
-for the playlists that we choose to hold the later half, all we observed is the first half, 
-all other songs for these playlists are unobserved (they can be positive/negative examples),
-this is different from the case that we explicitly observed that songs are not in playlists (they are negative examples).
-
-
-\subsubsection{A few conclusions on a subset}
-%\begin{table}[!h]
-%\centering
-%\caption{Statistics of subset}
-Statistics of subset \\
-\resizebox{\linewidth}{!}{
-\begin{tabular}{cccccc}
-\toprule
-\#Users & \#Songs (train/test) & \#Playlists & \#Unknown entries &\#Song Features (audio + genre) \\
-\midrule
-15      & 629 / 157  & 108 & 16,956  & 217 \\
-\bottomrule
-\end{tabular}
-}
-%\end{table}
-
-\paragraph{Which type of loss is most helpful?}
-%\begin{table}[!h]
-%\centering
-%\caption{Empirical results on subset}
-Empirical results on subset \\
-\resizebox{\linewidth}{!}{
-\begin{tabular}{l|cccc}
-\toprule
-{}            & Row-wise Loss & Column-wise Loss & Row-wise + Column-wise loss & Independent Logistic Regression \\
-\midrule
-Run 1         & 0.6395              & 0.6448           & 0.6431     & 0.6022 \\
-Run 2         & 0.6474              & 0.6565           & 0.6567     & 0.6197 \\
-Run 3         & 0.6172              & 0.6144           & 0.6168     & 0.5366 \\
-Run 4         & 0.6741              & 0.6840           & 0.6818     & 0.6067 \\
-Run 5         & 0.6506              & 0.6449           & 0.6498     & 0.5716 \\
-Mean          & 0.6458              & 0.6489           & 0.6496     & 0.5874 \\
-Std           & 0.0205              & 0.0251           & 0.0235     & 0.0334 \\
-\bottomrule
-\end{tabular}
-}
-%\end{table}
-
-\paragraph{Experimental design:}
-C: 1, 1, 1, p: 1, no multi-task regularisation.
-
-
-
-\paragraph{Is multi-task regularisation helpful?}
-
-%\begin{table}[!h]
-%\centering
-%\caption{Empirical results on subset}
-Empirical results on subset \\
-\resizebox{\linewidth}{!}{
-\begin{tabular}{l|ccc}
-\toprule
-{}            & Multi-task Reg. + Row-wise Loss & Multi-task reg. + Column-wise Loss & Multi-task reg. + Row-wise + Column-wise Loss  \\
-\midrule
-Run 1         & 0.6543        & 0.6358           & 0.6472 \\
-Run 2         & 0.6327        & 0.6572           & 0.6482 \\
-Run 3         & 0.6633        & 0.6722           & 0.6709 \\
-Run 4         & 0.6267        & 0.6765           & 0.6615 \\
-Run 5         & 0.5967        & 0.6104           & 0.6062 \\
-Mean          & 0.6347        & 0.6504           & 0.6468 \\
-Std           & 0.0260        & 0.0274           & 0.0247 \\
-\bottomrule
-\end{tabular}
-}
-%\end{table}
-
-\paragraph{Experimental design:}
-C: 1, 1, 1, p: 1, with multi-task regularisation, no user specific regularisation parameter.
-
-
-
-\paragraph{Is user-specific multi-task regularisation parameter (based on \#playlists) helpful?}
-%\begin{table}[!h]
-%\centering
-%\caption{Empirical results on subset: user-specific regularisation parameter = 1/\#playlists}
-Empirical results on subset: user-specific regularisation parameter = 1/\#playlists \\
-\resizebox{\linewidth}{!}{
-\begin{tabular}{l|ccc}
-\toprule
-{}            & Multi-task Reg. + Row-wise Loss + user-spec reg. & Multi-task reg. + Column-wise Loss + user-spec reg. & Multi-task reg. + Row-wise + Column-wise Loss + user-spec reg. \\
-\midrule
-Run 1         & 0.6714             & 0.6744     & 0.6777 \\
-Run 2         & 0.6560             & 0.6706     & 0.6646 \\
-Run 3         & 0.6592             & 0.6641     & 0.6611 \\
-Run 4         & 0.6444             & 0.6528     & 0.6493 \\
-Run 5         & 0.6558             & 0.6648     & 0.6627 \\
-Mean          & 0.6573             & 0.6653     & 0.6631 \\
-Std           & 0.0097             & 0.0082     & 0.0101 \\
-\bottomrule
-\end{tabular}
-}
-%\end{table}
 
 
 \TODO
