@@ -2,7 +2,7 @@ import gzip
 import os, sys
 import pickle as pkl
 import numpy as np
-from scipy.sparse import csr_matrix
+from scipy.sparse import csr_matrix, csc_matrix
 
 
 if __name__ == '__main__':
@@ -39,9 +39,21 @@ for fname in ['X_train', 'X_train_dev']:
 print('checking labels (sparse boolean matrices) ...')
 
 for fname in ['Y', 'Y_train', 'Y_train_dev', 'PU_dev', 'PU_test']:
+    print('    checking %s ...' % fname)
     y1 = pkl.load(gzip.open(os.path.join(dir1, fname + '.pkl.gz'), 'rb'))
     y2 = pkl.load(gzip.open(os.path.join(dir2, fname + '.pkl.gz'), 'rb'))
+    assert type(y1) == type(y2)
+    if type(y1) == csr_matrix:
+        y1 = y1.tocsc()
+        y2 = y2.tocsc()
+    elif type(y1) == csc_matrix:
+        y1 = y1.tocsr()
+        y2 = y2.tocsr()
+    else:
+        assert False, 'NOT CSR or CSC format'
     assert np.all(np.equal(y1.indices, y2.indices))
+    # NOTE: the csr sparse representation of the same dense matrix can have different indices,
+    # so transform them to another representation may result in the same indices.
 
 
 print('checking song popularities ...')
