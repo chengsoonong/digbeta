@@ -85,8 +85,8 @@ AotM-2011 & 14,182  & 68,657 / 22,885 / 22,886 & 84,710 & 217 \\
 \toprule
 {}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & Independent Logistic Regression \\
 \midrule
-AotM-2011     & 0.64792  & 0.67782 &   & 0.62226 \\
-30Music       &          &         &   & 0.53698 \\
+AotM-2011     & 0.64792  & 0.67782 & 0.59602  & 0.62226 \\
+30Music       & 0.54413  & 0.55894 & 0.55864  & 0.53698 \\
 \bottomrule
 \end{tabular}
 }
@@ -103,7 +103,9 @@ C: 1, 1, 1, p: 1, no multi-task regularisation.
 \resizebox{\linewidth}{!}{
 \begin{tabular}{l|ccc}
 \toprule
-{}            & Multi-task Reg. + Row-wise Loss & Multi-task reg. + Column-wise Loss & Multi-task reg. + Row-wise + Column-wise Loss  \\
+{}            & Multi-task Reg. + $\RCal_\textsc{example}$ & Multi-task reg. + $\RCal_\textsc{label}$ \\
+AotM-2011     &  & \\
+30Music       & 0.549567    & 0.557156 \\
 \midrule
 \bottomrule
 \end{tabular}
@@ -202,12 +204,12 @@ The binary relevance baseline is learning a logistic regression for each playlis
 \centering
 \caption{Empirical results}
 \resizebox{\linewidth}{!}{
-\begin{tabular}{l|cccc}
+\begin{tabular}{l|ccccc}
 \toprule
-{}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & Independent Logistic Regression \\
+{}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & Independent Logistic Regression & Popularity based ranking \\
 \midrule
-AotM-2011     &  & & 0.62709 \\
-30Music       &  & & 0.57372 \\
+AotM-2011     & 0.6827396 & 0.743770 & 0.7385298 & 0.62709 & 0.7952622 \\
+30Music       & 0.566196  & 0.633003 & 0.632768  & 0.57372 & 0.81998 \\
 \bottomrule
 \end{tabular}
 }
@@ -232,9 +234,11 @@ where $N_u$ is the number of playlist user $u$ has.
 \resizebox{\linewidth}{!}{
 \begin{tabular}{l|ccc}
 \toprule
-{}            & Multi-task Reg. + $\RCal_\textsc{example}$ & Multi-task reg. + $\RCal_\textsc{label}$ & Multi-task reg. + $\RCal_\textsc{both}$  \\
+{}            & Multi-task Reg. + $\RCal_\textsc{example}$ & Multi-task reg. + $\RCal_\textsc{label}$ \\
 \midrule
-AUC           & 0.66583  & 0.68517  &  \\
+AotM-2011     & 0.6882099 & 0.7615590 \\
+30Music       & 0.574175 & 0.667804  \\
+%AUC           & 0.66583  & 0.68517   \\
 \bottomrule
 \end{tabular}
 }
