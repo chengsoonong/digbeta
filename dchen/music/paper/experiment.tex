@@ -70,7 +70,8 @@ this is different from the case that we explicitly observed that songs are not i
 Dataset & \#Users & \#Songs (train/dev/test) & \#Playlists & \#Song Features (audio + genre) \\
 \midrule
 AotM-2011 & 14,182  & 68,657 / 22,885 / 22,886 & 84,710 & 217 \\
-30Music   & 11,339  & 31,296 / 10,431 / 10,432 & 29,803 & 217 \\
+30Music   & 8,070   & 27,281 / 9,093 / 9,094   & 17,457 & 217 \\
+%30Music   & 11,339  & 31,296 / 10,431 / 10,432 & 29,803 & 217 \\
 \bottomrule
 \end{tabular}
 }
@@ -83,10 +84,11 @@ AotM-2011 & 14,182  & 68,657 / 22,885 / 22,886 & 84,710 & 217 \\
 \resizebox{\linewidth}{!}{
 \begin{tabular}{l|cccc}
 \toprule
-{}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & Independent Logistic Regression \\
+{}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & Independent L.R. \\
 \midrule
 AotM-2011     & 0.64792  & 0.67782 & 0.59602  & 0.62226 \\
-30Music       & 0.54413  & 0.55894 & 0.55864  & 0.53698 \\
+30Music       & & & 0.6654 \\
+%30Music       & 0.54413  & 0.55894 & 0.55864  & 0.53698 \\
 \bottomrule
 \end{tabular}
 }
@@ -104,9 +106,10 @@ C: 1, 1, 1, p: 1, no multi-task regularisation.
 \begin{tabular}{l|ccc}
 \toprule
 {}            & Multi-task Reg. + $\RCal_\textsc{example}$ & Multi-task reg. + $\RCal_\textsc{label}$ \\
-AotM-2011     &  & \\
-30Music       & 0.549567    & 0.557156 \\
 \midrule
+AotM-2011     & 0.65778     & 0.6884618 \\
+30Music       & & \\
+%30Music       & 0.549567    & 0.557156 \\
 \bottomrule
 \end{tabular}
 }
@@ -150,10 +153,11 @@ We filter out playlist which has less than 5 songs that appeared in the Million 
 \resizebox{\linewidth}{!}{
 \begin{tabular}{ccccccc}
 \toprule
-Dataset & \#Users & \#Songs & \#Playlists (train/dev/test)  & \#Song Features (audio + genre) \\
+Dataset & \#Users & \#Songs & \#Playlists (train/dev/test)  & \#Song Features \\
 \midrule
-AotM-2011 & 14,182 (train/dev/test?) & 114,428 & 50,826 / 16,942 / 16,942 & 217 \\
-30Music   & 11,339 (train/dev/test?) & 52,159  & 17,883 / 5,960  / 5,960  & 217 \\
+AotM-2011 & 14,182 (train/dev/test?) & 114,428 & 50,826 / 16,942 / 16,942 & 218 \\
+30Music   & 8,070                    & 45,468  & 15,591 / 933 / 933       & 218 \\
+%30Music   & 11,339 (train/dev/test?) & 52,159  & 17,883 / 5,960  / 5,960  & 217 \\
 \bottomrule
 \end{tabular}
 }
@@ -206,10 +210,12 @@ The binary relevance baseline is learning a logistic regression for each playlis
 \resizebox{\linewidth}{!}{
 \begin{tabular}{l|ccccc}
 \toprule
-{}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & Independent Logistic Regression & Popularity based ranking \\
+{}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & Independent L.R. & Pop-rank \\
 \midrule
-AotM-2011     & 0.6827396 & 0.743770 & 0.7385298 & 0.62709 & 0.7952622 \\
-30Music       & 0.566196  & 0.633003 & 0.632768  & 0.57372 & 0.81998 \\
+%AotM-2011     & 0.6827396 & 0.743770 & 0.7385298 & 0.6924 & 0.80199 \\
+AotM-2011     & 0.68459 & 0.747755 & 0.7429 & 0.6924 & 0.80199 \\
+30Music       &  &  &  & 0.7225 & 0.7165 \\
+%30Music       & 0.56766179 & 0.6350941 & 0.63555 & 0.575567 & 0.80558 \\
 \bottomrule
 \end{tabular}
 }
@@ -236,8 +242,11 @@ where $N_u$ is the number of playlist user $u$ has.
 \toprule
 {}            & Multi-task Reg. + $\RCal_\textsc{example}$ & Multi-task reg. + $\RCal_\textsc{label}$ \\
 \midrule
-AotM-2011     & 0.6882099 & 0.7615590 \\
-30Music       & 0.574175 & 0.667804  \\
+%AotM-2011     & 0.6882099 & 0.7615590 \\
+AotM-2011     & 0.69167 &  \\
+30Music       &  &  \\
+%30Music       & 0.581426 & 0.6597  \\
+%30Music       & 0.574175 & 0.667804  \\
 %AUC           & 0.66583  & 0.68517   \\
 \bottomrule
 \end{tabular}
