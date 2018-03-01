@@ -1,33 +1,20 @@
-%%%%%%%% ICML 2018 EXAMPLE LATEX SUBMISSION FILE %%%%%%%%%%%%%%%%%
-
-\documentclass{article}
+\documentclass{llncs}
 
 % Recommended, but optional, packages for figures and better typesetting:
 \usepackage{microtype}
 \usepackage{graphicx}
 \usepackage{subfigure}
 \usepackage{booktabs} % for professional tables
-
-% hyperref makes hyperlinks in the resulting PDF.
-% If your build breaks (sometimes temporarily if a hyperlink spans a page)
-% please comment out the following usepackage line and replace
-% \usepackage{icml2018} with \usepackage[nohyperref]{icml2018} above.
 \usepackage{hyperref}
 
 % Attempt to make hyperref and algorithmic work together better:
 \newcommand{\theHalgorithm}{\arabic{algorithm}}
 
-% Use the following line for the initial blind version submitted for review:
-\usepackage{icml2018}
-
-% If accepted, instead use the following line for the camera-ready submission:
-%\usepackage[accepted]{icml2018}
-
 % additional packages
 %\usepackage[numbers,compress]{natbib}
 \usepackage{mathtools}
 \usepackage{amsfonts}
-\usepackage{amsmath,amssymb,amsthm}
+\usepackage{amsmath,amssymb}%,amsthm}
 \usepackage{mathrsfs}
 \usepackage{nicefrac}  % compact symbols for \nicefrac[]{1}{2}, etc.
 
@@ -45,11 +32,11 @@
 \usepackage{colortbl} % cellcolor
 \graphicspath{{fig/}}   % Location of the graphics files
 
-\newtheorem{theorem}{Theorem}
-\newtheorem{corollary}{Corollary}
-\newtheorem{lemma}{Lemma}
-\newtheorem{proposition}{Proposition}
-\newtheorem{remark}{Remark}
+%\newtheorem{theorem}{Theorem}
+%\newtheorem{corollary}{Corollary}
+%\newtheorem{lemma}{Lemma}
+%\newtheorem{proposition}{Proposition}
+%\newtheorem{remark}{Remark}
 
 \DeclareMathOperator*{\argmin}{argmin}
 \DeclareMathOperator*{\argmax}{argmax}
@@ -117,70 +104,18 @@
 \newcommand{\TODO}{\blue{\bf{TODO:\ }}}
 \newcommand{\DONE}{\green{\bf{DONE\ }}}
 
-% The \icmltitle you define below is probably too long as a header.
-% Therefore, a short form for the running title is supplied here:
-\icmltitlerunning{Submission and Formatting Instructions for ICML 2018}
 
 \begin{document}
 
-\twocolumn[
-\icmltitle{Playlist recommendation and augmentation using multi-label ranking}
+\title{Playlist recommendation and augmentation using multi-label ranking}
 
-% It is OKAY to include author information, even for blind
-% submissions: the style file will automatically remove it for you
-% unless you've provided the [accepted] option to the icml2018
-% package.
+%\author{First name Surname\inst{1} \and 
+%        First name Surname\inst{2}}
 
-% List of affiliations: The first argument should be a (short)
-% identifier you will use later to specify author affiliations
-% Academic affiliations should list Department, University, City, Region, Country
-% Industry affiliations should list Company, City, Region, Country
+%\institute{Institute 1, address 1 \email{email 1} \and 
+%           Institute 2, address 2 \email{email 2}}
 
-% You can specify symbols, otherwise they are numbered in order.
-% Ideally, you should not use this facility. Affiliations will be numbered
-% in order of appearance and this is the preferred way.
-\icmlsetsymbol{equal}{*}
-
-%\begin{icmlauthorlist}
-%\icmlauthor{Aeiau Zzzz}{equal,to}
-%\icmlauthor{Bauiu C.~Yyyy}{equal,to,goo}
-%\icmlauthor{Cieua Vvvvv}{goo}
-%\icmlauthor{Iaesut Saoeu}{ed}
-%\icmlauthor{Fiuea Rrrr}{to}
-%\icmlauthor{Tateu H.~Yasehe}{ed,to,goo}
-%\icmlauthor{Aaoeu Iasoh}{goo}
-%\icmlauthor{Buiui Eueu}{ed}
-%\icmlauthor{Aeuia Zzzz}{ed}
-%\icmlauthor{Bieea C.~Yyyy}{to,goo}
-%\icmlauthor{Teoau Xxxx}{ed}
-%\icmlauthor{Eee Pppp}{ed}
-%\end{icmlauthorlist}
-
-%\icmlaffiliation{to}{Department of Computation, University of Torontoland, Torontoland, Canada}
-%\icmlaffiliation{goo}{Googol ShallowMind, New London, Michigan, USA}
-%\icmlaffiliation{ed}{School of Computation, University of Edenborrow, Edenborrow, United Kingdom}
-
-%\icmlcorrespondingauthor{Cieua Vvvvv}{c.vvvvv@googol.com}
-%\icmlcorrespondingauthor{Eee Pppp}{ep@eden.co.uk}
-
-% You may provide any keywords that you
-% find helpful for describing your paper; these are used to populate
-% the "keywords" metadata in the PDF but will not be shown in the document
-%\icmlkeywords{Machine Learning, ICML}
-
-\vskip 0.3in
-]
-
-% this must go after the closing bracket ] following \twocolumn[ ...
-
-% This command actually creates the footnote in the first column
-% listing the affiliations and the copyright notice.
-% The command takes one argument, which is text to display at the start of the footnote.
-% The \icmlEqualContribution command is standard text for equal contribution.
-% Remove it (just {}) if you do not need this facility.
-
-%\printAffiliationsAndNotice{}  % leave blank if no need to mention equal contribution
-%\printAffiliationsAndNotice{\icmlEqualContribution} % otherwise use the standard text.
+\maketitle
 
 \begin{abstract}
 \input{abstract}
@@ -195,12 +130,7 @@
 \input{pla_illustrate}
 \input{experiment}
 
-
-% In the unusual situation where you want a paper to appear in the
-% references without citing it in the main text, use \nocite
-%\nocite{langley00}
-
+\bibliographystyle{splncs}
 \bibliography{ref}
-\bibliographystyle{icml2018}
 
 \end{document}

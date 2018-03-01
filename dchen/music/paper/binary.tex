@@ -25,7 +25,7 @@ The empirical risk of the P-Norm Push loss is defined as~\cite{rudin2009p}
 \end{aligned}
 \end{equation*}
 
-\citep{ertekin2011equivalence} showed the following equivalence relationship between P-Classification loss and P-Norm Push loss:
+\cite{ertekin2011equivalence} showed the following equivalence relationship between P-Classification loss and P-Norm Push loss:
 \begin{theorem}
 \label{th:pc=pn}
 If $(\w_\textsc{pc}, b_\textsc{pc}) \in \argmin_{\w,b} \RCal_\textsc{pc}(\w, b)$, 
@@ -63,20 +63,20 @@ where $C = Q/P$, since multiplying a positive constant to a loss function will n
 :
 \begin{equation*}
 %\label{eq:bc}
-\resizebox{\linewidth}{!}{$
+%\resizebox{\linewidth}{!}{$
 %\begin{aligned}
 \RCal_\textsc{bc}(\w, b)
 = \displaystyle 
   \frac{P}{\alpha} \sum_{x_+ \in \SCal_+} e^{-\alpha f(x_+; \w)} +
   \frac{Q}{\beta}  \sum_{x_- \in \SCal_-} e^{ \beta  f(x_-; \w)},
 %\end{aligned}
-$}
+%$}
 \end{equation*}
 and let
 $\RCal_\textsc{br}$ be a bipartite ranking risk defined as:
 \begin{equation*}
 %\label{eq:br}
-\resizebox{\linewidth}{!}{$
+%\resizebox{\linewidth}{!}{$
 \begin{aligned}
 \RCal_\textsc{br}(\w)
 &= \left[ \displaystyle 
@@ -85,7 +85,7 @@ $\RCal_\textsc{br}$ be a bipartite ranking risk defined as:
 &= \left[ \sum_{x_+ \in \SCal_+} e^{-\alpha f(x_+; \w)} \right]^\frac{c}{\alpha}
    \left[ \sum_{x_- \in \SCal_-} e^{ \beta  f(x_-; \w)} \right]^\frac{c}{\beta}.
 \end{aligned}
-$}
+%$}
 \end{equation*}
 Note that $\RCal_\textsc{br}$ is independent of $b$.
 
@@ -95,24 +95,24 @@ Note that $\RCal_\textsc{br}$ is independent of $b$.
 If $(\w_\textsc{bc}, b_\textsc{bc}) \in \argmin_{\w,b} \RCal_\textsc{bc}(\w, b)$,
 then $\w_\textsc{bc} \in \argmin_\w \RCal_\textsc{br}(\w)$, and
 $$
-\resizebox{\linewidth}{!}{$
+%\resizebox{\linewidth}{!}{$
 \displaystyle
 b_\textsc{bc} 
 = \frac{1}{\alpha + \beta} \left( 
   P \ln \sum_{x_+ \in \SCal_+} e^{-\alpha g(x_+; \w_\textsc{bc})} -
   Q \ln \sum_{x_- \in \SCal_-} e^{  \beta g(x_-; \w_\textsc{bc})} \right).
-$}
+%$}
 $$
 Further, if $\w_\textsc{br} \in \argmin_\w \RCal_\textsc{br}(\w)$ (assuming minimisers exist),
 then $(\w_\textsc{br}, b_\textsc{br}) \in \argmin_{\w,b} \, \RCal_\textsc{bc}(\w, b)$, where
 $$
-\resizebox{\linewidth}{!}{$
+%\resizebox{\linewidth}{!}{$
 \displaystyle
 b_\textsc{br} 
 = \frac{1}{\alpha + \beta} \left( 
   P \ln \sum_{x_+ \in \SCal_+} e^{-\alpha g(x_+; \w_\textsc{br})} -
   Q \ln \sum_{x_- \in \SCal_-} e^{  \beta g(x_-; \w_\textsc{br})} \right).
-$}
+%$}
 $$
 \end{theorem}
 
@@ -131,7 +131,7 @@ Bottom Push + exponential surrogate + log-sum-exp == a classification loss simil
 \centering
 \caption{Summary of parameters for the equivalence of (risk of rank loss, risk of classification loss) pairs}
 \label{tab:config}
-\resizebox{\linewidth}{!}{
+%\resizebox{\linewidth}{!}{
 \begin{tabular}{r*{6}{c}}
 \toprule
 {\bf Loss pairs}                                         & $\alpha$ & $\beta$ & $\gamma$ & $\delta$ & $P$ & $Q$ \\ \hline
@@ -141,7 +141,7 @@ $\widetilde\RCal_\textsc{bp} \equiva \RCal_\textsc{rc}$  & $r=q$    & $1$     & 
 $\widetilde\RCal_\textsc{csa} \equiva \RCal_\textsc{rb}$ & $1$      & $1$     & $1$      & $1$      & $1$ & $C$ \\
 \bottomrule
 \end{tabular}
-}
+%}
 \end{table}
 
 

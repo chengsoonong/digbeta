@@ -18,28 +18,28 @@ Suppose $\alpha, \beta, c, P, Q \in \R_+$ are \emph{finite} positive numbers,
 we define $\RCal_\textsc{mc}\pb{1}$ be the following risk:
 \begin{equation}
 \label{eq:mc1}
-\resizebox{.9\linewidth}{!}{$
+%\resizebox{.9\linewidth}{!}{$
 \displaystyle
 \RCal_\textsc{mc}\pb{1}(\w, b) 
 = \frac{P}{\alpha} \sum_{(m,i): y_i^m = 1} \exp(-\alpha f_i(\x^m; \w)) \, + \,
   \frac{Q}{\beta}  \sum_{(n,j): y_j^n = 0} \exp( \beta  f_j(\x^n; \w)),
-$}
+%$}
 \end{equation}
 and let $\RCal_\textsc{mr}\pb{1}$ be a risk defined as
 \begin{equation}
 \label{eq:mr1}
-\resizebox{.9\linewidth}{!}{$
+%\resizebox{.9\linewidth}{!}{$
 \displaystyle
 \RCal_\textsc{mr}\pb{1}(\w) 
 = \left[ \sum_{(m,i): y_i^m = 1} \exp(-\alpha f_i(\x^m; \w)) \right]^\frac{c}{\alpha}  
   \left[ \sum_{(n,j): y_j^n = 0} \exp( \beta  f_j(\x^n; \w)) \right]^\frac{c}{\beta}.
-$}
+%$}
 \end{equation}
 
 Note that $\RCal_\textsc{mr}\pb{1}$ is independent of $b$, since
 \begin{equation}
 \label{eq:mr_derive}
-\resizebox{.9\linewidth}{!}{$
+%\resizebox{.9\linewidth}{!}{$
 \displaystyle
 \begin{aligned}
 \RCal_\textsc{mr}\pb{1}(\w) 
@@ -48,7 +48,7 @@ Note that $\RCal_\textsc{mr}\pb{1}$ is independent of $b$, since
 &= \left[ \sum_{(n,j): y_j^n = 0} \left( \sum_{(m,i): y_i^m = 1} 
    \exp(-\alpha( f_i(\x^m; \w) - f_j(\x^n; \w) ) ) \right)^\frac{\beta}{\alpha} \right]^\frac{c}{\beta},
 \end{aligned}
-$}
+%$}
 \end{equation}
 and $f_i(\x^m; \w) - f_j(\x^n; \w) = g_i(\x^m; \w) - g_j(\x^n; \w)$.
 
@@ -79,9 +79,9 @@ $$
 
 Let function $f(\cdot; \cdot)$ be
 \begin{equation*}
-\resizebox{\linewidth}{!}{$
+%\resizebox{\linewidth}{!}{$
 f(\x^n; \w_k) := g(\x^n; \w_k) + b_k, \ n \in \{1,\dots,N\}, \, k \in \{1,\dots,K\}
-$}
+%$}
 \end{equation*}
 where $\w_k$ and $b_k$ is the weight vector and bias parameter for the $k$-th label, respectively.
 Function $g(\x^n; \w_k)$ is differentiable and bounded.
@@ -91,28 +91,28 @@ and $\C, \Pb, \Q \in \R^K$ are vectors of \emph{finite} (non-zero) real numbers.
 We can define $\RCal_\textsc{mc}\pb{2}$ be the following risk:
 \begin{equation}
 \label{eq:mc2}
-\resizebox{.9\linewidth}{!}{$
+%\resizebox{.9\linewidth}{!}{$
 \displaystyle
 \RCal_\textsc{mc}\pb{2}(\W, \bb) 
 = \sum_{k=1}^K \left[ 
   \frac{P_k}{\alpha} \sum_{m: y_k^m = 1} \exp(-\alpha f(\x^m; \w_k)) +
   \frac{Q_k}{\beta } \sum_{n: y_k^n = 0} \exp( \beta  f(\x^n; \w_k)) \right].
-$}
+%$}
 \end{equation}
 and let $\RCal_\textsc{mr}\pb{2}$ be a risk defined as
 \begin{equation}
 \label{eq:mr2}
-\resizebox{.9\linewidth}{!}{$
+%\resizebox{.9\linewidth}{!}{$
 \displaystyle
 \RCal_\textsc{mr}\pb{2}(\W) 
 = \sum_{k=1}^K C_k
   \left[ \sum_{m: y_k^m = 1} \exp(-\alpha f(\x^m; \w_k)) \right]^\frac{c}{\alpha} 
   \left[ \sum_{n: y_k^n = 0} \exp( \beta  f(\x^n; \w_k)) \right]^\frac{c}{\beta}.
-$}
+%$}
 \end{equation}
 Note that $\RCal_\textsc{mr}\pb{2}$ is independent of $\bb$ since 
 \begin{equation*}
-\resizebox{\linewidth}{!}{$
+%\resizebox{\linewidth}{!}{$
 \displaystyle
 \begin{aligned}
 \RCal_\textsc{mr}\pb{2}(\W)
@@ -123,7 +123,7 @@ Note that $\RCal_\textsc{mr}\pb{2}$ is independent of $\bb$ since
    \left[ \sum_{n: y_k^n = 0} \left( \sum_{m: y_k^m = 1}
    \exp(-\alpha(f(\x^m; \w_k) - f(\x^n; \w_k))) \right)^\frac{\beta}{\alpha} \right]^\frac{c}{\beta},
 \end{aligned}
-$}
+%$}
 \end{equation*}
 and $f(\x^m; \w_k) - f(\x^n; \w_k) = g(\x^m; \w_k) - g(\x^n; \w_k)$.
 
@@ -155,9 +155,9 @@ $$
 
 Let function $f(\cdot, \cdot)$ be
 \begin{equation*}
-\resizebox{\linewidth}{!}{$
+%\resizebox{\linewidth}{!}{$
 f(\x^n; \w_k) := g(\x^n; \w_k) + b, \ n \in \{1,\dots,N\}, \, k \in \{1,\dots,K\}
-$}
+%$}
 \end{equation*}
 where $\w_k$ is a parameter vector, $b$ is a bias parameter, 
 and $g(\x^n; \w_k)$ is a differentiable function (w.r.t. $\w_k$).
@@ -169,17 +169,17 @@ Suppose $\alpha, \beta, c, P, Q \in \R_+$ are \emph{finite} positive numbers,
 we can define $\RCal_\textsc{mc}\pb{3}$ be the following risk:
 \begin{equation}
 \label{eq:mc}
-\resizebox{.9\linewidth}{!}{$
+%\resizebox{.9\linewidth}{!}{$
 \displaystyle
 \RCal_\textsc{mc}\pb{3}(\W, b) 
 = \frac{P}{\alpha} \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 1} \exp(-\alpha f(\x^m; \w_i)) \, + \,
   \frac{Q}{\beta}  \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0} \exp( \beta  f(\x^n; \w_j)),
-$}
+%$}
 \end{equation}
 and let $\RCal_\textsc{mr}\pb{3}$ be a risk defined as
 \begin{equation}
 \label{eq:mr}
-\resizebox{.9\linewidth}{!}{$
+%\resizebox{.9\linewidth}{!}{$
 \begin{aligned}
 \displaystyle
 \RCal_\textsc{mr}\pb{3}(\W) 
@@ -190,7 +190,7 @@ and let $\RCal_\textsc{mr}\pb{3}$ be a risk defined as
 &= \left[ \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 1} \left( \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 0}
    \exp(-\alpha(f(\x^m; \w_i) - f(\x^n; \w_j))) \right)^\frac{\beta}{\alpha} \right]^\frac{c}{\beta}.
 \end{aligned}
-$}
+%$}
 \end{equation}
 Note that $\RCal_\textsc{mr}\pb{3}(\W)$ is independent of $b$ since 
 $f(\x^m; \w_i) - f(\x^n; \w_j) = g(\x^m; \w_i) - g(\x^n; \w_j)$.
@@ -207,12 +207,12 @@ $$
 $$ 
 where
 \begin{equation*}
-\resizebox{.9\linewidth}{!}{$
+%\resizebox{.9\linewidth}{!}{$
 \displaystyle
 b_\textsc{mr} = \frac{1}{\alpha + \beta} \ln 
       \frac{P \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 1} \exp(-\alpha g(\x^m; \w_i))}
            {Q \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0} \exp( \beta  g(\x^n; \w_j)) \hspace{1em}} \Bigg|_{\W = \W_\textsc{mr}\pb{3}}.
-$}
+%$}
 \end{equation*}
 \end{theorem}
 
@@ -220,7 +220,7 @@ $}
 If we generalise the P-Norm push loss to the multi-label setting as:
 \begin{equation}
 \label{eq:pnorm-ml}
-\resizebox{.9\linewidth}{!}{$
+%\resizebox{.9\linewidth}{!}{$
 \displaystyle
 \begin{aligned}
 \RCal_\textsc{mpn}(\W, b) 
@@ -229,7 +229,7 @@ If we generalise the P-Norm push loss to the multi-label setting as:
    \left( \frac{1}{K_+^n} \sum_{i:y_i^n=1} \exp(-f(\x^n; \w_i)) \right)^p 
    \left( \frac{1}{K_-^n} \sum_{j:y_j^n=0} \exp(p \cdot f(\x^n; \w_j)) \right) \right],
 \end{aligned}
-$}
+%$}
 \end{equation}
 then we have the follow theorem:
 \begin{theorem}
@@ -237,11 +237,11 @@ then we have the follow theorem:
 If $p$ is a positive integer, \ie $p \in \Z_+$, then 
 \begin{equation}
 \label{eq:pnorm-ml-ub}
-\resizebox{.9\linewidth}{!}{$
+%\resizebox{.9\linewidth}{!}{$
 \displaystyle
 \RCal_\textsc{mpn}(\W, b) \le 
 \left( \sum_{m=1}^N \frac{1}{K_+^m} \sum_{i:y_i^m=1} \exp(-f(\x^m; \w_i)) \right)^p 
 \left( \sum_{n=1}^N \frac{1}{K_-^n} \sum_{j:y_j^n=0} \exp(p \cdot f(\x^n; \w_j)) \right).
-$}
+%$}
 \end{equation}
 \end{theorem}

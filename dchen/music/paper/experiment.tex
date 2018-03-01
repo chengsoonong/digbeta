@@ -1,3 +1,6 @@
+\clearpage
+\newpage
+
 \section{Experiment}
 \label{sec:experiment}
 
@@ -6,14 +9,14 @@ using two standard multi-label classification dataset~\cite{katakis2008multilabe
 
 \subsection{Multi-label classification}
 
-Performance on multi-label dataset\footnote{Results of PRLR are taken from~\citep{lin2014multi}.}
+Performance on multi-label dataset\footnote{Results of PRLR are taken from~\cite{lin2014multi}.}
 are shown in terms of F$_1$ scores averaged over both examples and labels, 
 as well as precision at $k$ which focus on the top-$k$ predictions.
 
 The results are summarised in Table~\ref{tab:perf_mlc},
 where the multi-label p-classification method output performance the binary relevance baseline by a large margin.
-Further, it achieves better performance than (\citet{lin2014multi}) which encourages sparse and low-rank predictions.
-Finally, it is encouraging that our method performs better than (\citet{belanger2016structured}) and (\citet{gygli2017deep}),
+Further, it achieves better performance than (\cite{lin2014multi}) which encourages sparse and low-rank predictions.
+Finally, it is encouraging that our method performs better than (\cite{belanger2016structured}) and (\cite{gygli2017deep}),
 both work learn complex non-linear functions using deep neural networks, compared with our method which uses a linear function.
 
 \TODO show the performance with row-wise weighting, column-wise weighting and with both.
@@ -22,7 +25,7 @@ both work learn complex non-linear functions using deep neural networks, compare
 \centering
 \caption{Performance on multi-label dataset}
 \label{tab:perf_mlc}
-\resizebox{\linewidth}{!}{
+%\resizebox{\linewidth}{!}{
 \setlength{\tabcolsep}{2pt} % tweak the space between columns
 %\begin{tabular}{l*{6}{c}}
 \begin{tabular}{l|ccc|ccc}
@@ -37,7 +40,7 @@ DVN~\cite{gygli2017deep}           &          $44.7$ &      $32.4$ & $86.7$ &   
 MLR (Ours)                         &          ${\bf 47.0}$ & ${\bf 38.8}$ & ${\bf 93.3}$ & ${\bf 37.7}$ & ${\bf 28.4}$ & ${\bf 91.8}$ \\
 \bottomrule
 \end{tabular}
-}
+%}
 \end{table}
 
 
@@ -64,34 +67,34 @@ this is different from the case that we explicitly observed that songs are not i
 \begin{table}[!h]
 \centering
 \caption{Statistics of dataset}
-\resizebox{\linewidth}{!}{
+%\resizebox{\linewidth}{!}{
 \begin{tabular}{ccccccc}
 \toprule
-Dataset & \#Users & \#Songs (train/dev/test) & \#Playlists & \#Song Features (audio + genre) \\
+Dataset & \#Users & \#Songs (train/dev/test) & \#Playlists & \#Song Features \\
 \midrule
 AotM-2011 & 14,182  & 68,657 / 22,885 / 22,886 & 84,710 & 217 \\
 30Music   & 8,070   & 27,281 / 9,093 / 9,094   & 17,457 & 217 \\
 %30Music   & 11,339  & 31,296 / 10,431 / 10,432 & 29,803 & 217 \\
 \bottomrule
 \end{tabular}
-}
+%}
 \end{table}
 
 \paragraph{Which type of loss is most helpful?}
 \begin{table}[!h]
 \centering
 \caption{Empirical results (AUC)}
-\resizebox{\linewidth}{!}{
+%\resizebox{\linewidth}{!}{
 \begin{tabular}{l|cccc}
 \toprule
 {}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & Independent L.R. \\
 \midrule
 AotM-2011     & 0.64792  & 0.67782 & 0.59602  & 0.62226 \\
-30Music       & & & 0.6654 \\
+30Music       & 0.6768   & 0.70917 & 0.70914  & 0.6654 \\
 %30Music       & 0.54413  & 0.55894 & 0.55864  & 0.53698 \\
 \bottomrule
 \end{tabular}
-}
+%}
 \end{table}
 
 \paragraph{Experimental design:}
@@ -102,34 +105,17 @@ C: 1, 1, 1, p: 1, no multi-task regularisation.
 \begin{table}[!h]
 \centering
 \caption{Empirical results}
-\resizebox{\linewidth}{!}{
+%\resizebox{\linewidth}{!}{
 \begin{tabular}{l|ccc}
 \toprule
 {}            & Multi-task Reg. + $\RCal_\textsc{example}$ & Multi-task reg. + $\RCal_\textsc{label}$ \\
 \midrule
 AotM-2011     & 0.65778     & 0.6884618 \\
-30Music       & & \\
+30Music       & 0.68179     & 0.7149 \\
 %30Music       & 0.549567    & 0.557156 \\
 \bottomrule
 \end{tabular}
-}
-\end{table}
-
-\paragraph{Experimental design:}
-C: 1, 1, 1, p: 1, with multi-task regularisation, no user specific regularisation parameter.
-
-\paragraph{Is user-specific multi-task regularisation parameter (based on \#playlists) helpful?}
-\begin{table}[!h]
-\centering
-\caption{Empirical results}
-\resizebox{\linewidth}{!}{
-\begin{tabular}{l|ccc}
-\toprule
-{}            & Multi-task Reg. + Row-wise Loss + user-spec reg. & Multi-task reg. + Column-wise Loss + user-spec reg. & Multi-task reg. + Row-wise + Column-wise Loss + user-spec reg. \\
-\midrule
-\bottomrule
-\end{tabular}
-}
+%}
 \end{table}
 
 
@@ -150,17 +136,17 @@ We filter out playlist which has less than 5 songs that appeared in the Million 
 \begin{table}[!h]
 \centering
 \caption{Statistics of dataset}
-\resizebox{\linewidth}{!}{
+%\resizebox{\linewidth}{!}{
 \begin{tabular}{ccccccc}
 \toprule
 Dataset & \#Users & \#Songs & \#Playlists (train/dev/test)  & \#Song Features \\
 \midrule
-AotM-2011 & 14,182 (train/dev/test?) & 114,428 & 50,826 / 16,942 / 16,942 & 218 \\
-30Music   & 8,070                    & 45,468  & 15,591 / 933 / 933       & 218 \\
+AotM-2011 & 14,182 & 114,428 & 50,826 / 16,942 / 16,942 & 218 \\
+30Music   & 8,070  & 45,468  & 15,591 / 933 / 933       & 218 \\
 %30Music   & 11,339 (train/dev/test?) & 52,159  & 17,883 / 5,960  / 5,960  & 217 \\
 \bottomrule
 \end{tabular}
-}
+%}
 \end{table}
 
 
@@ -171,12 +157,12 @@ AotM-2011 & 14,182 (train/dev/test?) & 114,428 & 50,826 / 16,942 / 16,942 & 218 
 which forms a dataset of examples with binary labels: $\{(\x_n, y_k\}_{k=1}^K$ for the $n$-th multilabel example.
 
 \begin{equation*}
-\resizebox{\linewidth}{!}{$
+%\resizebox{\linewidth}{!}{$
 \RCal_\textsc{row} 
 = \displaystyle \sum_s 
   \frac{1}{K_+^s} \sum_{s \in pl} e^{-(\w_{pl}^\top \phi(s) + b)} +
   \frac{1}{K_-^s} \sum_{s \notin pl} \frac{1}{p} e^{p \w_{pl}^\top \phi(s)}.
-$}
+%$}
 \end{equation*}
 where normalising factor $K_+^s$ is the number of playlists that include song $s$,
 and $K_-^s$ is the number of playlists that do not include song $s$.
@@ -187,12 +173,12 @@ and $K_-^s$ is the number of playlists that do not include song $s$.
 $\{\x_n, y_k\}_{n=1}^N$ for the $k$-th label.
 
 \begin{equation*}
-\resizebox{\linewidth}{!}{$
+%\resizebox{\linewidth}{!}{$
 \RCal_\textsc{col} 
 = \displaystyle \sum_{pl}
   \frac{1}{N_+^{pl}} \sum_{s \in pl} e^{-(\w_{pl}^\top \phi(s) + b)} +
   \frac{1}{N_-^{pl}} \sum_{s \notin pl} \frac{1}{p} e^{p \w_{pl}^\top \phi(s)}.
-$}
+%$}
 \end{equation*}
 where normalising factor $N_+^{pl}$ is the number of songs in playlist $pl$,
 and $N_-^{pl}$ is the number of songs in a music library that playlist $pl$ does not include.
@@ -207,18 +193,18 @@ The binary relevance baseline is learning a logistic regression for each playlis
 \begin{table}[!h]
 \centering
 \caption{Empirical results}
-\resizebox{\linewidth}{!}{
+%\resizebox{\linewidth}{!}{
 \begin{tabular}{l|ccccc}
 \toprule
 {}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & Independent L.R. & Pop-rank \\
 \midrule
 %AotM-2011     & 0.6827396 & 0.743770 & 0.7385298 & 0.6924 & 0.80199 \\
-AotM-2011     & 0.68459 & 0.747755 & 0.7429 & 0.6924 & 0.80199 \\
-30Music       &  &  &  & 0.7225 & 0.7165 \\
+AotM-2011     & 0.68459 & 0.747755 & 0.7429  & 0.6924 & 0.80199 \\
+30Music       & 0.7168  & 0.76867  & 0.76917 & 0.7225 & 0.7165 \\
 %30Music       & 0.56766179 & 0.6350941 & 0.63555 & 0.575567 & 0.80558 \\
 \bottomrule
 \end{tabular}
-}
+%}
 \end{table}
 
 \paragraph{Experimental design:}
@@ -237,20 +223,20 @@ where $N_u$ is the number of playlist user $u$ has.
 \begin{table}[!h]
 \centering
 \caption{Empirical results}
-\resizebox{\linewidth}{!}{
+%\resizebox{\linewidth}{!}{
 \begin{tabular}{l|ccc}
 \toprule
 {}            & Multi-task Reg. + $\RCal_\textsc{example}$ & Multi-task reg. + $\RCal_\textsc{label}$ \\
 \midrule
 %AotM-2011     & 0.6882099 & 0.7615590 \\
-AotM-2011     & 0.69167 &  \\
-30Music       &  &  \\
+AotM-2011     & 0.69167 & 0.7819 \\
+30Music       & 0.7177  & 0.7840 \\
 %30Music       & 0.581426 & 0.6597  \\
 %30Music       & 0.574175 & 0.667804  \\
 %AUC           & 0.66583  & 0.68517   \\
 \bottomrule
 \end{tabular}
-}
+%}
 \end{table}
 
 
