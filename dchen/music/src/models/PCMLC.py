@@ -81,7 +81,7 @@ def risk_pclassification(W, b, X, Y_pos, Y_neg, N_all, K_all, p=1, loss_type='ex
 
 def accumulate_example_loss(Wt, bt, X, Y, p, bs, PU=None, verbose=0):
     N, D = X.shape
-    K = Y.shape[1] + 0 if PU is None else PU.shape[1]
+    K = Y.shape[1] + (0 if PU is None else PU.shape[1])
     assert Wt.shape == (K, D)
     bs = N if bs > N else bs  # batch_size
     n_batches = int((N-1) / bs) + 1 
@@ -188,10 +188,10 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, PU=None, cliques=None, loss_ty
         W = w[1:].reshape(K, D)        
         
         if loss_type == 'example':
-            risks, db, dW = _accumulate_example_loss(W, b, X, Y, p, batch_size, PU, verbose=verbose)
+            risks, db, dW = accumulate_example_loss(W, b, X, Y, p, batch_size, PU, verbose=verbose)
         elif loss_type == 'label':
             if PU is None:
-                risks, db, dW = _accumulate_label_loss(W, b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
+                risks, db, dW = accumulate_label_loss(W, b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
             else:
                 K1, K2 = Y.shape[1], PU.shape[1]
                 risks1, db1, dW1 = accumulate_label_loss(W[:K1, :], b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
