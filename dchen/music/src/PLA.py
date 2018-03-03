@@ -4,11 +4,11 @@ import gzip
 import time
 import numpy as np
 import pickle as pkl
-# from sklearn.metrics import roc_auc_score
 from models import PCMLC
 
-if len(sys.argv) != 10:
-    print('Usage: python', sys.argv[0], 'WORK_DIR  DATASET  C1  C2  C3  P  N_EPOCH  LOSS_TYPE(example/label/both)  MT_REG(Y/N)')
+
+if len(sys.argv) != 11:
+    print('Usage: python', sys.argv[0], 'WORK_DIR  DATASET  C1  C2  C3  P  BATCH_SIZE  LOSS_TYPE(example/label/both)  MT_REG(Y/N)  TRAIN_DEV(Y/N)')
     sys.exit(0)
 else:
     work_dir = sys.argv[1]
@@ -17,22 +17,31 @@ else:
     C2 = float(sys.argv[4])
     C3 = float(sys.argv[5])
     p = float(sys.argv[6])
-    n_epochs = int(sys.argv[7])
+    bs = int(sys.argv[7])
     loss = sys.argv[8]
     multitask = sys.argv[9]
+    trndev = sys.argv[10]
 
 assert loss in ['example', 'label', 'both']
 assert multitask in ['Y', 'N']
+assert trndev in ['Y', 'N']
 
 data_dir = os.path.join(work_dir, 'data/%s/setting2' % dataset)
-# src_dir = os.path.join(work_dir, 'src')
-# sys.path.append(src_dir)
 
-fxtrain = os.path.join(data_dir, 'X_train.pkl.gz')
-fytrain = os.path.join(data_dir, 'Y_train.pkl.gz')
-fytrndev = os.path.join(data_dir, 'Y_train_dev.pkl.gz')
-fydev = os.path.join(data_dir, 'PU_dev.pkl.gz')
-fcliques = os.path.join(data_dir, 'cliques_train_dev.pkl.gz')
+if trndev == 'N':
+    fxtrain = os.path.join(data_dir, 'X_train.pkl.gz')
+    fytrain = os.path.join(data_dir, 'Y_train.pkl.gz')
+    fytrndev = os.path.join(data_dir, 'Y_train_dev.pkl.gz')
+    fydev = os.path.join(data_dir, 'PU_dev.pkl.gz')
+    fcliques = os.path.join(data_dir, 'cliques_train_dev.pkl.gz')
+    fmodel = os.path.join(data_dir, 'pla-%s-%s-%g-%g-%g-%g.pkl.gz' % (loss, multitask, C1, C2, C3, p))
+else:
+    fxtrain = os.path.join(data_dir, 'X_train_dev.pkl.gz')
+    fytrain = os.path.join(data_dir, 'Y_train_dev.pkl.gz')
+    fytrndev = os.path.join(data_dir, 'Y.pkl.gz')
+    fydev = os.path.join(data_dir, 'PU_test.pkl.gz')
+    fcliques = os.path.join(data_dir, 'cliques_all2.pkl.gz')
+    fmodel = os.path.join(data_dir, 'trndev-pla-%s-%s-%g-%g-%g-%g.pkl.gz' % (loss, multitask, C1, C2, C3, p))
 
 X_train = pkl.load(gzip.open(fxtrain, 'rb'))
 Y_train = pkl.load(gzip.open(fytrain, 'rb'))
@@ -46,8 +55,9 @@ else:
 
 print('C: %g, %g, %g, p: %g' % (C1, C2, C3, p))
 print(time.strftime('%Y-%m-%d %H:%M:%S'))
+
 clf = PCMLC(C1=C1, C2=C2, C3=C3, p=p, loss_type=loss)
-clf.fit_minibatch_pla3(X_train, Y_train, PUMat=PU_dev, user_playlist_indices=cliques, batch_size=256, n_epochs=n_epochs, verbose=1)
+clf.fit(X_train, Y_train, PUMat=PU_dev, user_playlist_indices=cliques, batch_size=bs, rand_init=True, verbose=1)
 
 if clf.trained is True:
     Y_dev = Y_train_dev[:, -PU_dev.shape[1]:]
@@ -70,7 +80,7 @@ if clf.trained is True:
         # hrs.append(np.sum(y_true[sortix[:top]]) / npos)
         y_ = y_true[sortix]
         rps.append(np.mean(y_[:npos]))
-    clf.dev_metric = (np.mean(rps), len(rps), Y_dev.shape[1])
-    fmodel = os.path.join(data_dir, 'pla-%s-%s-%g-%g-%g-%g.pkl.gz' % (loss, multitask, C1, C2, C3, p))
+    clf.metric_score = (np.mean(rps), len(rps), Y_dev.shape[1])
     pkl.dump(clf, gzip.open(fmodel, 'wb'))
-    print('\n%.5f, %d / %d' % clf.dev_metric)
+    print('\n%.5f, %d / %d' % clf.metric_metric)
+
