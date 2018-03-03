@@ -83,7 +83,7 @@ def risk_pclassification(W, b, X, Y_pos, Y_neg, N_all, K_all, p=1, loss_type='ex
     return costs, db, dW
 
 
-def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, PU=None, cliques=None, loss_type='example', batch_size=256):
+def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, PU=None, cliques=None, loss_type='example', batch_size=256, verbose=0):
         """
             - w : np.ndarray, current weights 
             - dw: np.ndarray, OUTPUT array for gradients of w
@@ -114,7 +114,10 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, PU=None, cliques=None, loss_ty
             risks = []
             db = 0.
             dW = np.zeros_like(Wt)
-            for nb in range(n_batches):  
+            for nb in range(n_batches):
+                if verbose > 0:
+                    sys.stdout.write('\r%d / %d %s' % (nb+1, n_batches))
+                    sys.stdout.flush()
                 ix_start = nb * bs
                 ix_end = min((nb + 1) * bs, N)
                 Xi = X[ix_start:ix_end, :]
@@ -130,6 +133,7 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, PU=None, cliques=None, loss_ty
                 risks += costsi
                 db += dbi
                 dW += dWi
+            print()
             return risks, db, dW
         
         def _accumulate_label_loss(Wt, bt, PU_only=False):
@@ -145,19 +149,23 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, PU=None, cliques=None, loss_ty
             risks = []
             db = 0.
             dW = np.zeros_like(Wt)
-            indices = np.arange(NUM)
-            for nb in range(n_batches):  
+            for nb in range(n_batches):
+                if verbose > 0:
+                    sys.stdout.write('\r%d / %d' % (nb+1, n_batches))
+                    sys.stdout.flush()
                 ix_start = nb * bs
                 ix_end = min((nb + 1) * bs, NUM)
-                ix = indices[ix_start:ix_end]
                 Xi = X
-                Yi = PU[:, ix] if PU_only is True else Y[:, ix]
+                Yi = PU[:, ix_start:ix_end] if PU_only is True else Y[:, ix_start:ix_end]
                 Yi_pos = Yi.toarray().astype(np.bool) if issparse(Yi) else Yi
                 Yi_neg = np.zeros_like(Yi_pos, dtype=np.bool) if PU_only is True else 1 - Yi_pos
-                costsi, dbi, dWi = risk_pclassification(Wt, bt, Xi, Yi_pos, Yi_neg, N, K, p=p, loss_type='label')
+                Wb = Wt[ix_start:ix_end, :]
+                costsi, dbi, dWi = risk_pclassification(Wb, bt, Xi, Yi_pos, Yi_neg, N, K, p=p, loss_type='label')
+                assert dWi.shape == Wb.shape
                 risks += costsi
                 db += dbi
-                dW[ix, :] = dWi
+                dW[ix_start:ix_end, :] = dWi
+            print()
             return risks, db, dW
 
         def _multitask_regulariser(Wt, bt, C3=1):
@@ -179,7 +187,6 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, PU=None, cliques=None, loss_ty
             cost_mt *= normparam
             dW_mt *= 2. * normparam
             return cost_mt, dW_mt
-
         
         if loss_type == 'example':
             risks, db, dW = _accumulate_example_loss(W, b)
@@ -267,20 +274,16 @@ class PCMLC(BaseEstimator):
             assert not np.logical_xor(issparse(PUMat), issparse(Y_train))
             K += PUMat.shape[1]
         if w0 is None:
-            try:
-                w0 = np.load(fnpy, allow_pickle=False)
-                print('Restore from %s' % fnpy)
-            except (IOError, ValueError):
-                w0 = np.zeros(K * D + 1)
+            w0 = np.zeros(K * D + 1)
         else:
             assert w0.shape[0] == K * D + 1
         try:
             # fmin_lbfgs(f, x0, progress=None, args=())
             # f: callable(x, g, *args)
-            # objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, PU=None, cliques=None, loss_type='example', batch_size=256)
+            # objective(w, dw, X, Y, C1, C2, C3, p, PU, cliques, loss_type, batch_size, verbose)
             res = fmin_lbfgs(objective, w0, progress=progress if verbose > 0 else None, 
-                             args=(X_train, Y_train, self.C1, self.C2, self.C3, self.p, 
-                                   PUMat, user_playlist_indices, self.loss_type, batch_size))
+                             args=(X_train, Y_train, self.C1, self.C2, self.C3, self.p, PUMat, 
+                                   user_playlist_indices, self.loss_type, batch_size, verbose))
             self.b = res[0]
             self.W = res[1:].reshape(K, D)
             self.trained = True
