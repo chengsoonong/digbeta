@@ -54,6 +54,7 @@ else:
     cliques = None
 
 print('C: %g, %g, %g, p: %g' % (C1, C2, C3, p))
+print(X_train.shape, Y_train.shape)
 print(time.strftime('%Y-%m-%d %H:%M:%S'))
 
 clf = PCMLC(C1=C1, C2=C2, C3=C3, p=p, loss_type=loss)
@@ -82,5 +83,5 @@ if clf.trained is True:
         rps.append(np.mean(y_[:npos]))
     clf.metric_score = (np.mean(rps), len(rps), Y_dev.shape[1])
     pkl.dump(clf, gzip.open(fmodel, 'wb'))
-    print('\n%.5f, %d / %d' % clf.metric_metric)
+    print('\n%.5f, %d / %d' % clf.metric_score)
 
