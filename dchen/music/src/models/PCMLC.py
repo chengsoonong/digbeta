@@ -35,12 +35,10 @@ def risk_pclassification(W, b, X, Y_pos, Y_neg, N_all, K_all, p=1, loss_type='ex
     assert Y_pos.shape == Y_neg.shape
     assert loss_type in ['example', 'label'], \
         'Valid assignment for "loss_type" are: "example", "label"'
-
     N, D = X.shape
     K = Y_pos.shape[1]
     Yp = Y_pos
     Yn = Y_neg
-
     assert W.shape == (K, D)
     if loss_type == 'example':
         assert K == K_all
@@ -81,7 +79,7 @@ def risk_pclassification(W, b, X, Y_pos, Y_neg, N_all, K_all, p=1, loss_type='ex
     db = np.sum(T5)
     return cost, db, dW
 
-def _accumulate_example_loss(Wt, bt, X, Y, p, bs, PU=None, verbose=0):
+def accumulate_example_loss(Wt, bt, X, Y, p, bs, PU=None, verbose=0):
     N, D = X.shape
     K = Y.shape[1] + 0 if PU is None else PU.shape[1]
     assert Wt.shape == (K, D)
@@ -91,7 +89,7 @@ def _accumulate_example_loss(Wt, bt, X, Y, p, bs, PU=None, verbose=0):
     db = 0.
     dW = np.zeros_like(Wt)
     for nb in range(n_batches):
-        if verbose > 0:
+        if verbose > 1:
             sys.stdout.write('\r%d / %d %s' % (nb+1, n_batches))
             sys.stdout.flush()
         ix_start = nb * bs
@@ -109,10 +107,11 @@ def _accumulate_example_loss(Wt, bt, X, Y, p, bs, PU=None, verbose=0):
         risks.append(costi)
         db += dbi
         dW += dWi
-    print()
+    if verbose > 1:
+        print()
     return risks, db, dW
 
-def _accumulate_label_loss(Wt, bt, X, Y, p, bs, YisPU=False, verbose=0):
+def accumulate_label_loss(Wt, bt, X, Y, p, bs, YisPU=False, verbose=0):
     N, D = X.shape
     K = Y.shape[1]
     assert Wt.shape == (K, D)
@@ -122,8 +121,8 @@ def _accumulate_label_loss(Wt, bt, X, Y, p, bs, YisPU=False, verbose=0):
     db = 0.
     dW = np.zeros_like(Wt)
     for nb in range(n_batches):
-        if verbose > 0:
-            sys.stdout.write('\r%d / %d %d' % (nb+1, n_batches, len(risks)))
+        if verbose > 1:
+            sys.stdout.write('\r%d / %d' % (nb+1, n_batches))
             sys.stdout.flush()
         ix_start = nb * bs
         ix_end = min((nb + 1) * bs, K)
@@ -137,10 +136,11 @@ def _accumulate_label_loss(Wt, bt, X, Y, p, bs, YisPU=False, verbose=0):
         risks.append(costi)
         db += dbi
         dW[ix_start:ix_end, :] = dWi
-    print()
+    if verbose > 1:
+        print()
     return risks, db, dW
 
-def _multitask_regulariser(Wt, bt, C3, cliques):
+def multitask_regulariser(Wt, bt, C3, cliques):
     assert cliques is not None
     denom = 0.
     cost_mt = 0.
@@ -176,6 +176,7 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, PU=None, cliques=None, loss_ty
         assert C3 > 0
         assert p > 0
         assert batch_size > 0
+        t0 = time.time()
         
         N, D = X.shape
         K = Y.shape[1]
@@ -193,23 +194,23 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, PU=None, cliques=None, loss_ty
                 risks, db, dW = _accumulate_label_loss(W, b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
             else:
                 K1, K2 = Y.shape[1], PU.shape[1]
-                risks1, db1, dW1 = _accumulate_label_loss(W[:K1, :], b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
-                risks2, db2, dW2 = _accumulate_label_loss(W[K1:, :], b, X, PU, p, batch_size, YisPU=True, verbose=verbose)
+                risks1, db1, dW1 = accumulate_label_loss(W[:K1, :], b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
+                risks2, db2, dW2 = accumulate_label_loss(W[K1:, :], b, X, PU, p, batch_size, YisPU=True, verbose=verbose)
                 risks = risks1 + risks2
                 db = db1 + db2
                 dW = np.vstack([dW1, dW2])
         else:
             assert loss_type == 'both'
             if PU is None:
-                risks, db, dW = _accumulate_label_loss(W, b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
+                risks, db, dW = accumulate_label_loss(W, b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
             else:
                 K1 = Y.shape[1]
-                risks1, db1, dW1 = _accumulate_label_loss(W[:K1, :], b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
-                risks2, db2, dW2 = _accumulate_label_loss(W[K1:, :], b, X, PU, p, batch_size, YisPU=True, verbose=verbose)
+                risks1, db1, dW1 = accumulate_label_loss(W[:K1, :], b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
+                risks2, db2, dW2 = accumulate_label_loss(W[K1:, :], b, X, PU, p, batch_size, YisPU=True, verbose=verbose)
                 risks = risks1 + risks2
                 db = db1 + db2
                 dW = np.vstack([dW1, dW2])
-            risks3, db3, dW3 = _accumulate_example_loss(W, b, X, Y, p, batch_size, PU, verbose=verbose)
+            risks3, db3, dW3 = accumulate_example_loss(W, b, X, Y, p, batch_size, PU, verbose=verbose)
             risks = np.r_[risks, np.asarray(risks3) + np.log(C2)]
             db += C2 * db3
             dW += C2 * dW3
@@ -220,17 +221,27 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, PU=None, cliques=None, loss_ty
         J += np.dot(W.ravel(), W.ravel()) * 0.5 / C1
         
         if cliques is not None:
-            cost_mt, dW_mt = _multitask_regulariser(W, b, C3, cliques)
+            cost_mt, dW_mt = multitask_regulariser(W, b, C3, cliques)
             J += cost_mt
             dW += dW_mt
+        dw[:] = np.r_[db, dW.ravel()]  # in-place assignment
         
-        dw[:] = np.r_[db, dW.ravel()]
+        if verbose > 1:
+            print('Eval f, g: %.1f seconds used.' % (time.time() - t0))
+        
         return J
 
 
-def progress(x, g, f_x, xnorm, gnorm, step, k, ls):
-    """Report optimization progress."""
-    print("x = %g  |  f(x) = %g  |  f'(x) = %g" % (x, f_x, g))
+def progress(x, g, f_x, xnorm, gnorm, step, k, ls, *args):
+    """
+        Report optimization progress.
+        progress: callable(x, g, fx, xnorm, gnorm, step, k, num_eval, *args)
+                  If not None, called at each iteration after the call to f with 
+                  the current values of x, g and f(x), the L2 norms of x and g, 
+                  the line search step, the iteration number, 
+                  the number of evaluations at this iteration and args.
+    """
+    print('Iter {:3d}:  f = {:15.9f},  |g| = {:15.9f},  {}'.format(k, f_x, gnorm, time.strftime('%Y-%m-%d %H:%M:%S')))
     
         
 class PCMLC(BaseEstimator):
@@ -252,7 +263,7 @@ class PCMLC(BaseEstimator):
         self.cost = []
         self.trained = False
 
-    def fit(self, X_train, Y_train, PUMat=None, user_playlist_indices=None, w0=None, batch_size=256, verbose=0):
+    def fit(self, X_train, Y_train, PUMat=None, user_playlist_indices=None, batch_size=256, w0=None, rand_init=False, verbose=0):
         """
             Model fitting by mini-batch Gradient Descent.
             - PUMat: indicator matrix for additional labels with only positive observations.
@@ -268,10 +279,17 @@ class PCMLC(BaseEstimator):
             assert PUMat.shape[0] == Y_train.shape[0]
             assert not np.logical_xor(issparse(PUMat), issparse(Y_train))
             K += PUMat.shape[1]
-        if w0 is None:
-            w0 = np.zeros(K * D + 1)
-        else:
+        if w0 is not None:
             assert w0.shape[0] == K * D + 1
+        else:
+            if rand_init is True:
+                if PUMat is None:
+                    w0 = 0.001 * np.random.randn(K * D + 1)
+                else:
+                    K1, K2 = Y_train.shape[1], PUMat.shape[1]
+                    w0 = np.r_[np.zeros(K1 * D + 1), 0.001 * np.random.randn(K2 * D)]
+            else:
+                w0 = np.zeros(K * D + 1)
         try:
             # fmin_lbfgs(f, x0, progress=None, args=())
             # f: callable(x, g, *args)
