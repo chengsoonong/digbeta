@@ -73,16 +73,94 @@ def risk_pclassification(W, b, X, Y_pos, Y_neg, N_all, K_all, p=1, loss_type='ex
     T3 = np.multiply(Yn, p * T1)
     
     lognum = np.log(num)
-    # cost = logsumexp((T2 + T3 - Tp - Tn).ravel()) - lognum
+    cost = logsumexp((T2 + T3 - Tp - Tn).ravel()) - lognum
     # cost = logsumexp((T2 + T3 - Tp - Tn - lognum).ravel())  # the same as above
     # T5 = -np.multiply(P, np.exp(T2 - cost)) + np.multiply(Q, np.exp(T3 - cost))
-    costs = (T2 + T3 - Tp - Tn).ravel().tolist()
     T5 = -np.multiply(P, np.exp(T2 - lognum)) + np.multiply(Q, np.exp(T3 - lognum))
     dW = np.dot(T5.T, X)
     db = np.sum(T5)
-    return costs, db, dW
+    return cost, db, dW
 
+def _accumulate_example_loss(Wt, bt, X, Y, p, bs, PU=None, verbose=0):
+    N, D = X.shape
+    K = Y.shape[1] + 0 if PU is None else PU.shape[1]
+    assert Wt.shape == (K, D)
+    bs = N if bs > N else bs  # batch_size
+    n_batches = int((N-1) / bs) + 1 
+    risks = []
+    db = 0.
+    dW = np.zeros_like(Wt)
+    for nb in range(n_batches):
+        if verbose > 0:
+            sys.stdout.write('\r%d / %d %s' % (nb+1, n_batches))
+            sys.stdout.flush()
+        ix_start = nb * bs
+        ix_end = min((nb + 1) * bs, N)
+        Xi = X[ix_start:ix_end, :]
+        Yi = Y[ix_start:ix_end, :]
+        Yi_pos = Yi.toarray().astype(np.bool) if issparse(Yi) else Yi
+        Yi_neg = 1 - Yi_pos
+        if PU is not None:
+            PUi = PU[ix_start:ix_end, :]
+            PUi = PUi.toarray().astype(np.bool) if issparse(PU) else PUi
+            Yi_pos = np.hstack([Yi_pos, PUi])
+            Yi_neg = np.hstack([Yi_neg, np.zeros_like(PUi, dtype=np.bool)])
+        costi, dbi, dWi = risk_pclassification(Wt, bt, Xi, Yi_pos, Yi_neg, N, K, p=p, loss_type='example')
+        risks.append(costi)
+        db += dbi
+        dW += dWi
+    print()
+    return risks, db, dW
 
+def _accumulate_label_loss(Wt, bt, X, Y, p, bs, YisPU=False, verbose=0):
+    N, D = X.shape
+    K = Y.shape[1]
+    assert Wt.shape == (K, D)
+    bs = K if bs > K else bs  # batch_size
+    n_batches = int((K-1) / bs) + 1 
+    risks = []
+    db = 0.
+    dW = np.zeros_like(Wt)
+    for nb in range(n_batches):
+        if verbose > 0:
+            sys.stdout.write('\r%d / %d %d' % (nb+1, n_batches, len(risks)))
+            sys.stdout.flush()
+        ix_start = nb * bs
+        ix_end = min((nb + 1) * bs, K)
+        Xi = X
+        Yi = Y[:, ix_start:ix_end]
+        Yi_pos = Yi.toarray().astype(np.bool) if issparse(Yi) else Yi
+        Yi_neg = np.zeros_like(Yi_pos, dtype=np.bool) if YisPU is True else 1 - Yi_pos
+        Wb = Wt[ix_start:ix_end, :]
+        costi, dbi, dWi = risk_pclassification(Wb, bt, Xi, Yi_pos, Yi_neg, N, K, p=p, loss_type='label')
+        assert dWi.shape == Wb.shape
+        risks.append(costi)
+        db += dbi
+        dW[ix_start:ix_end, :] = dWi
+    print()
+    return risks, db, dW
+
+def _multitask_regulariser(Wt, bt, C3, cliques):
+    assert cliques is not None
+    denom = 0.
+    cost_mt = 0.
+    dW_mt = np.zeros_like(Wt)
+    for pls in cliques:
+        # if len(pls) < 2: continue
+        # assert len(pls) > 1  # trust the input
+        npl = len(pls)
+        denom += npl * (npl - 1)
+        M = -1 * np.ones((npl, npl), dtype=np.float)
+        np.fill_diagonal(M, npl-1)
+        Wu = Wt[pls, :]
+        cost_mt += np.multiply(M, np.dot(Wu, Wu.T)).sum()
+        dW_mt[pls, :] = np.dot(M, Wu)  # assume one playlist belongs to only one user
+    normparam = 1. / (C3 * denom)
+    cost_mt *= normparam
+    dW_mt *= 2. * normparam
+    return cost_mt, dW_mt
+
+        
 def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, PU=None, cliques=None, loss_type='example', batch_size=256, verbose=0):
         """
             - w : np.ndarray, current weights 
@@ -106,116 +184,33 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, PU=None, cliques=None, loss_ty
             K += PU.shape[1]
         assert w.shape[0] == K * D + 1
         b = w[0]
-        W = w[1:].reshape(K, D)
-        
-        def _accumulate_example_loss(Wt, bt):
-            bs = N if batch_size > N else batch_size
-            n_batches = int((N-1) / bs) + 1 
-            risks = []
-            db = 0.
-            dW = np.zeros_like(Wt)
-            for nb in range(n_batches):
-                if verbose > 0:
-                    sys.stdout.write('\r%d / %d %s' % (nb+1, n_batches))
-                    sys.stdout.flush()
-                ix_start = nb * bs
-                ix_end = min((nb + 1) * bs, N)
-                Xi = X[ix_start:ix_end, :]
-                Yi = Y[ix_start:ix_end, :]
-                Yi_pos = Yi.toarray().astype(np.bool) if issparse(Yi) else Yi
-                Yi_neg = 1 - Yi_pos
-                if PU is not None:
-                    PUi = PU[ix_start:ix_end, :]
-                    PUi = PUi.toarray().astype(np.bool) if issparse(PU) else PUi
-                    Yi_pos = np.hstack([Yi_pos, PUi])
-                    Yi_neg = np.hstack([Yi_neg, np.zeros_like(PUi, dtype=np.bool)])
-                costsi, dbi, dWi = risk_pclassification(Wt, bt, Xi, Yi_pos, Yi_neg, N, K, p=p, loss_type='example')
-                risks += costsi
-                db += dbi
-                dW += dWi
-            print()
-            return risks, db, dW
-        
-        def _accumulate_label_loss(Wt, bt, PU_only=False):
-            if PU_only is True:
-                assert PU is not None
-                assert Wt.shape[0] == PU.shape[1]
-                NUM = PU.shape[1]
-            else:
-                assert Wt.shape[0] == Y.shape[1]
-                NUM = Y.shape[1]
-            bs = NUM if batch_size > NUM else batch_size
-            n_batches = int((NUM-1) / bs) + 1 
-            risks = []
-            db = 0.
-            dW = np.zeros_like(Wt)
-            for nb in range(n_batches):
-                if verbose > 0:
-                    sys.stdout.write('\r%d / %d' % (nb+1, n_batches))
-                    sys.stdout.flush()
-                ix_start = nb * bs
-                ix_end = min((nb + 1) * bs, NUM)
-                Xi = X
-                Yi = PU[:, ix_start:ix_end] if PU_only is True else Y[:, ix_start:ix_end]
-                Yi_pos = Yi.toarray().astype(np.bool) if issparse(Yi) else Yi
-                Yi_neg = np.zeros_like(Yi_pos, dtype=np.bool) if PU_only is True else 1 - Yi_pos
-                Wb = Wt[ix_start:ix_end, :]
-                costsi, dbi, dWi = risk_pclassification(Wb, bt, Xi, Yi_pos, Yi_neg, N, K, p=p, loss_type='label')
-                assert dWi.shape == Wb.shape
-                risks += costsi
-                db += dbi
-                dW[ix_start:ix_end, :] = dWi
-            print()
-            return risks, db, dW
-
-        def _multitask_regulariser(Wt, bt, C3=1):
-            assert cliques is not None
-            denom = 0.
-            cost_mt = 0.
-            dW_mt = np.zeros_like(Wt)
-            for pls in cliques:
-                # if len(pls) < 2: continue
-                # assert len(pls) > 1  # trust the input
-                npl = len(pls)
-                denom += npl * (npl - 1)
-                M = -1 * np.ones((npl, npl), dtype=np.float)
-                np.fill_diagonal(M, npl-1)
-                Wu = Wt[pls, :]
-                cost_mt += np.multiply(M, np.dot(Wu, Wu.T)).sum()
-                dW_mt[pls, :] = np.dot(M, Wu)  # assume one playlist belongs to only one user
-            normparam = 1. / (C3 * denom)
-            cost_mt *= normparam
-            dW_mt *= 2. * normparam
-            return cost_mt, dW_mt
+        W = w[1:].reshape(K, D)        
         
         if loss_type == 'example':
-            risks, db, dW = _accumulate_example_loss(W, b)
-            risks = np.asarray(risks) - np.log(N)
+            risks, db, dW = _accumulate_example_loss(W, b, X, Y, p, batch_size, PU, verbose=verbose)
         elif loss_type == 'label':
             if PU is None:
-                risks, db, dW = _accumulate_label_loss(W, b, PU_only=False)
-                risks = np.asarray(risks) - np.log(K)
+                risks, db, dW = _accumulate_label_loss(W, b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
             else:
                 K1, K2 = Y.shape[1], PU.shape[1]
-                risks1, db1, dW1 = _accumulate_label_loss(W[:K1, :], b, PU_only=False)
-                risks2, db2, dW2 = _accumulate_label_loss(W[K1:, :], b, PU_only=True)
-                risks = np.asarray(risks1 + risks2) - np.log(K1 + K2)
+                risks1, db1, dW1 = _accumulate_label_loss(W[:K1, :], b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
+                risks2, db2, dW2 = _accumulate_label_loss(W[K1:, :], b, X, PU, p, batch_size, YisPU=True, verbose=verbose)
+                risks = risks1 + risks2
                 db = db1 + db2
                 dW = np.vstack([dW1, dW2])
         else:
             assert loss_type == 'both'
             if PU is None:
-                risks, db, dW = _accumulate_label_loss(W, b, PU_only=False)
-                risks = np.asarray(risks) - np.log(K)
+                risks, db, dW = _accumulate_label_loss(W, b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
             else:
-                K1, K2 = Y.shape[1], PU.shape[1]
-                risks1, db1, dW1 = _accumulate_label_loss(W[:K1, :], b, PU_only=False)
-                risks2, db2, dW2 = _accumulate_label_loss(W[K1:, :], b, PU_only=True)
-                risks = np.asarray(risks1 + risks2) - np.log(K1 + K2)
+                K1 = Y.shape[1]
+                risks1, db1, dW1 = _accumulate_label_loss(W[:K1, :], b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
+                risks2, db2, dW2 = _accumulate_label_loss(W[K1:, :], b, X, PU, p, batch_size, YisPU=True, verbose=verbose)
+                risks = risks1 + risks2
                 db = db1 + db2
                 dW = np.vstack([dW1, dW2])
-            risks3, db3, dW3 = _accumulate_example_loss(W, b)
-            risks = np.r_[risks, np.asarray(risks3) - np.log(N) + np.log(C2)]
+            risks3, db3, dW3 = _accumulate_example_loss(W, b, X, Y, p, batch_size, PU, verbose=verbose)
+            risks = np.r_[risks, np.asarray(risks3) + np.log(C2)]
             db += C2 * db3
             dW += C2 * dW3
         J = logsumexp(risks)
@@ -225,7 +220,7 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, PU=None, cliques=None, loss_ty
         J += np.dot(W.ravel(), W.ravel()) * 0.5 / C1
         
         if cliques is not None:
-            cost_mt, dW_mt = _multitask_regulariser(W, b, C3=C3)
+            cost_mt, dW_mt = _multitask_regulariser(W, b, C3, cliques)
             J += cost_mt
             dW += dW_mt
         
