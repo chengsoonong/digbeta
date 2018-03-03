@@ -6,6 +6,25 @@ from joblib import Parallel, delayed
 from scipy.sparse import issparse
 
 
+def calc_RPrecision_HitRate(y_true, y_pred, tops=[100]):
+    """
+        Compute R-Precision and Hit-Rate at top-N.
+    """
+    assert y_true.ndim == y_pred.ndim == 1
+    assert len(y_true) == len(y_pred)
+    assert type(tops) == list
+    hitrates = dict()
+    sortix = np.argsort(-y_pred)
+    npos = y_true.sum()
+    assert npos > 0
+    y_ = y_true[sortix]
+    rp = np.mean(y_[:npos])
+    for top in tops:
+        assert 0 < top <= len(y_true)
+        hitrates[top] = np.sum(y_true[sortix[:top]]) / npos
+    return (rp, hitrates)
+
+
 def evaluate_minibatch(clf, eval_func, X_test, Y_test, threshold=None, transposeY=False, batch_size=100, verbose=0):
     assert X_test.shape[0] == Y_test.shape[0]
 
@@ -171,6 +190,7 @@ def evalPred(truth, pred, metricType='Precision@K'):
         k = metricType[1]
         assert k > 0
         assert k <= L
+        assert nPos > 0
 
         # sorted indices of the labels most likely to be +'ve
         idx = np.argsort(pred)[::-1]
@@ -179,7 +199,8 @@ def evalPred(truth, pred, metricType='Precision@K'):
         y = truth[idx]
 
         # fraction of +'ves in the top K predictions
-        return np.mean(y[:k]) if nPos > 0 else 0
+        # return np.mean(y[:k]) if nPos > 0 else 0
+        return np.mean(y[:k])
 
     elif metricType == 'Subset01':
         return 1 - int(np.all(truth == predBin))
@@ -213,6 +234,7 @@ def evalPred(truth, pred, metricType='Precision@K'):
         return np.mean(pred[negInd] >= np.min(pred[posInd]))
 
     elif metricType == 'Precision@K':
+        assert nPos > 0
         # sorted indices of the labels most likely to be +'ve
         idx = np.argsort(pred)[::-1]
 
@@ -220,7 +242,7 @@ def evalPred(truth, pred, metricType='Precision@K'):
         y = truth[idx]
 
         # fraction of +'ves in the top K predictions
-        return np.mean(y[:nPos]) if nPos > 0 else 1
+        return np.mean(y[:nPos])
 
     # elif metricType == 'Precision@3':
     #    # sorted indices of the labels most likely to be +'ve
