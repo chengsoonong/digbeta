@@ -1,4 +1,4 @@
-from .datasets import *
+from .dataset import *
 from .evaluate import *
 from .hdf5_getters import *
 from .util import *
