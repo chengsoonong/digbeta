@@ -73,19 +73,19 @@ def _load_bookmarks_data(train_data=True):
         # load train data
         for k in range(1, 6):
             data_dict = torchfile.load(os.path.join(data_dir, 'bookmarks/bookmarks-train-%d.torch' % k))
-            labels = np.concatenate([labels, data_dict[b'labels']], axis=0)
             features = np.concatenate([features, data_dict[b'data'][:, 0:_bookmarks_nFeatures]], axis=0)
+            labels = np.concatenate([labels, data_dict[b'labels']], axis=0)
 
         # load dev data
         data_dict = torchfile.load(os.path.join(data_dir, 'bookmarks/bookmarks-dev.torch'))
-        labels = np.concatenate([labels, data_dict[b'labels']], axis=0)
         features = np.concatenate([features, data_dict[b'data'][:, 0:_bookmarks_nFeatures]], axis=0)
+        labels = np.concatenate([labels, data_dict[b'labels']], axis=0)
 
     else:
         # load test data
         for k in range(1, 4):
             data_dict = torchfile.load(os.path.join(data_dir, 'bookmarks/bookmarks-test-%d.torch' % k))
-            labels = np.concatenate([labels, data_dict[b'labels']], axis=0)
             features = np.concatenate([features, data_dict[b'data'][:, 0:_bookmarks_nFeatures]], axis=0)
-    return features, labels
+            labels = np.concatenate([labels, data_dict[b'labels']], axis=0)
+    return features, labels.astype(np.bool)
 
