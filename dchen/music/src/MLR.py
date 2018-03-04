@@ -72,7 +72,8 @@ if clf.trained is True:
         #    sys.stdout.write('\r%d / %d' % (j+1, Y_dev.shape[1]))
         #    sys.stdout.flush()
         y_true = Y_dev[:, j].toarray().reshape(-1)
-        if y_true.sum() < 1: continue
+        npos = y_true.sum()
+        if npos < 1: continue
         wj = W[j, :].reshape(-1)
         y_pred = np.dot(X_dev, wj) + b
         sortix = np.argsort(-y_pred)
