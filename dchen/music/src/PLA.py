@@ -58,8 +58,10 @@ print(X_train.shape, Y_train.shape)
 print(time.strftime('%Y-%m-%d %H:%M:%S'))
 
 if os.path.exists(fmodel):
+    print('evaluating ...')
     clf = pkl.load(gzip.open(fmodel, 'rb'))  # for evaluation
 else:
+    print('training ...')
     clf = PCMLC(C1=C1, C2=C2, C3=C3, p=p, loss_type=loss)
     clf.fit(X_train, Y_train, PUMat=PU_dev, user_playlist_indices=cliques, batch_size=bs, rand_init=True, verbose=1)
 
