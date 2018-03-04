@@ -54,10 +54,14 @@ else:
     cliques = None
 
 print('C: %g, %g, %g, p: %g' % (C1, C2, C3, p))
+print(X_train.shape, Y_train.shape)
 print(time.strftime('%Y-%m-%d %H:%M:%S'))
 
-clf = PCMLC(C1=C1, C2=C2, C3=C3, p=p, loss_type=loss)
-clf.fit(X_train, Y_train, user_playlist_indices=cliques, batch_size=bs, rand_init=True, verbose=1)
+if os.path.exists(fmodel):
+    clf = pkl.load(gzip.open(fmodel, 'rb'))   # for evaluation
+else:
+    clf = PCMLC(C1=C1, C2=C2, C3=C3, p=p, loss_type=loss)
+    clf.fit(X_train, Y_train, user_playlist_indices=cliques, batch_size=bs, rand_init=True, verbose=1)
 
 if clf.trained is True:
     W = clf.W
