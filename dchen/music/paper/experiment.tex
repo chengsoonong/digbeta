@@ -4,22 +4,51 @@
 \section{Experiment}
 \label{sec:experiment}
 
-We first evaluate the proposed method on the task of tagging text, 
-using two standard multi-label classification dataset~\cite{katakis2008multilabel}.
+We first evaluate the proposed method on the task of tag recommendation from text data,
+which was formulated as multi-label classification problem~\cite{katakis2008multilabel}.
 
-\subsection{Multi-label classification}
+\subsection{Tag recommendation as multi-label classification}
 
-Performance on multi-label dataset\footnote{Results of PRLR are taken from~\cite{lin2014multi}.}
-are shown in terms of F$_1$ scores averaged over both examples and labels, 
-as well as precision at $k$ which focus on the top-$k$ predictions.
+We experiment on two dataset, \texttt{bibtex} and \texttt{bookmarks}~\cite{katakis2008multilabel}.
+The performance are evaluated on classification metrics, \ie F$_1$ scores averaged over either examples or labels 
+(which are also known as instance-F$_1$ and macro-F$_1$, respectively),
+as well as ranking metric, \ie R-Precision (averaged over either examples or labels).
 
-The results are summarised in Table~\ref{tab:perf_mlc},
-where the multi-label p-classification method output performance the binary relevance baseline by a large margin.
-Further, it achieves better performance than (\cite{lin2014multi}) which encourages sparse and low-rank predictions.
-Finally, it is encouraging that our method performs better than (\cite{belanger2016structured}) and (\cite{gygli2017deep}),
-both work learn complex non-linear functions using deep neural networks, compared with our method which uses a linear function.
+\paragraph{Baselines}
+We compare our method with four baselines.
+\begin{itemize}
+\item Logistic regression: independently learn a logistic regression classifier for each label, (a.k.a binary relevance).
+\item PRLR~\cite{lin2014multi}: a multi-label classifier with a regulariser which encourages sparse and low-rank predictions.
+\item SPEN~\cite{belanger2016structured}: a structured prediction framework which employs a deep network to represent the energy function,
+      and predictions are produced by minimising the energy.
+\item DVN~\cite{gygli2017deep}: a structured prediction method which uses a deep value network to distill the knowledge of a given loss function,
+      which is the F$_1$ score (averaged over examples) in this task.
+\end{itemize}
 
-\TODO show the performance with row-wise weighting, column-wise weighting and with both.
+We implemented Logistic regression using scikit-learn~\cite{}.
+The results of SPEN and DVN are reproduced using the coded released the authors,
+and the results of PRLR are taken from \cite{lin2014multi}.
+
+%$\RCal_\textsc{example}$ 
+For the proposed method, we used a linear score function $f(\x) = \w_k^\top \x + b$ for the $k$-th label,
+and the empirical risk was minimised with L2 regularisation using LBFGS provided by Scipy~\cite{},
+and hyper-parameters were tuned using 5-fold cross validation.
+
+\paragraph{Result analysis}
+The results on test set are summarised in Table~\ref{tab:perf_mlc},
+\begin{itemize}
+\item $\RCal_\textsc{example}$ outperform the independent logistic regression baseline by a large margin.
+\item $\RCal_\textsc{example}$ also achieves better performance than PRLR~\cite{lin2014multi} which regularisation specific to multi-label classification.
+\item Finally, it is encouraging that our method performs better than (\cite{belanger2016structured}) and (\cite{gygli2017deep}),
+both work learn complex non-linear functions using deep neural networks to achieve state-of-the-art performance, while our method uses a linear function.
+\end{itemize}
+
+\TODO
+\begin{itemize}
+\item evaluation metric: add R-Precision averaged over both examples and labels, remove AUC.
+\item results of more variants: $\RCal_\textsc{label}$ and $\RCal_\textsc{both}$?
+\end{itemize}
+
 
 \begin{table}[!h]
 \centering
