@@ -6,19 +6,21 @@ from joblib import Parallel, delayed
 from scipy.sparse import issparse
 
 
-def calc_RPrecision_HitRate(y_true, y_pred, tops=[100]):
+def calc_RPrecision_HitRate(y_true, y_pred, tops=[]):
     """
         Compute R-Precision and Hit-Rate at top-N.
     """
     assert y_true.ndim == y_pred.ndim == 1
     assert len(y_true) == len(y_pred)
     assert type(tops) == list
-    hitrates = dict()
     sortix = np.argsort(-y_pred)
     npos = y_true.sum()
     assert npos > 0
     y_ = y_true[sortix]
     rp = np.mean(y_[:npos])
+    if len(tops) == 0:
+        return (rp, None)
+    hitrates = dict()
     for top in tops:
         assert 0 < top <= len(y_true)
         hitrates[top] = np.sum(y_true[sortix[:top]]) / npos
