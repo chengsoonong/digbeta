@@ -51,32 +51,29 @@ def risk_pclassification(W, b, X, Y_pos, Y_neg, N_all, K_all, p=1, loss_type='ex
         ax = 0
         shape = (1, K)
         num = K_all
-    numPosAll = np.sum(Yp, axis=ax)
-    numNegAll = np.sum(Yn, axis=ax)
-    pnumNegAll = p * numNegAll
-    zero_pix = np.where(numPosAll == 0)[0]
-    zero_nix = np.where(numNegAll == 0)[0]
-    if zero_pix.shape[0] > 0:
-        numPosAll[zero_pix] = 1
-    if zero_nix.shape[0] > 0:
-        numNegAll[zero_nix] = 1
-        pnumNegAll[zero_nix] = 1
-    Tp = Yp * np.log(numPosAll).reshape(shape)
-    Tn = Yn * np.log(pnumNegAll).reshape(shape)
-    P = Yp * np.divide(1, numPosAll).reshape(shape)
-    Q = Yn * np.divide(1, numNegAll).reshape(shape)
+    numPos = np.sum(Yp, axis=ax)
+    numNeg = np.sum(Yn, axis=ax)
 
-    T1 = np.dot(X, W.T) + b  # N by K
-    T2 = np.multiply(Yp, -T1)
-    T3 = np.multiply(Yn, p * T1)
-    
-    lognum = np.log(num)
-    cost = logsumexp((T2 + T3 - Tp - Tn).ravel()) - lognum
-    # cost = logsumexp((T2 + T3 - Tp - Tn - lognum).ravel())  # the same as above
-    # T5 = -np.multiply(P, np.exp(T2 - cost)) + np.multiply(Q, np.exp(T3 - cost))
-    T5 = -np.multiply(P, np.exp(T2 - lognum)) + np.multiply(Q, np.exp(T3 - lognum))
-    dW = np.dot(T5.T, X)
-    db = np.sum(T5)
+    # deal with zeros
+    # P = 1 / numPos, Q = 1 / numNeg
+    nz_pix = np.nonzero(numPos)[0]
+    nz_nix = np.nonzero(numNeg)[0]
+    P = np.zeros_like(numPos, dtype=np.float)
+    Q = np.zeros_like(numNeg, dtype=np.float)
+    P[nz_pix] = 1. / numPos[nz_pix]
+    Q[nz_nix] = 1. / numNeg[nz_nix]
+    P = P.reshape(shape)
+    Q = Q.reshape(shape)
+
+    T1 = np.dot(X, W.T) + b
+    T1p = np.multiply(Yp, T1)
+    T1n = np.multiply(Yn, T1)
+    T2 = np.multiply(Yp, np.exp(-T1p)) * P
+    T3 = np.multiply(Yn, np.exp(p * T1n)) * Q
+
+    cost = np.sum(T2 + T3 / p) / num
+    db = np.sum(-T2 + T3) / num
+    dW = np.dot((-T2 + T3).T, X) / num
     return cost, db, dW
 
 def accumulate_example_loss(Wt, bt, X, Y, p, bs, PU=None, verbose=0):
@@ -90,7 +87,7 @@ def accumulate_example_loss(Wt, bt, X, Y, p, bs, PU=None, verbose=0):
     dW = np.zeros_like(Wt)
     for nb in range(n_batches):
         if verbose > 1:
-            sys.stdout.write('\r%d / %d %s' % (nb+1, n_batches))
+            sys.stdout.write('\r%d / %d' % (nb+1, n_batches))
             sys.stdout.flush()
         ix_start = nb * bs
         ix_end = min((nb + 1) * bs, N)
@@ -211,19 +208,17 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, PU=None, cliques=None, loss_ty
                 db = db1 + db2
                 dW = np.vstack([dW1, dW2])
             risks3, db3, dW3 = accumulate_example_loss(W, b, X, Y, p, batch_size, PU, verbose=verbose)
-            risks = np.r_[risks, np.asarray(risks3) + np.log(C2)]
+            risks = np.r_[risks, C2 * np.asarray(risks3)]
             db += C2 * db3
             dW += C2 * dW3
-        J = logsumexp(risks)
-        denom = np.exp(J)
-        db /= denom
-        dW = W / C1 + dW / denom
-        J += np.dot(W.ravel(), W.ravel()) * 0.5 / C1
+        J = np.sum(risks) + np.dot(W.ravel(), W.ravel()) * 0.5 / C1
+        dW += W / C1
         
         if cliques is not None:
             cost_mt, dW_mt = multitask_regulariser(W, b, C3, cliques)
             J += cost_mt
             dW += dW_mt
+
         dw[:] = np.r_[db, dW.ravel()]  # in-place assignment
         
         if verbose > 1:
@@ -273,6 +268,7 @@ class PCMLC(BaseEstimator):
             The former does not touch the weights corresponding to PUMat, and is the same as fit_minibatch_mlr().
         """
         assert X_train.shape[0] == Y_train.shape[0]
+        assert PUMat is None  # do not use this param
         N, D = X_train.shape
         K = Y_train.shape[1]
         if PUMat is not None:
