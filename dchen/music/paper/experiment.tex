@@ -76,26 +76,60 @@ MLR (Ours)                         &          ${\bf 47.0}$ & ${\bf 38.8}$ & ${\b
 
 \subsection{New song recommendation}
 
-{\bf Task:} 
+\paragraph{Task:} 
 We are interested in the task of recommending newly released songs to users,
-in particular, to augment users' existing playlists with newly released songs.
+in particular, to augment users' existing playlists with these songs,
+which is a cold-start problem.
 
-{\bf Experimental design:} 
-We hold 40\% of latest released songs in AotM-2011~\cite{mcfee2012hypergraph} playlist dataset,
-and half of that were used for testing and the other half for validation.
-Given a new song which does not appeared in any playlist, 
-we predict, for each playlist, whether to include it or not.
+\paragraph{Problem formulation:}
+We formulate the task of recommending newly released songs to augment existing playlists
+as a multi-label classification problem, where we predict, for each song, 
+whether it will be included in a given playlist.
+This formulation is illustrated in Figure~\ref{fig:mlr},
+where rows represent songs (from top to bottom, sorted by the release date in ascending order)
+and columns represent playlists (no specific order).
+Further, rows with white colour represent songs in training set, and rows with grey colour represent songs in test set.
+If entry $(i, j)$ is \texttt{1} (or \texttt{0}), it means the $i$-th song is (or not) found in the $j$-th playlist,
+otherwise, we do not know whether the $i$-th song is found in the $j$-th playlist (\ie entry $(i, j)$ is a question mark \texttt{?}).
 
+
+\TODO
+{\it Formulas for each variant.
 The objective is the same as $\RCal_\textsc{row}$ and $\RCal_\textsc{col}$ except that,
 for the playlists that we choose to hold the later half, all we observed is the first half, 
 all other songs for these playlists are unobserved (they can be positive/negative examples),
 this is different from the case that we explicitly observed that songs are not in playlists (they are negative examples).
+}
 
 
-\subsubsection{A few conclusions}
+\input{fig_mlr}
+
+\paragraph{Dataset:}
+We make use of publicly available playlist dataset: the AotM-2011~\cite{mcfee2012hypergraph} and 30Music~\cite{30music2015} playlist dataset. \\
+%
+{\bf AotM-2011 Dataset} is a collection of playlists shared by users\footnote{\url{http://www.artofthemix.org}} ranging from 1998 to 2011, 
+songs in the dataset had been matched to those in the Million Song Dataset (MSD)~\cite{msd2011}.
+We filtered out playlists with less than 5 songs, which results in roughly 84K playlists over 114K songs from 14K users. \\
+%
+{\bf 30Music Dataset} is a collection of listening events and playlists retrieved from Last.fm\footnote{\url{https://www.last.fm}}.
+We utilise the playlists data by first intersecting with the MSD, leveraging the Last.fm dataset~\cite{lastfmdataset} 
+which matched songs from Last.fm with those in MSD, then filtering out playlists with less than 5 songs, 
+which results in roughly 17K playlists over 45K songs from 8K users.
+
+We make use of the audio features of songs provided by MSD, 
+and genre data from the Top-MAGD genre dataset~\cite{schindler2012facilitating} and tagtraum genre annotations for MSD~\cite{schreiber2015improving},
+which results in 202 audio features and 15 one-hot encoding for genres.
+
+%% details for compute song features.
+%% - temporal audio features: use 5-number (percentiles) summary: min, max, median, Q1 and Q3.
+%% - missing genre: imputed using the mean values of the genre
+
+Table~\ref{tab:stats_newsongrec} summarises the statistics of the two dataset used for this task.
+
 \begin{table}[!h]
 \centering
 \caption{Statistics of dataset}
+\label{tab:stats_newsongrec}
 %\resizebox{\linewidth}{!}{
 \begin{tabular}{ccccccc}
 \toprule
@@ -103,11 +137,19 @@ Dataset & \#Users & \#Songs (train/dev/test) & \#Playlists & \#Song Features \\
 \midrule
 AotM-2011 & 14,182  & 68,657 / 22,885 / 22,886 & 84,710 & 217 \\
 30Music   & 8,070   & 27,281 / 9,093 / 9,094   & 17,457 & 217 \\
-%30Music   & 11,339  & 31,296 / 10,431 / 10,432 & 29,803 & 217 \\
 \bottomrule
 \end{tabular}
 %}
 \end{table}
+
+
+\paragraph{Experimental design:}
+For each dataset, we hold (a random) half of the 40\% latest released songs for test,
+and other half as validation set, the remaining 60\% of songs are used for training.
+All playlists in the dataset are used for this task.
+
+
+\subsubsection{A few conclusions}
 
 \paragraph{Which type of loss is most helpful?}
 \begin{table}[!h]
