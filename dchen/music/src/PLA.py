@@ -4,6 +4,7 @@ import gzip
 import time
 import numpy as np
 import pickle as pkl
+from scipy.sparse import hstack
 from models import PCMLC
 
 
@@ -34,14 +35,17 @@ if trndev == 'N':
     fytrndev = os.path.join(data_dir, 'Y_train_dev.pkl.gz')
     fydev = os.path.join(data_dir, 'PU_dev.pkl.gz')
     fcliques = os.path.join(data_dir, 'cliques_train_dev.pkl.gz')
-    fmodel = os.path.join(data_dir, 'pla-%s-%s-%g-%g-%g-%g.pkl.gz' % (loss, multitask, C1, C2, C3, p))
+    fprefix = 'pla-%s-%s-%g-%g-%g-%g' % (loss, multitask, C1, C2, C3, p)
 else:
     fxtrain = os.path.join(data_dir, 'X_train_dev.pkl.gz')
     fytrain = os.path.join(data_dir, 'Y_train_dev.pkl.gz')
     fytrndev = os.path.join(data_dir, 'Y.pkl.gz')
     fydev = os.path.join(data_dir, 'PU_test.pkl.gz')
     fcliques = os.path.join(data_dir, 'cliques_all2.pkl.gz')
-    fmodel = os.path.join(data_dir, 'trndev-pla-%s-%s-%g-%g-%g-%g.pkl.gz' % (loss, multitask, C1, C2, C3, p))
+    fprefix = 'trndev-pla-%s-%s-%g-%g-%g-%g' % (loss, multitask, C1, C2, C3, p)
+    
+fmodel = os.path.join(data_dir, '%s.pkl.gz' % fprefix)
+fnpy = os.path.join(data_dir, '%s.npy' % fprefix)
 
 X_train = pkl.load(gzip.open(fxtrain, 'rb'))
 Y_train = pkl.load(gzip.open(fytrain, 'rb'))
@@ -63,7 +67,8 @@ if os.path.exists(fmodel):
 else:
     print('training ...')
     clf = PCMLC(C1=C1, C2=C2, C3=C3, p=p, loss_type=loss)
-    clf.fit(X_train, Y_train, PUMat=PU_dev, user_playlist_indices=cliques, batch_size=bs, rand_init=True, verbose=1)
+    Y = hstack([Y_train, PU_dev]).tocsc().astype(np.bool)
+    clf.fit(X_train, Y, user_playlist_indices=cliques, batch_size=bs, verbose=2, fnpy=fnpy)
 
 if clf.trained is True:
     Y_dev = Y_train_dev[:, -PU_dev.shape[1]:]

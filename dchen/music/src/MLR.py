@@ -33,15 +33,18 @@ if trndev == 'N':
     fytrain = os.path.join(data_dir, 'Y_train.pkl.gz')
     fxdev = os.path.join(data_dir, 'X_dev.pkl.gz')
     fydev = os.path.join(data_dir, 'Y_dev.pkl.gz')
-    fmodel = os.path.join(data_dir, 'mlr-%s-%s-%g-%g-%g-%g.pkl.gz' % (loss, multitask, C1, C2, C3, p))
+    fprefix = 'mlr-%s-%s-%g-%g-%g-%g' % (loss, multitask, C1, C2, C3, p)
 else:
     assert trndev == 'Y'
     fxtrain = os.path.join(data_dir, 'X_train_dev.pkl.gz')
     fytrain = os.path.join(data_dir, 'Y_train_dev.pkl.gz')
     fxdev = os.path.join(data_dir, 'X_test.pkl.gz')
     fydev = os.path.join(data_dir, 'Y_test.pkl.gz')
-    fmodel = os.path.join(data_dir, 'trndev-mlr-%s-%s-%g-%g-%g-%g.pkl.gz' % (loss, multitask, C1, C2, C3, p))
+    fprefix = 'trndev-mlr-%s-%s-%g-%g-%g-%g' % (loss, multitask, C1, C2, C3, p)
+
 fcliques = os.path.join(data_dir, 'cliques_all.pkl.gz')
+fmodel = os.path.join(data_dir, '%s.pkl.gz' % fprefix)
+fnpy = os.path.join(data_dir, '%s.npy' % fprefix)
 
 X_train = pkl.load(gzip.open(fxtrain, 'rb'))
 Y_train = pkl.load(gzip.open(fytrain, 'rb'))
@@ -63,7 +66,7 @@ if os.path.exists(fmodel):
 else:
     print('training ...')
     clf = PCMLC(C1=C1, C2=C2, C3=C3, p=p, loss_type=loss)
-    clf.fit(X_train, Y_train, user_playlist_indices=cliques, batch_size=bs, rand_init=True, verbose=1)
+    clf.fit(X_train, Y_train, user_playlist_indices=cliques, batch_size=bs, verbose=2, fnpy=fnpy)
 
 if clf.trained is True:
     W = clf.W
