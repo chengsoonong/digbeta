@@ -2,11 +2,11 @@ import sys
 import time
 import numpy as np
 from sklearn.base import BaseEstimator
-from scipy.sparse import issparse
+from scipy.sparse import issparse, isspmatrix_coo
 from lbfgs import fmin_lbfgs, LBFGSError  # pip install pylbfgs
 
 
-def risk_pclassification(W, b, X, Y, N_all, K_all, p=1, loss_type='example'):
+def risk_pclassification(W, b, X, Y, P, Q, p=1, loss_type='example'):
     """
         Empirical risk of p-classification loss for multilabel classification
 
@@ -15,8 +15,6 @@ def risk_pclassification(W, b, X, Y, N_all, K_all, p=1, loss_type='example'):
             - b: current bias
             - X: feature matrix, N x D
             - Y: positive label matrix, N x K
-            - N_all: total number of examples in training set
-            - K_all: total number of labels in training set
             - p: constant for p-classification push loss
             - loss_type: valid assignment is 'example' or 'label'
                 - 'example': compute a loss for each example, by the #positive or #negative labels per example
@@ -28,47 +26,38 @@ def risk_pclassification(W, b, X, Y, N_all, K_all, p=1, loss_type='example'):
             - dW  : gradients of weights
     """
     assert p > 0
-    assert N_all > 0
-    assert K_all > 0
     assert Y.dtype == np.bool
     assert loss_type in ['example', 'label'], \
         'Valid assignment for "loss_type" are: "example", "label"'
+    assert isspmatrix_coo(Y)  # scipy.sparse.coo_matrix type
     N, D = X.shape
     K = Y.shape[1]
-    Yp = Y
-    Yn = 1 - Y
     assert W.shape == (K, D)
-    if loss_type == 'example':
-        assert K == K_all
-        ax = 1
-        num = N_all
-        shape = (N, 1)
-    else:
-        assert N == N_all
-        ax = 0
-        num = K_all
-        shape = (1, K)
-    numPos = np.sum(Yp, axis=ax)
-    numNeg = np.sum(Yn, axis=ax)
-
-    # deal with zeros
-    # P = 1 / numPos, Q = 1 / numNeg
-    nz_pix = np.nonzero(numPos)[0]
-    nz_nix = np.nonzero(numNeg)[0]
-    P = np.zeros_like(numPos, dtype=np.float)
-    Q = np.zeros_like(numNeg, dtype=np.float)
-    P[nz_pix] = 1. / numPos[nz_pix]
-    Q[nz_nix] = 1. / numNeg[nz_nix]
+    shape = (N, 1) if loss_type == 'example' else (1, K)
+    assert P.shape == Q.shape == shape
 
     T1 = np.dot(X, W.T) + b
-    T1p = np.multiply(Yp, T1)
-    T1n = T1 - T1p
-    T2 = np.multiply(Yp, np.exp(-T1p)   ) * P.reshape(shape)
-    T3 = np.multiply(Yn, np.exp(p * T1n)) * Q.reshape(shape)
+    # T1p = np.multiply(Yp, T1)
+    # T1n = T1 - T1p
+    # T2 = np.multiply(Yp, np.exp(-T1p)   ) * P.reshape(shape)
+    # T3 = np.multiply(Yn, np.exp(p * T1n)) * Q.reshape(shape)
+    T1n = T1.copy()
+    T1n[Y.row, Y.col] = 0
+    T1p = T1 - T1n
+    
+    T2 = np.exp(-T1p)
+    T2n = T2.copy()
+    T2n[Y.row, Y.col] = 0
+    T2 = (T2 - T2n) * P
+    
+    T3 = np.exp(p * T1n)
+    T3[Y.row, Y.col] = 0
+    T3 = T3 * Q
 
-    risk = np.sum(T2 + T3 / p) / num
-    db = np.sum(-T2 + T3) / num
-    dW = np.dot((-T2 + T3).T, X) / num
+    risk = np.sum(T2 + T3 / p)
+    T4 = T3 - T2
+    db = np.sum(T4)
+    dW = np.dot(T4.T, X)
     
     if np.isnan(risk) or np.isinf(risk):
         sys.stderr('risk_pclassification(): risk is NaN or inf!\n')
@@ -88,9 +77,11 @@ class DataIter:
         assert ax in [0, 1]
         assert issparse(Y)
         self.ax = ax
-        self.Yslices = []
         self.starts = []
         self.ends = []
+        self.Yslices = []
+        self.Ps = []
+        self.Qs = []
         num = Y.shape[self.ax]
         bs = num if batch_size > num else batch_size
         self.n_batches = int((num-1) / bs) + 1
@@ -99,9 +90,22 @@ class DataIter:
             ix_start = nb * bs
             ix_end = min((nb + 1) * bs, num)
             Yi = Y[ix_start:ix_end, :] if self.ax == 0 else Y[:, ix_start:ix_end]
-            self.Yslices.append(Yi)
+
+            numPos = Yi.sum(axis=1-self.ax).A.reshape(-1)
+            numNeg = Yi.shape[1-self.ax] - numPos
+            nz_pix = np.nonzero(numPos)[0]  # taking care of zeros
+            nz_nix = np.nonzero(numNeg)[0]
+            P = np.zeros_like(numPos, dtype=np.float)
+            Q = np.zeros_like(numNeg, dtype=np.float)
+            P[nz_pix] = 1. / numPos[nz_pix]  # P = 1 / numPos
+            Q[nz_nix] = 1. / numNeg[nz_nix]  # Q = 1 / numNeg
+            shape = (len(P), 1) if self.ax == 0 else (1, len(P))
+            
             self.starts.append(ix_start)
             self.ends.append(ix_end)
+            self.Ps.append(P.reshape(shape))
+            self.Qs.append(Q.reshape(shape))
+            self.Yslices.append(Yi.tocoo())
         self.nb = 0
     
     def __iter__(self):
@@ -112,7 +116,7 @@ class DataIter:
         if self.nb > self.n_batches:
             raise StopIteration
         i = self.nb - 1
-        return self.starts[i], self.ends[i], self.Yslices[i]
+        return self.starts[i], self.ends[i], self.Yslices[i], self.Ps[i], self.Qs[i]
     
     def reset(self):
         self.nb = 0
@@ -129,23 +133,24 @@ def accumulate_risk(Wt, bt, X, Y, p, loss, data_iter, verbose=0):
     dW = np.zeros_like(Wt)
     data_iter.reset()
     nb = 0
-    for ix_start, ix_end, Yi in data_iter:
+    for ix_start, ix_end, Yi, Pi, Qi in data_iter:
         nb += 1
         if verbose > 1:
             sys.stdout.write('\r%d / %d' % (nb, data_iter.n_batches))
             sys.stdout.flush()
         Xi = X[ix_start:ix_end, :] if ax == 0 else X
-        if issparse(Yi):
-            Yi = Yi.toarray().astype(np.bool)
         Wb = Wt if ax == 0 else Wt[ix_start:ix_end, :]
-        riski, dbi, dWi = risk_pclassification(Wb, bt, Xi, Yi, Y.shape[0], Y.shape[1], p=p, loss_type=loss)
+        riski, dbi, dWi = risk_pclassification(Wb, bt, Xi, Yi, Pi, Qi, p=p, loss_type=loss)
+        
         assert dWi.shape == Wb.shape
-        risk += riski
-        db += dbi
+        denom = Y.shape[ax]
+        risk += riski / denom
+        db += dbi / denom
         if ax == 0:
-            dW += dWi
+            dW += dWi / denom
         else:
-            dW[ix_start:ix_end, :] = dWi
+            dW[ix_start:ix_end, :] = dWi / denom
+
     if verbose > 1:
         print()
     return risk, db, dW
@@ -307,4 +312,3 @@ class PCMLC(BaseEstimator):
     # inherit from BaseEstimator instead of re-implement
     # def get_params(self, deep = True):
     # def set_params(self, **params):
-
