@@ -1,13 +1,12 @@
 import sys
 import time
 import numpy as np
-from scipy.special import logsumexp
 from sklearn.base import BaseEstimator
 from scipy.sparse import issparse
-from lbfgs import fmin_lbfgs, LBFGSError
+from lbfgs import fmin_lbfgs, LBFGSError  # pip install pylbfgs
 
 
-def risk_pclassification(W, b, X, Y_pos, Y_neg, N_all, K_all, p=1, loss_type='example'):
+def risk_pclassification(W, b, X, Y, N_all, K_all, p=1, loss_type='example'):
     """
         Empirical risk of p-classification loss for multilabel classification
 
@@ -15,8 +14,7 @@ def risk_pclassification(W, b, X, Y_pos, Y_neg, N_all, K_all, p=1, loss_type='ex
             - W: current weight matrix, K by D
             - b: current bias
             - X: feature matrix, N x D
-            - Y_pos: positive label matrix, N x K
-            - Y_neg: negative label matrix, N x K
+            - Y: positive label matrix, N x K
             - N_all: total number of examples in training set
             - K_all: total number of labels in training set
             - p: constant for p-classification push loss
@@ -25,32 +23,31 @@ def risk_pclassification(W, b, X, Y_pos, Y_neg, N_all, K_all, p=1, loss_type='ex
                 - 'label'  : compute a loss for each label, by the #positive or #negative examples per label
                 
         Output:
-            - cost: empirical cost
+            - risk: empirical risk
             - db  : gradient of bias term
             - dW  : gradients of weights
     """
     assert p > 0
     assert N_all > 0
     assert K_all > 0
-    assert Y_pos.shape == Y_neg.shape
+    assert Y.dtype == np.bool
     assert loss_type in ['example', 'label'], \
         'Valid assignment for "loss_type" are: "example", "label"'
     N, D = X.shape
-    K = Y_pos.shape[1]
-    Yp = Y_pos
-    Yn = Y_neg
+    K = Y.shape[1]
+    Yp = Y
+    Yn = 1 - Y
     assert W.shape == (K, D)
     if loss_type == 'example':
         assert K == K_all
         ax = 1
-        shape = (N, 1)
         num = N_all
+        shape = (N, 1)
     else:
-        assert loss_type == 'label'
         assert N == N_all
         ax = 0
-        shape = (1, K)
         num = K_all
+        shape = (1, K)
     numPos = np.sum(Yp, axis=ax)
     numNeg = np.sum(Yn, axis=ax)
 
@@ -62,162 +59,159 @@ def risk_pclassification(W, b, X, Y_pos, Y_neg, N_all, K_all, p=1, loss_type='ex
     Q = np.zeros_like(numNeg, dtype=np.float)
     P[nz_pix] = 1. / numPos[nz_pix]
     Q[nz_nix] = 1. / numNeg[nz_nix]
-    P = P.reshape(shape)
-    Q = Q.reshape(shape)
 
     T1 = np.dot(X, W.T) + b
     T1p = np.multiply(Yp, T1)
-    T1n = np.multiply(Yn, T1)
-    T2 = np.multiply(Yp, np.exp(-T1p)) * P
-    T3 = np.multiply(Yn, np.exp(p * T1n)) * Q
+    T1n = T1 - T1p
+    T2 = np.multiply(Yp, np.exp(-T1p)   ) * P.reshape(shape)
+    T3 = np.multiply(Yn, np.exp(p * T1n)) * Q.reshape(shape)
 
-    cost = np.sum(T2 + T3 / p) / num
+    risk = np.sum(T2 + T3 / p) / num
     db = np.sum(-T2 + T3) / num
     dW = np.dot((-T2 + T3).T, X) / num
-    return cost, db, dW
+    
+    if np.isnan(risk) or np.isinf(risk):
+        sys.stderr('risk_pclassification(): risk is NaN or inf!\n')
+        sys.exit(0)
 
-def accumulate_example_loss(Wt, bt, X, Y, p, bs, PU=None, verbose=0):
-    N, D = X.shape
-    K = Y.shape[1] + (0 if PU is None else PU.shape[1])
-    assert Wt.shape == (K, D)
-    bs = N if bs > N else bs  # batch_size
-    n_batches = int((N-1) / bs) + 1 
-    risks = []
+    return risk, db, dW
+
+
+class DataIter:
+    """
+        SciPy sparse matrix slicing is slow, as stated here:
+        https://stackoverflow.com/questions/42127046/fast-slicing-and-multiplication-of-scipy-sparse-csr-matrix
+        Profiling confirms this inefficient slicing.
+        This iterator aims to do slicing only once and cache the results.
+    """
+    def __init__(self, Y, ax=0, batch_size=256):
+        assert ax in [0, 1]
+        assert issparse(Y)
+        self.ax = ax
+        self.Yslices = []
+        self.starts = []
+        self.ends = []
+        num = Y.shape[self.ax]
+        bs = num if batch_size > num else batch_size
+        self.n_batches = int((num-1) / bs) + 1
+        Y = Y.tocsr() if self.ax == 0 else Y.tocsc()
+        for nb in range(self.n_batches):
+            ix_start = nb * bs
+            ix_end = min((nb + 1) * bs, num)
+            Yi = Y[ix_start:ix_end, :] if self.ax == 0 else Y[:, ix_start:ix_end]
+            self.Yslices.append(Yi)
+            self.starts.append(ix_start)
+            self.ends.append(ix_end)
+        self.nb = 0
+    
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        self.nb += 1
+        if self.nb > self.n_batches:
+            raise StopIteration
+        i = self.nb - 1
+        return self.starts[i], self.ends[i], self.Yslices[i]
+    
+    def reset(self):
+        self.nb = 0
+
+
+def accumulate_risk(Wt, bt, X, Y, p, loss, data_iter, verbose=0):
+    assert loss in ['example', 'label']
+    assert data_iter is not None
+    assert Wt.shape == (Y.shape[1], X.shape[1])
+    ax = 0 if loss == 'example' else 1
+    assert data_iter.ax == ax
+    risk = 0.
     db = 0.
     dW = np.zeros_like(Wt)
-    for nb in range(n_batches):
+    data_iter.reset()
+    nb = 0
+    for ix_start, ix_end, Yi in data_iter:
+        nb += 1
         if verbose > 1:
-            sys.stdout.write('\r%d / %d' % (nb+1, n_batches))
+            sys.stdout.write('\r%d / %d' % (nb, data_iter.n_batches))
             sys.stdout.flush()
-        ix_start = nb * bs
-        ix_end = min((nb + 1) * bs, N)
-        Xi = X[ix_start:ix_end, :]
-        Yi = Y[ix_start:ix_end, :]
-        Yi_pos = Yi.toarray().astype(np.bool) if issparse(Yi) else Yi
-        Yi_neg = 1 - Yi_pos
-        if PU is not None:
-            PUi = PU[ix_start:ix_end, :]
-            PUi = PUi.toarray().astype(np.bool) if issparse(PU) else PUi
-            Yi_pos = np.hstack([Yi_pos, PUi])
-            Yi_neg = np.hstack([Yi_neg, np.zeros_like(PUi, dtype=np.bool)])
-        costi, dbi, dWi = risk_pclassification(Wt, bt, Xi, Yi_pos, Yi_neg, N, K, p=p, loss_type='example')
-        risks.append(costi)
-        db += dbi
-        dW += dWi
-    if verbose > 1:
-        print()
-    return risks, db, dW
-
-def accumulate_label_loss(Wt, bt, X, Y, p, bs, YisPU=False, verbose=0):
-    N, D = X.shape
-    K = Y.shape[1]
-    assert Wt.shape == (K, D)
-    bs = K if bs > K else bs  # batch_size
-    n_batches = int((K-1) / bs) + 1 
-    risks = []
-    db = 0.
-    dW = np.zeros_like(Wt)
-    for nb in range(n_batches):
-        if verbose > 1:
-            sys.stdout.write('\r%d / %d' % (nb+1, n_batches))
-            sys.stdout.flush()
-        ix_start = nb * bs
-        ix_end = min((nb + 1) * bs, K)
-        Xi = X
-        Yi = Y[:, ix_start:ix_end]
-        Yi_pos = Yi.toarray().astype(np.bool) if issparse(Yi) else Yi
-        Yi_neg = np.zeros_like(Yi_pos, dtype=np.bool) if YisPU is True else 1 - Yi_pos
-        Wb = Wt[ix_start:ix_end, :]
-        costi, dbi, dWi = risk_pclassification(Wb, bt, Xi, Yi_pos, Yi_neg, N, K, p=p, loss_type='label')
+        Xi = X[ix_start:ix_end, :] if ax == 0 else X
+        if issparse(Yi):
+            Yi = Yi.toarray().astype(np.bool)
+        Wb = Wt if ax == 0 else Wt[ix_start:ix_end, :]
+        riski, dbi, dWi = risk_pclassification(Wb, bt, Xi, Yi, Y.shape[0], Y.shape[1], p=p, loss_type=loss)
         assert dWi.shape == Wb.shape
-        risks.append(costi)
+        risk += riski
         db += dbi
-        dW[ix_start:ix_end, :] = dWi
+        if ax == 0:
+            dW += dWi
+        else:
+            dW[ix_start:ix_end, :] = dWi
     if verbose > 1:
         print()
-    return risks, db, dW
+    return risk, db, dW
 
-def multitask_regulariser(Wt, bt, C3, cliques):
+
+def multitask_regulariser(Wt, bt, cliques):
     assert cliques is not None
     denom = 0.
     cost_mt = 0.
     dW_mt = np.zeros_like(Wt)
-    for pls in cliques:
-        # if len(pls) < 2: continue
-        # assert len(pls) > 1  # trust the input
-        npl = len(pls)
+    for clq in cliques:
+        npl = len(clq)
+        if npl < 2: 
+            continue
         denom += npl * (npl - 1)
         M = -1 * np.ones((npl, npl), dtype=np.float)
         np.fill_diagonal(M, npl-1)
-        Wu = Wt[pls, :]
+        Wu = Wt[clq, :]
         cost_mt += np.multiply(M, np.dot(Wu, Wu.T)).sum()
-        dW_mt[pls, :] = np.dot(M, Wu)  # assume one playlist belongs to only one user
-    normparam = 1. / (C3 * denom)
-    cost_mt *= normparam
-    dW_mt *= 2. * normparam
+        dW_mt[clq, :] = np.dot(M, Wu)  # assume one playlist belongs to only one user
+    cost_mt /= denom
+    dW_mt = dW_mt * 2. / denom
     return cost_mt, dW_mt
 
-        
-def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, PU=None, cliques=None, loss_type='example', batch_size=256, verbose=0):
+
+def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, loss_type='example', cliques=None, data_iter_example=None, data_iter_label=None, verbose=0, fnpy=None):
         """
             - w : np.ndarray, current weights 
             - dw: np.ndarray, OUTPUT array for gradients of w
-            - PU: positive only matrix (with additional positive labels), PU.shape[0] = Y.shape[0]
             - cliques: a list of arrays, each array is the indices of playlists of the same user.
-              To require require the parameters of label_i and label_j be similar by regularising the diff if 
-              entry (i,j) is 1 (i.e. belong to the same user).
+                       To require the parameters of label_i and label_j be similar by regularising 
+                       their diff if entry (i,j) is 1 (i.e. belong to the same user).
         """
         assert loss_type in ['example', 'label', 'both']
         assert C1 > 0
         assert C2 > 0
         assert C3 > 0
         assert p > 0
-        assert batch_size > 0
         t0 = time.time()
         
         N, D = X.shape
         K = Y.shape[1]
-        if PU is not None:
-            assert PU.shape[0] == N
-            K += PU.shape[1]
         assert w.shape[0] == K * D + 1
         b = w[0]
         W = w[1:].reshape(K, D)        
         
-        if loss_type == 'example':
-            risks, db, dW = accumulate_example_loss(W, b, X, Y, p, batch_size, PU, verbose=verbose)
-        elif loss_type == 'label':
-            if PU is None:
-                risks, db, dW = accumulate_label_loss(W, b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
-            else:
-                K1, K2 = Y.shape[1], PU.shape[1]
-                risks1, db1, dW1 = accumulate_label_loss(W[:K1, :], b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
-                risks2, db2, dW2 = accumulate_label_loss(W[K1:, :], b, X, PU, p, batch_size, YisPU=True, verbose=verbose)
-                risks = risks1 + risks2
-                db = db1 + db2
-                dW = np.vstack([dW1, dW2])
+        if loss_type == 'both':
+            assert data_iter_example is not None
+            assert data_iter_label   is not None
+            risk1, db1, dW1 = accumulate_risk(W, b, X, Y, p, loss='label',   data_iter=data_iter_label,   verbose=verbose)
+            risk2, db2, dW2 = accumulate_risk(W, b, X, Y, p, loss='example', data_iter=data_iter_example, verbose=verbose)
+            risk = risk1 + C2 * risk2
+            db = db1 + C2 * db2
+            dW = dW1 + C2 * dW2
         else:
-            assert loss_type == 'both'
-            if PU is None:
-                risks, db, dW = accumulate_label_loss(W, b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
-            else:
-                K1 = Y.shape[1]
-                risks1, db1, dW1 = accumulate_label_loss(W[:K1, :], b, X, Y, p, batch_size, YisPU=False, verbose=verbose)
-                risks2, db2, dW2 = accumulate_label_loss(W[K1:, :], b, X, PU, p, batch_size, YisPU=True, verbose=verbose)
-                risks = risks1 + risks2
-                db = db1 + db2
-                dW = np.vstack([dW1, dW2])
-            risks3, db3, dW3 = accumulate_example_loss(W, b, X, Y, p, batch_size, PU, verbose=verbose)
-            risks = np.r_[risks, C2 * np.asarray(risks3)]
-            db += C2 * db3
-            dW += C2 * dW3
-        J = np.sum(risks) + np.dot(W.ravel(), W.ravel()) * 0.5 / C1
+            data_iter = data_iter_example if loss_type == 'example' else data_iter_label
+            assert data_iter is not None
+            risk, db, dW = accumulate_risk(W, b, X, Y, p, loss=loss_type, data_iter=data_iter, verbose=verbose)
+            
+        J = risk + np.dot(W.ravel(), W.ravel()) * 0.5 / C1
         dW += W / C1
         
         if cliques is not None:
-            cost_mt, dW_mt = multitask_regulariser(W, b, C3, cliques)
-            J += cost_mt
-            dW += dW_mt
+            cost_mt, dW_mt = multitask_regulariser(W, b, cliques)
+            J += cost_mt / C3
+            dW += dW_mt / C3
 
         dw[:] = np.r_[db, dW.ravel()]  # in-place assignment
         
@@ -237,6 +231,15 @@ def progress(x, g, f_x, xnorm, gnorm, step, k, ls, *args):
                   the number of evaluations at this iteration and args.
     """
     print('Iter {:3d}:  f = {:15.9f},  |g| = {:15.9f},  {}'.format(k, f_x, gnorm, time.strftime('%Y-%m-%d %H:%M:%S')))
+
+    # save intermediate weights
+    fnpy = args[-1]
+    if fnpy is not None and k % 50 == 0:
+        try:
+            print(fnpy)
+            #np.save(fnpy, x, allow_pickle=False)
+        except (OSError, IOError, ValueError):
+            sys.stderr.write('Save weights to .npy file failed\n')
     
         
 class PCMLC(BaseEstimator):
@@ -255,65 +258,53 @@ class PCMLC(BaseEstimator):
         self.C3 = C3
         self.p = p
         self.loss_type = loss_type 
-        self.cost = []
         self.trained = False
 
-    def fit(self, X_train, Y_train, PUMat=None, user_playlist_indices=None, batch_size=256, w0=None, rand_init=False, verbose=0):
-        """
-            Model fitting by mini-batch Gradient Descent.
-            - PUMat: indicator matrix for additional labels with only positive observations.
-                     If it is sparse, all missing entries are considered unobserved instead of negative;
-                     if it is dense, it contains only 1 and NaN entries, and NaN entries are unobserved.
-            First consume batches without labels in PUMat, then consume batches with positive labels in PUMat. 
-            The former does not touch the weights corresponding to PUMat, and is the same as fit_minibatch_mlr().
-        """
+    def fit(self, X_train, Y_train, user_playlist_indices=None, batch_size=256, verbose=0, w0=None, fnpy=None):
         assert X_train.shape[0] == Y_train.shape[0]
-        assert PUMat is None  # do not use this param
         N, D = X_train.shape
         K = Y_train.shape[1]
-        if PUMat is not None:
-            assert PUMat.shape[0] == Y_train.shape[0]
-            assert not np.logical_xor(issparse(PUMat), issparse(Y_train))
-            K += PUMat.shape[1]
-        if w0 is not None:
-            assert w0.shape[0] == K * D + 1
+
+        if w0 is None:
+            if fnpy is not None:
+                try:
+                    w0 = np.load(fnpy, allow_pickle=False)
+                    assert w0.shape[0] == K * D + 1
+                    print('Restore from %s' % fnpy)
+                except (IOError, ValueError):
+                    w0 = np.zeros(K * D + 1)
         else:
-            if rand_init is True:
-                if PUMat is None:
-                    w0 = 0.001 * np.random.randn(K * D + 1)
-                else:
-                    K1, K2 = Y_train.shape[1], PUMat.shape[1]
-                    w0 = np.r_[np.zeros(K1 * D + 1), 0.001 * np.random.randn(K2 * D)]
-            else:
-                w0 = np.zeros(K * D + 1)
+            assert w0.shape[0] == K * D + 1
+            
+        data_iter_example = None if self.loss_type == 'label' else DataIter(Y_train, ax=0, batch_size=batch_size)
+        data_iter_label = None if self.loss_type == 'example' else DataIter(Y_train, ax=1, batch_size=batch_size)
+
         try:
             # fmin_lbfgs(f, x0, progress=None, args=())
             # f: callable(x, g, *args)
-            # objective(w, dw, X, Y, C1, C2, C3, p, PU, cliques, loss_type, batch_size, verbose)
-            res = fmin_lbfgs(objective, w0, progress=progress if verbose > 0 else None, 
-                             args=(X_train, Y_train, self.C1, self.C2, self.C3, self.p, PUMat, 
-                                   user_playlist_indices, self.loss_type, batch_size, verbose))
+            res = fmin_lbfgs(objective, w0, progress, 
+                             args=(X_train, Y_train, self.C1, self.C2, self.C3, self.p, self.loss_type, 
+                                   user_playlist_indices, data_iter_example, data_iter_label, verbose, fnpy))
             self.b = res[0]
             self.W = res[1:].reshape(K, D)
             self.trained = True
         except (LBFGSError, MemoryError) as err:
+            self.trained = False
             sys.stderr.write('LBFGS failed: {0}\n'.format(err))
-            sys.stderr.flush()   
+            sys.stderr.flush()
         
     def decision_function(self, X_test):
         """Make predictions (score is a real number)"""
-        assert self.trained is True, "Can't make prediction before training"
+        assert self.trained is True, "Cannot make prediction before training"
         return np.dot(X_test, self.W.T) + self.b  # log of prediction score
 
     def predict(self, X_test):
         return self.decision_function(X_test)
     #    """Make predictions (score is boolean)"""
     #    preds = sigmoid(self.decision_function(X_test))
-    #    #return (preds >= 0)
-    #    assert self.TH is not None
-    #    return preds >= self.TH
+    #    return preds >= Threshold
 
     # inherit from BaseEstimator instead of re-implement
-    #
     # def get_params(self, deep = True):
     # def set_params(self, **params):
+
