@@ -8,6 +8,8 @@ We first evaluate the proposed method on the task of tag recommendation from tex
 which was formulated as multi-label classification problem~\cite{katakis2008multilabel}.
 
 \subsection{Tag recommendation as multi-label classification}
+\label{ssec:mlc}
+\TODO section title: tag recommendation or standard multi-label classification?
 
 We experiment on two dataset, \texttt{bibtex} and \texttt{bookmarks}~\cite{katakis2008multilabel}.
 The performance are evaluated on classification metrics, \ie F$_1$ scores averaged over either examples or labels 
@@ -17,7 +19,7 @@ as well as ranking metric, \ie R-Precision (averaged over either examples or lab
 \paragraph{Baselines}
 We compare our method with four baselines.
 \begin{itemize}
-\item Logistic regression: independently learn a logistic regression classifier for each label, (a.k.a binary relevance).
+\item BR~\cite{tsoumakas2006multi}: the binary relevance method which independently learns a logistic regression classifier for each label.
 \item PRLR~\cite{lin2014multi}: a multi-label classifier with a regulariser which encourages sparse and low-rank predictions.
 \item SPEN~\cite{belanger2016structured}: a structured prediction framework which employs a deep network to represent the energy function,
       and predictions are produced by minimising the energy.
@@ -25,16 +27,22 @@ We compare our method with four baselines.
       which is the F$_1$ score (averaged over examples) in this task.
 \end{itemize}
 
-We implemented Logistic regression using scikit-learn~\cite{}.
+\paragraph{Experimental design}
+We implemented Logistic regression using scikit-learn~\cite{scikit-learn}.
 The results of SPEN and DVN are reproduced using the coded released the authors,
 and the results of PRLR are taken from \cite{lin2014multi}.
 
 %$\RCal_\textsc{example}$ 
 For the proposed method, we used a linear score function $f(\x) = \w_k^\top \x + b$ for the $k$-th label,
-and the empirical risk was minimised with L2 regularisation using LBFGS provided by Scipy~\cite{},
+and the empirical risk was minimised with L2 regularisation using LBFGS in SciPy~\cite{scipy,lbfgsb},
 and hyper-parameters were tuned using 5-fold cross validation.
 
-\paragraph{Result analysis}
+\paragraph{Evaluation metrics}
+We evaluate the performance of each method using F$_1$ and R-Precision~\cite{manning2008introIR},
+averaged both over examples and labels\footnote{They are also known as the instance-F$_1$ and macro-F$_1$ respectively in the case of F$_1$.}
+
+
+\paragraph{Results}
 The results on test set are summarised in Table~\ref{tab:perf_mlc},
 \begin{itemize}
 \item $\RCal_\textsc{example}$ outperform the independent logistic regression baseline by a large margin.
@@ -48,6 +56,28 @@ both work learn complex non-linear functions using deep neural networks to achie
 \item evaluation metric: add R-Precision averaged over both examples and labels, remove AUC.
 \item results of more variants: $\RCal_\textsc{label}$ and $\RCal_\textsc{both}$?
 \end{itemize}
+
+\begin{table}[!h]
+\centering
+\newcommand{\nan}{{\small N/A}}
+\caption{Performance on multi-label dataset (F$_1$ and R-Precision $\times 10^2$)}
+\label{tab:perf_mlc}
+\small
+\begin{tabular}{l|*{4}{r}|*{4}{r}}
+\toprule
+{} & \multicolumn{4}{c|}{\textbf{bibtex}} & \multicolumn{4}{c}{\textbf{bookmarks}} \\
+{} & F$_{1\,\text{exp}}$ & F$_{1\,\text{lab}}$ & R-Prec$_{\,\text{exp}}$ & R-Prec$_{\,\text{lab}}$ 
+   & F$_{1\,\text{exp}}$ & F$_{1\,\text{lab}}$ & R-Prec$_{\,\text{exp}}$ & R-Prec$_{\,\text{lab}}$ \\
+\midrule
+BR~\cite{tsoumakas2006multi}       &  $37.9$  &  $30.1$  &  $43.1$  &  $32.1$  &  $29.5$  &  $21.0$  &  $35.6$  &  $21.2$ \\
+PRLR~\cite{lin2014multi}           &  $44.2$  &  $37.2$  &    \nan  &    \nan  &  $34.9$  &  $23.0$  &    \nan  &    \nan \\
+SPEN~\cite{belanger2016structured} &  $41.3$  &  $33.7$  &  $45.6$  &  $34.4$  &  $35.5$  &  $24.1$  &  $39.6$  &  $24.9$ \\
+DVN~\cite{gygli2017deep}           &  $44.7$  &  $32.4$  &  $50.3$  &  $37.7$  &  $37.2$  &  $23.7$  &  $42.2$  &  $26.3$ \\
+\rowcolor[gray]{0.8}
+MLR (Ours)                         &  $47.0$  &  $38.8$  &  $51.3$  &  $40.5$  &  $37.7$  &  $28.4$  &  $42.3$  &  $29.5$ \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 
 \begin{table}[!h]
@@ -132,7 +162,8 @@ Table~\ref{tab:stats_newsongrec} summarises the statistics of the two dataset us
 \caption{Statistics of dataset for new song recommendation}
 \label{tab:stats_newsongrec}
 %\resizebox{\linewidth}{!}{
-\begin{tabular}{ccccccc}
+\small
+\begin{tabular}{l|rrrr}
 \toprule
 Dataset & \#Users & \#Songs (train/dev/test) & \#Playlists & \#Song Features \\
 \midrule
@@ -155,15 +186,17 @@ All playlists in the dataset are used for this task.
 \paragraph{Which type of loss is most helpful?}
 \begin{table}[!h]
 \centering
-\caption{Empirical results (AUC)}
+\caption{Empirical results (R-Precision $\times 10^3$)}
 %\resizebox{\linewidth}{!}{
+\small
 \begin{tabular}{l|cccc}
 \toprule
-{}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & Independent L.R. \\
+{}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & BR \\
 \midrule
-AotM-2011     & 0.64792  & 0.67782 & 0.59602  & 0.62226 \\
-30Music       & 0.6768   & 0.70917 & 0.70914  & 0.6654 \\
-%30Music       & 0.54413  & 0.55894 & 0.55864  & 0.53698 \\
+AotM-2011     &  &  &  & 0.92 \\
+30Music       &  &  &  & 7.24 \\
+%AotM-2011     & 0.64792  & 0.67782 & 0.59602  & 0.62226 \\
+%30Music       & 0.6768   & 0.70917 & 0.70914  & 0.6654 \\
 \bottomrule
 \end{tabular}
 %}
@@ -182,8 +215,8 @@ C: 1, 1, 1, p: 1, no multi-task regularisation.
 \toprule
 {}            & Multi-task Reg. + $\RCal_\textsc{example}$ & Multi-task reg. + $\RCal_\textsc{label}$ \\
 \midrule
-AotM-2011     & 0.65778     & 0.6884618 \\
-30Music       & 0.68179     & 0.7149 \\
+%AotM-2011     & 0.65778     & 0.6884618 \\
+%30Music       & 0.68179     & 0.7149 \\
 %30Music       & 0.549567    & 0.557156 \\
 \bottomrule
 \end{tabular}
@@ -233,7 +266,8 @@ Table~\ref{tab:stats_pla} summarises the statistics of the two dataset used for 
 \caption{Statistics of dataset for playlist augmentation}
 \label{tab:stats_pla}
 %\resizebox{\linewidth}{!}{
-\begin{tabular}{ccccccc}
+\small
+\begin{tabular}{l|rrrr}
 \toprule
 Dataset & \#Users & \#Songs & \#Playlists (train/dev/test)  & \#Song Features \\
 \midrule
@@ -295,15 +329,18 @@ The binary relevance baseline is learning a logistic regression for each playlis
 
 \begin{table}[!h]
 \centering
-\caption{Empirical results}
+\caption{Empirical results (R-Precision $\times 10^3$)}
 %\resizebox{\linewidth}{!}{
+\small
 \begin{tabular}{l|ccccc}
 \toprule
-{}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & Independent L.R. & Pop-rank \\
+{}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & BR & \textsc{PopRank} \\
 \midrule
+AotM-2011     &  &  &  & 2.69 & 3.69 \\
+30Music       & 5.53 & 9.02 &  & 9.44 & 4.49 \\
+%AotM-2011     & 0.68459 & 0.747755 & 0.7429  & 0.6924 & 0.80199 \\
+%30Music       & 0.7168  & 0.76867  & 0.76917 & 0.7225 & 0.7165 \\
 %AotM-2011     & 0.6827396 & 0.743770 & 0.7385298 & 0.6924 & 0.80199 \\
-AotM-2011     & 0.68459 & 0.747755 & 0.7429  & 0.6924 & 0.80199 \\
-30Music       & 0.7168  & 0.76867  & 0.76917 & 0.7225 & 0.7165 \\
 %30Music       & 0.56766179 & 0.6350941 & 0.63555 & 0.575567 & 0.80558 \\
 \bottomrule
 \end{tabular}
@@ -331,9 +368,9 @@ where $N_u$ is the number of playlist user $u$ has.
 \toprule
 {}            & Multi-task Reg. + $\RCal_\textsc{example}$ & Multi-task reg. + $\RCal_\textsc{label}$ \\
 \midrule
+%AotM-2011     & 0.69167 & 0.7819 \\
+%30Music       & 0.7177  & 0.7840 \\
 %AotM-2011     & 0.6882099 & 0.7615590 \\
-AotM-2011     & 0.69167 & 0.7819 \\
-30Music       & 0.7177  & 0.7840 \\
 %30Music       & 0.581426 & 0.6597  \\
 %30Music       & 0.574175 & 0.667804  \\
 %AUC           & 0.66583  & 0.68517   \\
