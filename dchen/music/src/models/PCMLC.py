@@ -3,7 +3,7 @@ import time
 import numpy as np
 from sklearn.base import BaseEstimator
 from scipy.sparse import issparse, isspmatrix_coo
-from lbfgs import fmin_lbfgs, LBFGSError  # pip install pylbfgs
+from lbfgs import LBFGS, LBFGSError  # pip install pylbfgs
 
 
 def risk_pclassification(W, b, X, Y, P, Q, p=1, loss_type='example'):
@@ -135,7 +135,7 @@ def accumulate_risk(Wt, bt, X, Y, p, loss, data_iter, verbose=0):
     nb = 0
     for ix_start, ix_end, Yi, Pi, Qi in data_iter:
         nb += 1
-        if verbose > 1:
+        if verbose > 2:
             sys.stdout.write('\r%d / %d' % (nb, data_iter.n_batches))
             sys.stdout.flush()
         Xi = X[ix_start:ix_end, :] if ax == 0 else X
@@ -151,7 +151,7 @@ def accumulate_risk(Wt, bt, X, Y, p, loss, data_iter, verbose=0):
         else:
             dW[ix_start:ix_end, :] = dWi / denom
 
-    if verbose > 1:
+    if verbose > 2:
         print()
     return risk, db, dW
 
@@ -242,7 +242,7 @@ def progress(x, g, f_x, xnorm, gnorm, step, k, ls, *args):
     if fnpy is not None and k % 50 == 0:
         try:
             print(fnpy)
-            #np.save(fnpy, x, allow_pickle=False)
+            np.save(fnpy, x, allow_pickle=False)
         except (OSError, IOError, ValueError):
             sys.stderr.write('Save weights to .npy file failed\n')
     
@@ -285,11 +285,13 @@ class PCMLC(BaseEstimator):
         data_iter_label = None if self.loss_type == 'example' else DataIter(Y_train, ax=1, batch_size=batch_size)
 
         try:
-            # fmin_lbfgs(f, x0, progress=None, args=())
             # f: callable(x, g, *args)
-            res = fmin_lbfgs(objective, w0, progress, 
-                             args=(X_train, Y_train, self.C1, self.C2, self.C3, self.p, self.loss_type, 
-                                   user_playlist_indices, data_iter_example, data_iter_label, verbose, fnpy))
+            # LBFGS().minimize(f, x0, progress=progress, args=args)
+            optim = LBFGS()
+            optim.linesearch = 'wolfe'
+            res = optim.minimize(objective, w0, progress, 
+                                 args=(X_train, Y_train, self.C1, self.C2, self.C3, self.p, self.loss_type, 
+                                       user_playlist_indices, data_iter_example, data_iter_label, verbose, fnpy))
             self.b = res[0]
             self.W = res[1:].reshape(K, D)
             self.trained = True
