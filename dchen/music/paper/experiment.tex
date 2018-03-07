@@ -125,12 +125,7 @@ otherwise, we do not know whether the $i$-th song is found in the $j$-th playlis
 
 
 \TODO
-{\it Formulas for each variant.
-The objective is the same as $\RCal_\textsc{row}$ and $\RCal_\textsc{col}$ except that,
-for the playlists that we choose to hold the later half, all we observed is the first half, 
-all other songs for these playlists are unobserved (they can be positive/negative examples),
-this is different from the case that we explicitly observed that songs are not in playlists (they are negative examples).
-}
+{\it Formulas for each variant. $\RCal_\textsc{example}$ and $\RCal_\textsc{label}$ etc}
 
 
 \input{fig_mlr}
@@ -155,6 +150,10 @@ which results in 202 audio features and 15 one-hot encoding for genres.
 %% - temporal audio features: use 5-number (percentiles) summary: min, max, median, Q1 and Q3.
 %% - missing genre: imputed using the mean values of the genre
 
+In each dataset, we hold (a random) half of the 40\% latest released songs for test,
+and other half as validation set, the remaining 60\% of songs are used for training.
+All playlists in the dataset are used for this task.
+
 Table~\ref{tab:stats_newsongrec} summarises the statistics of the two dataset used for this task.
 
 \begin{table}[!h]
@@ -173,12 +172,6 @@ AotM-2011 & 14,182  & 68,657 / 22,885 / 22,886 & 84,710 & 217 \\
 \end{tabular}
 %}
 \end{table}
-
-
-\paragraph{Experimental design:}
-In each dataset, we hold (a random) half of the 40\% latest released songs for test,
-and other half as validation set, the remaining 60\% of songs are used for training.
-All playlists in the dataset are used for this task.
 
 
 \subsubsection{A few conclusions}
@@ -230,7 +223,8 @@ C: 1, 1, 1, p: 1, no multi-task regularisation.
 
 \paragraph{Task:}
 We are interested in augmenting user created playlists with songs from a music library,
-in particular, for a partial playlist, we would like to add more songs from an existing collection of songs.
+in particular, for a partial playlist with the first $K$ tracks, 
+we would like to add more songs from an existing collection of songs.
 The difference between this task from the task in Section~\ref{ssec:newsongrec} is that,
 it is possible to choose any songs from the entire collection of songs, which is not a cold-start problem,
 while the task described in Section~\ref{ssec:newsongrec} restricts that 
@@ -259,6 +253,13 @@ Besides making use of the audio features and genres of songs,
 we also use the popularity of a given song as a feature, which is defined as the number of occurrence in all playlists,
 including the partial playlists in test set.
 
+In each dataset, we create the test set such that it contains 20\% of each user's playlists (chosen uniformly at random),
+if the user has 5 or more playlists. Further, for the $j$-th playlist in test set, we hold all tracks except the first $K$ ones,
+where $K$ is chosen from $[1, L_j-1]$ uniformly at random, and $L_j$ is the number of tracks in the $j$-th playlist.
+The validation set is constructed the same as the test test.
+All remaining playlists are used for training.
+As a remark, we observed the entire collection of songs during training.
+
 Table~\ref{tab:stats_pla} summarises the statistics of the two dataset used for this task.
 
 \begin{table}[!h]
@@ -278,24 +279,21 @@ AotM-2011 & 14,182 & 114,428 & 60,260 / 12,225 / 12,225 & 218 \\
 %}
 \end{table}
 
-\paragraph{Experimental design:}
-In each dataset, we create the test set such that it contains 20\% of each user's playlists (chosen uniformly at random),
-if the user has 5 or more playlists, the validation set is constructed the same as the test test.
-All remaining playlists are used for training.
-As a remark, we observed all songs during training.
-
 
 \subsubsection{A few conclusions}
 
 \paragraph{Which type of loss is most helpful?}
 
-{\bf Row-wise loss}: weighting by the number of positive/negative labels for each example.
+\TODO
+{\it Formulas for each variant. $\RCal_\textsc{example}$ and $\RCal_\textsc{label}$ etc}
+
+$\RCal_\textsc{example}$: weighting by the number of positive/negative labels for each example.
 \ie we perform a classification/bipartite ranking task on each multilabel example 
 which forms a dataset of examples with binary labels: $\{(\x_n, y_k\}_{k=1}^K$ for the $n$-th multilabel example.
 
 \begin{equation*}
 %\resizebox{\linewidth}{!}{$
-\RCal_\textsc{row} 
+\RCal_\textsc{example} 
 = \displaystyle \sum_s 
   \frac{1}{K_+^s} \sum_{s \in pl} e^{-(\w_{pl}^\top \phi(s) + b)} +
   \frac{1}{K_-^s} \sum_{s \notin pl} \frac{1}{p} e^{p \w_{pl}^\top \phi(s)}.
@@ -305,13 +303,13 @@ where normalising factor $K_+^s$ is the number of playlists that include song $s
 and $K_-^s$ is the number of playlists that do not include song $s$.
 
 
-{\bf Column-wise loss}: weighting by the number of positive/negative examples for each label.
+$\RCal_\textsc{label}$: weighting by the number of positive/negative examples for each label.
 \ie we perform a classification/bipartite ranking task on each label which forms a binary dataset:
 $\{\x_n, y_k\}_{n=1}^N$ for the $k$-th label.
 
 \begin{equation*}
 %\resizebox{\linewidth}{!}{$
-\RCal_\textsc{col} 
+\RCal_\textsc{label} 
 = \displaystyle \sum_{pl}
   \frac{1}{N_+^{pl}} \sum_{s \in pl} e^{-(\w_{pl}^\top \phi(s) + b)} +
   \frac{1}{N_-^{pl}} \sum_{s \notin pl} \frac{1}{p} e^{p \w_{pl}^\top \phi(s)}.
@@ -321,7 +319,7 @@ where normalising factor $N_+^{pl}$ is the number of songs in playlist $pl$,
 and $N_-^{pl}$ is the number of songs in a music library that playlist $pl$ does not include.
 
 
-{\bf Row-wise + column-wise loss}: the summation of both: $\RCal_\textsc{row} + C \RCal_\textsc{col}$ 
+$\RCal_\textsc{both}$: the summation of both: $\RCal_\textsc{example} + C \RCal_\textsc{label}$ 
 where $C$ is a trade-off parameter.
 
 The binary relevance baseline is learning a logistic regression for each playlist independently.
@@ -348,11 +346,10 @@ AotM-2011     &  &  &  & 2.69 & 3.69 \\
 \end{table}
 
 \paragraph{Experimental design:}
-C: 1, 1, 1, p: 1, no multi-task regularisation
 
 \paragraph{Is multi-task regularisation helpful?}
 
-multi-task regularisation: we regularise the difference of playlist parameters 
+Multi-task regularisation: we regularise the difference of playlist parameters 
 such that $\|\w_j - \w_k\|_2$ is small if playlist $j$ and $k$ belong to the same user.
 
 \begin{equation*}
@@ -378,16 +375,3 @@ where $N_u$ is the number of playlist user $u$ has.
 \end{tabular}
 %}
 \end{table}
-
-
-
-\TODO
-measure performance by AUC and HitRate@K,
-compare with baselines such as independent logistic regression (\ie binary relevance), popularity based recommendation,
-and matrix factorisation.
-
-
-
-\subsection{Discussion}
-
-{\it the choice of playlist dataset?}
