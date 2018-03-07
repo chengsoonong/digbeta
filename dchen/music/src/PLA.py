@@ -68,7 +68,7 @@ else:
     print('training ...')
     clf = PCMLC(C1=C1, C2=C2, C3=C3, p=p, loss_type=loss)
     Y = hstack([Y_train, PU_dev]).tocsc().astype(np.bool)
-    clf.fit(X_train, Y, user_playlist_indices=cliques, batch_size=bs, verbose=2, fnpy=fnpy)
+    clf.fit(X_train, Y, user_playlist_indices=cliques, batch_size=bs, verbose=3, fnpy=fnpy)
 
 if clf.trained is True:
     Y_dev = Y_train_dev[:, -PU_dev.shape[1]:]

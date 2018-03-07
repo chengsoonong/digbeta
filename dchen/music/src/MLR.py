@@ -66,16 +66,13 @@ if os.path.exists(fmodel):
 else:
     print('training ...')
     clf = PCMLC(C1=C1, C2=C2, C3=C3, p=p, loss_type=loss)
-    clf.fit(X_train, Y_train, user_playlist_indices=cliques, batch_size=bs, verbose=2, fnpy=fnpy)
+    clf.fit(X_train, Y_train, user_playlist_indices=cliques, batch_size=bs, verbose=3, fnpy=fnpy)
 
 if clf.trained is True:
     W = clf.W
     b = clf.b
     rps = []
     for j in range(Y_dev.shape[1]):
-        # if (j+1) % 100 == 0:
-        #    sys.stdout.write('\r%d / %d' % (j+1, Y_dev.shape[1]))
-        #    sys.stdout.flush()
         y_true = Y_dev[:, j].toarray().reshape(-1)
         npos = y_true.sum()
         if npos < 1: continue
