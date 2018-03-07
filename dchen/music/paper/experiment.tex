@@ -75,6 +75,7 @@ MLR (Ours)                         &          ${\bf 47.0}$ & ${\bf 38.8}$ & ${\b
 
 
 \subsection{New song recommendation}
+\label{ssec:newsongrec}
 
 \paragraph{Task:} 
 We are interested in the task of recommending newly released songs to users,
@@ -128,7 +129,7 @@ Table~\ref{tab:stats_newsongrec} summarises the statistics of the two dataset us
 
 \begin{table}[!h]
 \centering
-\caption{Statistics of dataset}
+\caption{Statistics of dataset for new song recommendation}
 \label{tab:stats_newsongrec}
 %\resizebox{\linewidth}{!}{
 \begin{tabular}{ccccccc}
@@ -144,7 +145,7 @@ AotM-2011 & 14,182  & 68,657 / 22,885 / 22,886 & 84,710 & 217 \\
 
 
 \paragraph{Experimental design:}
-For each dataset, we hold (a random) half of the 40\% latest released songs for test,
+In each dataset, we hold (a random) half of the 40\% latest released songs for test,
 and other half as validation set, the remaining 60\% of songs are used for training.
 All playlists in the dataset are used for this task.
 
@@ -192,34 +193,65 @@ AotM-2011     & 0.65778     & 0.6884618 \\
 
 
 \subsection{Playlist augmentation}
+\label{ssec:pla}
 
-{\bf Task:}
-We are interested in augment user created playlists with songs from a music library.
-In particular, for a partial playlist, we would like to augment it using songs from an existing library of songs.
+\paragraph{Task:}
+We are interested in augmenting user created playlists with songs from a music library,
+in particular, for a partial playlist, we would like to add more songs from an existing collection of songs.
+The difference between this task from the task in Section~\ref{ssec:newsongrec} is that,
+it is possible to choose any songs from the entire collection of songs, which is not a cold-start problem,
+while the task described in Section~\ref{ssec:newsongrec} restricts that 
+we choose songs from a subset of the entire collection (the newly released songs), 
+which is a cold-start problem.
 
-{\bf Experimental design:}
-We hold the last half of about 20\% of all user created playlists, 
-which are chosen uniformly at random from all playlists in the AtoM-2011 playlist dataset.
-We filter out playlist which has less than 5 songs that appeared in the Million Song Dataset~\cite{}.
+\paragraph{Problem formulation:}
+We formulate the task of augmenting existing playlist as a multi-label classification problem,
+that is, for each song that is not in the given playlist, 
+we predict whether it will be added to augment the given playlist.
+This formulation is illustrated in Figure~\ref{fig:pla},
+where rows represent songs (no specific order) and columns represent playlists (no specific order).
+Further, columns with white colour represent playlists in training set, 
+and columns with grey colour represent playlists that should be augmented (\ie test set).
+Similar to the formulation in Section~\ref{ssec:newsongrec}, if entry $(i, j)$ is \texttt{1} (or \texttt{0}), 
+it means the $i$-th song is (or not) found in the $j$-th playlist, 
+and a question mark \texttt{?} means that we do not know whether the $i$-th song is found in the $j$-th playlist.
+As a remark, columns represent playlists in test set contain only \texttt{1} and \texttt{?} entries.
 
+\input{fig_pla}
 
-\subsubsection{A few conclusions}
+\paragraph{Dataset:}
+We again use the AotM-2011~\cite{mcfee2012hypergraph} and 30Music~\cite{30music2015} playlist dataset,
+the pre-process of the two dataset is the same as that in Section~\ref{ssec:newsongrec}.
+Besides making use of the audio features and genres of songs,
+we also use the popularity of a given song as a feature, which is defined as the number of occurrence in all playlists,
+including the partial playlists in test set.
+
+Table~\ref{tab:stats_pla} summarises the statistics of the two dataset used for this task.
+
 \begin{table}[!h]
 \centering
-\caption{Statistics of dataset}
+\caption{Statistics of dataset for playlist augmentation}
+\label{tab:stats_pla}
 %\resizebox{\linewidth}{!}{
 \begin{tabular}{ccccccc}
 \toprule
 Dataset & \#Users & \#Songs & \#Playlists (train/dev/test)  & \#Song Features \\
 \midrule
-AotM-2011 & 14,182 & 114,428 & 50,826 / 16,942 / 16,942 & 218 \\
+AotM-2011 & 14,182 & 114,428 & 60,260 / 12,225 / 12,225 & 218 \\
 30Music   & 8,070  & 45,468  & 15,591 / 933 / 933       & 218 \\
-%30Music   & 11,339 (train/dev/test?) & 52,159  & 17,883 / 5,960  / 5,960  & 217 \\
 \bottomrule
 \end{tabular}
 %}
 \end{table}
 
+\paragraph{Experimental design:}
+In each dataset, we create the test set such that it contains 20\% of each user's playlists (chosen uniformly at random),
+if the user has 5 or more playlists, the validation set is constructed the same as the test test.
+All remaining playlists are used for training.
+As a remark, we observed all songs during training.
+
+
+\subsubsection{A few conclusions}
 
 \paragraph{Which type of loss is most helpful?}
 

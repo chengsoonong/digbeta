@@ -1,17 +1,20 @@
 \begin{figure}[!h]
 \centering
+\newcolumntype{a}{>{\columncolor[gray]{0.9}}c}  % define a new column type
 \setlength{\tabcolsep}{1pt} % tweak the space between columns
-\begin{tabular}{|*{7}{c}|ccccc|} \hline
+%\begin{tabular}{|*{7}{c}|ccccc|} \hline
+\begin{tabular}{|*{7}{c}|aaaaa|} \hline
 %\rule{.3em}{0pt} 
 \rule{0em}{10pt}
 & \texttt{0} & \texttt{1} & \texttt{0} & $\cdots$ & \texttt{0} & & & \texttt{?} & $\cdots$ & \texttt{?} & \\
 & \texttt{0} & \texttt{0} & \texttt{0} & $\cdots$ & \texttt{0} & & & \texttt{1} & $\cdots$ & \texttt{?} & \\
 & \texttt{1} & \texttt{0} & \texttt{0} & $\cdots$ & \texttt{0} & & & \texttt{?} & $\cdots$ & \texttt{?} & \\
-\vspace{-5pt}
+%\vspace{-5pt}
+\vspace{-3pt}
 & \texttt{0} & \texttt{0} & \texttt{0} & $\cdots$ & \texttt{1} & & & \texttt{?} & $\cdots$ & \texttt{1} & \\
 & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & $\vdots$ & & & $\vdots$ & $\vdots$ & $\vdots$ & \\
 & \texttt{0} & \texttt{0} & \texttt{1} & $\cdots$ & \texttt{0} & & & \texttt{?} & $\cdots$ & \texttt{?} & \\ \hline
 \end{tabular}
-\caption{Illustration of augmenting playlists as multi-label classification.}
+\caption{Illustration of playlist augmentation as multi-label classification.}
 \label{fig:pla}
 \end{figure}
