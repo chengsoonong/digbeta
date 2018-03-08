@@ -4,7 +4,10 @@ import numpy as np
 from sklearn.base import BaseEstimator
 from scipy.sparse import issparse, isspmatrix_coo
 from lbfgs import LBFGS, LBFGSError  # pip install pylbfgs
+from joblib import Parallel, delayed
 
+VERBOSE = 1
+N_JOBS = 2
 
 def risk_pclassification(W, b, X, Y, P, Q, p=1, loss_type='example'):
     """
@@ -37,18 +40,14 @@ def risk_pclassification(W, b, X, Y, P, Q, p=1, loss_type='example'):
     assert P.shape == Q.shape == shape
 
     T1 = np.dot(X, W.T) + b
-    # T1p = np.multiply(Yp, T1)
-    # T1n = T1 - T1p
-    # T2 = np.multiply(Yp, np.exp(-T1p)   ) * P.reshape(shape)
-    # T3 = np.multiply(Yn, np.exp(p * T1n)) * Q.reshape(shape)
-    T1n = T1.copy()
-    T1n[Y.row, Y.col] = 0
-    T1p = T1 - T1n
+    T1p = np.zeros((N, K), dtype=np.float)
+    T1p[Y.row, Y.col] = T1[Y.row, Y.col]
+    T1n = T1 - T1p
     
     T2 = np.exp(-T1p)
-    T2n = T2.copy()
-    T2n[Y.row, Y.col] = 0
-    T2 = (T2 - T2n) * P
+    T2p = np.zeros((N, K), dtype=np.float)
+    T2p[Y.row, Y.col] = T2[Y.row, Y.col]
+    T2 = T2p * P
     
     T3 = np.exp(p * T1n)
     T3[Y.row, Y.col] = 0
@@ -62,11 +61,10 @@ def risk_pclassification(W, b, X, Y, P, Q, p=1, loss_type='example'):
     if np.isnan(risk) or np.isinf(risk):
         sys.stderr('risk_pclassification(): risk is NaN or inf!\n')
         sys.exit(0)
-
     return risk, db, dW
 
 
-class DataIter:
+class DataHelper:
     """
         SciPy sparse matrix slicing is slow, as stated here:
         https://stackoverflow.com/questions/42127046/fast-slicing-and-multiplication-of-scipy-sparse-csr-matrix
@@ -76,10 +74,11 @@ class DataIter:
     def __init__(self, Y, ax=0, batch_size=256):
         assert ax in [0, 1]
         assert issparse(Y)
+        self.init = False
         self.ax = ax
         self.starts = []
         self.ends = []
-        self.Yslices = []
+        self.Ys = []
         self.Ps = []
         self.Qs = []
         num = Y.shape[self.ax]
@@ -103,57 +102,96 @@ class DataIter:
             
             self.starts.append(ix_start)
             self.ends.append(ix_end)
+            self.Ys.append(Yi.tocoo())
             self.Ps.append(P.reshape(shape))
             self.Qs.append(Q.reshape(shape))
-            self.Yslices.append(Yi.tocoo())
-        self.nb = 0
+        self.init = True    
+        
+    def get_data(self):
+        assert self.init is True
+        return self.starts, self.ends, self.Ys, self.Ps, self.Qs
     
-    def __iter__(self):
-        return self
 
-    def __next__(self):
-        self.nb += 1
-        if self.nb > self.n_batches:
-            raise StopIteration
-        i = self.nb - 1
-        return self.starts[i], self.ends[i], self.Yslices[i], self.Ps[i], self.Qs[i]
-    
-    def reset(self):
-        self.nb = 0
+def accumulate_risk_label(Wt, bt, X, Y, p, data_helper):
+    assert data_helper is not None
+    assert data_helper.ax == 1
+    assert Wt.shape == (Y.shape[1], X.shape[1])    
+    starts, ends, Ys, Ps, Qs = data_helper.get_data()
+    num = len(Ys)
+    results = Parallel(n_jobs=N_JOBS)\
+              (delayed(risk_pclassification)(Wt[starts[i]:ends[i], :], bt, X, Ys[i], Ps[i], Qs[i], p=p, loss_type='label')\
+                       for i in range(num))
+    denom = Y.shape[1]
+    risk = 0.
+    db = 0.
+    dW_slices = []
+    for t in results:
+        risk += t[0] / denom
+        db += t[1] / denom
+        dW_slices.append(t[2] / denom)
+    dW = np.vstack(dW_slices)
+    return risk, db, dW
 
-
-def accumulate_risk(Wt, bt, X, Y, p, loss, data_iter, verbose=0):
-    assert loss in ['example', 'label']
-    assert data_iter is not None
-    assert Wt.shape == (Y.shape[1], X.shape[1])
-    ax = 0 if loss == 'example' else 1
-    assert data_iter.ax == ax
+def accumulate_risk_example(Wt, bt, X, Y, p, data_helper):
+    assert data_helper is not None
+    assert data_helper.ax == 0
+    assert Wt.shape == (Y.shape[1], X.shape[1])    
+    starts, ends, Ys, Ps, Qs = data_helper.get_data()
+    denom = Y.shape[0]
     risk = 0.
     db = 0.
     dW = np.zeros_like(Wt)
-    data_iter.reset()
-    nb = 0
-    for ix_start, ix_end, Yi, Pi, Qi in data_iter:
-        nb += 1
-        if verbose > 2:
-            sys.stdout.write('\r%d / %d' % (nb, data_iter.n_batches))
-            sys.stdout.flush()
-        Xi = X[ix_start:ix_end, :] if ax == 0 else X
-        Wb = Wt if ax == 0 else Wt[ix_start:ix_end, :]
-        riski, dbi, dWi = risk_pclassification(Wb, bt, Xi, Yi, Pi, Qi, p=p, loss_type=loss)
-        
-        assert dWi.shape == Wb.shape
-        denom = Y.shape[ax]
-        risk += riski / denom
-        db += dbi / denom
-        if ax == 0:
-            dW += dWi / denom
-        else:
-            dW[ix_start:ix_end, :] = dWi / denom
-
-    if verbose > 2:
-        print()
+    num = len(Ys)
+    bs = 8
+    n_batches = int((num-1) / bs) + 1
+    indices = np.arange(num)
+    for nb in range(n_batches):
+        ixs = nb * bs
+        ixe = min((nb + 1) * bs, num)
+        ix = indices[ixs:ixe]
+        res = Parallel(n_jobs=N_JOBS)\
+                      (delayed(risk_pclassification)(Wt, bt, X[starts[i]:ends[i], :], Ys[i], Ps[i], Qs[i], p, 'example')\
+                       for i in ix)
+        assert len(res) <= bs
+        for t in res:
+            assert len(t) == 3
+            risk += t[0] / denom
+            db += t[1] / denom
+            dW += t[2] / denom
     return risk, db, dW
+
+
+# def accumulate_risk(Wt, bt, X, Y, p, loss, data_helper, verbose=0):
+#     assert loss in ['example', 'label']
+#     assert data_helper is not None
+#     assert Wt.shape == (Y.shape[1], X.shape[1])
+#     ax = 0 if loss == 'example' else 1
+#     assert data_helper.ax == ax
+#     risk = 0.
+#     db = 0.
+#     dW = np.zeros_like(Wt)
+#     nb = 0
+#     for ix_start, ix_end, Yi, Pi, Qi in zip(*(data_helper.get_data())):
+#         nb += 1
+#         if verbose > 2:
+#             sys.stdout.write('\r%d / %d' % (nb, data_helper.n_batches))
+#             sys.stdout.flush()
+#         Xi = X[ix_start:ix_end, :] if ax == 0 else X
+#         Wb = Wt if ax == 0 else Wt[ix_start:ix_end, :]
+#         riski, dbi, dWi = risk_pclassification(Wb, bt, Xi, Yi, Pi, Qi, p=p, loss_type=loss)
+
+#         assert dWi.shape == Wb.shape
+#         denom = Y.shape[ax]
+#         risk += riski / denom
+#         db += dbi / denom
+#         if ax == 0:
+#             dW += dWi / denom
+#         else:
+#             dW[ix_start:ix_end, :] = dWi / denom
+
+#     if verbose > 2:
+#         print()
+#     return risk, db, dW
 
 
 def multitask_regulariser(Wt, bt, cliques):
@@ -176,7 +214,8 @@ def multitask_regulariser(Wt, bt, cliques):
     return cost_mt, dW_mt
 
 
-def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, loss_type='example', cliques=None, data_iter_example=None, data_iter_label=None, verbose=0, fnpy=None):
+def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, loss_type='example', cliques=None, 
+              data_helper_example=None, data_helper_label=None, fnpy=None):
         """
             - w : np.ndarray, current weights 
             - dw: np.ndarray, OUTPUT array for gradients of w
@@ -198,17 +237,19 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, loss_type='example', cliques=N
         W = w[1:].reshape(K, D)        
         
         if loss_type == 'both':
-            assert data_iter_example is not None
-            assert data_iter_label   is not None
-            risk1, db1, dW1 = accumulate_risk(W, b, X, Y, p, loss='label',   data_iter=data_iter_label,   verbose=verbose)
-            risk2, db2, dW2 = accumulate_risk(W, b, X, Y, p, loss='example', data_iter=data_iter_example, verbose=verbose)
+            assert data_helper_example is not None
+            assert data_helper_label   is not None
+            risk1, db1, dW1 = accumulate_risk_label(W, b, X, Y, p, data_helper=data_helper_label)
+            risk2, db2, dW2 = accumulate_risk_example(W, b, X, Y, p, data_helper=data_helper_example)
             risk = risk1 + C2 * risk2
             db = db1 + C2 * db2
             dW = dW1 + C2 * dW2
+        elif loss_type == 'label':
+            assert data_helper_label is not None
+            risk, db, dW = accumulate_risk_label(W, b, X, Y, p, data_helper=data_helper_label)
         else:
-            data_iter = data_iter_example if loss_type == 'example' else data_iter_label
-            assert data_iter is not None
-            risk, db, dW = accumulate_risk(W, b, X, Y, p, loss=loss_type, data_iter=data_iter, verbose=verbose)
+            assert data_helper_example is not None
+            risk, db, dW = accumulate_risk_example(W, b, X, Y, p, data_helper=data_helper_example)
             
         J = risk + np.dot(W.ravel(), W.ravel()) * 0.5 / C1
         dW += W / C1
@@ -220,7 +261,7 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, loss_type='example', cliques=N
 
         dw[:] = np.r_[db, dW.ravel()]  # in-place assignment
         
-        if verbose > 1:
+        if VERBOSE > 0:
             print('Eval f, g: %.1f seconds used.' % (time.time() - t0))
         
         return J
@@ -239,7 +280,7 @@ def progress(x, g, f_x, xnorm, gnorm, step, k, ls, *args):
 
     # save intermediate weights
     fnpy = args[-1]
-    if fnpy is not None and k % 50 == 0:
+    if fnpy is not None and k > 20 and k % 10 == 0:
         try:
             print(fnpy)
             np.save(fnpy, x, allow_pickle=False)
@@ -269,6 +310,7 @@ class PCMLC(BaseEstimator):
         assert X_train.shape[0] == Y_train.shape[0]
         N, D = X_train.shape
         K = Y_train.shape[1]
+        VERBOSE = verbose  # set verbose output, use a global variable in this case
 
         if w0 is None:
             if fnpy is not None:
@@ -281,8 +323,8 @@ class PCMLC(BaseEstimator):
         else:
             assert w0.shape[0] == K * D + 1
             
-        data_iter_example = None if self.loss_type == 'label' else DataIter(Y_train, ax=0, batch_size=batch_size)
-        data_iter_label = None if self.loss_type == 'example' else DataIter(Y_train, ax=1, batch_size=batch_size)
+        data_helper_example = None if self.loss_type == 'label' else DataHelper(Y_train, ax=0, batch_size=batch_size)
+        data_helper_label = None if self.loss_type == 'example' else DataHelper(Y_train, ax=1, batch_size=batch_size)
 
         try:
             # f: callable(x, g, *args)
@@ -291,7 +333,7 @@ class PCMLC(BaseEstimator):
             optim.linesearch = 'wolfe'
             res = optim.minimize(objective, w0, progress, 
                                  args=(X_train, Y_train, self.C1, self.C2, self.C3, self.p, self.loss_type, 
-                                       user_playlist_indices, data_iter_example, data_iter_label, verbose, fnpy))
+                                       user_playlist_indices, data_helper_example, data_helper_label, fnpy))
             self.b = res[0]
             self.W = res[1:].reshape(K, D)
             self.trained = True
