@@ -7,9 +7,9 @@ from lbfgs import LBFGS, LBFGSError  # pip install pylbfgs
 from joblib import Parallel, delayed
 
 VERBOSE = 1
-N_JOBS = 2
+N_JOBS = 3
 
-def risk_pclassification(W, b, X, Y, P, Q, p=1, loss_type='example'):
+def risk_pclassification(W, b, X, Y, P, Q, p=1):
     """
         Empirical risk of p-classification loss for multilabel classification
 
@@ -30,14 +30,16 @@ def risk_pclassification(W, b, X, Y, P, Q, p=1, loss_type='example'):
     """
     assert p > 0
     assert Y.dtype == np.bool
-    assert loss_type in ['example', 'label'], \
-        'Valid assignment for "loss_type" are: "example", "label"'
     assert isspmatrix_coo(Y)  # scipy.sparse.coo_matrix type
     N, D = X.shape
     K = Y.shape[1]
     assert W.shape == (K, D)
-    shape = (N, 1) if loss_type == 'example' else (1, K)
-    assert P.shape == Q.shape == shape
+    # shape = (N, 1) if loss_type == 'example' else (1, K)
+    assert P.shape == Q.shape
+    if P.shape[0] == 1:
+        assert P.shape[1] == K
+    else:
+        assert P.shape == (N, 1)
 
     T1 = np.dot(X, W.T) + b
     T1p = np.zeros((N, K), dtype=np.float)
@@ -110,7 +112,7 @@ class DataHelper:
     def get_data(self):
         assert self.init is True
         return self.starts, self.ends, self.Ys, self.Ps, self.Qs
-    
+
 
 def accumulate_risk_label(Wt, bt, X, Y, p, data_helper):
     assert data_helper is not None
@@ -119,7 +121,7 @@ def accumulate_risk_label(Wt, bt, X, Y, p, data_helper):
     starts, ends, Ys, Ps, Qs = data_helper.get_data()
     num = len(Ys)
     results = Parallel(n_jobs=N_JOBS)\
-              (delayed(risk_pclassification)(Wt[starts[i]:ends[i], :], bt, X, Ys[i], Ps[i], Qs[i], p=p, loss_type='label')\
+                      (delayed(risk_pclassification)(Wt[starts[i]:ends[i], :], bt, X, Ys[i], Ps[i], Qs[i], p=p) \
                        for i in range(num))
     denom = Y.shape[1]
     risk = 0.
@@ -131,6 +133,7 @@ def accumulate_risk_label(Wt, bt, X, Y, p, data_helper):
         dW_slices.append(t[2] / denom)
     dW = np.vstack(dW_slices)
     return risk, db, dW
+
 
 def accumulate_risk_example(Wt, bt, X, Y, p, data_helper):
     assert data_helper is not None
@@ -150,7 +153,7 @@ def accumulate_risk_example(Wt, bt, X, Y, p, data_helper):
         ixe = min((nb + 1) * bs, num)
         ix = indices[ixs:ixe]
         res = Parallel(n_jobs=N_JOBS)\
-                      (delayed(risk_pclassification)(Wt, bt, X[starts[i]:ends[i], :], Ys[i], Ps[i], Qs[i], p, 'example')\
+                      (delayed(risk_pclassification)(Wt, bt, X[starts[i]:ends[i], :], Ys[i], Ps[i], Qs[i], p)\
                        for i in ix)
         assert len(res) <= bs
         for t in res:
@@ -179,7 +182,6 @@ def accumulate_risk_example(Wt, bt, X, Y, p, data_helper):
 #         Xi = X[ix_start:ix_end, :] if ax == 0 else X
 #         Wb = Wt if ax == 0 else Wt[ix_start:ix_end, :]
 #         riski, dbi, dWi = risk_pclassification(Wb, bt, Xi, Yi, Pi, Qi, p=p, loss_type=loss)
-
 #         assert dWi.shape == Wb.shape
 #         denom = Y.shape[ax]
 #         risk += riski / denom
@@ -188,7 +190,6 @@ def accumulate_risk_example(Wt, bt, X, Y, p, data_helper):
 #             dW += dWi / denom
 #         else:
 #             dW[ix_start:ix_end, :] = dWi / denom
-
 #     if verbose > 2:
 #         print()
 #     return risk, db, dW
@@ -201,7 +202,7 @@ def multitask_regulariser(Wt, bt, cliques):
     dW_mt = np.zeros_like(Wt)
     for clq in cliques:
         npl = len(clq)
-        if npl < 2: 
+        if npl < 2:
             continue
         denom += npl * (npl - 1)
         M = -1 * np.ones((npl, npl), dtype=np.float)
@@ -228,8 +229,7 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, loss_type='example', cliques=N
         assert C2 > 0
         assert C3 > 0
         assert p > 0
-        t0 = time.time()
-        
+        t0 = time.time()        
         N, D = X.shape
         K = Y.shape[1]
         assert w.shape[0] == K * D + 1
@@ -237,18 +237,14 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, loss_type='example', cliques=N
         W = w[1:].reshape(K, D)        
         
         if loss_type == 'both':
-            assert data_helper_example is not None
-            assert data_helper_label   is not None
             risk1, db1, dW1 = accumulate_risk_label(W, b, X, Y, p, data_helper=data_helper_label)
             risk2, db2, dW2 = accumulate_risk_example(W, b, X, Y, p, data_helper=data_helper_example)
             risk = risk1 + C2 * risk2
             db = db1 + C2 * db2
             dW = dW1 + C2 * dW2
         elif loss_type == 'label':
-            assert data_helper_label is not None
             risk, db, dW = accumulate_risk_label(W, b, X, Y, p, data_helper=data_helper_label)
         else:
-            assert data_helper_example is not None
             risk, db, dW = accumulate_risk_example(W, b, X, Y, p, data_helper=data_helper_example)
             
         J = risk + np.dot(W.ravel(), W.ravel()) * 0.5 / C1
