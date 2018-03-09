@@ -5,7 +5,9 @@
 \label{sec:experiment}
 
 We first evaluate the proposed method on the task of tag recommendation from text data,
-which was formulated as multi-label classification problem~\cite{katakis2008multilabel}.
+which was formulated as multi-label classification problem~\cite{katakis2008multilabel},
+then on two music playlist recommendation tasks using two playlist dataset.
+
 
 \subsection{Tag recommendation as multi-label classification}
 \label{ssec:mlc}
@@ -59,7 +61,7 @@ both work learn complex non-linear functions using deep neural networks to achie
 
 \begin{table}[!h]
 \centering
-\newcommand{\nan}{{\small N/A}}
+\newcommand{\nan}{{\scriptsize N/A}}
 \caption{Performance on multi-label dataset (F$_1$ and R-Precision $\times 10^2$)}
 \label{tab:perf_mlc}
 \small
@@ -103,34 +105,7 @@ MLR (Ours)                         &          ${\bf 47.0}$ & ${\bf 38.8}$ & ${\b
 \end{table}
 
 
-
-\subsection{New song recommendation}
-\label{ssec:newsongrec}
-
-\paragraph{Task:} 
-We are interested in the task of recommending newly released songs to users,
-in particular, to augment users' existing playlists with these songs,
-which is a cold-start problem.
-
-\paragraph{Problem formulation:}
-We formulate the task of recommending newly released songs to augment existing playlists
-as a multi-label classification problem, where we predict, for each song, 
-whether it will be included in a given playlist.
-This formulation is illustrated in Figure~\ref{fig:mlr},
-where rows represent songs (from top to bottom, sorted by the release date in ascending order)
-and columns represent playlists (no specific order).
-Further, rows with white colour represent songs in training set, and rows with grey colour represent songs in test set.
-If entry $(i, j)$ is \texttt{1} (or \texttt{0}), it means the $i$-th song is (or not) found in the $j$-th playlist,
-otherwise, we do not know whether the $i$-th song is found in the $j$-th playlist (\ie entry $(i, j)$ is a question mark \texttt{?}).
-
-
-\TODO
-{\it Formulas for each variant. $\RCal_\textsc{example}$ and $\RCal_\textsc{label}$ etc}
-
-
-\input{fig_mlr}
-
-\paragraph{Dataset:}
+\subsection{Music playlist dataset}
 We make use of publicly available playlist dataset: the AotM-2011~\cite{mcfee2012hypergraph} and 30Music~\cite{30music2015} playlist dataset. \\
 %
 {\bf AotM-2011 Dataset} is a collection of playlists shared by users\footnote{\url{http://www.artofthemix.org}} ranging from 1998 to 2011, 
@@ -150,9 +125,51 @@ which results in 202 audio features and 15 one-hot encoding for genres.
 %% - temporal audio features: use 5-number (percentiles) summary: min, max, median, Q1 and Q3.
 %% - missing genre: imputed using the mean values of the genre
 
-In each dataset, we hold (a random) half of the 40\% latest released songs for test,
+
+\subsection{Evaluation}
+We evaluate performance using metrics that are commonly used for music and playlist recommendation 
+tasks~\cite{schedl2017,hariri2012context,jannach2015beyond}:
+\begin{itemize}
+\item R-Precision~\cite{manning2008introIR}, which computes the ratio of correctly recommended songs in top-$n$ recommendation, 
+      where $n$ is the number of songs held for a given playlist.
+\item Hit-Rate@K~\cite{hariri2012context}, which computes the ratio of correctly recommended songs among top-$K$ recommendation, 
+      where $K$ is a given number, \eg $10$, $100$. 
+      This metric is also known as Precision@K in information retrieval literature~\cite{manning2008introIR}.
+\end{itemize}
+We average over all playlists in test set for each metric.
+
+
+\subsection{New song recommendation}
+\label{ssec:newsongrec}
+
+\paragraph{Motivation:} 
+We are interested in the task of recommending newly released songs to users,
+in particular, to augment users' existing playlists with these songs,
+which is a cold-start problem.
+
+\paragraph{Machine learning task:}
+We formulate the task of recommending newly released songs to augment existing playlists
+as a multi-label classification problem, where we predict, for each song, 
+whether it will be included in a given playlist.
+This formulation is illustrated in Figure~\ref{fig:mlr},
+where rows represent songs (from top to bottom, sorted by the release date in ascending order)
+and columns represent playlists (no specific order).
+Further, rows with white colour represent songs in training set, and rows with grey colour represent songs in test set.
+If entry $(i, j)$ is \texttt{1} (or \texttt{0}), it means the $i$-th song is (or not) found in the $j$-th playlist,
+otherwise, we do not know whether the $i$-th song is found in the $j$-th playlist (\ie entry $(i, j)$ is a question mark \texttt{?}).
+As a remark, we do not care about the order of songs in a playlist.
+
+\input{fig_mlr}
+
+\paragraph{Solutions:}
+{\it Formulas for each variant. $\RCal_\textsc{example}$ and $\RCal_\textsc{label}$ etc}
+
+
+\paragraph{Experimental design:}
+In both the AotM-2011 and 30Music dataset, we hold (a random) half of the 40\% latest released songs for test,
 and other half as validation set, the remaining 60\% of songs are used for training.
-All playlists in the dataset are used for this task.
+As a remark, in each dataset, the set of users and playlists are the same for training/dev/test split,
+these splits differ in the set of songs.
 
 Table~\ref{tab:stats_newsongrec} summarises the statistics of the two dataset used for this task.
 
@@ -221,17 +238,20 @@ C: 1, 1, 1, p: 1, no multi-task regularisation.
 \subsection{Playlist augmentation}
 \label{ssec:pla}
 
-\paragraph{Task:}
+\paragraph{Motivation:}
 We are interested in augmenting user created playlists with songs from a music library,
 in particular, for a partial playlist with the first $K$ tracks, 
 we would like to add more songs from an existing collection of songs.
+The ACM RecSys Challenge 2018 will use a similar setting for continuing music playlists 
+automatically\footnote{\url{https://recsys-challenge.spotify.com}}.
+
 The difference between this task from the task in Section~\ref{ssec:newsongrec} is that,
 it is possible to choose any songs from the entire collection of songs, which is not a cold-start problem,
 while the task described in Section~\ref{ssec:newsongrec} restricts that 
 we choose songs from a subset of the entire collection (the newly released songs), 
 which is a cold-start problem.
 
-\paragraph{Problem formulation:}
+\paragraph{Machine learning task:}
 We formulate the task of augmenting existing playlist as a multi-label classification problem,
 that is, for each song that is not in the given playlist, 
 we predict whether it will be added to augment the given playlist.
@@ -246,20 +266,20 @@ As a remark, columns represent playlists in test set contain only \texttt{1} and
 
 \input{fig_pla}
 
-\paragraph{Dataset:}
-We again use the AotM-2011~\cite{mcfee2012hypergraph} and 30Music~\cite{30music2015} playlist dataset,
-the pre-process of the two dataset is the same as that in Section~\ref{ssec:newsongrec}.
-Besides making use of the audio features and genres of songs,
-we also use the popularity of a given song as a feature, which is defined as the number of occurrence in all playlists,
-including the partial playlists in test set.
-
+\paragraph{Experimental design:}
+We use the AotM-2011~\cite{mcfee2012hypergraph} and 30Music~\cite{30music2015} playlist dataset,
 In each dataset, we create the test set such that it contains 20\% of each user's playlists (chosen uniformly at random),
 if the user has 5 or more playlists. Further, for the $j$-th playlist in test set, we hold all tracks except the first $K$ ones,
 where $K$ is chosen from $[1, L_j-1]$ uniformly at random, and $L_j$ is the number of tracks in the $j$-th playlist.
 The validation set is constructed the same as the test test.
 All remaining playlists are used for training.
-As a remark, we observed the entire collection of songs during training.
+As a remark, we observed the entire collection of songs during training, 
+and all users in test set have playlists in training set.
 
+Besides making use of the audio features and genres of songs,
+we also use the popularity of a given song as a feature, 
+which is defined as the number of occurrence of the song (\ie a listening event of the particular song) in all playlists,
+including the partial playlists in test set.
 Table~\ref{tab:stats_pla} summarises the statistics of the two dataset used for this task.
 
 \begin{table}[!h]
@@ -268,16 +288,19 @@ Table~\ref{tab:stats_pla} summarises the statistics of the two dataset used for 
 \label{tab:stats_pla}
 %\resizebox{\linewidth}{!}{
 \small
-\begin{tabular}{l|rrrr}
+\begin{tabular}{l|rrrrr}
 \toprule
-Dataset & \#Users & \#Songs & \#Playlists (train/dev/test)  & \#Song Features \\
+Dataset & \#Users & \#Songs & \#Playlists (train/dev/test)  & \#Listen events held (dev/test) & \#Song Features \\
 \midrule
-AotM-2011 & 14,182 & 114,428 & 60,260 / 12,225 / 12,225 & 218 \\
-30Music   & 8,070  & 45,468  & 15,591 / 933 / 933       & 218 \\
+AotM-2011 & 14,182 & 114,428 & 60,260 / 12,225 / 12,225 & 62,396 / 62,844 & 218 \\
+30Music   & 8,070  & 45,468  & 15,591 / 933 / 933       & 8,459 / 8,487   & 218 \\
 \bottomrule
 \end{tabular}
 %}
 \end{table}
+
+\paragraph{Solutions:}
+{\it different type of losses}
 
 
 \subsubsection{A few conclusions}
@@ -334,8 +357,10 @@ The binary relevance baseline is learning a logistic regression for each playlis
 \toprule
 {}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & BR & \textsc{PopRank} \\
 \midrule
-AotM-2011     &  &  &  & 2.69 & 3.69 \\
-30Music       & 5.53 & 9.02 &  & 9.44 & 4.49 \\
+AotM-2011     &  &  &  & 2.05 & 3.67 \\
+30Music       &  &  &  & 6.88 & 4.30 \\
+%AotM-2011     &  &  &  & 2.69 & 3.69 \\
+%30Music       & 5.53 & 9.02 &  & 9.44 & 4.49 \\
 %AotM-2011     & 0.68459 & 0.747755 & 0.7429  & 0.6924 & 0.80199 \\
 %30Music       & 0.7168  & 0.76867  & 0.76917 & 0.7225 & 0.7165 \\
 %AotM-2011     & 0.6827396 & 0.743770 & 0.7385298 & 0.6924 & 0.80199 \\
