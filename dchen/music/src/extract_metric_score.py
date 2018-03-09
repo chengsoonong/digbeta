@@ -1,4 +1,5 @@
-import os, sys
+import os
+import sys
 import gzip
 import pickle as pkl
 from models import PCMLC
@@ -9,7 +10,7 @@ if len(sys.argv) != 2:
 
 dir1 = sys.argv[1]
 for f in sorted(os.listdir(dir1)):
+    clf = PCMLC()
     clf = pkl.load(gzip.open(os.path.join(dir1, f), 'rb'))
     if hasattr(clf, 'metric_score'):
         print('%s | %s' % (str(clf.metric_score), f))
-

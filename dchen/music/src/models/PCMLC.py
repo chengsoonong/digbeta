@@ -9,6 +9,7 @@ from joblib import Parallel, delayed
 VERBOSE = 1
 N_JOBS = 3
 
+
 def risk_pclassification(W, b, X, Y, P, Q, p=1):
     """
         Empirical risk of p-classification loss for multilabel classification
@@ -22,7 +23,7 @@ def risk_pclassification(W, b, X, Y, P, Q, p=1):
             - loss_type: valid assignment is 'example' or 'label'
                 - 'example': compute a loss for each example, by the #positive or #negative labels per example
                 - 'label'  : compute a loss for each label, by the #positive or #negative examples per label
-                
+
         Output:
             - risk: empirical risk
             - db  : gradient of bias term
@@ -45,12 +46,12 @@ def risk_pclassification(W, b, X, Y, P, Q, p=1):
     T1p = np.zeros((N, K), dtype=np.float)
     T1p[Y.row, Y.col] = T1[Y.row, Y.col]
     T1n = T1 - T1p
-    
+
     T2 = np.exp(-T1p)
     T2p = np.zeros((N, K), dtype=np.float)
     T2p[Y.row, Y.col] = T2[Y.row, Y.col]
     T2 = T2p * P
-    
+
     T3 = np.exp(p * T1n)
     T3[Y.row, Y.col] = 0
     T3 = T3 * Q
@@ -59,7 +60,7 @@ def risk_pclassification(W, b, X, Y, P, Q, p=1):
     T4 = T3 - T2
     db = np.sum(T4)
     dW = np.dot(T4.T, X)
-    
+
     if np.isnan(risk) or np.isinf(risk):
         sys.stderr('risk_pclassification(): risk is NaN or inf!\n')
         sys.exit(0)
@@ -101,14 +102,14 @@ class DataHelper:
             P[nz_pix] = 1. / numPos[nz_pix]  # P = 1 / numPos
             Q[nz_nix] = 1. / numNeg[nz_nix]  # Q = 1 / numNeg
             shape = (len(P), 1) if self.ax == 0 else (1, len(P))
-            
+
             self.starts.append(ix_start)
             self.ends.append(ix_end)
             self.Ys.append(Yi.tocoo())
             self.Ps.append(P.reshape(shape))
             self.Qs.append(Q.reshape(shape))
-        self.init = True    
-        
+        self.init = True
+
     def get_data(self):
         assert self.init is True
         return self.starts, self.ends, self.Ys, self.Ps, self.Qs
@@ -117,12 +118,11 @@ class DataHelper:
 def accumulate_risk_label(Wt, bt, X, Y, p, data_helper):
     assert data_helper is not None
     assert data_helper.ax == 1
-    assert Wt.shape == (Y.shape[1], X.shape[1])    
+    assert Wt.shape == (Y.shape[1], X.shape[1])
     starts, ends, Ys, Ps, Qs = data_helper.get_data()
     num = len(Ys)
-    results = Parallel(n_jobs=N_JOBS)\
-                      (delayed(risk_pclassification)(Wt[starts[i]:ends[i], :], bt, X, Ys[i], Ps[i], Qs[i], p=p) \
-                       for i in range(num))
+    results = Parallel(n_jobs=N_JOBS)(delayed(risk_pclassification)
+                                      (Wt[starts[i]:ends[i], :], bt, X, Ys[i], Ps[i], Qs[i], p=p) for i in range(num))
     denom = Y.shape[1]
     risk = 0.
     db = 0.
@@ -138,7 +138,7 @@ def accumulate_risk_label(Wt, bt, X, Y, p, data_helper):
 def accumulate_risk_example(Wt, bt, X, Y, p, data_helper):
     assert data_helper is not None
     assert data_helper.ax == 0
-    assert Wt.shape == (Y.shape[1], X.shape[1])    
+    assert Wt.shape == (Y.shape[1], X.shape[1])
     starts, ends, Ys, Ps, Qs = data_helper.get_data()
     denom = Y.shape[0]
     risk = 0.
@@ -152,9 +152,8 @@ def accumulate_risk_example(Wt, bt, X, Y, p, data_helper):
         ixs = nb * bs
         ixe = min((nb + 1) * bs, num)
         ix = indices[ixs:ixe]
-        res = Parallel(n_jobs=N_JOBS)\
-                      (delayed(risk_pclassification)(Wt, bt, X[starts[i]:ends[i], :], Ys[i], Ps[i], Qs[i], p)\
-                       for i in ix)
+        res = Parallel(n_jobs=N_JOBS)(delayed(risk_pclassification)
+                                      (Wt, bt, X[starts[i]:ends[i], :], Ys[i], Ps[i], Qs[i], p) for i in ix)
         assert len(res) <= bs
         for t in res:
             assert len(t) == 3
@@ -215,13 +214,13 @@ def multitask_regulariser(Wt, bt, cliques):
     return cost_mt, dW_mt
 
 
-def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, loss_type='example', cliques=None, 
+def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, loss_type='example', cliques=None,
               data_helper_example=None, data_helper_label=None, fnpy=None):
         """
-            - w : np.ndarray, current weights 
+            - w : np.ndarray, current weights
             - dw: np.ndarray, OUTPUT array for gradients of w
             - cliques: a list of arrays, each array is the indices of playlists of the same user.
-                       To require the parameters of label_i and label_j be similar by regularising 
+                       To require the parameters of label_i and label_j be similar by regularising
                        their diff if entry (i,j) is 1 (i.e. belong to the same user).
         """
         assert loss_type in ['example', 'label', 'both']
@@ -229,13 +228,13 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, loss_type='example', cliques=N
         assert C2 > 0
         assert C3 > 0
         assert p > 0
-        t0 = time.time()        
+        t0 = time.time()
         N, D = X.shape
         K = Y.shape[1]
         assert w.shape[0] == K * D + 1
         b = w[0]
-        W = w[1:].reshape(K, D)        
-        
+        W = w[1:].reshape(K, D)
+
         if loss_type == 'both':
             risk1, db1, dW1 = accumulate_risk_label(W, b, X, Y, p, data_helper=data_helper_label)
             risk2, db2, dW2 = accumulate_risk_example(W, b, X, Y, p, data_helper=data_helper_example)
@@ -246,20 +245,20 @@ def objective(w, dw, X, Y, C1=1, C2=1, C3=1, p=1, loss_type='example', cliques=N
             risk, db, dW = accumulate_risk_label(W, b, X, Y, p, data_helper=data_helper_label)
         else:
             risk, db, dW = accumulate_risk_example(W, b, X, Y, p, data_helper=data_helper_example)
-            
+
         J = risk + np.dot(W.ravel(), W.ravel()) * 0.5 / C1
         dW += W / C1
-        
+
         if cliques is not None:
             cost_mt, dW_mt = multitask_regulariser(W, b, cliques)
             J += cost_mt / C3
             dW += dW_mt / C3
 
         dw[:] = np.r_[db, dW.ravel()]  # in-place assignment
-        
+
         if VERBOSE > 0:
             print('Eval f, g: %.1f seconds used.' % (time.time() - t0))
-        
+
         return J
 
 
@@ -267,9 +266,9 @@ def progress(x, g, f_x, xnorm, gnorm, step, k, ls, *args):
     """
         Report optimization progress.
         progress: callable(x, g, fx, xnorm, gnorm, step, k, num_eval, *args)
-                  If not None, called at each iteration after the call to f with 
-                  the current values of x, g and f(x), the L2 norms of x and g, 
-                  the line search step, the iteration number, 
+                  If not None, called at each iteration after the call to f with
+                  the current values of x, g and f(x), the L2 norms of x and g,
+                  the line search step, the iteration number,
                   the number of evaluations at this iteration and args.
     """
     print('Iter {:3d}:  f = {:15.9f},  |g| = {:15.9f},  {}'.format(k, f_x, gnorm, time.strftime('%Y-%m-%d %H:%M:%S')))
@@ -282,8 +281,8 @@ def progress(x, g, f_x, xnorm, gnorm, step, k, ls, *args):
             np.save(fnpy, x, allow_pickle=False)
         except (OSError, IOError, ValueError):
             sys.stderr.write('Save weights to .npy file failed\n')
-    
-        
+
+
 class PCMLC(BaseEstimator):
     """All methods are necessary for a scikit-learn estimator"""
 
@@ -299,7 +298,7 @@ class PCMLC(BaseEstimator):
         self.C2 = C2
         self.C3 = C3
         self.p = p
-        self.loss_type = loss_type 
+        self.loss_type = loss_type
         self.trained = False
 
     def fit(self, X_train, Y_train, user_playlist_indices=None, batch_size=256, verbose=0, w0=None, fnpy=None):
@@ -307,6 +306,9 @@ class PCMLC(BaseEstimator):
         N, D = X_train.shape
         K = Y_train.shape[1]
         VERBOSE = verbose  # set verbose output, use a global variable in this case
+
+        if VERBOSE > 0:
+            t0 = time.time()
 
         if w0 is None:
             if fnpy is not None:
@@ -318,7 +320,7 @@ class PCMLC(BaseEstimator):
                     w0 = np.zeros(K * D + 1)
         else:
             assert w0.shape[0] == K * D + 1
-            
+
         data_helper_example = None if self.loss_type == 'label' else DataHelper(Y_train, ax=0, batch_size=batch_size)
         data_helper_label = None if self.loss_type == 'example' else DataHelper(Y_train, ax=1, batch_size=batch_size)
 
@@ -327,8 +329,8 @@ class PCMLC(BaseEstimator):
             # LBFGS().minimize(f, x0, progress=progress, args=args)
             optim = LBFGS()
             optim.linesearch = 'wolfe'
-            res = optim.minimize(objective, w0, progress, 
-                                 args=(X_train, Y_train, self.C1, self.C2, self.C3, self.p, self.loss_type, 
+            res = optim.minimize(objective, w0, progress,
+                                 args=(X_train, Y_train, self.C1, self.C2, self.C3, self.p, self.loss_type,
                                        user_playlist_indices, data_helper_example, data_helper_label, fnpy))
             self.b = res[0]
             self.W = res[1:].reshape(K, D)
@@ -337,7 +339,10 @@ class PCMLC(BaseEstimator):
             self.trained = False
             sys.stderr.write('LBFGS failed: {0}\n'.format(err))
             sys.stderr.flush()
-        
+
+        if VERBOSE > 0:
+            print('Training finished in %.1f seconds' % time.time() - t0)
+
     def decision_function(self, X_test):
         """Make predictions (score is a real number)"""
         assert self.trained is True, "Cannot make prediction before training"

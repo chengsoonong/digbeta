@@ -1,5 +1,6 @@
 import gzip
-import os, sys
+import os
+import sys
 import pickle as pkl
 import numpy as np
 from scipy.sparse import csr_matrix, csc_matrix
@@ -56,4 +57,3 @@ for fname in ['Y_train', 'Y_dev', 'Y_test', 'Y_train_dev']:
     # NOTE: the csr sparse representation of the same dense matrix can have different indices,
     # so transform them to another representation may result in the same indices.
 print('done.')
-

@@ -1,5 +1,6 @@
 import gzip
-import os, sys
+import os
+import sys
 import pickle as pkl
 import numpy as np
 from scipy.sparse import csr_matrix, csc_matrix
@@ -62,4 +63,3 @@ pops1 = pkl.load(gzip.open(os.path.join(dir1, 'song2pop.pkl.gz'), 'rb'))
 pops2 = pkl.load(gzip.open(os.path.join(dir2, 'song2pop.pkl.gz'), 'rb'))
 for sid in pops1:
     assert pops1[sid] == pops2[sid]
-

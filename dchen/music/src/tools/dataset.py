@@ -1,7 +1,6 @@
 import os
-import torchfile  # pip install torchfile
 import numpy as np
-import pickle as pkl
+import torchfile  # pip install torchfile
 import arff  # pip install liac-arff
 
 
@@ -88,4 +87,3 @@ def _load_bookmarks_data(train_data=True):
             features = np.concatenate([features, data_dict[b'data'][:, 0:_bookmarks_nFeatures]], axis=0)
             labels = np.concatenate([labels, data_dict[b'labels']], axis=0)
     return features, labels.astype(np.bool)
-

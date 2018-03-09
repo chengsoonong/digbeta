@@ -1,9 +1,10 @@
-import os, sys, gzip
+import os
+import sys
+import gzip
 import pickle as pkl
 import numpy as np
-from sklearn.metrics import roc_auc_score
+# from sklearn.metrics import roc_auc_score
 from scipy.sparse import issparse
-from models import BinaryRelevance
 from tools import calc_RPrecision_HitRate
 
 TOPs = [5, 10, 20, 30, 50, 100, 200, 300, 500, 1000]
@@ -54,4 +55,3 @@ with open(fsplit, 'r') as fd:
 br2_perf = {dataset: {'Test': {'R-Precision': np.mean(rps), 'Hit-Rate': {top: np.mean(hitrates[top]) for top in TOPs}}}}
 pkl.dump(br2_perf, open(fperf, 'wb'))
 print(br2_perf)
-

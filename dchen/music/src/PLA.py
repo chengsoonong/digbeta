@@ -9,7 +9,8 @@ from models import PCMLC
 
 
 if len(sys.argv) != 11:
-    print('Usage: python', sys.argv[0], 'WORK_DIR  DATASET  C1  C2  C3  P  BATCH_SIZE  LOSS_TYPE(example/label/both)  MT_REG(Y/N)  TRAIN_DEV(Y/N)')
+    print('Usage: python', sys.argv[0],
+          'WORK_DIR  DATASET  C1  C2  C3  P  BATCH_SIZE  LOSS_TYPE(example/label/both)  MT_REG(Y/N)  TRAIN_DEV(Y/N)')
     sys.exit(0)
 else:
     work_dir = sys.argv[1]
@@ -43,7 +44,7 @@ else:
     fydev = os.path.join(data_dir, 'PU_test.pkl.gz')
     fcliques = os.path.join(data_dir, 'cliques_all2.pkl.gz')
     fprefix = 'trndev-pla-%s-%s-%g-%g-%g-%g' % (loss, multitask, C1, C2, C3, p)
-    
+
 fmodel = os.path.join(data_dir, '%s.pkl.gz' % fprefix)
 fnpy = os.path.join(data_dir, '%s.npy' % fprefix)
 
@@ -94,4 +95,3 @@ if clf.trained is True:
     clf.metric_score = (np.mean(rps), len(rps), Y_dev.shape[1])
     pkl.dump(clf, gzip.open(fmodel, 'wb'))
     print('\n%.5f, %d / %d' % clf.metric_score)
-

@@ -36,4 +36,3 @@ for i in range(1, len(ranges)):
     start = ranges[i-1]
     end = ranges[i]
     print('%d %d' % (start, end))
-

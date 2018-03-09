@@ -1,10 +1,7 @@
 import os
 import sys
 import gzip
-import time
-import numpy as np
 import pickle as pkl
-from scipy.sparse import issparse, vstack
 
 
 if len(sys.argv) != 4:
@@ -31,11 +28,11 @@ istrs = ['P%d' % (j+start) for j in range(Y_part.shape[1])]
 lines = []
 for i in range(Y_part.shape[0]):
     if (i+1) % 100 == 0:
-        sys.stdout.write('\r%d / %d' % (i+1, Y_part.shape[0])); sys.stdout.flush()
-    lines += [','.join([ustrs[i], istrs[j], '5\n']) if Y_part[i, j] is True else \
+        sys.stdout.write('\r%d / %d' % (i+1, Y_part.shape[0]))
+        sys.stdout.flush()
+    lines += [','.join([ustrs[i], istrs[j], '5\n']) if Y_part[i, j] is True else
               ','.join([ustrs[i], istrs[j], '1\n']) for j in range(Y_part.shape[1])]
 
 fname = os.path.join(pkl_data_dir, 'ftrain_%d_%d.csv' % (start, end))
 with open(fname, 'w') as fd:
     fd.writelines(lines)
-

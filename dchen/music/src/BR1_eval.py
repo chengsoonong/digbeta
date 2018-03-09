@@ -1,9 +1,10 @@
-import os, sys, gzip
+import os
+import sys
+import gzip
 import pickle as pkl
 import numpy as np
-from sklearn.metrics import roc_auc_score
+# from sklearn.metrics import roc_auc_score
 from scipy.sparse import issparse
-from models import BinaryRelevance
 from tools import calc_RPrecision_HitRate
 
 TOPs = [5, 10, 20, 30, 50, 100, 200, 300, 500, 1000]
@@ -17,8 +18,8 @@ dataset = sys.argv[2]
 data_dir = os.path.join(work_dir, 'data/%s/setting1' % dataset)
 fsplit = os.path.join(data_dir, 'br1/br1.%s.split' % dataset)
 fperf = os.path.join(data_dir, 'perf-br1.pkl')
-X_test  = pkl.load(gzip.open(os.path.join(data_dir, 'X_test.pkl.gz'), 'rb'))
-Y_test  = pkl.load(gzip.open(os.path.join(data_dir, 'Y_test.pkl.gz'), 'rb'))
+X_test = pkl.load(gzip.open(os.path.join(data_dir, 'X_test.pkl.gz'), 'rb'))
+Y_test = pkl.load(gzip.open(os.path.join(data_dir, 'Y_test.pkl.gz'), 'rb'))
 
 rps = []
 hitrates = {top: [] for top in TOPs}
@@ -36,7 +37,8 @@ with open(fsplit, 'r') as fd:
             else:
                 y_true = y_true.reshape(-1)
             npos = y_true.sum()
-            if npos < 1: continue
+            if npos < 1:
+                continue
             y_pred = preds[:, j-int(start)].reshape(-1)
             rp, hr_dict = calc_RPrecision_HitRate(y_true, y_pred, tops=TOPs)
             rps.append(rp)

@@ -8,7 +8,8 @@ from models import PCMLC
 
 
 if len(sys.argv) != 11:
-    print('Usage: python', sys.argv[0], 'WORK_DIR  DATASET  C1  C2  C3  P  BATCH_SIZE  LOSS_TYPE(example/label/both)  MT_REG(Y/N)  TRAIN_DEV(Y/N)')
+    print('Usage: python', sys.argv[0],
+          'WORK_DIR  DATASET  C1  C2  C3  P  BATCH_SIZE  LOSS_TYPE(example/label/both)  MT_REG(Y/N)  TRAIN_DEV(Y/N)')
     sys.exit(0)
 else:
     work_dir = sys.argv[1]
@@ -75,7 +76,8 @@ if clf.trained is True:
     for j in range(Y_dev.shape[1]):
         y_true = Y_dev[:, j].toarray().reshape(-1)
         npos = y_true.sum()
-        if npos < 1: continue
+        if npos < 1:
+            continue
         wj = W[j, :].reshape(-1)
         y_pred = np.dot(X_dev, wj) + b
         sortix = np.argsort(-y_pred)
@@ -84,4 +86,3 @@ if clf.trained is True:
     clf.metric_score = (np.mean(rps), len(rps), Y_dev.shape[1])
     pkl.dump(clf, gzip.open(fmodel, 'wb'))
     print('\n%.5f, %d / %d' % clf.metric_score)
-

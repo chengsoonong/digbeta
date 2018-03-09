@@ -2,7 +2,6 @@ import os
 import sys
 import gzip
 import time
-import numpy as np
 import pickle as pkl
 from scipy.sparse import issparse
 from models import BinaryRelevance
@@ -42,4 +41,3 @@ print(time.strftime('%Y-%m-%d %H:%M:%S'))
 
 fmodel = os.path.join(pkl_data_dir, 'br1-%s-%d-%d.pkl.gz' % (dataset, start, end))
 pkl.dump(clf, gzip.open(fmodel, 'wb'))
-
