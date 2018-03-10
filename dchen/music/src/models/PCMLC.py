@@ -341,7 +341,7 @@ class PCMLC(BaseEstimator):
             sys.stderr.flush()
 
         if VERBOSE > 0:
-            print('Training finished in %.1f seconds' % time.time() - t0)
+            print('Training finished in %.1f seconds' % (time.time() - t0))
 
     def decision_function(self, X_test):
         """Make predictions (score is a real number)"""
