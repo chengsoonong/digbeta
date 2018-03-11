@@ -119,11 +119,33 @@ which results in roughly 17K playlists over 45K songs from 8K users.
 
 We make use of the audio features of songs provided by MSD, 
 and genre data from the Top-MAGD genre dataset~\cite{schindler2012facilitating} and tagtraum genre annotations for MSD~\cite{schreiber2015improving},
-which results in 202 audio features and 15 one-hot encoding for genres.
-
+which results in 202 audio features and 15 one-hot encoding for genres,
+further, for the task of playlist augmentation, an additional feature we utilise is the popularity of songs,
+that is, the number of occurrence of the song (\ie a listening event of the particular song) in all playlists,
+including the partial playlists in test set, which will be described in Section~\ref{ssec:pla}.
+%
 %% details for compute song features.
 %% - temporal audio features: use 5-number (percentiles) summary: min, max, median, Q1 and Q3.
 %% - missing genre: imputed using the mean values of the genre
+%
+Table~\ref{tab:stats_pldata} summarises the two playlist dataset used in this work.
+%
+\begin{table}[!h]
+\centering
+\caption{Statistics of music playlist dataset}
+\label{tab:stats_pldata}
+%\resizebox{\linewidth}{!}{
+\small
+\begin{tabular}{l|rrrr}
+\toprule
+Dataset   & \#Songs & \#Playlists & \#Users & Avg. \#Songs per Playlist \\
+\midrule
+AotM-2011 & 114,428 & 84,710      & 14,182  & 10.1 \\
+30Music   & 45,468  & 17,457      & 8,070   & 16.3 \\
+\bottomrule
+\end{tabular}
+%}
+\end{table}
 
 
 \subsection{Evaluation}
@@ -179,60 +201,19 @@ Table~\ref{tab:stats_newsongrec} summarises the statistics of the two dataset us
 \label{tab:stats_newsongrec}
 %\resizebox{\linewidth}{!}{
 \small
-\begin{tabular}{l|rrrr}
+\begin{tabular}{l|rrr}
 \toprule
-Dataset & \#Users & \#Songs (train/dev/test) & \#Playlists & \#Song Features \\
+Dataset   & \#Songs (train) & \#Songs (dev) & \#Songs (test) \\
 \midrule
-AotM-2011 & 14,182  & 68,657 / 22,885 / 22,886 & 84,710 & 217 \\
-30Music   & 8,070   & 27,281 / 9,093 / 9,094   & 17,457 & 217 \\
+AotM-2011 & 68,657          & 22,885        & 22,886 \\
+30Music   & 27,281          & 9,093         & 9,094  \\
 \bottomrule
 \end{tabular}
 %}
 \end{table}
 
-
-\subsubsection{A few conclusions}
-
-\paragraph{Which type of loss is most helpful?}
-\begin{table}[!h]
-\centering
-\caption{Empirical results (R-Precision $\times 10^3$)}
-%\resizebox{\linewidth}{!}{
-\small
-\begin{tabular}{l|cccc}
-\toprule
-{}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & BR \\
-\midrule
-AotM-2011     &  &  &  & 0.92 \\
-30Music       &  &  &  & 7.24 \\
-%AotM-2011     & 0.64792  & 0.67782 & 0.59602  & 0.62226 \\
-%30Music       & 0.6768   & 0.70917 & 0.70914  & 0.6654 \\
-\bottomrule
-\end{tabular}
-%}
-\end{table}
-
-\paragraph{Experimental design:}
-C: 1, 1, 1, p: 1, no multi-task regularisation.
-
-\paragraph{Is multi-task regularisation helpful?}
-
-\begin{table}[!h]
-\centering
-\caption{Empirical results}
-%\resizebox{\linewidth}{!}{
-\begin{tabular}{l|ccc}
-\toprule
-{}            & Multi-task Reg. + $\RCal_\textsc{example}$ & Multi-task reg. + $\RCal_\textsc{label}$ \\
-\midrule
-%AotM-2011     & 0.65778     & 0.6884618 \\
-%30Music       & 0.68179     & 0.7149 \\
-%30Music       & 0.549567    & 0.557156 \\
-\bottomrule
-\end{tabular}
-%}
-\end{table}
-
+\paragraph{Results}
+\input{tab_mlr}
 
 
 \subsection{Playlist augmentation}
@@ -276,10 +257,6 @@ All remaining playlists are used for training.
 As a remark, we observed the entire collection of songs during training, 
 and all users in test set have playlists in training set.
 
-Besides making use of the audio features and genres of songs,
-we also use the popularity of a given song as a feature, 
-which is defined as the number of occurrence of the song (\ie a listening event of the particular song) in all playlists,
-including the partial playlists in test set.
 Table~\ref{tab:stats_pla} summarises the statistics of the two dataset used for this task.
 
 \begin{table}[!h]
@@ -290,10 +267,10 @@ Table~\ref{tab:stats_pla} summarises the statistics of the two dataset used for 
 \small
 \begin{tabular}{l|rrrrr}
 \toprule
-Dataset & \#Users & \#Songs & \#Playlists (train/dev/test)  & \#Listen events held (dev/test) & \#Song Features \\
+Dataset   & \#Playlists (train) & \#Playlists (dev) & \#Playlists (test)  & \#Listen events held (dev) & \#Listen events held (test) \\
 \midrule
-AotM-2011 & 14,182 & 114,428 & 60,260 / 12,225 / 12,225 & 62,396 / 62,844 & 218 \\
-30Music   & 8,070  & 45,468  & 15,591 / 933 / 933       & 8,459 / 8,487   & 218 \\
+AotM-2011 & 60,260              & 12,225            & 12,225              & 62,396                     & 62,844 \\
+30Music   & 15,591              & 933               & 933                 & 8,459                      & 8,487  \\
 \bottomrule
 \end{tabular}
 %}
@@ -341,38 +318,10 @@ $\{\x_n, y_k\}_{n=1}^N$ for the $k$-th label.
 where normalising factor $N_+^{pl}$ is the number of songs in playlist $pl$,
 and $N_-^{pl}$ is the number of songs in a music library that playlist $pl$ does not include.
 
-
 $\RCal_\textsc{both}$: the summation of both: $\RCal_\textsc{example} + C \RCal_\textsc{label}$ 
 where $C$ is a trade-off parameter.
 
 The binary relevance baseline is learning a logistic regression for each playlist independently.
-
-
-\begin{table}[!h]
-\centering
-\caption{Empirical results (R-Precision $\times 10^3$)}
-%\resizebox{\linewidth}{!}{
-\small
-\begin{tabular}{l|ccccc}
-\toprule
-{}            & $\RCal_\textsc{example}$ & $\RCal_\textsc{label}$ & $\RCal_\textsc{both}$ & BR & \textsc{PopRank} \\
-\midrule
-AotM-2011     &  &  &  & 2.05 & 3.67 \\
-30Music       &  &  &  & 6.88 & 4.30 \\
-%AotM-2011     &  &  &  & 2.69 & 3.69 \\
-%30Music       & 5.53 & 9.02 &  & 9.44 & 4.49 \\
-%AotM-2011     & 0.68459 & 0.747755 & 0.7429  & 0.6924 & 0.80199 \\
-%30Music       & 0.7168  & 0.76867  & 0.76917 & 0.7225 & 0.7165 \\
-%AotM-2011     & 0.6827396 & 0.743770 & 0.7385298 & 0.6924 & 0.80199 \\
-%30Music       & 0.56766179 & 0.6350941 & 0.63555 & 0.575567 & 0.80558 \\
-\bottomrule
-\end{tabular}
-%}
-\end{table}
-
-\paragraph{Experimental design:}
-
-\paragraph{Is multi-task regularisation helpful?}
 
 Multi-task regularisation: we regularise the difference of playlist parameters 
 such that $\|\w_j - \w_k\|_2$ is small if playlist $j$ and $k$ belong to the same user.
@@ -382,21 +331,5 @@ such that $\|\w_j - \w_k\|_2$ is small if playlist $j$ and $k$ belong to the sam
 \end{equation*}
 where $N_u$ is the number of playlist user $u$ has.
 
-\begin{table}[!h]
-\centering
-\caption{Empirical results}
-%\resizebox{\linewidth}{!}{
-\begin{tabular}{l|ccc}
-\toprule
-{}            & Multi-task Reg. + $\RCal_\textsc{example}$ & Multi-task reg. + $\RCal_\textsc{label}$ \\
-\midrule
-%AotM-2011     & 0.69167 & 0.7819 \\
-%30Music       & 0.7177  & 0.7840 \\
-%AotM-2011     & 0.6882099 & 0.7615590 \\
-%30Music       & 0.581426 & 0.6597  \\
-%30Music       & 0.574175 & 0.667804  \\
-%AUC           & 0.66583  & 0.68517   \\
-\bottomrule
-\end{tabular}
-%}
-\end{table}
+\paragraph{Results}
+\input{tab_pla}
