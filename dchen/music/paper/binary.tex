@@ -1,47 +1,75 @@
-\section{Classification vs. bipartite ranking}
+\section{P-Classification loss for binary classification and P-Norm Push loss for bipartite ranking}
 \label{sec:binary}
 
+Given a dataset with binary labels $\SCal = \SCal_+ \cup \SCal_-$, where $\SCal_+$ is a set of positive examples, 
+\ie $\SCal_+ = \{(\x_+, +1)\}$, and $\SCal_-$ is a set of negative examples, \ie $\SCal_- = \{(\x_-, -1)\}$.
 
-\subsection{P-Classification loss vs. P-Norm Push loss}
-\label{ssec:pc=pn}
-
-Given a binary dataset $\DCal = \SCal_+ \cup \SCal_-$, where $\SCal_+$ is a set of positive examples, 
-\ie $\SCal_+ = \{(x_+, +1)\}$, and $\SCal_-$ is a set of negative examples, \ie $\SCal_- = \{(x_-, -1)\}$.
-
-The empirical risk of the P-Classification loss is defined as~\cite{ertekin2011equivalence}
+The P-Classification loss~\cite{ertekin2011equivalence}, for the exponential surrogate, is
 \begin{equation*}
-\RCal_\textsc{pc}(\w, b) 
-= \sum_{x_+ \in \SCal_+} e^{- (\w^\top x_+ + b)} +
-  \frac{1}{p} \sum_{x_- \in \SCal_-} e^{p (\w^\top x_- + b)},
+\LCal_\textsc{pc}(f; \SCal) 
+= \sum_{\x_+ \in \SCal_+} e^{-f(\x_+)} + \frac{1}{p} \sum_{\x_- \in \SCal_-} e^{p f(\x_-)},
 \end{equation*}
 where $p > 0$ is a parameter.
 
-The empirical risk of the P-Norm Push loss is defined as~\cite{rudin2009p}
+The P-Norm Push loss~\cite{rudin2009p}, for the exponential surrogate, is
 \begin{equation*}
-\begin{aligned}
-\RCal_\textsc{pn}(\w)
-&= \sum_{x_+ \in \SCal_+} \sum_{x_- \in \SCal_-} e^{-(\w^\top x_+ - \w^\top x_-)} \\
-&= \sum_{x_+ \in \SCal_+} e^{-\w^\top x_+} \sum_{x_- \in \SCal_-} e^{\w^\top x_-}.
-\end{aligned}
+\LCal_\textsc{pn}^\ell (f; \SCal)
+= \sum_{\x_- \in \SCal_-} \left( \sum_{\x_+ \in \SCal_+} \ell \left( f(\x_+) - f(\x_-) \right) \right)^p.
 \end{equation*}
 
-\cite{ertekin2011equivalence} showed the following equivalence relationship between P-Classification loss and P-Norm Push loss:
-\begin{theorem}
-\label{th:pc=pn}
-If $(\w_\textsc{pc}, b_\textsc{pc}) \in \argmin_{\w,b} \RCal_\textsc{pc}(\w, b)$, 
-then $\w_\textsc{pc} \in \argmin_\w \RCal_\textsc{pn}(\w)$.
-Further, If $\w_\textsc{pn} \in \argmin_\w \RCal_\textsc{pn}(\w)$, 
-then $(\w_\textsc{pn}, b_\textsc{pn}) \in \argmin_{\w,b} \RCal_\textsc{pn}(\w, b)$ where
-$$
-b_\textsc{pn} 
-= \frac{1}{p + 1} \left( 
-  \ln \sum_{x_+ \in \SCal_+} e^{-\w_\textsc{pn}^\top x_+} - 
-  \ln \sum_{x_- \in \SCal_-} e^{p\w_\textsc{pn}^\top x_-} \right).
-$$
-\end{theorem}
+The Top Push loss~\cite{li2014top} is\footnote{We removed the normalisation factor.}
+\begin{equation*}
+\LCal_\textsc{tp}(f; \SCal)
+= \sum_{\x_+ \in \SCal_+} \llb f(\x_+) \le \max_{\x_- \in \SCal_-} f(\x_-) \rrb.
+\end{equation*}
 
-It turns out Theorem~\ref{th:pc=pn} is due to a general equivalence relationship 
-between binary classification and bipartite ranking, which we detail in the next section.
+The Infinite Push loss~\cite{rudin2009p} is
+\begin{equation*}
+\LCal_\infity(f; \SCal)
+= \max_{\x_- \in \SCal_-} \sum_{\x_+ \in \SCal_+} \llb f(\x_+) \le f(\x_-) \rrb.
+\end{equation*}
+
+It is known that:
+\begin{itemize}
+\item The Top Push loss is equivalent to the Infinite Push loss~\cite{li2014top}.
+\item The Infinite Push loss is equivalent to the P-Norm Push loss, with the same surrogate $\ell$,
+      when $p = \infity$~\cite{agarwal2011infinite,rakotomamonjy2012sparse}.
+\end{itemize}
+This is due to the fact that $p$-norm approximation of the $\max$ function, and when $p \to \infity$,
+the approximation becomes exact:
+\begin{equation*}
+\begin{aligned}
+\lim_{p \to \infity} \left( \LCal_\textsc{pn}^\ell (f; \SCal) \right)^\frac{1}{p}
+&= \lim_{\p \to \infity} \left( \sum_{\x_- \in \SCal_-} \left( \sum_{\x_+ \in \SCal_+} 
+   \ell \left( f(\x_+) - f(\x_-) \right) \right)^p \right)^\frac{1}{p} \\
+&= \max_{\x_- \in \SCal_-} \left( \sum_{\x_+ \in \SCal_+} \ell \left( f(\x_+) - f(\x_-) \right) \right) \\
+&= \LCal_\infity^\ell (f; \SCal) \\
+&= \sum_{\x_+ \in \SCal_+} \ell \left( f(\x_+) - \max_{\x_- \in \SCal_-} f(\x_-) \right) \\
+&= \LCal_\textsc{tp}^\ell (f; \SCal).
+\end{equation*}
+
+Symmetrically, for the Bottom Push loss~\cite{rudin2009p}:
+\begin{equation*}
+\LCal_\textsc{bp}(f; \SCal)
+= \frac{1}{|\SCal_-|} \sum_{\x_- \in \SCal_-} \llb f(\x_-) \ge \min_{\x_+ \in \SCal_+} f(\x_+) \rrb,
+\end{equation*}
+we have\footnote{Note that $\min_{i} z_i = -\max_i (-z_i)$.}
+\begin{equation*}
+\begin{aligned}
+\lim_{\p \to \infity} \left( \sum_{\x_+ \in \SCal_+} \left( \sum_{\x_- \in \SCal_-} 
+   \ell \left( f(\x_+) - f(\x_-) \right) \right)^p \right)^\frac{1}{p} \\
+&= \max_{\x_+ \in \SCal_+} \left( \sum_{\x_- \in \SCal_-} \ell \left( f(\x_+) - f(\x_-) \right) \right) \\
+&= \max_{\x_+ \in \SCal_+} \left( \sum_{\x_- \in \SCal_-} \ell \left(-f(\x_-) - (-f(\x_+)) \right) \right) \\
+&= \sum_{\x_- \in \SCal_-} \ell \left( -f(\x_+) - \max_{\x_+ \in \SCal_+} (-f(\x_+)) \right) \\
+&= \sum_{\x_- \in \SCal_-} \ell \left( -f(\x_+) + \min_{\x_+ \in \SCal_+} f(\x_+) \right) \\
+&= \sum_{\x_- \in \SCal_-} \ell \left(\min_{\x_+ \in \SCal_+} f(\x_+) - f(\x_-) \right) \\
+&= \LCal_\textsc{bp}^\ell (f; \SCal).
+\end{equation*}
+
+Further, (\ref{ertekin2011equivalence}) showed that the P-Classification loss and the P-Norm Push loss share the same minimisers
+(if minimisers exist) when $\ell$ is the exponential surrogate.
+It turns out that this equivalent relationship is a special case of a general equivalence relationship 
+between binary classification and bipartite ranking loss, which we will describe in detail in the next section.
 
 
 
@@ -143,5 +171,3 @@ $\widetilde\RCal_\textsc{csa} \equiva \RCal_\textsc{rb}$ & $1$      & $1$     & 
 \end{tabular}
 %}
 \end{table}
-
-
