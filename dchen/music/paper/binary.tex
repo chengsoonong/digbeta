@@ -17,7 +17,7 @@ The P-Norm Push loss~\cite{rudin2009p}, for the exponential surrogate, is
 = \sum_{\x_- \in \SCal_-} \left( \sum_{\x_+ \in \SCal_+} \ell \left( f(\x_+) - f(\x_-) \right) \right)^p.
 \end{equation*}
 
-The Top Push loss~\cite{li2014top} is\footnote{We removed the normalisation factor.}
+The Top Push loss~\cite{li2014top} is\footnote{We omit the normalisation factor, and $\llb \cdot \rrb$ denotes the indicator function.}
 \begin{equation*}
 \LCal_\textsc{tp}(f; \SCal)
 = \sum_{\x_+ \in \SCal_+} \llb f(\x_+) \le \max_{\x_- \in \SCal_-} f(\x_-) \rrb.
@@ -25,7 +25,7 @@ The Top Push loss~\cite{li2014top} is\footnote{We removed the normalisation fact
 
 The Infinite Push loss~\cite{rudin2009p} is
 \begin{equation*}
-\LCal_\infity(f; \SCal)
+\LCal_\infty(f; \SCal)
 = \max_{\x_- \in \SCal_-} \sum_{\x_+ \in \SCal_+} \llb f(\x_+) \le f(\x_-) \rrb.
 \end{equation*}
 
@@ -33,19 +33,20 @@ It is known that:
 \begin{itemize}
 \item The Top Push loss is equivalent to the Infinite Push loss~\cite{li2014top}.
 \item The Infinite Push loss is equivalent to the P-Norm Push loss, with the same surrogate $\ell$,
-      when $p = \infity$~\cite{agarwal2011infinite,rakotomamonjy2012sparse}.
+      when $p = \infty$~\cite{agarwal2011infinite,rakotomamonjy2012sparse}.
 \end{itemize}
-This is due to the fact that $p$-norm approximation of the $\max$ function, and when $p \to \infity$,
+This is due to the fact that $p$-norm approximation of the $\max$ function, and when $p \to \infty$,
 the approximation becomes exact:
 \begin{equation*}
 \begin{aligned}
-\lim_{p \to \infity} \left( \LCal_\textsc{pn}^\ell (f; \SCal) \right)^\frac{1}{p}
-&= \lim_{\p \to \infity} \left( \sum_{\x_- \in \SCal_-} \left( \sum_{\x_+ \in \SCal_+} 
+\lim_{p \to \infty} \left( \LCal_\textsc{pn}^\ell (f; \SCal) \right)^\frac{1}{p}
+&= \lim_{p \to \infty} \left( \sum_{\x_- \in \SCal_-} \left( \sum_{\x_+ \in \SCal_+} 
    \ell \left( f(\x_+) - f(\x_-) \right) \right)^p \right)^\frac{1}{p} \\
 &= \max_{\x_- \in \SCal_-} \left( \sum_{\x_+ \in \SCal_+} \ell \left( f(\x_+) - f(\x_-) \right) \right) \\
-&= \LCal_\infity^\ell (f; \SCal) \\
+&= \LCal_\infty^\ell (f; \SCal) \\
 &= \sum_{\x_+ \in \SCal_+} \ell \left( f(\x_+) - \max_{\x_- \in \SCal_-} f(\x_-) \right) \\
 &= \LCal_\textsc{tp}^\ell (f; \SCal).
+\end{aligned}
 \end{equation*}
 
 Symmetrically, for the Bottom Push loss~\cite{rudin2009p}:
@@ -56,17 +57,18 @@ Symmetrically, for the Bottom Push loss~\cite{rudin2009p}:
 we have\footnote{Note that $\min_{i} z_i = -\max_i (-z_i)$.}
 \begin{equation*}
 \begin{aligned}
-\lim_{\p \to \infity} \left( \sum_{\x_+ \in \SCal_+} \left( \sum_{\x_- \in \SCal_-} 
-   \ell \left( f(\x_+) - f(\x_-) \right) \right)^p \right)^\frac{1}{p} \\
+\lim_{p \to \infty} \left( \sum_{\x_+ \in \SCal_+} \left( \sum_{\x_- \in \SCal_-} 
+   \ell \left( f(\x_+) - f(\x_-) \right) \right)^p \right)^\frac{1}{p}
 &= \max_{\x_+ \in \SCal_+} \left( \sum_{\x_- \in \SCal_-} \ell \left( f(\x_+) - f(\x_-) \right) \right) \\
 &= \max_{\x_+ \in \SCal_+} \left( \sum_{\x_- \in \SCal_-} \ell \left(-f(\x_-) - (-f(\x_+)) \right) \right) \\
-&= \sum_{\x_- \in \SCal_-} \ell \left( -f(\x_+) - \max_{\x_+ \in \SCal_+} (-f(\x_+)) \right) \\
-&= \sum_{\x_- \in \SCal_-} \ell \left( -f(\x_+) + \min_{\x_+ \in \SCal_+} f(\x_+) \right) \\
+&= \sum_{\x_- \in \SCal_-} \ell \left( -f(\x_-) - \max_{\x_+ \in \SCal_+} (-f(\x_+)) \right) \\
+&= \sum_{\x_- \in \SCal_-} \ell \left( -f(\x_-) + \min_{\x_+ \in \SCal_+} f(\x_+) \right) \\
 &= \sum_{\x_- \in \SCal_-} \ell \left(\min_{\x_+ \in \SCal_+} f(\x_+) - f(\x_-) \right) \\
 &= \LCal_\textsc{bp}^\ell (f; \SCal).
+\end{aligned}
 \end{equation*}
 
-Further, (\ref{ertekin2011equivalence}) showed that the P-Classification loss and the P-Norm Push loss share the same minimisers
+Further, (\cite{ertekin2011equivalence}) showed that the P-Classification loss and the P-Norm Push loss share the same minimisers
 (if minimisers exist) when $\ell$ is the exponential surrogate.
 It turns out that this equivalent relationship is a special case of a general equivalence relationship 
 between binary classification and bipartite ranking loss, which we will describe in detail in the next section.
