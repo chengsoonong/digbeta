@@ -37,9 +37,10 @@ It is known that:
 \end{itemize}
 This is due to the fact that $p$-norm approximation of the $\max$ function, and when $p \to \infty$,
 the approximation becomes exact:
-\begin{equation*}
+\begin{equation}
+\label{eq:pn2tp}
 \begin{aligned}
-\lim_{p \to \infty} \left( \LCal_\textsc{pn}^\ell (f; \SCal) \right)^\frac{1}{p}
+&  \lim_{p \to \infty} \left( \LCal_\textsc{pn}^\ell (f; \SCal) \right)^\frac{1}{p} \\
 &= \lim_{p \to \infty} \left( \sum_{\x_- \in \SCal_-} \left( \sum_{\x_+ \in \SCal_+} 
    \ell \left( f(\x_+) - f(\x_-) \right) \right)^p \right)^\frac{1}{p} \\
 &= \max_{\x_- \in \SCal_-} \left( \sum_{\x_+ \in \SCal_+} \ell \left( f(\x_+) - f(\x_-) \right) \right) \\
@@ -47,18 +48,19 @@ the approximation becomes exact:
 &= \sum_{\x_+ \in \SCal_+} \ell \left( f(\x_+) - \max_{\x_- \in \SCal_-} f(\x_-) \right) \\
 &= \LCal_\textsc{tp}^\ell (f; \SCal).
 \end{aligned}
-\end{equation*}
+\end{equation}
 
-Symmetrically, for the Bottom Push loss~\cite{rudin2009p}:
+Symmetrically, for the Bottom Push loss~\cite{?} is equivalent to a variant of P-Norm Push that concentrating on the bottom~\cite{rudin2009p}:
 \begin{equation*}
 \LCal_\textsc{bp}(f; \SCal)
-= \frac{1}{|\SCal_-|} \sum_{\x_- \in \SCal_-} \llb f(\x_-) \ge \min_{\x_+ \in \SCal_+} f(\x_+) \rrb,
+= \sum_{\x_- \in \SCal_-} \llb f(\x_-) \ge \min_{\x_+ \in \SCal_+} f(\x_+) \rrb,
 \end{equation*}
 we have\footnote{Note that $\min_{i} z_i = -\max_i (-z_i)$.}
-\begin{equation*}
+\begin{equation}
+\label{eq:pnp2bp}
 \begin{aligned}
-\lim_{p \to \infty} \left( \sum_{\x_+ \in \SCal_+} \left( \sum_{\x_- \in \SCal_-} 
-   \ell \left( f(\x_+) - f(\x_-) \right) \right)^p \right)^\frac{1}{p}
+&  \lim_{p \to \infty} \left( \sum_{\x_+ \in \SCal_+} \left( \sum_{\x_- \in \SCal_-} 
+   \ell \left( f(\x_+) - f(\x_-) \right) \right)^p \right)^\frac{1}{p} \\
 &= \max_{\x_+ \in \SCal_+} \left( \sum_{\x_- \in \SCal_-} \ell \left( f(\x_+) - f(\x_-) \right) \right) \\
 &= \max_{\x_+ \in \SCal_+} \left( \sum_{\x_- \in \SCal_-} \ell \left(-f(\x_-) - (-f(\x_+)) \right) \right) \\
 &= \sum_{\x_- \in \SCal_-} \ell \left( -f(\x_-) - \max_{\x_+ \in \SCal_+} (-f(\x_+)) \right) \\
@@ -66,7 +68,7 @@ we have\footnote{Note that $\min_{i} z_i = -\max_i (-z_i)$.}
 &= \sum_{\x_- \in \SCal_-} \ell \left(\min_{\x_+ \in \SCal_+} f(\x_+) - f(\x_-) \right) \\
 &= \LCal_\textsc{bp}^\ell (f; \SCal).
 \end{aligned}
-\end{equation*}
+\end{equation}
 
 Further, (\cite{ertekin2011equivalence}) showed that the P-Classification loss and the P-Norm Push loss share the same minimisers
 (if minimisers exist) when $\ell$ is the exponential surrogate.
@@ -149,27 +151,41 @@ We describe them in the next section.
 
 \subsection{Special cases}
 
-\TODO
+It is straightforward to show the fact that P-Classification and P-Norm Push share the same set of minimisers 
+(Theorem 1 and 2 in~\cite{ertekin2011equivalence}) is an instance of Theorem~\ref{th:bc=br}, by letting $\alpha = C = 1$, and $\beta = m = p$.
+Similarly, the fact that Cost-Sensitive AdaBoost and RankBoost share the same set of minimisers (Theorem 3 in~\cite{ertekin2011equivalence}) 
+can be obtained by letting $\alpha = \beta = m = 1$.
 
-{\it Cost-sensitive AdaBoost == RankBoost, Theorem 3 of~\cite{ertekin2011equivalence}.
-IR Push == P-Classification,
-IR Push = Top Push + exponential surrogate + log-sum-exp, P-Norm Push vs. Top Push vs. IR Push (approximation inside/outside)
-Bottom Push + exponential surrogate + log-sum-exp == a classification loss similar to P-Classification.
-}
+Further, we know that P-Norm Push loss is an approximation of Infinite Push loss, and by Equation~\ref{eq:pn2tp}, 
+it is natural to conjecture that P-Norm Push is an approximation of Top Push.
+It turns out this is indeed the case.
 
-\begin{table}[!h]
-\centering
-\caption{Summary of parameters for the equivalence of (risk of rank loss, risk of classification loss) pairs}
-\label{tab:config}
-%\resizebox{\linewidth}{!}{
-\begin{tabular}{r*{6}{c}}
-\toprule
-{\bf Loss pairs}                                         & $\alpha$ & $\beta$ & $\gamma$ & $\delta$ & $P$ & $Q$ \\ \hline
-$\RCal_\textsc{pn} \equiva \RCal_\textsc{pc}$            & $1$      & $p$     & $p$      & $1$      & $\frac{1}{p}$ & $\frac{1}{p}$ \\
-$\widetilde\RCal_\textsc{tp} \equiva \RCal_\textsc{pc}$  & $1$      & $r=p$   & $1$      & $\frac{1}{r}=\frac{1}{p}$ & $1$ & $1$ \\
-$\widetilde\RCal_\textsc{bp} \equiva \RCal_\textsc{rc}$  & $r=q$    & $1$     & $\frac{1}{r}=\frac{1}{q}$ & $1$ & $1$ & $1$ \\
-$\widetilde\RCal_\textsc{csa} \equiva \RCal_\textsc{rb}$ & $1$      & $1$     & $1$      & $1$      & $1$ & $C$ \\
-\bottomrule
-\end{tabular}
-%}
-\end{table}
+By using the exponential surrogate and approximate the $\max$ function with the log-sum-exp function, \ie
+\begin{equation*}
+\begin{aligned}
+\widetilde\LCal_\textsc{tp}^\ell(f; \SCal)
+&= \sum_{\x_+ \in \SCal_+} \exp \left( - \left( f(\x_+) - \frac{1}{p} \log \sum_{\x_- \in \SCal_-} e^{p f(\x_-)} \right) \right) \\
+&= \sum_{\x_+ \in \SCal_+} e^{-f(\x_+)} \left( \sum_{\x_- \in \SCal_-} e^{p f(\x_-)} \right)^\frac{1}{p} \\
+&= \left( \left( \sum_{\x_+ \in \SCal_+} e^{-f(\x_+)} \right)^p \cdot \sum_{\x_- \in \SCal_-} e^{p f(\x_-)} \right)^\frac{1}{p} \\
+&= \left( \LCal_\textsc{pn}^\ell (f; \SCal) \right)^\frac{1}{p},
+\end{aligned}
+\end{equation*}
+where $\ell$ is the exponential surrogate.
+Further, by Theorem~\ref{th:bc=br}, and let $\alpha = m = C = 1$, and $\beta = p$,
+we know that both $\widetilde\LCal_\textsc{tp}^\ell(f; \SCal)$ and P-Norm Push share the same set of minimisers with
+P-Classification loss, for the exponential surrogate.
+
+We can achieve similar results for the Bottom Push loss, 
+which can be shown to share the same set of minimisers with another classification loss that resembles the P-Classification loss.
+\begin{equation*}
+\begin{aligned}
+\widetilde\LCal_\textsc{bp}^\ell(f; \SCal)
+&= \sum_{\x_- \in \SCal_-} \exp \left( \frac{1}{p} \log \sum_{\x_+ \in \SCal_+} e^{-p f(\x_+)} + f(\x_-) \right) \\
+&= \sum_{\x_- \in \SCal_-} e^{f(\x_-)} \left( \sum_{\x_+ \in \SCal_+} e^{-p f(\x_+)} \right)^\frac{1}{p},
+\end{aligned}
+\end{equation*}
+where $\ell$ is the exponential surrogate.
+Further, by Theorem~\ref{th:bc=br}, and let $\alpha = p$, and $\beta = m = C = 1$,
+we know that both $\widetilde\LCal_\textsc{bp}^\ell(f; \SCal)$ and 
+$\left( \sum_{\x_+ \in \SCal_+} e^{-p f(\x_+)} \right)^\frac{1}{p} + \sum_{\x_- \in \SCal_-} e^{f(\x_-)}$
+share the same set of minimisers for the exponential surrogate.
