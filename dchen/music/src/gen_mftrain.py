@@ -1,38 +1,42 @@
 import os
 import sys
 import gzip
+import numpy as np
 import pickle as pkl
 
 
-if len(sys.argv) != 4:
-    print('Usage: python', sys.argv[0], 'WORK_DIR  START  END')
+if len(sys.argv) != 3:
+    print('Usage: python', sys.argv[0], 'WORK_DIR  DATASET')
     sys.exit(0)
 else:
     work_dir = sys.argv[1]
-    start = int(sys.argv[2])
-    end = int(sys.argv[3])
+    dataset = sys.argv[2]
+    
+data_dir = os.path.join(work_dir, 'data/%s/setting2' % dataset)
+fytrain = os.path.join(data_dir, 'Y_train_dev.pkl.gz')
 
-data_dir = os.path.join(work_dir, 'data')
-src_dir = os.path.join(work_dir, 'src')
-sys.path.append(src_dir)
+Y = pkl.load(gzip.open(fytrain, 'rb')).tocsc()
+N, K = Y.shape
+index_set = set(np.arange(N))
+np.random.seed(97531)
 
-pkl_data_dir = os.path.join(data_dir, 'aotm-2011/setting2')
-fytrain = os.path.join(pkl_data_dir, 'Y_train_dev.pkl.gz')
-
-Y = pkl.load(gzip.open(fytrain, 'rb'))
-Y_part = Y[:, start:end]
-
-ustrs = ['U%d' % i for i in range(Y_part.shape[0])]
-istrs = ['P%d' % (j+start) for j in range(Y_part.shape[1])]
+ustrs = ['U%d' % i for i in range(N)]
+istrs = ['P%d' % j for j in range(K)]
+r = 3
 
 lines = []
-for i in range(Y_part.shape[0]):
-    if (i+1) % 100 == 0:
-        sys.stdout.write('\r%d / %d' % (i+1, Y_part.shape[0]))
+for j in range(K):
+    if (j+1) % 100 == 0:
+        sys.stdout.write('\r%d / %d' % (j+1, K))
         sys.stdout.flush()
-    lines += [','.join([ustrs[i], istrs[j], '5\n']) if Y_part[i, j] is True else
-              ','.join([ustrs[i], istrs[j], '1\n']) for j in range(Y_part.shape[1])]
+    pix = Y[:, j].nonzero()[0]
+    nix_all = sorted(index_set - set(pix))
+    np.random.permutation(nix_all)
+    nix = nix_all[:r * len(pix)]
+    
+    lines += [','.join([ustrs[i], istrs[j], '5\n']) for i in pix]
+    lines += [','.join([ustrs[i], istrs[j], '1\n']) for i in nix]
 
-fname = os.path.join(pkl_data_dir, 'ftrain_%d_%d.csv' % (start, end))
+fname = os.path.join(data_dir, 'mftrain_%s.csv' % dataset)
 with open(fname, 'w') as fd:
     fd.writelines(lines)
