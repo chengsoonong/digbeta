@@ -79,75 +79,75 @@ between binary classification and bipartite ranking loss, which we will describe
 
 Let function $f(\cdot, \cdot)$ be
 $$
-f(x; \w) := g(x; \w) + b,
+f(\x) := g(\x; \w) + b,
 $$
 where $\x$ is an input, $\w$ is a weight vector, $b$ is a bias parameter, 
-and function $g(x; \w)$ is differentiable (w.r.t. $\w$) and bounded.
+and function $g(\x; \w)$ is differentiable (w.r.t. $\w$) and bounded.
 
-Suppose $\alpha, \beta, c, P, Q \in \R_+$ are \emph{finite} positive numbers, we define 
-$\RCal_\textsc{bc}$ be the following classification risk\footnote{
-We note that there is a equivalent definition:
-$\RCal_\textsc{bc}(\w) = \frac{1}{\alpha} \sum_{x_+ \in \SCal_+} \exp(-\alpha f(x_+; \w)) + 
-\frac{C}{\beta} \sum_{x_- \in \SCal_-} \exp( \beta f(x_-; \w))$
-where $C = Q/P$, since multiplying a positive constant to a loss function will not change its minimiser.}
-:
+Suppose $\alpha, \beta, m, C \in \R_+$ are \emph{finite} positive numbers, we define 
+$\RCal_\textsc{bc}$ be the following classification loss:
 \begin{equation*}
 %\label{eq:bc}
 %\resizebox{\linewidth}{!}{$
 %\begin{aligned}
-\RCal_\textsc{bc}(\w, b)
+\LCal_\textsc{bc}(f; \SCal)
 = \displaystyle 
-  \frac{P}{\alpha} \sum_{x_+ \in \SCal_+} e^{-\alpha f(x_+; \w)} +
-  \frac{Q}{\beta}  \sum_{x_- \in \SCal_-} e^{ \beta  f(x_-; \w)},
+  \frac{1}{\alpha} \sum_{\x_+ \in \SCal_+} e^{-\alpha f(\x_+)} +
+  \frac{C}{\beta}  \sum_{\x_- \in \SCal_-} e^{ \beta  f(\x_-)},
 %\end{aligned}
 %$}
 \end{equation*}
 and let
-$\RCal_\textsc{br}$ be a bipartite ranking risk defined as:
+$\LCal_\textsc{br}$ be a bipartite ranking loss defined as:
 \begin{equation*}
 %\label{eq:br}
 %\resizebox{\linewidth}{!}{$
 \begin{aligned}
-\RCal_\textsc{br}(\w)
+\LCal_\textsc{br}(f; \SCal)
 &= \left[ \displaystyle 
-   \sum_{x_+ \in \SCal_+} \left( \sum_{x_- \in \SCal_-} e^{-\beta (f(x_+; \w) - f(x_-; \w))} \right)^\frac{\alpha}{\beta} 
-   \right]^c \\
-&= \left[ \sum_{x_+ \in \SCal_+} e^{-\alpha f(x_+; \w)} \right]^\frac{c}{\alpha}
-   \left[ \sum_{x_- \in \SCal_-} e^{ \beta  f(x_-; \w)} \right]^\frac{c}{\beta}.
+   \sum_{\x_- \in \SCal_-} \left( \sum_{\x_+ \in \SCal_+} e^{-\alpha (f(\x_+) - f(\x_-))} \right)^\frac{\beta}{\alpha}
+   \right]^\frac{m}{\beta} \\
+&= \left[ \sum_{\x_+ \in \SCal_+} e^{-\alpha f(\x_+)} \right]^\frac{m}{\alpha}
+   \left[ \sum_{\x_- \in \SCal_-} e^{ \beta  f(\x_-)} \right]^\frac{m}{\beta}.
 \end{aligned}
 %$}
 \end{equation*}
-Note that $\RCal_\textsc{br}$ is independent of $b$.
 
 
 \begin{theorem}
 \label{th:bc=br}
-If $(\w_\textsc{bc}, b_\textsc{bc}) \in \argmin_{\w,b} \RCal_\textsc{bc}(\w, b)$,
-then $\w_\textsc{bc} \in \argmin_\w \RCal_\textsc{br}(\w)$, and
+$\LCal_\textsc{bc}$ and $\LCal_\textsc{br}$ share the same set of minimisers $\WCal_\textsc{b}$
+(assuming minimisers exist), in particular, for $\w_\textsc{b} \in \WCal_\textsc{b}$,
+\begin{equation*}
+\begin{aligned}
+                \w_\textsc{b} & \in \argmin_\w     \, \LCal_\textsc{br}(f; \SCal), \\
+(\w_\textsc{b}, b_\textsc{b}) & \in \argmin_{\w,b} \, \LCal_\textsc{bc}(f; \SCal),
+\end{aligned}
+\end{equation*}
+where
 $$
 %\resizebox{\linewidth}{!}{$
 \displaystyle
-b_\textsc{bc} 
+b_\textsc{b} 
 = \frac{1}{\alpha + \beta} \left( 
-  P \ln \sum_{x_+ \in \SCal_+} e^{-\alpha g(x_+; \w_\textsc{bc})} -
-  Q \ln \sum_{x_- \in \SCal_-} e^{  \beta g(x_-; \w_\textsc{bc})} \right).
-%$}
-$$
-Further, if $\w_\textsc{br} \in \argmin_\w \RCal_\textsc{br}(\w)$ (assuming minimisers exist),
-then $(\w_\textsc{br}, b_\textsc{br}) \in \argmin_{\w,b} \, \RCal_\textsc{bc}(\w, b)$, where
-$$
-%\resizebox{\linewidth}{!}{$
-\displaystyle
-b_\textsc{br} 
-= \frac{1}{\alpha + \beta} \left( 
-  P \ln \sum_{x_+ \in \SCal_+} e^{-\alpha g(x_+; \w_\textsc{br})} -
-  Q \ln \sum_{x_- \in \SCal_-} e^{  \beta g(x_-; \w_\textsc{br})} \right).
+  \ln \sum_{\x_+ \in \SCal_+} e^{-\alpha g(\x_+; \w_\textsc{b})} -
+  \ln \sum_{\x_- \in \SCal_-} e^{  \beta g(\x_-; \w_\textsc{b})} - \ln(C) \right).
 %$}
 $$
 \end{theorem}
 
-We can get Theorem~\ref{th:pc=pn} from Theorem~\ref{th:bc=br} by letting $\alpha=c=P=Q=1$ and $\beta=p$.
-Moreover, Theorem~\ref{th:bc=br} summaries a few more well-known special cases.
+This theorem can be proved using the same technique as that for Theorem 1 and 2 in~\cite{ertekin2011equivalence},
+see Appendix for the full proof.
+
+We can have a few interesting special cases of Theorem~\ref{th:bc=br},
+including Theorem 1, 2 and 3 in~\cite{ertekin2011equivalence} by 
+assigning appropriate values for parameters $\alpha$, $\beta$, $m$ and $C$ in Theorem~\ref{th:bc=br}.
+We describe them in the next section.
+
+
+
+
+\subsection{Special cases}
 
 \TODO
 
