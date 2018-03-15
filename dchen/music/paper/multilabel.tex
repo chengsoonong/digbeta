@@ -1,219 +1,128 @@
-\subsection{From binary to multi-label}
-\label{ssec:ml}
+\section{From binary to multi-label}
+\label{sec:ml}
 
-Given a multi-label dataset $\DCal = \{\x^n, \y^n\}_{n=1}^N$, where $\x^n \in \R^D$ is a feature vector for the $n$-th example,
+Given a multi-label dataset $\SCal = \{\x^n, \y^n\}_{n=1}^N$, where $\x^n \in \R^D$ is a feature vector for the $n$-th example,
 and $\y^n \in \{0,1\}^K$ are $K$ labels for the $n$-th example.
-We can generalise Theorem~\ref{theorem:bc=br} from the binary setting to multi-label setting.
+There are two natural approaches to extend the loss functions in binary setting to the multi-label setting, 
+\ie, decomposing the empirical loss on $\SCal$ over either labels or examples.
+In this section, we describe these two extensions and extend Theorem~\ref{theorem:bc=br} to multi-label setting.
 
-\subsection{Variant I}
 
-Let function $f(\cdot; \cdot)$ be
-$$
-f(\x^n; \w) = g(\x^n; \w) + b, \ n \in \{1,\dots,N\}
-$$
-where $\w$ is the weight vector, $b$ is the bias parameter,
-and function $g(\x^n; \w) \in \R^K$ is differentiable and bounded.
+\subsection{Decompose loss over labels}
 
-Suppose $\alpha, \beta, c, P, Q \in \R_+$ are \emph{finite} positive numbers, 
-we define $\RCal_\textsc{mc}\pb{1}$ be the following risk:
+Let function $f$ be
+\begin{equation*}
+%\resizebox{\linewidth}{!}{$
+f_k(\x) := g(\x; \w_k) + b_k, \, k \in \{1,\dots,K\}
+%$}
+\end{equation*}
+where $\w_k$ and $b_k$ is the weight vector and bias parameter for the $k$-th label, respectively,
+in other words, we assume the parameters can be decomposed over labels.
+Function $g(\x; \w_k)$ is differentiable and bounded.
+
+Suppose $\alpha, \beta, m \in \R_+$ are \emph{finite} positive numbers, 
+and $\C \in \R^K$ is a vector of \emph{finite} (non-zero) real numbers.
+We define $\LCal_\textsc{mc}^\text{label}$ be the following empirical loss:
 \begin{equation}
 \label{eq:mc1}
 %\resizebox{.9\linewidth}{!}{$
 \displaystyle
-\RCal_\textsc{mc}\pb{1}(\w, b) 
-= \frac{P}{\alpha} \sum_{(m,i): y_i^m = 1} \exp(-\alpha f_i(\x^m; \w)) \, + \,
-  \frac{Q}{\beta}  \sum_{(n,j): y_j^n = 0} \exp( \beta  f_j(\x^n; \w)),
+\LCal_\textsc{mc}^\text{label}(f; \SCal)
+= \sum_{k=1}^K \left[ 
+  \frac{1}{\alpha} \sum_{i: y_k^i = 1} e^{-\alpha f_k(\x^i)} +
+  \frac{C_k}{\beta} \sum_{j: y_k^j = 0} e^{\beta  f_k(\x^j)} \right].
 %$}
 \end{equation}
-and let $\RCal_\textsc{mr}\pb{1}$ be a risk defined as
+and let $\LCal_\textsc{mr}^\text{label}$ be a empirical loss defined as
 \begin{equation}
 \label{eq:mr1}
 %\resizebox{.9\linewidth}{!}{$
-\displaystyle
-\RCal_\textsc{mr}\pb{1}(\w) 
-= \left[ \sum_{(m,i): y_i^m = 1} \exp(-\alpha f_i(\x^m; \w)) \right]^\frac{c}{\alpha}  
-  \left[ \sum_{(n,j): y_j^n = 0} \exp( \beta  f_j(\x^n; \w)) \right]^\frac{c}{\beta}.
-%$}
-\end{equation}
-
-Note that $\RCal_\textsc{mr}\pb{1}$ is independent of $b$, since
-\begin{equation}
-\label{eq:mr_derive}
-%\resizebox{.9\linewidth}{!}{$
-\displaystyle
 \begin{aligned}
-\RCal_\textsc{mr}\pb{1}(\w) 
-&= \left[ \sum_{(m,i): y_i^m = 1} \left( \sum_{(n,j): y_j^n = 0} 
-   \exp(-\beta(f_i(\x^m; \w) - f_j(\x^n; \w) ) ) \right)^\frac{\alpha}{\beta} \right]^\frac{c}{\alpha} \\
-&= \left[ \sum_{(n,j): y_j^n = 0} \left( \sum_{(m,i): y_i^m = 1} 
-   \exp(-\alpha( f_i(\x^m; \w) - f_j(\x^n; \w) ) ) \right)^\frac{\beta}{\alpha} \right]^\frac{c}{\beta},
+\displaystyle
+\LCal_\textsc{mr}^\text{label}(f; \SCal)
+&= \sum_{k=1}^K
+   \left[ \sum_{y_k^j = 0} \left( \sum_{y_k^i = 1} e^{-\alpha(f_k(\x^i) - f_k(\x^j))} \right)^\frac{\beta}{\alpha} \right]^\frac{m}{\beta} \\
+&= \sum_{k=1}^K
+   \left[ \sum_{y_k^i = 1} e^{-\alpha f_k(\x^i)} \right]^\frac{m}{\alpha} 
+   \left[ \sum_{y_k^j = 0} e^{ \beta  f_k(\x^j)} \right]^\frac{m}{\beta}.
 \end{aligned}
 %$}
 \end{equation}
-and $f_i(\x^m; \w) - f_j(\x^n; \w) = g_i(\x^m; \w) - g_j(\x^n; \w)$.
 
 
-\TODO
-{\it add equation of $\w_\textsc{mc}\pb{1}$ and $b_\textsc{mc}\pb{1}$.}
-
-
+Theorem~\ref{th:bc=br} can be extended to the multi-label setting.
 \begin{theorem}
-Let $(\w_\textsc{mc}\pb{1}, b_\textsc{mc}\pb{1}) \in \argmin_{\w, b} \RCal_\textsc{mc}\pb{1}(\w, b)$ (assuming minimisers exist),
-then $\w_\textsc{mc}\pb{1} \in \argmin_{\w} \RCal_\textsc{mr}\pb{1}(\w)$.
-Further, if $\w_\textsc{mr}\pb{1} \in \argmin_\w \RCal_\textsc{mr}\pb{1}(\w)$ (assuming minimisers exist),
-then 
-$$
-(\w_\textsc{mr}\pb{1}, b_\textsc{mr}\pb{1}) \in \argmin_{\w,b} \, \RCal_\textsc{mc}\pb{1}(\w, b),
-$$ 
+\label{theorem:mc1=mr1}
+$\LCal_\textsc{mc}^\mathrm{label}$ and $\LCal_\textsc{mr}^\mathrm{label}$ share the same set of minimisers $\WCal_k^*$
+(assuming minimisers exist), $k \in \{1,\dots,K\}$, in particular, for $\w_k^* \in \WCal_k^*$,
+\begin{equation*}
+\begin{aligned}
+         \w_k^* & \in \argmin_\W     \, \LCal_\textsc{mr}^\mathrm{label}(f; \SCal), \\
+(\w_k^*, b_k^*) & \in \argmin_{\W,\bb} \, \LCal_\textsc{mc}^\mathrm{label}(f; \SCal), \ k \in \{1,\dots,K\}
+\end{aligned}
+\end{equation*}
 where
 $$
-b_\textsc{mr}\pb{1} = \frac{1}{\alpha + \beta} \ln 
-      \frac{P \sum_{(m,i): y_i^m = 1} \exp(-\alpha g_i(\x^m; \w_\textsc{mr}\pb{1}))}
-           {Q \sum_{(n,j): y_j^n = 0} \exp( \beta  g_j(\x^n; \w_\textsc{mr}\pb{1}))}.
+b_k^*
+= \frac{1}{\alpha + \beta} \left(
+  \ln \sum_{i: y_k^i = 1} e^{-\alpha g(\x^i; \w_k^*)} - \ln \sum_{j: y_k^j = 0} e^{\beta g(\x^j; \w_k^*)} - \ln (C_k) \right).
 $$
 \end{theorem}
 
 
+\subsection{Decompose loss over examples}
 
-\subsection{Variant II}
-
-Let function $f(\cdot; \cdot)$ be
+Let function $f$ be
 \begin{equation*}
 %\resizebox{\linewidth}{!}{$
-f(\x^n; \w_k) := g(\x^n; \w_k) + b_k, \ n \in \{1,\dots,N\}, \, k \in \{1,\dots,K\}
+f_k(\x) := g(\x; \w_k) + b, \, k \in \{1,\dots,K\}
 %$}
 \end{equation*}
-where $\w_k$ and $b_k$ is the weight vector and bias parameter for the $k$-th label, respectively.
-Function $g(\x^n; \w_k)$ is differentiable and bounded.
+where $\w_k$ is a parameter vector for the $k$-th label, $b$ is a bias parameter, 
+and function $g(\x; \w_k)$ is differentiable (w.r.t. $\w_k$) and bounded.
 
-Suppose $\alpha, \beta, c \in \R_+$ are \emph{finite} positive numbers, 
-and $\C, \Pb, \Q \in \R^K$ are vectors of \emph{finite} (non-zero) real numbers.
-We can define $\RCal_\textsc{mc}\pb{2}$ be the following risk:
+Suppose $\alpha, \beta, m \in \R_+$ are \emph{finite} positive numbers, 
+and $\Pb, \Q \in \R^N$ is a vector of \emph{finite} (non-zero) real numbers.
+We define $\LCal_\textsc{mc}^\mathrm{example}$ be the following empirical loss:
 \begin{equation}
 \label{eq:mc2}
 %\resizebox{.9\linewidth}{!}{$
 \displaystyle
-\RCal_\textsc{mc}\pb{2}(\W, \bb) 
-= \sum_{k=1}^K \left[ 
-  \frac{P_k}{\alpha} \sum_{m: y_k^m = 1} \exp(-\alpha f(\x^m; \w_k)) +
-  \frac{Q_k}{\beta } \sum_{n: y_k^n = 0} \exp( \beta  f(\x^n; \w_k)) \right].
+\LCal_\textsc{mc}^\mathrm{example}(f; \SCal)
+= \sum_{i=1}^N \left(
+  \frac{P_i}{\alpha} \sum_{k: y_k^i = 1} e^{-\alpha f_k(\x^i)} + 
+  \frac{Q_i}{\beta}  \sum_{l: y_l^i = 0} e^{ \beta  f_l(\x^i)} \right),
 %$}
 \end{equation}
-and let $\RCal_\textsc{mr}\pb{2}$ be a risk defined as
+and let $\LCal_\textsc{mr}^\mathrm{example}$ be a risk defined as
 \begin{equation}
 \label{eq:mr2}
 %\resizebox{.9\linewidth}{!}{$
 \displaystyle
-\RCal_\textsc{mr}\pb{2}(\W) 
-= \sum_{k=1}^K C_k
-  \left[ \sum_{m: y_k^m = 1} \exp(-\alpha f(\x^m; \w_k)) \right]^\frac{c}{\alpha} 
-  \left[ \sum_{n: y_k^n = 0} \exp( \beta  f(\x^n; \w_k)) \right]^\frac{c}{\beta}.
+\LCal_\textsc{mr}^\mathrm{example}(f; \SCal)
+= \left( \sum_{i=1}^N \sum_{k: y_k^i = 1} e^{-\alpha f_k(\x^i)} \right)^\frac{m}{\alpha}
+  \left( \sum_{j=1}^N \sum_{l: y_l^j = 0} e^{\beta f_l(\x^j)} \right)^\frac{m}{\beta}
 %$}
 \end{equation}
-Note that $\RCal_\textsc{mr}\pb{2}$ is independent of $\bb$ since 
-\begin{equation*}
-%\resizebox{\linewidth}{!}{$
-\displaystyle
-\begin{aligned}
-\RCal_\textsc{mr}\pb{2}(\W)
-&= \sum_{k=1}^K C_k
-   \left[ \sum_{m: y_k^m = 1} \left( \sum_{n: y_k^n = 0} 
-   \exp(-\beta(f(\x^m; \w_k) - f(\x^n; \w_k))) \right)^\frac{\alpha}{\beta} \right]^\frac{c}{\alpha} \\
-&= \sum_{k=1}^K C_k
-   \left[ \sum_{n: y_k^n = 0} \left( \sum_{m: y_k^m = 1}
-   \exp(-\alpha(f(\x^m; \w_k) - f(\x^n; \w_k))) \right)^\frac{\beta}{\alpha} \right]^\frac{c}{\beta},
-\end{aligned}
-%$}
-\end{equation*}
-and $f(\x^m; \w_k) - f(\x^n; \w_k) = g(\x^m; \w_k) - g(\x^n; \w_k)$.
 
 
-\TODO
-{\it add equation of $\w_\textsc{mc}\pb{1}$ and $b_\textsc{mc}\pb{1}$.}
-
+We have the following Theorem:
 \begin{theorem}
 \label{theorem:mc2=mr2}
-If $(\W_\textsc{mc}\pb{2}, \bb_\textsc{mc}\pb{2}) \in \argmin_{\W,\bb} \RCal_\textsc{mc}\pb{2}(\W, \bb)$ (assuming minimisers exist),
-then $\W_\textsc{mc}\pb{2} \in \argmin_\W \RCal_\textsc{mr}\pb{2}(\W)$.
-Further, if $\W_\textsc{mr}\pb{2} \in \argmin_\W \RCal_\textsc{mr}\pb{2}(\W)$ (assuming minimisers exist),
-then 
-$$
-(\W_\textsc{mr}\pb{2}, \bb\pb{2}) \in \argmin_{\W,\bb} \, \RCal_\textsc{mc}\pb{2}(\W, \bb),
-$$ 
-where $\forall k \in \{1,\dots,K\}$
-$$
-b_k\pb{2}
-= \frac{1}{\alpha + \beta}
-  \ln \frac{P_k \sum_{m: y_k^m = 1} \exp(-\alpha g(\x^m; \w_k))} {Q_k \sum_{n: y_k^n = 0} \exp( \beta g(\x^n; \w_k))}
-  \Bigg|_{\W = \W_\textsc{mc}\pb{2}}.
-$$
-\end{theorem}
-
-
-
-\subsection{Variant III}
-
-Let function $f(\cdot, \cdot)$ be
+$\LCal_\textsc{mc}^\mathrm{example}$ and $\LCal_\textsc{mr}^\mathrm{example}$ share the same set of minimisers $\WCal_k^*$
+(assuming minimisers exist), $k \in \{1,\dots,K\}$, in particular, for $\w_k^* \in \WCal_k^*$,
 \begin{equation*}
-%\resizebox{\linewidth}{!}{$
-f(\x^n; \w_k) := g(\x^n; \w_k) + b, \ n \in \{1,\dots,N\}, \, k \in \{1,\dots,K\}
-%$}
-\end{equation*}
-where $\w_k$ is a parameter vector, $b$ is a bias parameter, 
-and $g(\x^n; \w_k)$ is a differentiable function (w.r.t. $\w_k$).
-
-Further, let $u(\x, \y), \, v(\x, \y)$ be functions of $(\x, \y)$ (and independent of $\W$), 
-we require both $u(\cdot,\cdot)$ and $v(\cdot,\cdot)$ to be bounded.
-
-Suppose $\alpha, \beta, c, P, Q \in \R_+$ are \emph{finite} positive numbers, 
-we can define $\RCal_\textsc{mc}\pb{3}$ be the following risk:
-\begin{equation}
-\label{eq:mc}
-%\resizebox{.9\linewidth}{!}{$
-\displaystyle
-\RCal_\textsc{mc}\pb{3}(\W, b) 
-= \frac{P}{\alpha} \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 1} \exp(-\alpha f(\x^m; \w_i)) \, + \,
-  \frac{Q}{\beta}  \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0} \exp( \beta  f(\x^n; \w_j)),
-%$}
-\end{equation}
-and let $\RCal_\textsc{mr}\pb{3}$ be a risk defined as
-\begin{equation}
-\label{eq:mr}
-%\resizebox{.9\linewidth}{!}{$
 \begin{aligned}
-\displaystyle
-\RCal_\textsc{mr}\pb{3}(\W) 
-&= \left[ \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 1} \exp(-\alpha f(\x^m; \w_i)) \right]^\frac{c}{\alpha}
-   \left[ \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0} \exp( \beta  f(\x^n; \w_j)) \right]^\frac{c}{\beta} \\
-&= \left[ \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 1} \left( \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0}
-   \exp(-\beta(f(\x^m; \w_i) - f(\x^n; \w_j))) \right)^\frac{\alpha}{\beta} \right]^\frac{c}{\alpha} \\
-&= \left[ \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 1} \left( \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 0}
-   \exp(-\alpha(f(\x^m; \w_i) - f(\x^n; \w_j))) \right)^\frac{\beta}{\alpha} \right]^\frac{c}{\beta}.
+       \w_k^* & \in \argmin_\W     \, \LCal_\textsc{mr}^\mathrm{example}(f; \SCal), \\
+(\w_k^*, b^*) & \in \argmin_{\W,\bb} \, \LCal_\textsc{mc}^\mathrm{example}(f; \SCal), \ k \in \{1,\dots,K\}
 \end{aligned}
-%$}
-\end{equation}
-Note that $\RCal_\textsc{mr}\pb{3}(\W)$ is independent of $b$ since 
-$f(\x^m; \w_i) - f(\x^n; \w_j) = g(\x^m; \w_i) - g(\x^n; \w_j)$.
-
-
-\begin{theorem}
-\label{theorem:mc2mr}
-If $(\W_\textsc{mc}\pb{3}, b_\textsc{mc}\pb{3}) \in \argmin_{\W,b} \RCal_\textsc{mc}\pb{3}(\W, b)$ (assuming minimisers exist),
-then $\W_\textsc{mc}\pb{3} \in \argmin_\W \RCal_\textsc{mr}\pb{3}(\W)$.
-Further, If $\W_\textsc{mr}\pb{3} \in \argmin_\W \RCal_\textsc{mr}\pb{3}(\W)$ (assuming minimisers exist) and $\alpha \gamma = \beta \delta$,
-then 
-$$
-(\W_\textsc{mr}\pb{3}, b_\textsc{mr}) \in \argmin_{\W,b} \, \RCal_\textsc{mc}\pb{3}(\W, b),
-$$ 
-where
-\begin{equation*}
-%\resizebox{.9\linewidth}{!}{$
-\displaystyle
-b_\textsc{mr} = \frac{1}{\alpha + \beta} \ln 
-      \frac{P \sum_{m=1}^N u(\x^m, \y^m) \sum_{i: y_i^m = 1} \exp(-\alpha g(\x^m; \w_i))}
-           {Q \sum_{n=1}^N v(\x^n, \y^n) \sum_{j: y_j^n = 0} \exp( \beta  g(\x^n; \w_j)) \hspace{1em}} \Bigg|_{\W = \W_\textsc{mr}\pb{3}}.
-%$}
 \end{equation*}
+where
+$$
+b^*
+= \frac{1}{\alpha + \beta} \left(
+  \ln \sum_{i=1}^N P_i \sum_{k: y_k^i = 1} e^{-\alpha g(\x^i; \w_k^*)} - \ln \sum_{j=1}^N Q_j \sum_{l: y_l^j = 0} e^{\beta g(\x^j; \w_l^*)} \right).
+$$
 \end{theorem}
 
 
@@ -223,25 +132,25 @@ If we generalise the P-Norm push loss to the multi-label setting as:
 %\resizebox{.9\linewidth}{!}{$
 \displaystyle
 \begin{aligned}
-\RCal_\textsc{mpn}(\W, b) 
-&= \sum_{n=1}^N \frac{1}{K_-^n} \sum_{j:y_j^n=0} \left( \frac{1}{K_+^n} \sum_{i:y_i^n=1} \exp(-(f(\x^n; \w_i) - f(\x^n; \w_j))) \right)^p \\
-&= \sum_{n=1}^N \left[
-   \left( \frac{1}{K_+^n} \sum_{i:y_i^n=1} \exp(-f(\x^n; \w_i)) \right)^p 
-   \left( \frac{1}{K_-^n} \sum_{j:y_j^n=0} \exp(p \cdot f(\x^n; \w_j)) \right) \right],
+\LCal_\textsc{mpn}(f; \SCal)
+&= \sum_{i=1}^N \frac{1}{K_-^i} \sum_{l:y_l^i=0} \left( \frac{1}{K_+^i} \sum_{k:y_k^i=1} \exp(-(f_k(\x^i) - f_l(\x^i))) \right)^p \\
+&= \sum_{i=1}^N \left[
+   \left( \frac{1}{K_+^i} \sum_{k:y_k^i=1} \exp(-f_k(\x^i)) \right)^p 
+   \left( \frac{1}{K_-^i} \sum_{l:y_l^i=0} \exp(p \cdot f_l(\x^i)) \right) \right],
 \end{aligned}
 %$}
 \end{equation}
 then we have the follow theorem:
 \begin{theorem}
-\label{theorem:pnorm-ml-ub}
+\label{th:pnorm-ml-ub}
 If $p$ is a positive integer, \ie $p \in \Z_+$, then 
 \begin{equation}
 \label{eq:pnorm-ml-ub}
 %\resizebox{.9\linewidth}{!}{$
 \displaystyle
-\RCal_\textsc{mpn}(\W, b) \le 
-\left( \sum_{m=1}^N \frac{1}{K_+^m} \sum_{i:y_i^m=1} \exp(-f(\x^m; \w_i)) \right)^p 
-\left( \sum_{n=1}^N \frac{1}{K_-^n} \sum_{j:y_j^n=0} \exp(p \cdot f(\x^n; \w_j)) \right).
+\LCal_\textsc{mpn}(f; \SCal) \le 
+\left( \sum_{i=1}^N \frac{1}{K_+^i} \sum_{k:y_k^i=1} \exp(-f_k(\x^i)) \right)^p 
+\left( \sum_{j=1}^N \frac{1}{K_-^j} \sum_{l:y_l^j=0} \exp(p \cdot f_l(\x^j)) \right).
 %$}
 \end{equation}
 \end{theorem}
