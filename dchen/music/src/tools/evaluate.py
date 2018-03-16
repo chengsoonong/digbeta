@@ -35,23 +35,15 @@ def calc_F1(Y_true, Y_pred):
     assert Y_true.shape == Y_pred.shape
     assert Y_true.dtype == Y_pred.dtype == np.bool
     N, K = Y_true.shape
-    # OneK = np.ones(K)
-
-    # n_true = np.dot(Y_true, OneK)
     n_true = np.sum(Y_true, axis=1)
-    # n_positive = np.dot(Y_pred, OneK)
     n_positive = np.sum(Y_pred, axis=1)
-    # true_positive = np.dot(np.multiply(Y_true, Y_pred), OneK)
-    # true_positive = np.sum(np.multiply(Y_true, Y_pred), axis=1)
     true_positive = np.sum(np.logical_and(Y_true, Y_pred), axis=1)
 
     numerator = 2 * true_positive
     denominator = n_true + n_positive
     nonzero_ix = np.nonzero(denominator)[0]
-
     f1 = np.zeros(N)
     f1[nonzero_ix] = np.divide(numerator[nonzero_ix], denominator[nonzero_ix])
-
     return f1
 
 
@@ -66,7 +58,6 @@ def calc_RPrecision(Y_true, Y_pred, axis=0):
     assert Y_true.dtype == np.bool
     assert axis in [0, 1]
     N, K = Y_true.shape
-
     ax = 1 - axis
     num = (N, K)[axis]
     numPos = np.sum(Y_true, axis=ax).astype(np.int)
@@ -83,13 +74,11 @@ def calc_RPrecision(Y_true, Y_pred, axis=0):
         thresholds = Y_pred[rows, cols].reshape(1, K)
         Y_pred_bin = Y_pred >= thresholds
 
-    # true_positives = np.multiply(Y_true, Y_pred_bin)
+    nonzero_ix = np.nonzero(numPos)[0]
     true_positives = np.logical_and(Y_true, Y_pred_bin)
     rps = np.zeros(num)
-    nonzero_ix = np.nonzero(numPos)[0]
-    rps[nonzero_ix] = np.sum(true_positives[nonzero_ix], axis=ax) / numPos[nonzero_ix]
-    valid_indices = nonzero_ix
-    return rps[valid_indices], valid_indices
+    rps[nonzero_ix] = true_positives.sum(axis=ax)[nonzero_ix] / numPos[nonzero_ix]
+    return rps[nonzero_ix], nonzero_ix
 
 
 def calc_rank(x, largestFirst=True):
@@ -105,7 +94,6 @@ def calc_rank(x, largestFirst=True):
     assert x.ndim == 1
     n = len(x)
     assert n > 0
-
     sortix = np.argsort(-x)
     rank = np.zeros(n, dtype=np.int)
 
@@ -148,7 +136,6 @@ def evalPred(truth, pred, metricType='Precision@K'):
     nPos = np.sum(truth)
     assert float(nPos).is_integer()
     nPos = int(nPos)
-
     predBin = np.array((pred > 0), dtype=np.int)
 
     if type(metricType) == tuple:
@@ -167,13 +154,10 @@ def evalPred(truth, pred, metricType='Precision@K'):
         # fraction of +'ves in the top K predictions
         # return np.mean(y[:k]) if nPos > 0 else 0
         return np.mean(y[:k])
-
     elif metricType == 'Subset01':
         return 1 - int(np.all(truth == predBin))
-
     elif metricType == 'Hamming':
         return np.sum(truth != predBin) / L
-
     elif metricType == 'Ranking':
         loss = 0
         for i in range(L):
@@ -188,17 +172,14 @@ def evalPred(truth, pred, metricType='Precision@K'):
         # denom = nPos * (L - nPos)
         # return loss / denom if denom > 0 else 0
         return loss
-
     elif metricType == 'TopPush':
         posInd = np.nonzero(truth)[0].tolist()
         negInd = sorted(set(np.arange(L)) - set(posInd))
         return np.mean(pred[posInd] <= np.max(pred[negInd]))
-
     elif metricType == 'BottomPush':
         posInd = np.nonzero(truth)[0].tolist()
         negInd = sorted(set(np.arange(L)) - set(posInd))
         return np.mean(pred[negInd] >= np.min(pred[posInd]))
-
     elif metricType == 'RPrecision':
         assert nPos > 0
         # sorted indices of the labels most likely to be +'ve
@@ -209,7 +190,6 @@ def evalPred(truth, pred, metricType='Precision@K'):
 
         # fraction of +'ves in the top K predictions
         return np.mean(y[:nPos])
-
     # elif metricType == 'Precision@3':
     #    # sorted indices of the labels most likely to be +'ve
     #    idx = np.argsort(pred)[::-1]
@@ -229,7 +209,6 @@ def evalPred(truth, pred, metricType='Precision@K'):
     #
     #    # fraction of +'ves in the top K predictions
     #    return np.mean(y[:5])
-
     else:
         assert(False)
 
@@ -238,14 +217,12 @@ def calcLoss(allTruths, allPreds, metricType, njobs=-1):
     N = allTruths.shape[0]
     losses = Parallel(n_jobs=njobs)(delayed(evalPred)(allTruths[i, :], allPreds[i, :], metricType)
                                     for i in range(N))
-
     return np.asarray(losses)
 
 
 def avgPrecision(allTruths, allPreds, k):
     L = allTruths.shape[1]
     assert k <= L
-
     losses = []
     metricType = ('Precision', k)
     for i in range(allPreds.shape[0]):
