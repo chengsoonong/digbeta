@@ -1,9 +1,7 @@
-import sys
 import numpy as np
 # from sklearn.metrics import f1_score
 from sklearn.metrics import precision_recall_fscore_support
 from joblib import Parallel, delayed
-from scipy.sparse import issparse
 
 
 def calc_RPrecision_HitRate(y_true, y_pred, tops=[]):
@@ -25,45 +23,6 @@ def calc_RPrecision_HitRate(y_true, y_pred, tops=[]):
         assert 0 < top <= len(y_true)
         hitrates[top] = np.sum(y_true[sortix[:top]]) / npos
     return (rp, hitrates)
-
-
-def evaluate_minibatch(clf, eval_func, X_test, Y_test, threshold=None, transposeY=False, batch_size=100, verbose=0):
-    assert X_test.shape[0] == Y_test.shape[0]
-
-    N = X_test.shape[0]
-    metrics_all = []
-    n_batches = int((N-1) / batch_size) + 1
-    indices = np.arange(N)
-
-    for nb in range(n_batches):
-        if verbose > 0:
-            sys.stdout.write('\r %d / %d' % (nb+1, n_batches))
-            sys.stdout.flush()
-
-        ix_start = nb * batch_size
-        ix_end = min((nb+1) * batch_size, N)
-        ix = indices[ix_start:ix_end]
-
-        X = X_test[ix]
-        Y_true = Y_test[ix].astype(np.bool)
-        if issparse(Y_true):
-            Y_true = Y_true.toarray()
-        Y_pred = clf.decision_function(X)
-        if issparse(Y_pred):
-            Y_pred = Y_pred.toarray()
-        if threshold is not None:
-            Y_pred = Y_pred >= threshold
-
-        if transposeY is True:
-            metrics = eval_func(Y_true.T, Y_pred.T)
-        else:
-            metrics = eval_func(Y_true, Y_pred)
-        if type(metrics) == tuple:
-            metrics_all.append(metrics)
-        else:
-            metrics_all = np.concatenate((metrics_all, metrics), axis=-1)
-
-    return metrics_all
 
 
 def calc_F1(Y_true, Y_pred):
@@ -96,36 +55,41 @@ def calc_F1(Y_true, Y_pred):
     return f1
 
 
-def calc_precisionK(Y_true, Y_pred):
+def calc_RPrecision(Y_true, Y_pred, axis=0):
     """
-    Compute Precision@K, one score for each example.
-    - thresholding predictions using the K-th largest predicted score, K is #positives in ground truth
-    - Precision@K: #true_positives / #positives_in_ground_truth
-      where by the definition of Precision@K, #positives_in_ground_truth = #positive_in_prediction
+    Compute RPrecision, one score for each (example if axis=0 else label)
+    - thresholding predictions using the K-th largest predicted score, K is #positives in ground truth for an example
+    - RPrecision: #true_positives / K
+      where by the definition, K = #positives_in_ground_truth
     """
     assert Y_true.shape == Y_pred.shape
     assert Y_true.dtype == np.bool
+    assert axis in [0, 1]
     N, K = Y_true.shape
-    # OneK = np.ones(K)
-    # KPosAll = np.dot(Y_true, OneK).astype(np.int)
-    KPosAll = np.sum(Y_true, axis=1).astype(np.int)
-    # assert np.all(KPosAll > 0)
 
-    rows = np.arange(N)
-    sortedIx = np.argsort(-Y_pred, axis=1)
-    cols = sortedIx[rows, KPosAll-1]  # index of thresholds (the K-th largest scores, NOTE index starts at 0)
-    thresholds = Y_pred[rows, cols]   # the K-th largest scores
-    Y_pred_bin = Y_pred >= thresholds[:, None]  # convert scores to binary predictions
+    ax = 1 - axis
+    num = (N, K)[axis]
+    numPos = np.sum(Y_true, axis=ax).astype(np.int)
+    sort_ix = np.argsort(-Y_pred, axis=ax)
+
+    if axis == 0:
+        rows = np.arange(N)
+        cols = sort_ix[rows, numPos-1]   # index of thresholds (the K-th largest scores, NOTE index starts at 0)
+        thresholds = Y_pred[rows, cols].reshape(N, 1)  # the K-th largest scores
+        Y_pred_bin = Y_pred >= thresholds  # convert scores to binary predictions
+    else:
+        cols = np.arange(K)
+        rows = sort_ix[numPos-1, cols]
+        thresholds = Y_pred[rows, cols].reshape(1, K)
+        Y_pred_bin = Y_pred >= thresholds
 
     # true_positives = np.multiply(Y_true, Y_pred_bin)
     true_positives = np.logical_and(Y_true, Y_pred_bin)
-    pak = np.ones(N)
-    nonzero_ix = np.nonzero(KPosAll)[0]
-    pak[nonzero_ix] = np.sum(true_positives[nonzero_ix], axis=1) / KPosAll[nonzero_ix]
-    # return np.dot(true_positives, OneK) / KPosAll
-    # return np.sum(true_positives, axis=1) / KPosAll
+    rps = np.zeros(num)
+    nonzero_ix = np.nonzero(numPos)[0]
+    rps[nonzero_ix] = np.sum(true_positives[nonzero_ix], axis=ax) / numPos[nonzero_ix]
     valid_indices = nonzero_ix
-    return pak, valid_indices
+    return rps[valid_indices], valid_indices
 
 
 def calc_rank(x, largestFirst=True):
@@ -235,7 +199,7 @@ def evalPred(truth, pred, metricType='Precision@K'):
         negInd = sorted(set(np.arange(L)) - set(posInd))
         return np.mean(pred[negInd] >= np.min(pred[posInd]))
 
-    elif metricType == 'Precision@K':
+    elif metricType == 'RPrecision':
         assert nPos > 0
         # sorted indices of the labels most likely to be +'ve
         idx = np.argsort(pred)[::-1]
@@ -278,16 +242,6 @@ def calcLoss(allTruths, allPreds, metricType, njobs=-1):
     return np.asarray(losses)
 
 
-def avgPrecisionK(allTruths, allPreds):
-    losses = []
-    metricType = 'Precision@K'
-    for i in range(allPreds.shape[0]):
-        pred = allPreds[i, :]
-        truth = allTruths[i, :]
-        losses.append(evalPred(truth, pred, metricType))
-    return np.mean(losses)
-
-
 def avgPrecision(allTruths, allPreds, k):
     L = allTruths.shape[1]
     assert k <= L
@@ -299,70 +253,3 @@ def avgPrecision(allTruths, allPreds, k):
         truth = allTruths[i, :]
         losses.append(evalPred(truth, pred, metricType))
     return np.mean(losses)
-
-
-def evaluatePrecision(allTruths, allPreds, verbose=0, n_jobs=-1):
-    N = allTruths.shape[0]
-    perf_dict = dict()
-    for metricType in [('Precision@3', 3), ('Precision@5', 5), ('Precision@10', 10), 'Precision@K']:
-        losses = Parallel(n_jobs=n_jobs)(delayed(evalPred)(allTruths[i, :], allPreds[i, :], metricType)
-                                         for i in range(N))
-        # losses = []
-        # for i in range(allPreds.shape[0]):
-        #    pred = allPreds[i, :]
-        #    truth = allTruths[i, :]
-        #    losses.append(evalPred(truth, pred, metricType))
-
-        metricStr = metricType[0] if type(metricType) == tuple else metricType
-        mean = np.mean(losses)
-        stderr = np.std(losses) / np.sqrt(N)
-        perf_dict[metricStr] = (mean, stderr)
-        if verbose > 0:
-            print('%s: %.4f, %.3f' % ('Average %s' % metricStr, mean, stderr))
-    return perf_dict
-
-
-def evaluateF1(allTruths, allPreds):
-    N = allTruths.shape[0]
-    f1 = []
-    for i in range(allPreds.shape[0]):
-        pred = allPreds[i, :]
-        truth = allTruths[i, :]
-        f1.append(f1_score_nowarn(truth, pred))
-    mean = np.mean(f1)
-    stderr = np.std(f1) / np.sqrt(N)
-    print('%s: %.4f, %.3f' % ('Average F1', mean, stderr))
-    return {'F1': (mean, stderr)}
-
-
-def evaluateRankingLoss(allTruths, allPreds, n_jobs=-1):
-    N = allTruths.shape[0]
-    losses = Parallel(n_jobs=n_jobs)(delayed(evalPred)(allTruths[i, :], allPreds[i, :], metricType='Ranking')
-                                     for i in range(N))
-    # losses = []
-    # for i in range(N):
-    #    pred = allPreds[i, :]
-    #    truth = allTruths[i, :]
-    #    losses.append(evalPred(truth=truth, pred=pred, metricType='Ranking'))
-    mean = np.mean(losses)
-    stderr = np.std(losses) / np.sqrt(N)
-    print('%s: %.4f, %.3f' % ('Average RankingLoss', mean, stderr))
-    return {'RankingLoss': (mean, stderr)}
-
-
-def printEvaluation(allTruths, allPreds):
-    N = allTruths.shape[0]
-    # print(N)
-
-    for metricType in [('Precision@3', 3), ('Precision@5', 5), 'Precision@K']:
-        # ['Subset01', 'Hamming', 'Ranking', 'Precision@K', 'Precision@3', 'Precision@5']:
-        losses = []
-        for i in range(allPreds.shape[0]):
-            pred = allPreds[i, :]
-            truth = allTruths[i, :]
-            losses.append(evalPred(truth, pred, metricType))
-
-        # print('%24s: %1.4f' % ('Average %s Loss' % metricType, np.mean(losses)))
-        metricStr = metricType[0] if type(metricType) == tuple else metricType
-        print('%s: %.4f, %.3f' % ('Average %s' % metricStr, np.mean(losses), np.std(losses) / np.sqrt(N)))
-        # plt.hist(aucs, bins = 10);
