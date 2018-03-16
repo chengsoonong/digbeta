@@ -4,26 +4,23 @@ import gzip
 import time
 import numpy as np
 import pickle as pkl
-from models import PCMLC
+from models import MLC
 
 
-if len(sys.argv) != 11:
+if len(sys.argv) != 9:
     print('Usage: python', sys.argv[0],
-          'WORK_DIR  DATASET  C1  C2  C3  P  BATCH_SIZE  LOSS_TYPE(example/label/both)  MT_REG(Y/N)  TRAIN_DEV(Y/N)')
+          'WORK_DIR  DATASET  C1  C3  P  BATCH_SIZE  MT_REG(Y/N)  TRAIN_DEV(Y/N)')
     sys.exit(0)
 else:
     work_dir = sys.argv[1]
     dataset = sys.argv[2]
     C1 = float(sys.argv[3])
-    C2 = float(sys.argv[4])
-    C3 = float(sys.argv[5])
-    p = float(sys.argv[6])
-    bs = int(sys.argv[7])
-    loss = sys.argv[8]
-    multitask = sys.argv[9]
-    trndev = sys.argv[10]
+    C3 = float(sys.argv[4])
+    p = float(sys.argv[5])
+    bs = int(sys.argv[6])
+    multitask = sys.argv[7]
+    trndev = sys.argv[8]
 
-assert loss in ['example', 'label', 'both']
 assert multitask in ['Y', 'N']
 assert trndev in ['Y', 'N']
 
@@ -34,14 +31,14 @@ if trndev == 'N':
     fytrain = os.path.join(data_dir, 'Y_train.pkl.gz')
     fxdev = os.path.join(data_dir, 'X_dev.pkl.gz')
     fydev = os.path.join(data_dir, 'Y_dev.pkl.gz')
-    fprefix = 'mlr-%s-%s-%g-%g-%g-%g' % (loss, multitask, C1, C2, C3, p)
+    fprefix = 'mlr-%s-%g-%g-%g' % (multitask, C1, C3, p)
 else:
     assert trndev == 'Y'
     fxtrain = os.path.join(data_dir, 'X_train_dev.pkl.gz')
     fytrain = os.path.join(data_dir, 'Y_train_dev.pkl.gz')
     fxdev = os.path.join(data_dir, 'X_test.pkl.gz')
     fydev = os.path.join(data_dir, 'Y_test.pkl.gz')
-    fprefix = 'trndev-mlr-%s-%s-%g-%g-%g-%g' % (loss, multitask, C1, C2, C3, p)
+    fprefix = 'trndev-mlr-%s-%g-%g-%g' % (multitask, C1, C3, p)
 
 fcliques = os.path.join(data_dir, 'cliques_all.pkl.gz')
 fmodel = os.path.join(data_dir, '%s.pkl.gz' % fprefix)
@@ -57,7 +54,7 @@ if multitask == 'Y':
 else:
     cliques = None
 
-print('C: %g, %g, %g, p: %g' % (C1, C2, C3, p))
+print('C: %g, %g, p: %g' % (C1, C3, p))
 print(X_train.shape, Y_train.shape)
 print(time.strftime('%Y-%m-%d %H:%M:%S'))
 
@@ -66,8 +63,8 @@ if os.path.exists(fmodel):
     clf = pkl.load(gzip.open(fmodel, 'rb'))   # for evaluation
 else:
     print('training ...')
-    clf = PCMLC(C1=C1, C2=C2, C3=C3, p=p, loss_type=loss)
-    clf.fit(X_train, Y_train, user_playlist_indices=cliques, batch_size=bs, verbose=3, fnpy=fnpy)
+    clf = MLC(C1=C1, C3=C3, p=p)
+    clf.fit(X_train, Y_train, user_playlist_indices=cliques, batch_size=bs, njobs=3, verbose=2, fnpy=fnpy)
 
 if clf.trained is True:
     W = clf.W
@@ -79,7 +76,7 @@ if clf.trained is True:
         if npos < 1:
             continue
         wj = W[j, :].reshape(-1)
-        y_pred = np.dot(X_dev, wj) + b
+        y_pred = np.dot(X_dev, wj) + b[0, j]
         sortix = np.argsort(-y_pred)
         y_ = y_true[sortix]
         rps.append(np.mean(y_[:npos]))
