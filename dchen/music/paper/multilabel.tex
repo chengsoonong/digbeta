@@ -20,7 +20,7 @@ where $\w_k$ and $b_k$ is the weight vector and bias parameter for the $k$-th la
 in other words, we assume the parameters can be decomposed over labels.
 Function $g(\x; \w_k)$ is differentiable and bounded.
 
-Suppose $\alpha, \beta, m \in \R_+$ are \emph{finite} positive numbers, 
+Suppose $\alpha, \beta \in \R_+$ are \emph{finite} positive numbers, 
 and $\C \in \R^K$ is a vector of \emph{finite} (non-zero) real numbers.
 We define $\LCal_\textsc{mc}^\text{label}$ be the following empirical loss:
 \begin{equation}
@@ -28,9 +28,9 @@ We define $\LCal_\textsc{mc}^\text{label}$ be the following empirical loss:
 %\resizebox{.9\linewidth}{!}{$
 \displaystyle
 \LCal_\textsc{mc}^\text{label}(f; \SCal)
-= \sum_{k=1}^K \left[ 
+= \sum_{k=1}^K \left(
   \frac{1}{\alpha} \sum_{i: y_k^i = 1} e^{-\alpha f_k(\x^i)} +
-  \frac{C_k}{\beta} \sum_{j: y_k^j = 0} e^{\beta  f_k(\x^j)} \right].
+  \frac{C_k}{\beta} \sum_{j: y_k^j = 0} e^{\beta  f_k(\x^j)} \right).
 %$}
 \end{equation}
 and let $\LCal_\textsc{mr}^\text{label}$ be a empirical loss defined as
@@ -41,10 +41,10 @@ and let $\LCal_\textsc{mr}^\text{label}$ be a empirical loss defined as
 \displaystyle
 \LCal_\textsc{mr}^\text{label}(f; \SCal)
 &= \sum_{k=1}^K
-   \left[ \sum_{y_k^j = 0} \left( \sum_{y_k^i = 1} e^{-\alpha(f_k(\x^i) - f_k(\x^j))} \right)^\frac{\beta}{\alpha} \right]^\frac{m}{\beta} \\
-&= \sum_{k=1}^K
-   \left[ \sum_{y_k^i = 1} e^{-\alpha f_k(\x^i)} \right]^\frac{m}{\alpha} 
-   \left[ \sum_{y_k^j = 0} e^{ \beta  f_k(\x^j)} \right]^\frac{m}{\beta}.
+   \sum_{y_k^j = 0} \left( \sum_{y_k^i = 1} e^{-\alpha(f_k(\x^i) - f_k(\x^j))} \right)^\frac{\beta}{\alpha} \\
+&= \sum_{k=1}^K \left( 
+   \sum_{y_k^i = 1} e^{-\alpha f_k(\x^i)} \right)^\frac{\beta}{\alpha} 
+   \sum_{y_k^j = 0} e^{ \beta  f_k(\x^j)}.
 \end{aligned}
 %$}
 \end{equation}

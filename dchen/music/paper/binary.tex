@@ -86,7 +86,7 @@ $$
 where $\x$ is an input, $\w$ is a weight vector, $b$ is a bias parameter, 
 and function $g(\x; \w)$ is differentiable (w.r.t. $\w$) and bounded.
 
-Suppose $\alpha, \beta, m, C \in \R_+$ are \emph{finite} positive numbers, we define 
+Suppose $\alpha, \beta, C \in \R_+$ are \emph{finite} positive numbers, we define 
 $\RCal_\textsc{bc}$ be the following classification loss:
 \begin{equation*}
 %\label{eq:bc}
@@ -106,11 +106,10 @@ $\LCal_\textsc{br}$ be a bipartite ranking loss defined as:
 %\resizebox{\linewidth}{!}{$
 \begin{aligned}
 \LCal_\textsc{br}(f; \SCal)
-&= \left[ \displaystyle 
-   \sum_{\x_- \in \SCal_-} \left( \sum_{\x_+ \in \SCal_+} e^{-\alpha (f(\x_+) - f(\x_-))} \right)^\frac{\beta}{\alpha}
-   \right]^\frac{m}{\beta} \\
-&= \left[ \sum_{\x_+ \in \SCal_+} e^{-\alpha f(\x_+)} \right]^\frac{m}{\alpha}
-   \left[ \sum_{\x_- \in \SCal_-} e^{ \beta  f(\x_-)} \right]^\frac{m}{\beta}.
+&= \displaystyle 
+   \sum_{\x_- \in \SCal_-} \left( \sum_{\x_+ \in \SCal_+} e^{-\alpha (f(\x_+) - f(\x_-))} \right)^\frac{\beta}{\alpha} \\
+&= \left( \sum_{\x_+ \in \SCal_+} e^{-\alpha f(\x_+)} \right)^\frac{\beta}{\alpha}
+   \sum_{\x_- \in \SCal_-} e^{ \beta f(\x_-)}
 \end{aligned}
 %$}
 \end{equation*}
@@ -143,7 +142,7 @@ see Appendix for the full proof.
 
 We can have a few interesting special cases of Theorem~\ref{th:bc=br},
 including Theorem 1, 2 and 3 in~\cite{ertekin2011equivalence} by 
-assigning appropriate values for parameters $\alpha$, $\beta$, $m$ and $C$ in Theorem~\ref{th:bc=br}.
+assigning appropriate values for parameters $\alpha$, $\beta$ and $C$ in Theorem~\ref{th:bc=br}.
 We describe them in the next section.
 
 
@@ -152,9 +151,9 @@ We describe them in the next section.
 \subsection{Special cases}
 
 It is straightforward to show the fact that P-Classification and P-Norm Push share the same set of minimisers 
-(Theorem 1 and 2 in~\cite{ertekin2011equivalence}) is an instance of Theorem~\ref{th:bc=br}, by letting $\alpha = C = 1$, and $\beta = m = p$.
+(Theorem 1 and 2 in~\cite{ertekin2011equivalence}) is an instance of Theorem~\ref{th:bc=br}, by letting $\alpha = C = 1$, and $\beta = p$.
 Similarly, the fact that Cost-Sensitive AdaBoost and RankBoost share the same set of minimisers (Theorem 3 in~\cite{ertekin2011equivalence}) 
-can be obtained by letting $\alpha = \beta = m = 1$.
+can be obtained by letting $\alpha = \beta = 1$.
 
 Further, we know that P-Norm Push loss is an approximation of Infinite Push loss, and by Equation~\ref{eq:pn2tp}, 
 it is natural to conjecture that P-Norm Push is an approximation of Top Push.
@@ -171,7 +170,7 @@ By using the exponential surrogate and approximate the $\max$ function with the 
 \end{aligned}
 \end{equation*}
 where $\ell$ is the exponential surrogate.
-Further, by Theorem~\ref{th:bc=br}, and let $\alpha = m = C = 1$, and $\beta = p$,
+Further, by Theorem~\ref{th:bc=br}, and let $\alpha = C = 1$, and $\beta = p$,
 we know that both $\widetilde\LCal_\textsc{tp}^\ell(f; \SCal)$ and P-Norm Push share the same set of minimisers with
 P-Classification loss, for the exponential surrogate.
 
@@ -185,7 +184,7 @@ which can be shown to share the same set of minimisers with another classificati
 \end{aligned}
 \end{equation*}
 where $\ell$ is the exponential surrogate.
-Further, by Theorem~\ref{th:bc=br}, and let $\alpha = p$, and $\beta = m = C = 1$,
+Further, by Theorem~\ref{th:bc=br}, and let $\alpha = p$, and $\beta = C = 1$,
 we know that both $\widetilde\LCal_\textsc{bp}^\ell(f; \SCal)$ and 
-$\left( \sum_{\x_+ \in \SCal_+} e^{-p f(\x_+)} \right)^\frac{1}{p} + \sum_{\x_- \in \SCal_-} e^{f(\x_-)}$
+$\frac{1}{p} \sum_{\x_+ \in \SCal_+} e^{-p f(\x_+)} + \sum_{\x_- \in \SCal_-} e^{f(\x_-)}$
 share the same set of minimisers for the exponential surrogate.
