@@ -3,12 +3,9 @@
 
 Given a multi-label dataset $\SCal = \{\x^n, \y^n\}_{n=1}^N$, where $\x^n \in \R^D$ is a feature vector for the $n$-th example,
 and $\y^n \in \{0,1\}^K$ are $K$ labels for the $n$-th example.
-There are two natural approaches to extend the loss functions in binary setting to the multi-label setting, 
-\ie, decomposing the empirical loss on $\SCal$ over either labels or examples.
-In this section, we describe these two extensions and extend Theorem~\ref{theorem:bc=br} to multi-label setting.
-
-
-\subsection{Decompose loss over labels}
+One natural approach to extend the loss function in binary setting to the multi-label setting is 
+decomposing the empirical loss on $\SCal$ over labels.
+In this section, we describe an extension of Theorem~\ref{th:bc=br} in the multi-label setting.
 
 Let function $f$ be
 \begin{equation*}
@@ -67,90 +64,4 @@ b_k^*
 = \frac{1}{\alpha + \beta} \left(
   \ln \sum_{i: y_k^i = 1} e^{-\alpha g(\x^i; \w_k^*)} - \ln \sum_{j: y_k^j = 0} e^{\beta g(\x^j; \w_k^*)} - \ln (C_k) \right).
 $$
-\end{theorem}
-
-
-\subsection{Decompose loss over examples}
-
-Let function $f$ be
-\begin{equation*}
-%\resizebox{\linewidth}{!}{$
-f_k(\x) := g(\x; \w_k) + b, \, k \in \{1,\dots,K\}
-%$}
-\end{equation*}
-where $\w_k$ is a parameter vector for the $k$-th label, $b$ is a bias parameter, 
-and function $g(\x; \w_k)$ is differentiable (w.r.t. $\w_k$) and bounded.
-
-Suppose $\alpha, \beta, m \in \R_+$ are \emph{finite} positive numbers, 
-and $\Pb, \Q \in \R^N$ is a vector of \emph{finite} (non-zero) real numbers.
-We define $\LCal_\textsc{mc}^\mathrm{example}$ be the following empirical loss:
-\begin{equation}
-\label{eq:mc2}
-%\resizebox{.9\linewidth}{!}{$
-\displaystyle
-\LCal_\textsc{mc}^\mathrm{example}(f; \SCal)
-= \sum_{i=1}^N \left(
-  \frac{P_i}{\alpha} \sum_{k: y_k^i = 1} e^{-\alpha f_k(\x^i)} + 
-  \frac{Q_i}{\beta}  \sum_{l: y_l^i = 0} e^{ \beta  f_l(\x^i)} \right),
-%$}
-\end{equation}
-and let $\LCal_\textsc{mr}^\mathrm{example}$ be a risk defined as
-\begin{equation}
-\label{eq:mr2}
-%\resizebox{.9\linewidth}{!}{$
-\displaystyle
-\LCal_\textsc{mr}^\mathrm{example}(f; \SCal)
-= \left( \sum_{i=1}^N \sum_{k: y_k^i = 1} e^{-\alpha f_k(\x^i)} \right)^\frac{m}{\alpha}
-  \left( \sum_{j=1}^N \sum_{l: y_l^j = 0} e^{\beta f_l(\x^j)} \right)^\frac{m}{\beta}
-%$}
-\end{equation}
-
-
-We have the following Theorem:
-\begin{theorem}
-\label{theorem:mc2=mr2}
-$\LCal_\textsc{mc}^\mathrm{example}$ and $\LCal_\textsc{mr}^\mathrm{example}$ share the same set of minimisers $\WCal_k^*$
-(assuming minimisers exist), $k \in \{1,\dots,K\}$, in particular, for $\w_k^* \in \WCal_k^*$,
-\begin{equation*}
-\begin{aligned}
-       \w_k^* & \in \argmin_\W     \, \LCal_\textsc{mr}^\mathrm{example}(f; \SCal), \\
-(\w_k^*, b^*) & \in \argmin_{\W,\bb} \, \LCal_\textsc{mc}^\mathrm{example}(f; \SCal), \ k \in \{1,\dots,K\}
-\end{aligned}
-\end{equation*}
-where
-$$
-b^*
-= \frac{1}{\alpha + \beta} \left(
-  \ln \sum_{i=1}^N P_i \sum_{k: y_k^i = 1} e^{-\alpha g(\x^i; \w_k^*)} - \ln \sum_{j=1}^N Q_j \sum_{l: y_l^j = 0} e^{\beta g(\x^j; \w_l^*)} \right).
-$$
-\end{theorem}
-
-
-If we generalise the P-Norm push loss to the multi-label setting as:
-\begin{equation}
-\label{eq:pnorm-ml}
-%\resizebox{.9\linewidth}{!}{$
-\displaystyle
-\begin{aligned}
-\LCal_\textsc{mpn}(f; \SCal)
-&= \sum_{i=1}^N \frac{1}{K_-^i} \sum_{l:y_l^i=0} \left( \frac{1}{K_+^i} \sum_{k:y_k^i=1} \exp(-(f_k(\x^i) - f_l(\x^i))) \right)^p \\
-&= \sum_{i=1}^N \left[
-   \left( \frac{1}{K_+^i} \sum_{k:y_k^i=1} \exp(-f_k(\x^i)) \right)^p 
-   \left( \frac{1}{K_-^i} \sum_{l:y_l^i=0} \exp(p \cdot f_l(\x^i)) \right) \right],
-\end{aligned}
-%$}
-\end{equation}
-then we have the follow theorem:
-\begin{theorem}
-\label{th:pnorm-ml-ub}
-If $p$ is a positive integer, \ie $p \in \Z_+$, then 
-\begin{equation}
-\label{eq:pnorm-ml-ub}
-%\resizebox{.9\linewidth}{!}{$
-\displaystyle
-\LCal_\textsc{mpn}(f; \SCal) \le 
-\left( \sum_{i=1}^N \frac{1}{K_+^i} \sum_{k:y_k^i=1} \exp(-f_k(\x^i)) \right)^p 
-\left( \sum_{j=1}^N \frac{1}{K_-^j} \sum_{l:y_l^j=0} \exp(p \cdot f_l(\x^j)) \right).
-%$}
-\end{equation}
 \end{theorem}
