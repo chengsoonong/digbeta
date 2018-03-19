@@ -25,3 +25,118 @@
 % - multi-label classification
 % - playlist augmentation
 % - new song recommendation
+% 1. Recommend songs for playlists
+% Problems description
+% - playlist augmentation
+% - new song recommendation
+% - related work: the same, the different
+%
+
+\section{Problem}
+
+% brief description of both recommendation tasks
+We are motivated by the problem of automatically augmenting music playlist with a collection of songs $\SCal$,
+in particular, given a partial playlist with the first $K$ songs\footnote{$K$ can be different for other partial playlists.},
+we would like to recommend a subset of $\SCal$ by learning from user created playlist dataset.
+This task is also known as Automatic Playlist Continuation~\cite{schedl2017,recsysch2018}.
+
+
+\section{Related work}
+% related work
+% describe each task with related work: the same, the different
+% describe that we don't use the order of songs, conflicting findings in literature
+% mainly two pieces of work:
+% - music recommendation
+% - playlist generation
+
+We are interested in two variants of the playlist recommendation problem,
+one is augmenting a playlist by recommending a subset of songs from a collection of music $\SCal$,
+given the first $K$ seed songs, where $K$ can be any positive integer from 1 to the total number of songs minus 1.
+% in contrast to settings where all songs except the last one are observed\cite{}, or giving a fixed number of seed songs\cite{}.
+Another variant is restricting that all recommended songs are not observed during learning,
+\ie recommending newly released songs to augment a given playlist, which is an instance of the cold-start problem.
+We call the first variant \emph{playlist augmentation} and the second \emph{new song recommendation}.
+
+
+\section{Playlist augmentation as bipartite ranking}
+% for one playlist, the recommendation can be achieved by bipartite ranking
+
+Given a partial playlist with $K$ seed songs, a natural approach to recommend a subset of music collection $\SCal$ is 
+ranking songs in $\SCal$ that are not seed songs, in particular, songs that are more relevant to the playlist should be
+ranked higher that those that are not, which is a bipartite ranking problem.
+%This can be formulated as a bipartite ranking problem where songs in the given playlist have positive labels,
+%while songs that are not part of the playlist have negative labels.
+
+% equation of bipartite ranking for playlist augmentation
+
+
+% a user, in general, has multiple playlists, a reasonable assumption is that playlists of one user are more similar than playlists of different users,
+% so we use a multitask regularisation to ensure the weights of playlists for the same users should be similar
+Another observation is that a user generally has more than one playlists,
+a reasonable assumption is playlists of the same user share similar characteristics. 
+
+
+\section{Playlist augmentation as multi-label classification}
+% so we can just do multiple bipartite ranking for these two problems?
+% we can actually do better than this, given \ref{ertekin2011equivalence} showed that P-Classification == P-Norm Push, 
+% we have (equivalence in binary setting) and (extend the equivalence to multi-label setting)
+% so 
+% - an independent  bipartite ranking seems to be a better baseline?
+% - bottom push on MLC dataset?
+% - Theorem 1
+
+
+% 3. Playlist augmentation and multi-label classification
+% Method:
+% - augment multiple playlists -> multiple bipartite ranking -> multi-label classification
+% - Theorem 2
+% - one user has multiple playlists -> multi-task regularisation
+%
+
+\paragraph{Machine learning task for playlist augmentation}
+We formulate the task of augmenting existing playlist as a multi-label classification problem,
+that is, for each song that is not in the given playlist, 
+we predict whether it will be added to augment the given playlist.
+This formulation is illustrated in Figure~\ref{fig:pla},
+where rows represent songs (no specific order) and columns represent playlists (no specific order).
+Further, columns with white colour represent playlists in training set, 
+and columns with grey colour represent playlists that should be augmented (\ie test set).
+Similar to the formulation in Section~\ref{ssec:newsongrec}, if entry $(i, j)$ is \texttt{1} (or \texttt{0}), 
+it means the $i$-th song is (or not) found in the $j$-th playlist, 
+and a question mark \texttt{?} means that we do not know whether the $i$-th song is found in the $j$-th playlist.
+As a remark, columns represent playlists in test set contain only \texttt{1} and \texttt{?} entries.
+
+\input{fig_pla}
+
+\paragraph{Solution:}
+Formulate this problems using equations.
+
+
+
+% 4. New song recommendation: an extension of playlist augmentation
+% Method:
+% - the same as previous work (cold start)
+% - the different (?)
+%
+
+\paragraph{Machine learning task:}
+We formulate the task of recommending newly released songs to augment existing playlists
+as a multi-label classification problem, where we predict, for each song, 
+whether it will be included in a given playlist.
+This formulation is illustrated in Figure~\ref{fig:mlr},
+where rows represent songs (from top to bottom, sorted by the release date in ascending order)
+and columns represent playlists (no specific order).
+Further, rows with white colour represent songs in training set, and rows with grey colour represent songs in test set.
+If entry $(i, j)$ is \texttt{1} (or \texttt{0}), it means the $i$-th song is (or not) found in the $j$-th playlist,
+otherwise, we do not know whether the $i$-th song is found in the $j$-th playlist (\ie entry $(i, j)$ is a question mark \texttt{?}).
+As a remark, we do not care about the order of songs in a playlist.
+
+\input{fig_mlr}
+
+\paragraph{Solutions:}
+formulate with equations.
+
+
+
+\section{Experiment}
+% experiments on two playlist dataset
