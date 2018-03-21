@@ -1,0 +1,156 @@
+\begin{equation}
+\label{eq:mtopt}
+\begin{aligned}
+\min_{\W} \ \frac{\lambda_1 + 2\lambda_2}{2 N_u} \sum_{i=1}^{N_u} \w_i^\top \w_i 
+- \frac{2\lambda_2}{N_u (N_u - 1)} \sum_{i < j \in \{1,\dots,N_u\}} \w_i^\top \w_j
++ \frac{1}{N_u} \sum_{i = 1}^{N_u} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \ell \left( \w_i^\top \x^m - \max_{n: y_i^n = 0} \w_i^\top \x^n \right).
+\end{aligned}
+\end{equation}
+
+Problem (\ref{eq:mtopt}) is hard to learn in general due to the $\max$ operator,
+a widely used trick is to form its dual problem.
+Let $C_1 = \frac{\lambda_1 + 2\lambda_2}{2 N_u}$, $C_2 = \frac{-2\lambda_2}{N_u (N_u - 1)}$ and
+\begin{equation*}
+\begin{aligned}
+f_0(\W, \xibm) &=  C_1 \sum_{i=1}^{N_u} \w_i^\top \w_i + C_2 \sum_{i < j \in \{1,\dots,N_u\}} \w_i^\top \w_j
+    + \frac{1}{N_u} \sum_{i = 1}^{N_u} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \ell \left( \w_i^\top \x^m - \max_{n: y_i^n = 0} \w_i^\top \x^n \right), \\
+f_{i,n}(\w_i, \xi_i) &= \w_i^\top \x_n - \xi_i, \ i \in \{1,\dots,N_u\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_n^i = 0.
+\end{aligned}
+\end{equation*}
+
+Then problem (\ref{eq:mtopt}) is equivalent to 
+\begin{equation}
+\label{eq:mtstd}
+\begin{aligned}
+\min_{\W, \xibm} \ & f_0(\W, \xibm) \\
+s.t. \ & f_{i,n}(\w_i, \xi_i) \le 0, \ i \in \{1,\dots,N_u\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_n^i = 0.
+\end{aligned}
+\end{equation}
+Let $\nu_{i,n} \ge 0$, the \emph{Lagrangian} of (\ref{eq:mtstd}) is
+\begin{equation*}
+\begin{aligned}
+L(\W, \xibm, \nubm) 
+&= f_0(\W, \xibm) + \sum_{i=1}^{N_u} \sum_{n: y_i^n = 0} \nu_i^n \cdot f_{i,n}(\w_i, \xi_i) \\
+&= C_1 \sum_{i=1}^{N_u} \w_i^\top \w_i + C_2 \sum_{i < j \in \{1,\dots,N_u\}} \w_i^\top \w_j
+   + \frac{1}{N_u} \sum_{i = 1}^{N_u} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \ell \left( \w_i^\top \x^m - \max_{n: y_i^n = 0} \w_i^\top \x^n \right) \\
+& \quad  + \sum_{i=1}^{N_u} \sum_{n: y_i^n = 0} \nu_i^n \left( \w_i^\top \x_n - \xi_i \right) \\
+\end{aligned}
+\end{equation*}
+Note that the conjugate of a convex function is itself, \ie $f(\z) = f^{**}(\z) = \sup_\y \left( \z^\top \y - f^*(\y) \right)$, we have
+\begin{equation*}
+\begin{aligned}
+\ell \left( \w_i^\top \x^m - \max_{n: y_i^n = 0} \w_i^\top \x^n \right) 
+= \sup_{\alpha_i^m} \left( (\w_i^\top \x^m - \xi_i) \alpha_i^m - \ell^*(\alpha_i^m) \right),
+\end{aligned}
+\end{equation*}
+then
+\begin{equation*}
+\begin{aligned}
+L(\W, \xibm, \nubm) 
+&= C_1 \sum_{i=1}^{N_u} \w_i^\top \w_i + C_2 \sum_{i < j \in \{1,\dots,N_u\}} \w_i^\top \w_j
+   + \frac{1}{N_u} \sum_{i = 1}^{N_u} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} 
+     \sup_{\alpha_i^m} \left( (\w_i^\top \x^m - \xi_i) \alpha_i^m - \ell^*(\alpha_i^m) \right) \\
+& \quad  + \sum_{i=1}^{N_u} \sum_{n: y_i^n = 0} \nu_i^n \left( \w_i^\top \x_n - \xi_i \right) \\
+&= \sup_\alphabm \left[ g(\W, \xibm) - \frac{1}{N_u} \sum_{i = 1}^{N_u} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \ell^*(\alpha_i^m) \right]
+\end{aligned}
+\end{equation*}
+where 
+\begin{equation*}
+\begin{aligned}
+g(\W, \xibm)
+&= C_1 \sum_{i=1}^{N_u} \w_i^\top \w_i + C_2 \sum_{i < j \in \{1,\dots,N_u\}} \w_i^\top \w_j
+   + \frac{1}{N_u} \sum_{i = 1}^{N_u} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \left( \w_i^\top \x^m - \xi_i \right) \alpha_i^m \\
+& \quad + \sum_{i=1}^{N_u} \sum_{n: y_i^n = 0} \nu_i^n \left( \w_i^\top \x_n - \xi_i \right)
+\end{aligned}
+\end{equation*}
+
+Assuming strong duality, the \emph{Lagrangian dual function} of (\ref{eq:mtstd}) is
+\begin{equation*}
+\begin{aligned}
+\inf_{\W, \xibm} L(\W, \xibm, \alphabm, \nubm)
+&= \inf_{\W, \xibm} \sup_\alphabm \left[ g(\W, \xibm) - \frac{1}{N_u} \sum_{i = 1}^{N_u} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \ell^*(\alpha_i^m) \right] \\
+&= \sup_\alphabm \inf_{\W, \xibm} \left[ g(\W, \xibm) - \frac{1}{N_u} \sum_{i = 1}^{N_u} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \ell^*(\alpha_i^m) \right] \\
+&= \max_\alphabm \min_{\W, \xibm} \left[ g(\W, \xibm) - \frac{1}{N_u} \sum_{i = 1}^{N_u} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \ell^*(\alpha_i^m) \right] \\
+&= \max_\alphabm \left[ \min_{\W, \xibm} \, g(\W, \xibm) 
+                        - \frac{1}{N_u} \sum_{i = 1}^{N_u} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \ell^*(\alpha_i^m) \right].
+\end{aligned}
+\end{equation*}
+To solve the (unconstrained) inner minimisation, let
+\begin{equation*}
+\begin{aligned}
+\zero_D &= \frac{\partial g}{\partial \w_k} 
+   = 2C_1 \w_k + C_2 \sum_{j\ne k \in \{1,\dots,N_u\}} \w_j 
+     + \frac{1}{N_u M_k^+} \sum_{m: y_k^m = 1} \alpha_k^m \x^m
+     + \sum_{n: y_k^n = 0} \nu_k^n \x^n \\
+0 &= \frac{\partial g}{\partial \xi_k} 
+   = -\frac{1}{N_u M_k^+} \sum_{m: y_k^m = 1} \alpha_k^m - \sum_{n: y_k^n = 0} \nu_k^n
+\end{aligned}
+\end{equation*}
+To simplify the notation, let $\Thetabm \in \R^{M \times N_u}$ such that
+\begin{equation*}
+\theta_k^n = \begin{cases}
+\frac{\alpha_k^n}{N_u M_k^+}, & y_k^n = 1 \\
+\nu_k^n, & y_k^n = 0, \ n \in \{1,\dots,M\}, \, k \in \{1,\dots,N_u\},
+\end{cases}
+\end{equation*}
+then we have
+\begin{equation*}
+\begin{aligned}
+\bc_k^\top \W + \thetabm_k^\top \X &= \zero_D, \\
+\one^\top \thetabm_k &= 0, \ k \in \{1,\dots,N_u\}
+\end{aligned}
+\end{equation*}
+where $\bc_k \in \R^{N_u}$ where the $k$-th element is $2C_1$ and others are $C_2$,
+or equivalently in matrix form
+\begin{equation}
+\label{eq:wxi}
+\begin{aligned}
+\C \W &= -\Thetabm^\top \X \\
+\Thetabm \one_M &= \zero_{N_u}
+\end{aligned}
+\end{equation}
+where $\C \in \R^{N_u \times N_u}$ and
+\begin{equation*}
+C_{ij} = \begin{cases}
+2C_1, & i = j \\
+C_2,  & \mathrm{otherwise}
+\end{cases}
+\end{equation*}
+Thus, $\W = -\C^{-1} \Thetabm^\top \X$ and
+\begin{equation*}
+\begin{aligned}
+&\min_{\W, \xibm} g(\W, \xibm) \\
+&= C_1 \sum_{i=1}^{N_u} \w_i^\top \w_i + C_2 \sum_{i < j \in \{1,\dots,N_u\}} \w_i^\top \w_j
+   + \sum_{i = 1}^{N_u} \w_i^\top \left( \frac{1}{N_u M_i^+} \sum_{m: y_i^m = 1} \alpha_i^m \x^m + \sum_{n: y_i^n = 0} \nu_i^n \x_n \right) \\
+& \quad - \sum_{i = 1}^{N_u} \xi_i \left( \frac{1}{N_u M_i^+} \sum_{m: y_i^m = 1} \alpha_i^m + \sum_{n: y_i^n = 0} \nu_i^n \right) \\
+&= C_1 \sum_{i=1}^{N_u} \w_i^\top \w_i + C_2 \sum_{i < j \in \{1,\dots,N_u\}} \w_i^\top \w_j 
+   - \sum_{i = 1}^{N_u} \w_i^\top \left( 2C_1 \w_i + C_2 \sum_{j\ne i \in \{1,\dots,N_u\}} \w_j \right) \\
+&= - C_1 \sum_{i=1}^{N_u} \w_i^\top \w_i - C_2 \sum_{i < j \in \{1,\dots,N_u\}} \w_i^\top \w_j \\
+%&= - C_1 \sum_{i=1}^{N_u} \w_i^\top \w_i - \frac{C_2}{2} \sum_{i=1}^{N_u} \w_i^\top \sum_{j \ne i \in \{1,\dots,N_u\}} \w_j \\
+%&= -\frac{1}{2} \sum_{i=1}^{N_u} \w_i^\top \left( 2C_1 \w_i + C_2 \sum_{j \ne i \in \{1,\dots,N_u\}} \w_j \right) \\
+%&= -\frac{1}{2} \sum_{i=1}^{N_u} \w_i^\top \left( \bc_i^\top \W \right) \\
+%&= \frac{1}{2} \sum_{i=1}^{N_u} \w_i^\top \left( \thetabm_i^\top \X \right) \\
+%&= \frac{1}{2} \Thetabm^\top \X \circ \W
+&= - C_1 \sum_{i=1}^{N_u} \w_i^\top \w_i - \frac{C_2}{2} \sum_{i=1}^{N_u} \sum_{j \ne i \in \{1,\dots,N_u\}} \w_i^\top \w_j \\
+&= - \frac{1}{2} \left( 2C_1 \sum_{i=1}^{N_u} \w_i^\top \w_i + C_2 \sum_{i=1}^{N_u} \sum_{j \ne i \in \{1,\dots,N_u\}} \w_i^\top \w_j \right) \\
+&= - \frac{1}{2} \sum_{d=1}^{D} \sum_{d'=1}^{D} \C \circ \W^\top \W \\
+&= - \frac{1}{2} \sum_{d=1}^{D} \sum_{d'=1}^{D} \C \circ \left( \C^{-1} \Thetabm^\top \X \right)^\top  \left( \C^{-1} \Thetabm^\top \X \right) \\
+&= - \frac{1}{2} \sum_{d=1}^{D} \sum_{d'=1}^{D} \C \circ \left( \X^\top \Thetabm (\C^{-1})^\top \C^{-1} \Thetabm^\top \X \right) \\
+\end{aligned}
+\end{equation*}
+
+Lastly, the \emph{Lagrangian dual problem} of (\ref{eq:mtstd}) is
+\begin{equation}
+\label{eq:mtdual}
+\begin{aligned}
+\max_{\alphabm, \nubm} \inf_{\W, \xibm} L(\W, \xibm, \alphabm, \nubm) 
+&= \max_{\alphabm, \nubm} \left[ \min_{\W, \xibm} g(\W, \xibm)
+   - \sum_{i = 1}^{N_u} \frac{1}{N_u M_i^+} \sum_{m: y_i^m = 1} \ell^*(\alpha_i^m) \right] \\
+&= \min_{\alphabm, \nubm} \frac{1}{2} \sum_{d=1}^{D} \sum_{d'=1}^{D} \C \circ \left( \X^\top \Thetabm (\C^{-1})^\top \C^{-1} \Thetabm^\top \X \right) 
+   + \sum_{i = 1}^{N_u} \frac{1}{N_u M_i^+} \sum_{m: y_i^m = 1} \ell^*(\alpha_i^m) \\
+\end{aligned}
+\end{equation}
+subject to constraints:
+\begin{equation*}
+\Thetabm \one_M = \zero_{N_u}.
+\end{equation*}

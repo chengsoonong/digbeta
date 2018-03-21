@@ -174,11 +174,11 @@ for each user $u$ that has $N_u$ playlists,
 \begin{aligned}
 &\frac{1}{2 N_u (N_u - 1) / 2} \sum_{i < j \in \{1,\dots,N_u\}} \| \w_i - \w_j \|^2 \\
 &= \frac{1}{N_u (N_u - 1)} \left( (N_u - 1) \sum_{i=1}^{N_u} \w_i^\top \w_i - 2 \sum_{i < j \in \{1,\dots,N_u\}} \w_i^\top \w_j \right) \\
-&= \frac{1}{N_u} \sum_{i=1}^{N_u} \w_i^\top \w_i - \frac{2}{N_u (N_u - 1)} \sum_{i < j \in \{1,\dots,N_u\}} \w_i^\top \w_j \\
-&= \frac{1}{N_u} \sum_{i=1}^{N_u} \w_i^\top \w_i - \frac{1}{N_u (N_u - 1)} \sum_{i=1}^{N_u} \sum_{j \in \{1,\dots,N_u\}, j \ne i} \w_i^\top \w_j \\
-&= \left( \frac{1}{N_u} + \frac{1}{N_u (N_u - 1)} \right) \sum_{i=1}^{N_u} \w_i^\top \w_i 
-   - \frac{1}{N_u (N_u - 1)} \sum_{i=1}^{N_u} \sum_{j=1}^{N_u} \w_i^\top \w_j \\
-&= \frac{1}{N_u - 1} \sum_{i=1}^{N_u} \w_i^\top \w_i - \frac{1}{N_u (N_u - 1)} \sum_{i=1}^{N_u} \sum_{j=1}^{N_u} \w_i^\top \w_j.
+&= \frac{1}{N_u} \sum_{i=1}^{N_u} \w_i^\top \w_i - \frac{2}{N_u (N_u - 1)} \sum_{i < j \in \{1,\dots,N_u\}} \w_i^\top \w_j %\\
+%&= \frac{1}{N_u} \sum_{i=1}^{N_u} \w_i^\top \w_i - \frac{1}{N_u (N_u - 1)} \sum_{i=1}^{N_u} \sum_{j \in \{1,\dots,N_u\}, j \ne i} \w_i^\top \w_j \\
+%&= \left( \frac{1}{N_u} + \frac{1}{N_u (N_u - 1)} \right) \sum_{i=1}^{N_u} \w_i^\top \w_i 
+%   - \frac{1}{N_u (N_u - 1)} \sum_{i=1}^{N_u} \sum_{j=1}^{N_u} \w_i^\top \w_j \\
+%&= \frac{1}{N_u - 1} \sum_{i=1}^{N_u} \w_i^\top \w_i - \frac{1}{N_u (N_u - 1)} \sum_{i=1}^{N_u} \sum_{j=1}^{N_u} \w_i^\top \w_j.
 \end{aligned}
 \end{equation}
 We call this regulariser \emph{multitask regulariser} as we regularise the weights of multiple bipartite ranking tasks. 
@@ -204,6 +204,8 @@ If we assume linear ranking function $f(\x) = \w^\top \x$, we can show that the 
 \end{aligned}
 \end{equation}
 
+\input{mt_dual}
 
-\section{Experiment}
+%\section{Experiment}
 % experiments on two playlist dataset
+\input{experiment}
