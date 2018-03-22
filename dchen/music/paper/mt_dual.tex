@@ -154,3 +154,29 @@ subject to constraints:
 \begin{equation*}
 \Thetabm \one_M = \zero_{N_u}.
 \end{equation*}
+
+If we use the exponential surrogate, \ie $\ell(fy) = e^{-fy}$, then
+\begin{equation*}
+\begin{aligned}
+\ell^*(\alpha) = \sup_z (\alpha z - \ell(z) ) = \max_z (\alpha z - e^{-z}).
+\end{aligned}
+\end{equation*}
+Let 
+\begin{equation*}
+0 = \frac{\partial (\alpha z - e^{-z})} {\partial z} = \alpha + e^{-z},
+\end{equation*}
+we have 
+\begin{equation*}
+z = -\log(-\alpha).
+\end{equation*}
+Thus, 
+\begin{equation*}
+\begin{aligned}
+\sum_{i = 1}^{N_u} \frac{1}{N_u M_i^+} \sum_{m: y_i^m = 1} \ell^*(\alpha_i^m)
+&= \sum_{i = 1}^{N_u} \frac{1}{N_u M_i^+} \sum_{m: y_i^m = 1} \left( -\alpha_i^m \log(-\alpha_i^m) + \alpha_i^m \right) \\
+&= \sum_{i = 1}^{N_u} \sum_{m: y_i^m = 1} \frac{\alpha_i^m}{N_u M_i^+} \left(1 - \log \left( -\frac{\alpha_i^m}{N_u M_i^+} 
+   \cdot N_u M_i^+ \right) \right) \\
+&= \sum_{i = 1}^{N_u} \sum_{m: y_i^m = 1} \theta_i^m \left( 1 - \log(-\theta_i^m) - \log(N_u M_i^+) \right) \\
+&= \sum_{i = 1}^{N_u} \sum_{m: y_i^m = 1} \theta_i^m \left( 1 - \log(-\theta_i^m) \right) - \sum_{i=1}^{N_u} M_i^+ \log(N_u M_i^+).
+\end{aligned}
+\end{equation*}

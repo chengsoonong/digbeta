@@ -201,10 +201,31 @@ If we assume linear ranking function $f(\x) = \w^\top \x$, we can show that the 
 \begin{equation}
 \label{eq:mtdual}
 \begin{aligned}
+\min_{\Thetabm} \ & \frac{1}{2} \sum_{d=1}^{D} \sum_{d'=1}^{D} \C \circ \left( \X^\top \Thetabm (\C^{-1})^\top \C^{-1} \Thetabm^\top \X \right) 
+    + \sum_{i = 1}^{N_u} \sum_{m: y_i^m = 1} \theta_i^m \left( 1 - \log(-\theta_i^m) \right) - \sum_{i=1}^{N_u} M_i^+ \log(N_u M_i^+) \\
+s.t. \ & \Thetabm \one_M = \zero_{N_u} \\
+       & \theta_i^n \ge 0, \, i \in \{1,\dots,N_u\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_i^n = 0.
 \end{aligned}
 \end{equation}
+where $D$ is the number of features of a song, 
+$\X \in \R^{M \times N_u}$ is the design matrix where each row is the features of a song,
+$M_i^+$ is the number of songs in the $i$-th playlist of user $u$,
+and $\C \in \R^{N_u \times N_u}$ is a symmetric matrix such that
+\begin{equation*}
+C_{ij} = \begin{cases}
+\frac{\lambda_1 + 2\lambda_2}{N_u}, & i = j \\
+\frac{-2\lambda_2}{N_u (N_u - 1)},  & \mathrm{otherwise}
+\end{cases}
+\end{equation*}
+where $\lambda_1$ and $\lambda_2$ are regularisation parameters.
 
-\input{mt_dual}
+Suppose $\Thetabm^*$ is the optimal solution of the dual problem (\ref{eq:mtdual}), 
+then the optimal solution of the primal problem (\ref{eq:mtobj}) can be computed as
+\begin{equation*}
+\W^* = -\C^{-1} \Thetabm^{*\top} \X.
+\end{equation*}
+
+%\input{mt_dual}
 
 %\section{Experiment}
 % experiments on two playlist dataset
