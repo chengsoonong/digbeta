@@ -36,7 +36,7 @@
 
 % brief description of both recommendation tasks
 We are motivated by the problem of automatically augmenting music playlist with a collection of songs $\SCal$,
-in particular, given a partial playlist with the first $K$ songs\footnote{$K$ can be different for other partial playlists.},
+in particular, given a partial playlist with the first $K$ songs\footnote{$K$ can be different for different partial playlists.},
 we would like to recommend a subset of $\SCal$ by learning from user created playlist dataset.
 This task is also known as Automatic Playlist Continuation~\cite{schedl2017,recsysch2018}.
 
@@ -48,27 +48,27 @@ This task is also known as Automatic Playlist Continuation~\cite{schedl2017,recs
 % mainly two pieces of work:
 % - music recommendation
 % - playlist generation
+{\it Some related work.}
 
-We are interested in two variants of the playlist recommendation problem,
+In this paper, we describe two variants of the playlist recommendation problem,
 one is augmenting a playlist by recommending a subset of songs from a collection of music $\SCal$,
-given the first $K$ seed songs, where $K$ can be any positive integer from 1 to the total number of songs minus 1.
+given the first $K$ seed songs, where $K$ can be any positive integer from 1 to the total number of songs in playlist minus 1.
 % in contrast to settings where all songs except the last one are observed\cite{}, or giving a fixed number of seed songs\cite{}.
-Another variant is restricting that all recommended songs are not observed during learning,
-\ie recommending newly released songs to augment a given playlist, which is an instance of the cold-start problem.
+Another variant is restricting that all songs to recommend are not observed during learning,
+\ie in the setting of recommending newly released songs to augment a given playlist, which is an instance of the cold-start problem.
 We call the first variant \emph{playlist augmentation} and the second \emph{new song recommendation}.
 
 
 \section{Machine learning tasks for playlist recommendation}
 
-\paragraph{Playlist augmentation}
-We formulate the task of augmenting existing playlist as a multi-label classification problem,
+We formulate the task of \emph{playlist augmentation} as a multi-label classification problem,
 that is, for each song that is not in the given playlist, 
-we predict whether it will be added to augment the given playlist.
+we predict whether it will be added to the given playlist.
 This formulation is illustrated in Figure~\ref{fig:pla},
 where rows represent songs (no specific order) and columns represent playlists (no specific order).
 Further, columns with white colour represent playlists in training set, 
 and columns with grey colour represent playlists that should be augmented (\ie test set).
-Similar to the formulation in Section~\ref{ssec:newsongrec}, if entry $(i, j)$ is \texttt{1} (or \texttt{0}), 
+If entry $(i, j)$ is \texttt{1} (or \texttt{0}), 
 it means the $i$-th song is (or not) found in the $j$-th playlist, 
 and a question mark \texttt{?} means that we do not know whether the $i$-th song is found in the $j$-th playlist.
 As a remark, columns represent playlists in test set contain only \texttt{1} and \texttt{?} entries.
@@ -77,8 +77,8 @@ As a remark, columns represent playlists in test set contain only \texttt{1} and
 
 
 \paragraph{New song recommendation}
-We formulate the task of recommending newly released songs to augment existing playlists
-as a multi-label classification problem, where we predict, for each song, 
+We formulate the task of \emph{new song recommendation} as a multi-label classification problem, 
+where we predict, for each song in test set,
 whether it will be included in a given playlist.
 This formulation is illustrated in Figure~\ref{fig:mlr},
 where rows represent songs (from top to bottom, sorted by the release date in ascending order)
@@ -92,11 +92,10 @@ As a remark, we do not care about the order of songs in a playlist.
 
 
 
-\section{Methods}
-{\it Two methods for the problem of automatically augmenting music playlist are described here, but only one of them is necessary for this paper.}
+\section{Method I: Playlist augmentation as multi-label classification}
+{\it Two methods are described here, but only one of them is necessary for this paper.}
 
 
-\subsection{Playlist augmentation as multi-label classification}
 % so we can just do multiple bipartite ranking for these two problems?
 % we can actually do better than this, given \ref{ertekin2011equivalence} showed that P-Classification == P-Norm Push, 
 % we have (equivalence in binary setting) and (extend the equivalence to multi-label setting)
@@ -121,7 +120,7 @@ As a remark, we do not care about the order of songs in a playlist.
 %
 
 
-\subsection{Playlist augmentation as bipartite ranking}
+\section{Method II: Playlist augmentation as bipartite ranking}
 % For users with only one playlist, describe the Top push loss for bipartite ranking, and its dual
 % For users with multiple playlists, use multitask regularisation + bipartite ranking w/ Top Push loss for each playlist, and the dual
 
@@ -135,31 +134,31 @@ ranked higher that those that are not, which is a bipartite ranking problem.
 % equation of bipartite ranking for playlist augmentation
 
 
-\paragraph{Focusing on the most plausible songs}
-One approach to focus on the most plausible songs, for a specific playlist,
+One approach to \emph{focus on the most plausible songs}, for a given playlist,
 is to learn a recommender system by minimising the rank of the top ranked song which is not in the playlist,
 in other words, the higher it ranked over songs in playlist, the harder we penalise the learning system.
 This is known as the Top Push loss in bipartite ranking~\cite{li2014top}, which is formally defined as,
 \begin{equation}
 \label{eq:toppush}
 \LCal_\textsc{tp}(f; \DCal) 
-= \frac{1}{|\DCal_+|} \sum_{\x_+ \in \DCal_+} \llb f(\x_+) \le \max_{\x_- \in \DCal_-} f(\x_-) \rrb.
+= \frac{1}{M^+} \sum_{m: y^m = 1} \llb f(\x^m) \le \max_{n: y^n = 0} f(\x^n) \rrb,
 \end{equation}
+where $M = |\SCal|$ is the number of songs in $\SCal$, and $M^+$ is the number of songs in playlist.
 
 To optimise the objective~\ref{eq:toppush}, 
 we firstly have to replace the indicator function (0-1 loss) with one of its convex surrogate loss,
-such as the exponential loss $\ell(f, y) = e^{-fy}$, logistic loss $\ell(f, y) = \log(1 + e^{-fy}$, or squared hinge loss $\ell(f, y) = (1 - fy)^2$.
-Further, we have to deal with challenge of the $\max$ operator in (\ref{eq:toppush}), which can sometimes be dealt with using the dual formulation.
+such as the exponential loss $\ell(f, y) = e^{-fy}$, logistic loss $\ell(f, y) = \log(1 + e^{-fy})$, or squared hinge loss $\ell(f, y) = (1 - fy)^2$.
+Further, we have to deal with the challenge of \emph{max} operator in (\ref{eq:toppush}), which can sometimes be mitigated by solving the dual problem.
 If the ranking function $f$ has a linear form, \ie $f(\x) = \w^\top \x$, it has been shown that the dual formulation of (\ref{eq:toppush}) 
 with L2 regularisation is~\cite{li2014top}:
 \begin{equation*}
 \begin{aligned}
-\min_{\alphabm, \betabm} \, & \frac{1}{2 \lambda |\DCal_+|} \| \alphabm^\top \X^+ - \betabm^\top \X^- \|^2 + \ell^*(\alphabm), \\
+\min_{\alphabm, \betabm} \ & \frac{1}{2 \lambda M^+} \| \alphabm^\top \X^+ - \betabm^\top \X^- \|^2 + \ell^*(\alphabm), \\
 s.t. \ & \one^\top \alphabm = \one^\top \betabm, \\
-       & \alphabm \in \R_+^{|\DCal_+|}, \, \betabm \in \R_+^{|\DCal_-|},
+       & \alphabm \in \R_+^{M^+}, \, \betabm \in \R_+^{M-M^+},
 \end{aligned}
 \end{equation*}
-where $\ell^*$ is the convex conjugate of $\ell$.
+where $\ell^*$ is the convex conjugate of surrogate loss $\ell$.
 
 
 \paragraph{Multitask regularisation}
@@ -168,56 +167,60 @@ where $\ell^*$ is the convex conjugate of $\ell$.
 Another observation is that a user generally has more than one playlists,
 a reasonable assumption is playlists of the same user share similar characteristics. 
 Suppose we learn a parameter vector for each playlist, then one approach to formalise this similarity is using an extra regulariser
-for each user $u$ that has $N_u$ playlists,
+for each user $u$ that has $N$ playlists,
 \begin{equation}
 \label{eq:mtreg}
 \begin{aligned}
-&\frac{1}{2 N_u (N_u - 1) / 2} \sum_{i < j \in \{1,\dots,N_u\}} \| \w_i - \w_j \|^2 \\
-&= \frac{1}{N_u (N_u - 1)} \left( (N_u - 1) \sum_{i=1}^{N_u} \w_i^\top \w_i - 2 \sum_{i < j \in \{1,\dots,N_u\}} \w_i^\top \w_j \right) \\
-&= \frac{1}{N_u} \sum_{i=1}^{N_u} \w_i^\top \w_i - \frac{2}{N_u (N_u - 1)} \sum_{i < j \in \{1,\dots,N_u\}} \w_i^\top \w_j %\\
-%&= \frac{1}{N_u} \sum_{i=1}^{N_u} \w_i^\top \w_i - \frac{1}{N_u (N_u - 1)} \sum_{i=1}^{N_u} \sum_{j \in \{1,\dots,N_u\}, j \ne i} \w_i^\top \w_j \\
-%&= \left( \frac{1}{N_u} + \frac{1}{N_u (N_u - 1)} \right) \sum_{i=1}^{N_u} \w_i^\top \w_i 
-%   - \frac{1}{N_u (N_u - 1)} \sum_{i=1}^{N_u} \sum_{j=1}^{N_u} \w_i^\top \w_j \\
-%&= \frac{1}{N_u - 1} \sum_{i=1}^{N_u} \w_i^\top \w_i - \frac{1}{N_u (N_u - 1)} \sum_{i=1}^{N_u} \sum_{j=1}^{N_u} \w_i^\top \w_j.
+&\frac{1}{2} \cdot \frac{1}{N (N - 1) / 2} \sum_{i, j \in \{1,\dots,N\}, \, i < j} \| \w_i - \w_j \|^2 \\
+&= \frac{1}{N (N - 1)} \left( (N - 1) \sum_{i=1}^{N} \w_i^\top \w_i - 2 \sum_{i, j \in \{1,\dots,N\}, \, i < j} \w_i^\top \w_j \right) \\
+&= \frac{1}{N} \sum_{i=1}^{N} \w_i^\top \w_i - \frac{2}{N (N - 1)} \sum_{i, j \in \{1,\dots,N\}, \, i < j} \w_i^\top \w_j %\\
+%&= \frac{1}{N} \sum_{i=1}^{N} \w_i^\top \w_i - \frac{1}{N (N - 1)} \sum_{i=1}^{N} \sum_{j \in \{1,\dots,N\}, j \ne i} \w_i^\top \w_j \\
+%&= \left( \frac{1}{N} + \frac{1}{N (N - 1)} \right) \sum_{i=1}^{N} \w_i^\top \w_i 
+%   - \frac{1}{N (N - 1)} \sum_{i=1}^{N} \sum_{j=1}^{N} \w_i^\top \w_j \\
+%&= \frac{1}{N - 1} \sum_{i=1}^{N} \w_i^\top \w_i - \frac{1}{N (N - 1)} \sum_{i=1}^{N} \sum_{j=1}^{N} \w_i^\top \w_j.
 \end{aligned}
 \end{equation}
-We call this regulariser \emph{multitask regulariser} as we regularise the weights of multiple bipartite ranking tasks. 
+We call (\ref{eq:mtreg}) \emph{multitask regulariser} as we regularise the parameters of multiple bipartite ranking tasks. 
 
 To optimise for the most plausible songs, we minimise the Top Push loss for each playlist of user $u$, 
-in addition to the L2 regularisation, we take into account the multitask regulariser, which results in an objective:
+we take into account the multitask regulariser in addition to the L2 regularisation, 
+which results in an objective:
 \begin{equation}
 \label{eq:mtobj}
 \begin{aligned}
-&\frac{\lambda_1}{2 N_u} \sum_{i=1}^{N_u} \| \w_i \|^2
-+ \frac{\lambda_2}{2 N_u (N_u - 1) / 2} \sum_{i < j \in \{1,\dots,N_u\}} \| \w_i - \w_j \|^2 
-+ \frac{1}{N_u} \sum_{i = 1}^{N_u} \frac{1}{|\DCal_+^i|} \sum_{\x_+ \in \DCal_+^i} \llb f(\x_+) \le \max_{\x_- \in \DCal_-^i} f(\x_-) \rrb \\
-&= \frac{\lambda_1 + 2\lambda_2}{2 N_u} \sum_{i=1}^{N_u} \w_i^\top \w_i 
-- \frac{2\lambda_2}{N_u (N_u - 1)} \sum_{i < j \in \{1,\dots,N_u\}} \w_i^\top \w_j
-+ \frac{1}{N_u} \sum_{i = 1}^{N_u} \frac{1}{|\DCal_+^i|} \sum_{\x_+ \in \DCal_+^i} \llb f(\x_+) \le \max_{\x_- \in \DCal_-^i} f(\x_-) \rrb.
+&\frac{\lambda_1}{2 N} \sum_{i=1}^{N} \| \w_i \|^2
++ \frac{\lambda_2}{2 N (N - 1) / 2} \sum_{i, j \in \{1,\dots,N\}, \, i < j} \| \w_i - \w_j \|^2 
++ \frac{1}{N} \sum_{i = 1}^{N} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \llb f(\x^m) \le \max_{n: y_i^n = 0} f(\x^n) \rrb \\
+&= \frac{\lambda_1 + 2\lambda_2}{2 N} \sum_{i=1}^{N} \w_i^\top \w_i 
+- \frac{2\lambda_2}{N (N - 1)} \sum_{i, j \in \{1,\dots,N\}, \, i < j} \w_i^\top \w_j
++ \frac{1}{N} \sum_{i = 1}^{N} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \llb f(\x^m) \le \max_{n: y_i^n = 0} f(\x^n) \rrb,
 \end{aligned}
 \end{equation}
+where $\lambda_1$ and $\lambda_2$ are regularisation parameters.
 
-If we assume linear ranking function $f(\x) = \w^\top \x$, we can show that the dual of (\ref{eq:mtobj}) is
+If we assume a linear ranking function $f(\x) = \w^\top \x$, 
+and use the exponential surrogate loss $\ell(f, y) = e^{-fy}$,
+it can be shown that the dual of (\ref{eq:mtobj}) is
 \begin{equation}
 \label{eq:mtdual}
 \begin{aligned}
-\min_{\Thetabm} \ & \frac{1}{2} \sum_{d=1}^{D} \sum_{d'=1}^{D} \C \circ \left( \X^\top \Thetabm (\C^{-1})^\top \C^{-1} \Thetabm^\top \X \right) 
-    + \sum_{i = 1}^{N_u} \sum_{m: y_i^m = 1} \theta_i^m \left( 1 - \log(-\theta_i^m) \right) - \sum_{i=1}^{N_u} M_i^+ \log(N_u M_i^+) \\
-s.t. \ & \Thetabm \one_M = \zero_{N_u} \\
-       & \theta_i^n \ge 0, \, i \in \{1,\dots,N_u\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_i^n = 0.
+\min_{\Thetabm} \ \ & \frac{1}{2} \sum_{d=1}^{D} \sum_{d'=1}^{D} \C \circ \left( \X^\top \Thetabm (\C^{-1})^2 \Thetabm^\top \X \right) 
+    + \sum_{i = 1}^{N} \sum_{m: y_i^m = 1} \theta_i^m \left( 1 - \log(-\theta_i^m) \right) - \sum_{i=1}^{N} M_i^+ \log(N M_i^+) \\
+s.t. \ & \Thetabm^\top \one_M = \zero_{N} \\
+       & \theta_k^n \ge 0, \, k \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_k^n = 0.
 \end{aligned}
 \end{equation}
-where $D$ is the number of features of a song, 
-$\X \in \R^{M \times N_u}$ is the design matrix where each row is the features of a song,
+where $\circ$ denotes the element-wise multiplication,
+$\Thetabm \in \R^{M \times N}$ are the dual variables, $D$ is the number of features of a song, 
+$\X \in \R^{M \times D}$ is the design matrix where each row is the features of a song,
 $M_i^+$ is the number of songs in the $i$-th playlist of user $u$,
-and $\C \in \R^{N_u \times N_u}$ is a symmetric matrix such that
+and $\C \in \R^{N \times N}$ is a symmetric matrix such that
 \begin{equation*}
 C_{ij} = \begin{cases}
-\frac{\lambda_1 + 2\lambda_2}{N_u}, & i = j \\
-\frac{-2\lambda_2}{N_u (N_u - 1)},  & \mathrm{otherwise}
+\frac{\lambda_1 + 2\lambda_2}{N}, & i = j \\
+\frac{-2\lambda_2}{N (N - 1)},  & \mathrm{otherwise}.
 \end{cases}
 \end{equation*}
-where $\lambda_1$ and $\lambda_2$ are regularisation parameters.
 
 Suppose $\Thetabm^*$ is the optimal solution of the dual problem (\ref{eq:mtdual}), 
 then the optimal solution of the primal problem (\ref{eq:mtobj}) can be computed as
@@ -225,7 +228,6 @@ then the optimal solution of the primal problem (\ref{eq:mtobj}) can be computed
 \W^* = -\C^{-1} \Thetabm^{*\top} \X.
 \end{equation*}
 
-%\input{mt_dual}
 
 %\section{Experiment}
 % experiments on two playlist dataset
