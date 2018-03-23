@@ -205,7 +205,7 @@ it can be shown that the dual of (\ref{eq:mtobj}) is
 \label{eq:mtdual}
 \begin{aligned}
 \min_{\Thetabm} \ \ & \frac{1}{2} \sum_{d=1}^{D} \sum_{d'=1}^{D} \C \circ \left( \X^\top \Thetabm (\C^{-1})^2 \Thetabm^\top \X \right) 
-    + \sum_{i = 1}^{N} \sum_{m: y_i^m = 1} \theta_i^m \left( 1 - \log(-\theta_i^m) \right) - \sum_{i=1}^{N} M_i^+ \log(N M_i^+) \\
+    + \sum_{i = 1}^{N} \sum_{m: y_i^m = 1} \theta_i^m \left( 1 - \log(-\theta_i^m) - \log(N M_i^+) \right) \\
 s.t. \ & \Thetabm^\top \one_M = \zero_{N} \\
        & \theta_k^n \ge 0, \, k \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_k^n = 0.
 \end{aligned}
