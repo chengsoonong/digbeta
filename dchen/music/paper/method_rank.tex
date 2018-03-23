@@ -1,0 +1,39 @@
+The Lagrangian dual problem of (\ref{eq:stdopt}) when use the exponential surrogate is
+\begin{equation}
+\label{eq:dual}
+\begin{aligned}
+\min_{\Thetabm} \ & \frac{1}{2 \lambda} \left[
+     U \sum_{u=1}^U \left( \sum_{i \in P_u} \thetabm_i^\top \X \right)^\top \left( \sum_{i \in P_u} \thetabm_i^\top \X \right)
+   + N \sum_{i=1}^N \left( \thetabm_i^\top \X \right)^\top \left( \thetabm_i^\top \X \right)
+   + \left( \sum_{i=1}^N \thetabm_i^\top \X \right)^\top \left( \sum_{i=1}^N \thetabm_i^\top \X \right) \right] \\
+& \hspace{1em}
+   + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top 
+     \left( \y_i \circ \left(\one_M - \log(N M_i^+) \one_M - \log(-\thetabm_i) \right) \right) \\
+s.t. \ & \Thetabm^\top \one_M = \zero_N \\
+           & \theta_i^n \ge 0, \, i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_i^n = 0.
+\end{aligned}
+\end{equation}
+
+
+\begin{equation}
+\begin{aligned}
+\frac{\partial J}{\partial \thetabm_k}
+&= \frac{1}{2 \lambda} \left( U \cdot 2 \X \left(\sum_{i \in P_{u(k)}} \thetabm_i^\top \X \right)^\top 
+   + N \cdot 2 \X \left( \thetabm_k^\top \X \right)^\top
+   + 2 \X \left(\sum_{i=1}^N \thetabm_i^\top \X \right)^\top \right) \\
+& \hspace{2em}
+   + \y_k \circ \left( \one_M - \log(N M_k^+) \one_M - \log(-\thetabm_k) + \thetabm_k \left( -\frac{-1}{-\thetabm_k} \right) \right) \\
+&= \frac{\X}{\lambda} \left( U \sum_{i \in P_{u(k)}} \thetabm_i^\top \X 
+   + N \thetabm_k^\top \X 
+   + \sum_{i=1}^N \thetabm_i^\top \X \right)^\top
+   - \y_k \circ \left( \log(N M_k^+) \one_M + \log(-\thetabm_k) \right) \\
+&= \frac{\X}{\lambda} \left( U \sum_{i \in P_{u(k)}} \thetabm_i + N \thetabm_k + \sum_{i=1}^N \thetabm_i \right)^\top \X
+   - \y_k \circ \left( \log(N M_k^+) \one_M + \log(-\thetabm_k) \right) \\
+%
+\frac{\partial^2 J}{\partial \thetabm_k^2}
+&= \frac{\X}{\lambda} \left( U \X + N \X + \X \right)^\top
+   - \y_k \circ \frac{-1}{-\thetabm_k} ? \\
+&= \frac{1}{\lambda} (U + N + 1) \X \X^\top 
+   - \y_k \circ \frac{1}{\thetabm_k} ? \\
+\end{aligned}
+\end{equation}
