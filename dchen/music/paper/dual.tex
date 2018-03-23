@@ -1,0 +1,152 @@
+\begin{equation}
+\label{eq:primal}
+\begin{aligned}
+&\min_{\V, \W, \mubm} \ \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+     + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+& \hspace{4em}
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x^m 
+     - \max_{n: y_i^n = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \x^n \right).
+\end{aligned}
+\end{equation}
+
+Let 
+\begin{equation*}
+\begin{aligned}
+f_0(\V, \W, \mubm, \xibm) &= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+     + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+& \quad \ 
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_i^m = 1} 
+       \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x^m - \xi_i \right) \\
+f_{i,n} (\V, \W, \mubm, \xibm) &= (\bv_{u(i)} + \w_i + \mubm)^\top \x^n - \xi_i, \
+i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_i^n = 0.
+\end{aligned}
+\end{equation*}
+
+Problem (\ref{eq:primal}) is equivalent to 
+\begin{equation}
+\label{eq:stdopt}
+\begin{aligned}
+\min_{\V, \W, \mubm, \xibm} \ & f_0(\V, \W, \mubm, \xibm) \\
+s.t. \quad & f_{i,n}(\V, \W, \mubm, \xibm) \le 0, \
+i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_i^n = 0.
+\end{aligned}
+\end{equation}
+
+For $\beta_i^n \ge 0$, the \emph{Lagrangian} of (\ref{eq:stdopt}) is
+\begin{equation*}
+\begin{aligned}
+L(\V, \W, \mubm, \xibm, \betabm) 
+&= f_0(\V, \W, \mubm, \xibm) + \sum_{i=1}^N \sum_{n: y_i^n = 0} \beta_i^n f_{i,n} (\V, \W, \mubm, \xibm).
+\end{aligned}
+\end{equation*}
+
+Note that the conjugate of the conjugate of a convex function is itself, \ie $f(\z) = f^{**}(\z) = \sup_\y \left(\z^\top \y - f^*(\y) \right)$, we have
+\begin{equation*}
+\begin{aligned}
+\ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x^m - \xi_i \right)
+&= \sup_{\alpha_i^m} \left[ \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x^m - \xi_i \right) \alpha_i^m - \ell^*(\alpha_i^m) \right],
+\end{aligned}
+\end{equation*}
+where $\ell^*$ is the convex conjugate of surrogate loss $\ell$.
+
+Let
+\begin{equation*}
+\begin{aligned}
+g(\V, \W, \mubm, \xibm, \alphabm, \betabm)
+&= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+     + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+& \hspace{2em}
+     + \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_i^m = 1} \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x^m - \xi_i \right) \alpha_i^m \\
+& \hspace{2em}
+     + \sum_{i=1}^N \sum_{n: y_i^n = 0} \beta_i^n \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x^n - \xi_i \right), \\
+r(\alphabm)
+&= \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_i^m = 1} \ell^*(\alpha_i^m),
+\end{aligned}
+\end{equation*}
+then 
+\begin{equation*}
+\begin{aligned}
+L(\V, \W, \mubm, \xibm, \alphabm, \betabm) 
+= \sup_\alphabm \left[ g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right].
+\end{aligned}
+\end{equation*}
+
+Assuming strong duality, the \emph{Lagrangian dual function} of (\ref{eq:stdopt}) is
+\begin{equation*}
+\begin{aligned}
+\inf_{\V, \W, \mubm, \xibm} L(\V, \W, \mubm, \xibm, \alphabm, \betabm) 
+&= \inf_{\V, \W, \mubm, \xibm} \sup_\alphabm \left[ g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right] \\
+&= \sup_\alphabm \inf_{\V, \W, \mubm, \xibm} \left[ g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right] \\
+&= \sup_\alphabm \left[ \inf_{\V, \W, \mubm, \xibm} g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right] \\
+&= \max_\alphabm \left[ \min_{\V, \W, \mubm, \xibm} g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right].
+\end{aligned}
+\end{equation*}
+
+To solve the inner (unconstrained) minimisation, let
+\begin{equation*}
+\begin{aligned}
+\zero &= \frac{\partial g}{\partial \bv_u} 
+       = \frac{\lambda}{U} \bv_u 
+         + \sum_{i \in P_u} \left( \frac{1}{N M_i^+} \sum_{m: y_i^m = 1} \alpha_i^m \x^m + \sum_{n: y_i^n = 0} \beta_i^n \x^n \right) \\
+\zero &= \frac{\partial g}{\partial \w_i}
+       = \frac{\lambda}{N} \w_i + \frac{1}{N M_i^+} \sum_{m: y_i^m = 1} \alpha_i^m \x^m + \sum_{n: y_i^n = 0} \beta_i^n \x^n \\
+\zero &= \frac{\partial g}{\partial \mubm} 
+       = \lambda \mubm + \sum_{i=1}^N \left( \frac{1}{N M_i^+} \sum_{m: y_i^m = 1} \alpha_i^m \x^m + \sum_{n: y_i^n = 0} \beta_i^n \x^n \right) \\
+0     &= \frac{\partial g}{\partial \xi_i}
+       = - \frac{1}{N M_i^+} \sum_{m: y_i^m = 1} \alpha_i^m - \sum_{n: y_i^n = 0} \beta_i^n \\
+\end{aligned}
+\end{equation*}
+where $P_u$ denotes the indices of playlists from user $u$.
+
+To simplify the notation, let $\Thetabm \in \R^{M \times N}$ such that
+\begin{equation*}
+\theta_i^m = 
+\begin{cases}
+    \frac{\alpha_i^m}{N M_i^+}, & y_i^m = 1 \\
+    \beta_i^m, & y_i^m = 0, \ i \in \{1,\dots,N\}, \, m \in \{1,\dots,M\},
+\end{cases}
+\end{equation*}
+then we have
+\begin{equation*}
+\begin{aligned}
+\bv_u^\top &= -\frac{U}{\lambda} \sum_{i \in P_u} \thetabm_i^\top \X \\
+\w_i^\top  &= -\frac{N}{\lambda} \thetabm_i^\top \X \\
+\mubm^\top &= -\frac{1}{\lambda} \sum_{i=1}^N \thetabm_i^\top \X \\
+\thetabm_i^\top \one_M &= 0
+\end{aligned}
+\end{equation*}
+
+Thus, we have
+\begin{equation*}
+\begin{aligned}
+&\min_{\V, \W, \mubm, \xibm} g(\V, \W, \mubm, \xibm, \alphabm, \betabm) \\
+&= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+     + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+& \hspace{2em}
+     + \sum_{i=1}^N \left( 
+       \sum_{m: y_i^m = 1} \frac{\alpha_i^m}{N M_i^+} (\bv_{u(i)} + \w_i + \mubm)^\top \x^m 
+     + \sum_{n: y_i^n = 0} \beta_i^n (\bv_{u(i)} + \w_i + \mubm)^\top \x^n \right) \\
+& \hspace{2em}
+     - \sum_{i=1}^N \xi_i \left( \sum_{m: y_i^m = 1} \frac{\alpha_i^m}{N M_i^+} + \sum_{n: y_i^n = 0} \beta_i^n \right) \\
+%   + \sum_{u=1}^U \sum_{i \in P_u} \sum_{m = 1}^M \theta_i^m \left( (\bv_u + \w_i + \mubm)^\top \x^m - \xi_i \right) \\
+&= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+     + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right)
+     + \sum_{i=1}^N \sum_{m=1}^M \theta_i^m (\bv_{u(i)} + \w_i + \mubm)^\top \x^m \\
+&= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+     + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right)
+     + \sum_{i=1}^N (\bv_{u(i)} + \w_i + \mubm)^\top \left( \sum_{m=1}^M \theta_i^m \x^m \right) \\
+&= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+     + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right)
+     + \sum_{i=1}^N (\bv_{u(i)} + \w_i + \mubm)^\top \left( \thetabm_i^\top \X \right) \\
+&= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+     + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right)
+     + \sum_{i=1}^N \bv_{u(i)}^\top \left( \thetabm_i^\top \X \right) 
+     + \sum_{i=1}^N \w_i^\top \left( \thetabm_i^\top \X \right) 
+     + \mubm^\top \left( \sum_{i=1}^N \thetabm_i^\top \X \right) \\
+&= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+     + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right)
+     + \sum_{u=1}^U \sum_{i \in P_u} \bv_u^\top \left( \thetabm_i^\top \X \right) 
+     - \frac{\lambda}{N} \sum_{i=1}^N \w_i^\top \w_i 
+     + \mubm^\top \left( \sum_{i=1}^N \thetabm_i^\top \X \right) \\
+\end{aligned}
+\end{equation*}
