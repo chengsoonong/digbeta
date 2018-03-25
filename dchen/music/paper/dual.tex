@@ -206,7 +206,7 @@ z = -\log(-\alpha),
 \end{equation*}
 then
 \begin{equation*}
-\ell^*(\alpha) = \alpha ( 1 - \log(-\alpha) ).
+\ell^*(\alpha) = \alpha ( 1 - \log(-\alpha) ), \ \alpha \le 0.
 \end{equation*}
 Thus,
 \begin{equation*}
@@ -219,6 +219,8 @@ r(\alphabm)
 &= \sum_{i=1}^N \sum_{m: y_i^m = 1} \theta_i^m \left(1 - \log(-\theta_i^m) - \log(N M_i^+) \right) \\
 &= \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top 
                 \left( \y_i \circ \left(\one_M - \log(N M_i^+) \one_M - \log(-\thetabm_i) \right) \right) \\
+&= \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top 
+                \left( \one_M - \log(N M_i^+) \one_M - \log(-\thetabm_i) \right)
 \end{aligned}
 \end{equation*}
 
@@ -232,7 +234,7 @@ The Lagrangian dual problem of (\ref{eq:stdopt}) when use the exponential surrog
    + \left( \sum_{i=1}^N \thetabm_i^\top \X \right)^\top \left( \sum_{i=1}^N \thetabm_i^\top \X \right) \right] \\
 & \hspace{1em}
    + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top 
-     \left( \y_i \circ \left(\one_M - \log(N M_i^+) \one_M - \log(-\thetabm_i) \right) \right) \\
+     \left( \one_M - \log(N M_i^+) \one_M - \log(-\thetabm_i) \right) \\
 s.t. \ & \Thetabm^\top \one_M = \zero_N \\
            & \theta_i^n \ge 0, \, i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_i^n = 0.
 \end{aligned}

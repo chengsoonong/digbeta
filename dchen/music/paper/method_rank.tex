@@ -7,15 +7,31 @@ The Lagrangian dual problem of (\ref{eq:stdopt}) when use the exponential surrog
    + N \sum_{i=1}^N \left( \thetabm_i^\top \X \right)^\top \left( \thetabm_i^\top \X \right)
    + \left( \sum_{i=1}^N \thetabm_i^\top \X \right)^\top \left( \sum_{i=1}^N \thetabm_i^\top \X \right) \right] \\
 & \hspace{1em}
-   + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top 
-     \left( \y_i \circ \left(\one_M - \log(N M_i^+) \one_M - \log(-\thetabm_i) \right) \right) \\
+   + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top \left( \one_M - \log(N M_i^+) \one_M - \log(-\thetabm_i) \right) \\
 s.t. \ & \Thetabm^\top \one_M = \zero_N \\
            & \theta_i^n \ge 0, \, i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_i^n = 0.
 \end{aligned}
 \end{equation}
+Note that the above objective can be computed as
+\begin{equation*}
+\begin{aligned}
+J &= \frac{1}{2 \lambda} \sum_{n=1}^N \sum_{n'=1}^N (U \A + N \I_N + \one_{N \times N}) 
+     \circ \left( \Thetabm^\top \X \right) \left( \Thetabm^\top \X \right)^\top \\
+& \hspace{2em}
+     + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top \left( \one_M - \log(N M_i^+) \one_M - \log(-\thetabm_i) \right),
+\end{aligned}
+\end{equation*}
+where $\I_N \in \R^{N \times N}$ is an identity matirx and $\A \in \R^{N \times N}$ is a symmetric matrix such that
+\begin{equation*}
+A_{ij} = 
+\begin{cases}
+1, & \text{playlist} \ i \ \text{and} \ j \ \text{from the same user}, \\
+0, & \text{otherwise}.
+\end{cases}
+\end{equation*}
 
-
-\begin{equation}
+The gradient of the optimisation objective w.r.t. to dual variables $\thetabm_k \in \R^{M}$, $k \in \{1,\dots,N\}$,
+\begin{equation*}
 \begin{aligned}
 \frac{\partial J}{\partial \thetabm_k}
 &= \frac{1}{2 \lambda} \left( U \cdot 2 \X \left(\sum_{i \in P_{u(k)}} \thetabm_i^\top \X \right)^\top 
@@ -29,11 +45,18 @@ s.t. \ & \Thetabm^\top \one_M = \zero_N \\
    - \y_k \circ \left( \log(N M_k^+) \one_M + \log(-\thetabm_k) \right) \\
 &= \frac{\X}{\lambda} \left( U \sum_{i \in P_{u(k)}} \thetabm_i + N \thetabm_k + \sum_{i=1}^N \thetabm_i \right)^\top \X
    - \y_k \circ \left( \log(N M_k^+) \one_M + \log(-\thetabm_k) \right) \\
-%
-\frac{\partial^2 J}{\partial \thetabm_k^2}
-&= \frac{\X}{\lambda} \left( U \X + N \X + \X \right)^\top
-   - \y_k \circ \frac{-1}{-\thetabm_k} ? \\
-&= \frac{1}{\lambda} (U + N + 1) \X \X^\top 
-   - \y_k \circ \frac{1}{\thetabm_k} ? \\
 \end{aligned}
-\end{equation}
+\end{equation*}
+
+The hessian is
+\begin{equation*}
+\begin{aligned}
+\frac{\partial^2 J}{\partial \thetabm_k^2}
+&= \frac{\X}{\lambda} \left( U \X + N \X + \X \right)^\top - \Hb_k
+ = \frac{1}{\lambda} (U + N + 1) \X \X^\top - \Hb_k,
+\end{aligned}
+\end{equation*}
+where $\Hb_k \in \R^{M \times M}$ is a diagnoal matrix such that
+\begin{equation*}
+H_k^m = \frac{y_k^m}{\theta_k^m}, \ k = \{1,\dots,N\}, \, m = \{1,\dots,M\}.
+\end{equation*}
