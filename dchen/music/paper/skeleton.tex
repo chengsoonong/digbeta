@@ -147,7 +147,8 @@ where $M = |\SCal|$ is the number of songs in $\SCal$, and $M^+$ is the number o
 
 To optimise the objective~\ref{eq:toppush}, 
 we firstly have to replace the indicator function (0-1 loss) with one of its convex surrogate loss,
-such as the exponential loss $\ell(f, y) = e^{-fy}$, logistic loss $\ell(f, y) = \log(1 + e^{-fy})$, or squared hinge loss $\ell(f, y) = (1 - fy)^2$.
+such as the exponential loss $\ell(f, y) = e^{-fy}$, logistic loss $\ell(f, y) = \log(1 + e^{-fy})$, 
+or squared hinge loss $\ell(f, y) = \max\{0, (1 - fy)\}^2$.
 Further, we have to deal with the challenge of \emph{max} operator in (\ref{eq:toppush}), which can sometimes be mitigated by solving the dual problem.
 If the ranking function $f$ has a linear form, \ie $f(\x) = \w^\top \x$, it has been shown that the dual formulation of (\ref{eq:toppush}) 
 with L2 regularisation is~\cite{li2014top}:
