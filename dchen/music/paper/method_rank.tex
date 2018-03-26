@@ -56,13 +56,13 @@ The gradient of the optimisation objective w.r.t. to dual variables $\thetabm_k 
    + N \cdot 2 \X \left( \thetabm_k^\top \X \right)^\top
    + 2 \X \left(\sum_{i=1}^N \thetabm_i^\top \X \right)^\top \right) \\
 & \hspace{2em}
-   + (1 - \log(N M_k^+)) \y_i - \y_i \circ \log(-\thetabm_k) + \y_i \circ \thetabm_k \left( -\frac{-1}{-\y_i \circ \thetabm_k} \right) \\
+   + (1 - \log(N M_k^+)) \y_k - \y_k \circ \log(-\thetabm_k) + \y_k \circ \thetabm_k \left( -\frac{-1}{-\y_k \circ \thetabm_k} \right) \\
 &= \frac{\X}{\lambda} \left( U \sum_{i \in P_{u(k)}} \thetabm_i^\top \X 
    + N \thetabm_k^\top \X 
    + \sum_{i=1}^N \thetabm_i^\top \X \right)^\top
-   - \log(N M_k^+) \y_i - \y_i \circ \log(-\thetabm_k) \\
-&= \frac{\X}{\lambda} \left( U \sum_{i \in P_{u(k)}} \thetabm_i + N \thetabm_k + \sum_{i=1}^N \thetabm_i \right)^\top \X
-   - \log(N M_k^+) \y_i - \y_i \circ \log(-\thetabm_k) \\
+   - \log(N M_k^+) \y_k - \y_k \circ \log(-\thetabm_k) \\
+&= \frac{\X \X^\top}{\lambda} \left( U \sum_{i \in P_{u(k)}} \thetabm_i + N \thetabm_k + \sum_{i=1}^N \thetabm_i \right)^\top
+   - \log(N M_k^+) \y_k - \y_k \circ \log(-\thetabm_k) \\
 \end{aligned}
 \end{equation*}
 
