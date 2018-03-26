@@ -1,7 +1,8 @@
-\section{The dual problem}
+\section{The dual problem of multitask bipartite ranking}
 
+The optimisation problem is
 \begin{equation}
-\label{eq:primal}
+\label{eq:mbropt}
 \begin{aligned}
 &\min_{\V, \W, \mubm} \ \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
@@ -24,7 +25,7 @@ i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_i^n = 0.
 \end{aligned}
 \end{equation*}
 
-Problem (\ref{eq:primal}) is equivalent to 
+Problem (\ref{eq:mbropt}) is equivalent to 
 \begin{equation}
 \label{eq:stdopt}
 \begin{aligned}
@@ -34,11 +35,12 @@ i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_i^n = 0.
 \end{aligned}
 \end{equation}
 
-For $\beta_i^n \ge 0$, the \emph{Lagrangian} of (\ref{eq:stdopt}) is
+The \emph{Lagrangian} of (\ref{eq:stdopt}) is
 \begin{equation*}
 \begin{aligned}
 L(\V, \W, \mubm, \xibm, \betabm) 
-&= f_0(\V, \W, \mubm, \xibm) + \sum_{i=1}^N \sum_{n: y_i^n = 0} \beta_i^n f_{i,n} (\V, \W, \mubm, \xibm).
+&= f_0(\V, \W, \mubm, \xibm) + \sum_{i=1}^N \sum_{n: y_i^n = 0} \beta_i^n f_{i,n} (\V, \W, \mubm, \xibm), \
+\beta_i^n \ge 0.
 \end{aligned}
 \end{equation*}
 
@@ -74,7 +76,8 @@ L(\V, \W, \mubm, \xibm, \alphabm, \betabm)
 \end{equation*}
 
 Assuming strong duality, the \emph{Lagrangian dual function} of (\ref{eq:stdopt}) is
-\begin{equation*}
+\begin{equation}
+\label{eq:dualfunc}
 \begin{aligned}
 &\inf_{\V, \W, \mubm, \xibm} L(\V, \W, \mubm, \xibm, \alphabm, \betabm) \\
 &= \inf_{\V, \W, \mubm, \xibm} \sup_\alphabm \left[ g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right] \\
@@ -82,7 +85,7 @@ Assuming strong duality, the \emph{Lagrangian dual function} of (\ref{eq:stdopt}
 &= \sup_\alphabm \left[ \inf_{\V, \W, \mubm, \xibm} g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right] \\
 &= \max_\alphabm \left[ \min_{\V, \W, \mubm, \xibm} g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right].
 \end{aligned}
-\end{equation*}
+\end{equation}
 
 To solve the inner (unconstrained) minimisation, let
 \begin{equation*}
@@ -118,7 +121,7 @@ then we have
 \end{aligned}
 \end{equation*}
 
-Thus, we have
+Thus, 
 \begin{equation*}
 \begin{aligned}
 &\min_{\V, \W, \mubm, \xibm} g(\V, \W, \mubm, \xibm, \alphabm, \betabm) \\
@@ -130,7 +133,6 @@ Thus, we have
      + \sum_{n: y_i^n = 0} \beta_i^n (\bv_{u(i)} + \w_i + \mubm)^\top \x^n \right) \\
 & \hspace{2em}
      - \sum_{i=1}^N \xi_i \left( \sum_{m: y_i^m = 1} \frac{\alpha_i^m}{N M_i^+} + \sum_{n: y_i^n = 0} \beta_i^n \right) \\
-%   + \sum_{u=1}^U \sum_{i \in P_u} \sum_{m = 1}^M \theta_i^m \left( (\bv_u + \w_i + \mubm)^\top \x^m - \xi_i \right) \\
 &= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right)
      + \sum_{i=1}^N \sum_{m=1}^M \theta_i^m (\bv_{u(i)} + \w_i + \mubm)^\top \x^m
@@ -162,7 +164,8 @@ Note that
 \end{equation*}
 
 As a result,
-\begin{equation*}
+\begin{equation}
+\label{eq:gmin}
 \begin{aligned}
 &\min_{\V, \W, \mubm, \xibm} g(\V, \W, \mubm, \xibm, \alphabm, \betabm) \\
 &= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
@@ -170,27 +173,11 @@ As a result,
      -\lambda \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 &= -\frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 &= -\frac{1}{2 \lambda} \left[
-     U \sum_{u=1}^U \left( \sum_{i \in P_u} \thetabm_i^\top \X \right)^\top \left( \sum_{i \in P_u} \thetabm_i^\top \X \right)
-   + N \sum_{i=1}^N \left( \thetabm_i^\top \X \right)^\top \left( \thetabm_i^\top \X \right)
-   + \left( \sum_{i=1}^N \thetabm_i^\top \X \right)^\top \left( \sum_{i=1}^N \thetabm_i^\top \X \right) \right]
+     U \sum_{u=1}^U \left( \sum_{i \in P_u} \thetabm_i^\top \X \right) \left( \sum_{i \in P_u} \thetabm_i^\top \X \right)^\top
+   + N \sum_{i=1}^N \left( \thetabm_i^\top \X \right) \left( \thetabm_i^\top \X \right)^\top
+   + \left( \sum_{i=1}^N \thetabm_i^\top \X \right) \left( \sum_{i=1}^N \thetabm_i^\top \X \right)^\top \right]
 \end{aligned}
-\end{equation*}
-
-The \emph{Lagrangian dual problem} of (\ref{eq:stdopt}) is 
-\begin{equation*}
-\begin{aligned}
-&\max_{\betabm} \inf_{\V, \W, \mubm, \xibm} L(\V, \W, \mubm, \xibm, \alphabm, \betabm) \\
-&= \max_{\alphabm, \betabm} \left[ \min_{\V, \W, \mubm, \xibm} g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right] \\
-&= \min_{\Thetabm} \ \frac{1}{2 \lambda} \left[
-     U \sum_{u=1}^U \left( \sum_{i \in P_u} \thetabm_i^\top \X \right)^\top \left( \sum_{i \in P_u} \thetabm_i^\top \X \right)
-   + N \sum_{i=1}^N \left( \thetabm_i^\top \X \right)^\top \left( \thetabm_i^\top \X \right)
-   + \left( \sum_{i=1}^N \thetabm_i^\top \X \right)^\top \left( \sum_{i=1}^N \thetabm_i^\top \X \right) \right] \\
-& \hspace{4em}
-   + r(\alphabm)
-\end{aligned}
-\end{equation*}
-subject to constraints $\Thetabm^\top \one_M = \zero_N$, 
-and $\theta_i^n \ge 0$ where $y_i^n = 0, \, i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\}.$
+\end{equation}
 
 Lastly, if we choose the exponential surrogate $\ell(f, y) = e^{-fy}$, then
 \begin{equation*}
@@ -206,37 +193,43 @@ z = -\log(-\alpha),
 \end{equation*}
 then
 \begin{equation*}
-\ell^*(\alpha) = \alpha ( 1 - \log(-\alpha) ), \ \alpha \le 0.
+\ell^*(\alpha) = \alpha ( 1 - \log(-\alpha) ), \ \alpha < 0.
 \end{equation*}
 Thus,
-\begin{equation*}
+\begin{equation}
+\label{eq:expconj}
 \begin{aligned}
 r(\alphabm)
 &= \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_i^m = 1} \ell^*(\alpha_i^m) \\
 &= \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_i^m = 1} \alpha_i^m (1 - \log(-\alpha_i^m)) \\
 &= \sum_{i=1}^N \sum_{m: y_i^m = 1} \frac{\alpha_i^m}{N M_i^+} \left(1 - \log \left( -\frac{\alpha_i^m}{N M_i^+} \cdot N M_i^+ \right) \right) \\
 &= \sum_{i=1}^N \sum_{m: y_i^m = 1} \theta_i^m \left(1 - \log(-\theta_i^m) - \log(N M_i^+) \right) \\
-&= \sum_{i=1}^N \sum_{m: y_i^m = 1} \theta_i^m \left(1 - \log(-\theta_i^m) - \log(N M_i^+) \right) \\
 &= \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top 
-                \left( \y_i \circ \left(\one_M - \log(N M_i^+) \one_M - \log(-\thetabm_i) \right) \right) \\
+                \left( \y_i \circ \left( (1 - \log(N M_i^+)) \one_M - \log(-\thetabm_i) \right) \right) \\
 &= \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top 
-                \left( \one_M - \log(N M_i^+) \one_M - \log(-\thetabm_i) \right)
-\end{aligned}
-\end{equation*}
-
-The Lagrangian dual problem of (\ref{eq:stdopt}) when use the exponential surrogate is
-\begin{equation}
-\label{eq:dual}
-\begin{aligned}
-\min_{\Thetabm} \ & \frac{1}{2 \lambda} \left[
-     U \sum_{u=1}^U \left( \sum_{i \in P_u} \thetabm_i^\top \X \right)^\top \left( \sum_{i \in P_u} \thetabm_i^\top \X \right)
-   + N \sum_{i=1}^N \left( \thetabm_i^\top \X \right)^\top \left( \thetabm_i^\top \X \right)
-   + \left( \sum_{i=1}^N \thetabm_i^\top \X \right)^\top \left( \sum_{i=1}^N \thetabm_i^\top \X \right) \right] \\
-& \hspace{1em}
-   + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top 
-     \left( \one_M - \log(N M_i^+) \one_M - \log(-\thetabm_i) \right) \\
-s.t. \ & \Thetabm^\top \one_M = \zero_N \\
-           & \theta_i^n \ge 0, \, i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_i^n = 0.
+                \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right)
 \end{aligned}
 \end{equation}
+
+By (\ref{eq:dualfunc}, \ref{eq:gmin}, \ref{eq:expconj}), the \emph{Lagrangian dual problem} of (\ref{eq:stdopt}) when using the exponential surrogate is
+\begin{equation*}
+\begin{aligned}
+&\max_{\betabm} \ \inf_{\V, \W, \mubm, \xibm} L(\V, \W, \mubm, \xibm, \alphabm, \betabm) \\
+&= \max_{\alphabm, \betabm} \left[ \min_{\V, \W, \mubm, \xibm} g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right] \\
+&= \min_{\Thetabm} \ \frac{1}{2 \lambda} \left[
+     U \sum_{u=1}^U \left( \sum_{i \in P_u} \thetabm_i^\top \X \right) \left( \sum_{i \in P_u} \thetabm_i^\top \X \right)^\top
+   + N \sum_{i=1}^N \left( \thetabm_i^\top \X \right) \left( \thetabm_i^\top \X \right)^\top
+   + \left( \sum_{i=1}^N \thetabm_i^\top \X \right) \left( \sum_{i=1}^N \thetabm_i^\top \X \right)^\top \right] \\
+& \hspace{4em}
+   + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top 
+     \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right).
+\end{aligned}
+\end{equation*}
+subject to constraints
+\begin{equation*}
+\begin{aligned}
+\Thetabm^\top \one_M &= \zero_N \\
+\theta_i^n & \ge 0, \ i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_i^n = 0.
+\end{aligned}
+\end{equation*}
 
