@@ -1,0 +1,58 @@
+\section{Machine learning tasks}
+
+Suppose we have $N$ playlists from $U$ users, let $P_u$ be the set of indices of playlists from user $u$.
+Let $M$ denote the total number of songs that occurred at least once in any of the $N$ playlists.
+
+The score of song $m$ in playlist $i$ from user $u$ is a linear form,
+\begin{equation*}
+\begin{aligned}
+f(u, i, m) &= \bar\w_{u,i}^\top \x^m,
+\end{aligned}
+\end{equation*}
+where $\x^m$ is a feature vector of song $m$ which contains audio features, song genre, song popularity, 
+and the number of listenings by all other users except $u$,
+\begin{equation*}
+\bar\w_{u,i} = \bv_u + \w_i + \mubm,
+\end{equation*}
+where $\bv_u$ is a weight vector specific to user $u$,
+$\w_i$ is a weight vector specific to playlist $i$,
+and $\mubm$ is a weight vector shared by all users.
+
+{\it Two methods: 
+\begin{itemize}
+\item multitask bipartite ranking, 
+\item multitask binary classification.
+\end{itemize}
+}
+
+\paragraph{Playlist augmentation}
+
+We formulate the task of \emph{playlist augmentation} as a multi-label classification problem,
+that is, for each song that is not in the given playlist, 
+we predict whether it will be added to the given playlist.
+This formulation is illustrated in Figure~\ref{fig:pla},
+where rows represent songs (no specific order) and columns represent playlists (no specific order).
+Further, columns with white colour represent playlists in training set, 
+and columns with grey colour represent playlists that should be augmented (\ie test set).
+If entry $(i, j)$ is \texttt{1} (or \texttt{0}), 
+it means the $i$-th song is (or not) found in the $j$-th playlist, 
+and a question mark \texttt{?} means that we do not know whether the $i$-th song is found in the $j$-th playlist.
+As a remark, columns represent playlists in test set contain only \texttt{1} and \texttt{?} entries.
+
+\input{fig_pla}
+
+
+\paragraph{New song recommendation}
+
+We formulate the task of \emph{new song recommendation} as a multi-label classification problem, 
+where we predict, for each song in test set,
+whether it will be included in a given playlist.
+This formulation is illustrated in Figure~\ref{fig:mlr},
+where rows represent songs (from top to bottom, sorted by the release date in ascending order)
+and columns represent playlists (no specific order).
+Further, rows with white colour represent songs in training set, and rows with grey colour represent songs in test set.
+If entry $(i, j)$ is \texttt{1} (or \texttt{0}), it means the $i$-th song is (or not) found in the $j$-th playlist,
+otherwise, we do not know whether the $i$-th song is found in the $j$-th playlist (\ie entry $(i, j)$ is a question mark \texttt{?}).
+As a remark, we do not care about the order of songs in a playlist.
+
+\input{fig_mlr}
