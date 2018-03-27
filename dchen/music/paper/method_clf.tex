@@ -26,9 +26,9 @@ J &= \lambda \left( \frac{1}{2 U} \sum_{u=1}^U \bv_u^\top \bv_u
 &= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{1.5em}
-     + \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} 
+     + \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \left(
        \sum_{m: y_i^m = 1} e^{-(\bv_{u} + \w_i + \mubm)^\top \x^m} 
-       + \frac{1}{p} \sum_{n: y_i^n = 0} e^{p (\bv_{u} + \w_i + \mubm)^\top \x^n},
+       + \frac{1}{p} \sum_{n: y_i^n = 0} e^{p (\bv_{u} + \w_i + \mubm)^\top \x^n} \right),
 \end{aligned}
 \end{equation*}
 where $\lambda > 0$ is a regularisation constant.
