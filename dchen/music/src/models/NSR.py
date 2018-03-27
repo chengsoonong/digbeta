@@ -119,6 +119,7 @@ def objective_clf(w, dw, X, Y, C, p, cliques, data_helper, njobs=1, verbose=0, f
     M, D = X.shape
     N = Y.shape[1]
     U = len(cliques)
+    assert w.shape == ((U + N + 1) * D,)
     mu = w[:D]
     V = w[D:(U+1)*D].reshape(U, D)
     W = w[(U+1)*D:].reshape(N, D)
@@ -129,6 +130,51 @@ def objective_clf(w, dw, X, Y, C, p, cliques, data_helper, njobs=1, verbose=0, f
     if verbose > 0:
         print('Eval f, g: %.1f seconds used.' % (time.time() - t0))
 
+    return J
+
+
+def obj_clf_loop(w, dw, X, Y, C, p, cliques, data_helper, njobs=1, verbose=0, fnpy=None):
+    assert C > 0
+    assert p > 0
+    M, D = X.shape
+    N = Y.shape[1]
+    U = len(cliques)
+    assert w.shape == ((U + N + 1) * D,)
+    mu = w[:D]
+    V = w[D:(U+1)*D].reshape(U, D)
+    W = w[(U+1)*D:].reshape(N, D)
+    dmu = np.zeros_like(mu)
+    dV = np.zeros_like(V)
+    dW = np.zeros_like(W)
+    Jv = 0.
+    for u in range(U):
+        Jv += np.dot(V[u, :], V[u, :])
+    Jv *= C * 0.5 / U
+    Jw = 0.
+    for i in range(N):
+        Jw += np.dot(W[i, :], W[i, :])
+    Jw *= C * 0.5 / N
+    pl2u = np.zeros(N, dtype=np.int)
+    for u in range(U):
+        clq = cliques[u]
+        pl2u[clq] = u
+    Jn = 0.
+    for i in range(N):
+        u = pl2u[i]
+        wi = V[u, :] + W[i, :] + mu
+        for m in range(M):
+            score = np.dot(wi, X[m, :])
+            s = np.exp(-score) if Y[m, i] is True else np.exp(p * score) / p
+            Jn += s
+            g = (-s) * X[m, :] if Y[m, i] is True else p * s * X[m, :]
+            dV[u, :] += g
+            dW[i, :] = g
+            dmu += g
+    J = Jv + Jw + np.dot(mu, mu) * C * 0.5 + Jn / N
+    dV = V * C / U + dV / N
+    dW = W * C / N + dW / N
+    dmu = C * mu + dmu / N
+    dw[:] = np.r_[dmu.ravel(), dV.ravel(), dW.ravel()]
     return J
 
 
