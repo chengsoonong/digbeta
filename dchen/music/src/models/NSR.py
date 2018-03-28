@@ -7,7 +7,7 @@ from lbfgs import LBFGS, LBFGSError  # pip install pylbfgs
 from joblib import Parallel, delayed
 
 
-def risk_pclassification(v, mu, Wu, X, Yu, C, p, N, U):
+def risk_pclassification(mu, v, Wu, X, Yu, C, p, N, U):
     """
         Empirical risk of p-classification loss for multilabel classification
 
@@ -26,8 +26,9 @@ def risk_pclassification(v, mu, Wu, X, Yu, C, p, N, U):
     assert Yu.dtype == np.bool
     assert isspmatrix_coo(Yu)  # scipy.sparse.coo_matrix type
     M, D = X.shape
+    Nu = Yu.shape[1]
     assert v.shape == mu.shape == (D,)
-    assert Wu.shape == (Yu.shape[1], D)
+    assert Wu.shape == (Nu, D)
     Wt = Wu + (v + mu).reshape(1, D)
 
     T1 = np.dot(X, Wt.T)
@@ -42,12 +43,8 @@ def risk_pclassification(v, mu, Wu, X, Yu, C, p, N, U):
     T3 = np.exp(p * T1n)
     T3[Yu.row, Yu.col] = 0
 
-    risk = np.dot(v, v) / U
-    for k in range(Wu.shape[0]):
-        risk += np.dot(Wu[k, :], Wu[k, :]) / N
-    risk *= C / 2
-    risk += np.sum(T2 + T3 / p) / N
-
+    risk = np.dot(v, v) / U + np.sum([np.dot(Wu[k, :], Wu[k, :]) for k in range(Nu)]) / N
+    risk = risk * C / 2 + np.sum(T2 + T3 / p) / N
     T4 = T3 - T2
     T5 = np.dot(T4.T, X)
     dW = T5 / N
@@ -57,7 +54,7 @@ def risk_pclassification(v, mu, Wu, X, Yu, C, p, N, U):
     if np.isnan(risk) or np.isinf(risk):
         sys.stderr('risk_pclassification(): risk is NaN or inf!\n')
         sys.exit(0)
-    return risk, dv, dW, dmu
+    return risk, dmu, dv, dW
 
 
 class DataHelper:
@@ -85,19 +82,19 @@ class DataHelper:
         return self.Ys
 
 
-def accumulate_risk(V, W, mu, X, Y, C, p, cliques, data_helper, njobs):
+def accumulate_risk(mu, V, W, X, Y, C, p, cliques, data_helper, njobs):
     M, D = X.shape
     N = Y.shape[1]
     U = len(cliques)
+    assert mu.shape == (D,)
     assert V.shape == (U, D)
     assert W.shape == (N, D)
-    assert mu.shape == (D,)
     Ys = data_helper.get_data()
     assert U == len(Ys)
     if U == 1:
         njobs = 1
 
-    results = Parallel(n_jobs=njobs)(delayed(risk_pclassification)(V[u, :], mu, W[cliques[u], :], X, Ys[u],
+    results = Parallel(n_jobs=njobs)(delayed(risk_pclassification)(mu, V[u, :], W[cliques[u], :], X, Ys[u],
                                                                    C, p, N, U) for u in range(U))
     J = np.dot(mu, mu) * C / 2
     dV_slices = []
@@ -105,12 +102,12 @@ def accumulate_risk(V, W, mu, X, Y, C, p, cliques, data_helper, njobs):
     dmu = C * mu
     for t in results:
         J += t[0]
-        dV_slices.append(t[1])
-        dW_slices.append(t[2])
-        dmu += t[3]
+        dmu += t[1]
+        dV_slices.append(t[2])
+        dW_slices.append(t[3])
     dV = V * C / U + np.vstack(dV_slices)
     dW = W * C / N + np.vstack(dW_slices)
-    return J, dV, dW, dmu
+    return J, dmu, dV, dW
 
 
 def objective_clf(w, dw, X, Y, C, p, cliques, data_helper, njobs=1, verbose=0, fnpy=None):
@@ -125,7 +122,7 @@ def objective_clf(w, dw, X, Y, C, p, cliques, data_helper, njobs=1, verbose=0, f
     V = w[D:(U+1)*D].reshape(U, D)
     W = w[(U+1)*D:].reshape(N, D)
 
-    J, dV, dW, dmu = accumulate_risk(V, W, mu, X, Y, C, p, cliques, data_helper, njobs)
+    J, dmu, dV, dW = accumulate_risk(mu, V, W, X, Y, C, p, cliques, data_helper, njobs)
     dw[:] = np.r_[dmu.ravel(), dV.ravel(), dW.ravel()]  # in-place assignment
 
     if verbose > 0:
@@ -133,12 +130,13 @@ def objective_clf(w, dw, X, Y, C, p, cliques, data_helper, njobs=1, verbose=0, f
 
     return J
 
-#ncalls = 0
+# ncalls = 0
 
 def obj_clf_loop(w, dw, X, Y, C, p, cliques, data_helper, njobs=1, verbose=0, fnpy=None):
-    #global ncalls; ncalls += 1; sys.stdout.write('\r%d' % ncalls); sys.stdout.flush()
+    # global ncalls; ncalls += 1; sys.stdout.write('\r%d' % ncalls); sys.stdout.flush()
     assert C > 0
     assert p > 0
+    assert Y.dtype == np.bool
     M, D = X.shape
     N = Y.shape[1]
     U = len(cliques)
@@ -146,28 +144,22 @@ def obj_clf_loop(w, dw, X, Y, C, p, cliques, data_helper, njobs=1, verbose=0, fn
     mu = w[:D]
     V = w[D:(U+1)*D].reshape(U, D)
     W = w[(U+1)*D:].reshape(N, D)
-    Jv = 0.
+    Jv = np.sum([np.dot(V[u, :], V[u, :]) for u in range(U)]) / U
+    Jw = np.sum([np.dot(W[i, :], W[i, :]) for i in range(N)]) / N
+    Jmu = np.dot(mu, mu)
+    pl2u = dict()
     for u in range(U):
-        Jv += np.dot(V[u, :], V[u, :])
-    Jv *= C / (2 * U)
-    Jw = 0.
-    for i in range(N):
-        Jw += np.dot(W[i, :], W[i, :])
-    Jw *= C / (2 * N)
-    Jmu = np.dot(mu, mu) * C / 2
-    pl2u = np.zeros(N, dtype=np.int)
-    for u in range(U):
-        clq = cliques[u]
-        pl2u[clq] = u
+        for k in cliques[u]:
+            pl2u[k] = u
     Jn = 0.
     dmu = np.zeros_like(mu)
     dV = np.zeros_like(V)
     dW = np.zeros_like(W)
-    for i in range(N):
-        u = pl2u[i]
+    for k in range(N):
+        u = pl2u[k]
         for m in range(M):
-            score = np.dot(V[u, :] + W[i, :] + mu, X[m, :])
-            if Y[m, i] is True:
+            score = np.dot(V[u, :] + W[k, :] + mu, X[m, :])
+            if Y[m, k] is True:
                 s = np.exp(-score)
                 g = -X[m, :] * s
             else:
@@ -175,9 +167,9 @@ def obj_clf_loop(w, dw, X, Y, C, p, cliques, data_helper, njobs=1, verbose=0, fn
                 g = X[m, :] * s * p
             Jn += s
             dV[u, :] += g
-            dW[i, :] += g
+            dW[k, :] += g
             dmu += g
-    J = Jv + Jw + Jmu + Jn / N
+    J = (Jv + Jw + Jmu) * C / 2 + Jn / N
     dV = V * C / U + dV / N
     dW = W * C / N + dW / N
     dmu = C * mu + dmu / N
