@@ -1,0 +1,55 @@
+\section{Playlist augmentation as multi-label classification}
+
+Alternatively, we can formulate the playlist augmentation as a multi-label classification problem,
+where we learn a classifier which hopefully assign positive labels to songs in playlist and negative labels to those not.
+
+To focus on the most plausible songs for playlist $i$ from user $u$,
+we use the P-Classification loss, with the exponential surrogate:
+\begin{equation*}
+\begin{aligned}
+\LCal_\textsc{pc}(f, \DCal) 
+&= \sum_{m: y_i^m = 1} e^{-f(u, i, m)} + \frac{1}{p} \sum_{n: y_i^n = 0} e^{p f(u, i, n)} \\
+&= \sum_{m: y_i^m = 1} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_u^m} 
+   + \frac{1}{p} \sum_{n: y_i^n = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_u^n},
+\end{aligned}
+\end{equation*}
+where $p > 0$ is a trade-off parameter,
+and $\phibm_u^m$ is a feature vector,
+which includes audio features, genre, popularity of song $m$,
+and the number of listening events from users except $u$.
+
+The optimisation objective is:
+\begin{equation*}
+\begin{aligned}
+J &= \lambda \left( \frac{1}{2 U} \sum_{u=1}^U \bv_u^\top \bv_u 
+     + \frac{1}{2 N} \sum_{i=1}^N \w_i^\top \w_i + \frac{1}{2} \mubm^\top \mubm \right) \\
+& \hspace{1.5em}
+     + \frac{1}{N} \sum_{i=1}^N \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m} 
+     + \frac{1}{p} \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n} \\
+&= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+     + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+& \hspace{1.5em}
+     + \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \left(
+       \sum_{m: y_i^m = 1} e^{-(\bv_{u} + \w_i + \mubm)^\top \phibm_u^m} 
+       + \frac{1}{p} \sum_{n: y_i^n = 0} e^{p (\bv_{u} + \w_i + \mubm)^\top \phibm_u^n} \right),
+\end{aligned}
+\end{equation*}
+where $\lambda > 0$ is a regularisation constant.
+
+The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ are
+\begin{equation*}
+\begin{aligned}
+\frac{\partial J}{\partial \bv_u}
+&= \frac{\lambda}{U} \bv_u + \frac{1}{N} \sum_{i \in P_u} \left( 
+   - \sum_{m: y_i^m = 1} \phibm_u^m e^{-(\bv_{u} + \w_i + \mubm)^\top \phibm_u^m} 
+   + \sum_{n: y_i^n = 0} \phibm_u^n e^{p (\bv_{u} + \w_i + \mubm)^\top \phibm_u^n} \right), \\
+\frac{\partial J}{\partial \w_i}
+&= \frac{\lambda}{N} \w_i + \frac{1}{N} \left( 
+   - \sum_{m: y_i^m = 1} \phibm_{u(i)}^m e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m} 
+   + \sum_{n: y_i^n = 0} \phibm_{u(i)}^n e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n} \right), \\
+\frac{\partial J}{\partial \mubm}
+&= \lambda \mubm + \frac{1}{N} \sum_{i=1}^N \left( 
+   - \sum_{m: y_i^m = 1} \phibm_{u(i)}^m e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m} 
+   + \sum_{n: y_i^n = 0} \phibm_{u(i)}^n e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n} \right), \\
+\end{aligned}
+\end{equation*}
