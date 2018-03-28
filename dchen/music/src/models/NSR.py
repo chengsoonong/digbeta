@@ -76,6 +76,7 @@ class DataHelper:
         for u in range(U):
             clq = cliques[u]
             Yu = Y[:, clq]
+            Yu.eliminate_zeros()
             self.Ys.append(Yu.tocoo())
         self.init = True
 
@@ -132,8 +133,10 @@ def objective_clf(w, dw, X, Y, C, p, cliques, data_helper, njobs=1, verbose=0, f
 
     return J
 
+#ncalls = 0
 
 def obj_clf_loop(w, dw, X, Y, C, p, cliques, data_helper, njobs=1, verbose=0, fnpy=None):
+    #global ncalls; ncalls += 1; sys.stdout.write('\r%d' % ncalls); sys.stdout.flush()
     assert C > 0
     assert p > 0
     M, D = X.shape
@@ -143,38 +146,43 @@ def obj_clf_loop(w, dw, X, Y, C, p, cliques, data_helper, njobs=1, verbose=0, fn
     mu = w[:D]
     V = w[D:(U+1)*D].reshape(U, D)
     W = w[(U+1)*D:].reshape(N, D)
-    dmu = np.zeros_like(mu)
-    dV = np.zeros_like(V)
-    dW = np.zeros_like(W)
     Jv = 0.
     for u in range(U):
         Jv += np.dot(V[u, :], V[u, :])
-    Jv *= C * 0.5 / U
+    Jv *= C / (2 * U)
     Jw = 0.
     for i in range(N):
         Jw += np.dot(W[i, :], W[i, :])
-    Jw *= C * 0.5 / N
+    Jw *= C / (2 * N)
+    Jmu = np.dot(mu, mu) * C / 2
     pl2u = np.zeros(N, dtype=np.int)
     for u in range(U):
         clq = cliques[u]
         pl2u[clq] = u
     Jn = 0.
+    dmu = np.zeros_like(mu)
+    dV = np.zeros_like(V)
+    dW = np.zeros_like(W)
     for i in range(N):
         u = pl2u[i]
-        wi = V[u, :] + W[i, :] + mu
         for m in range(M):
-            score = np.dot(wi, X[m, :])
-            s = np.exp(-score) if Y[m, i] is True else np.exp(p * score) / p
+            score = np.dot(V[u, :] + W[i, :] + mu, X[m, :])
+            if Y[m, i] is True:
+                s = np.exp(-score)
+                g = -X[m, :] * s
+            else:
+                s = np.exp(p * score) / p
+                g = X[m, :] * s * p
             Jn += s
-            g = (-s) * X[m, :] if Y[m, i] is True else p * s * X[m, :]
             dV[u, :] += g
-            dW[i, :] = g
+            dW[i, :] += g
             dmu += g
-    J = Jv + Jw + np.dot(mu, mu) * C * 0.5 + Jn / N
+    J = Jv + Jw + Jmu + Jn / N
     dV = V * C / U + dV / N
     dW = W * C / N + dW / N
     dmu = C * mu + dmu / N
     dw[:] = np.r_[dmu.ravel(), dV.ravel(), dW.ravel()]
+    
     return J
 
 
