@@ -1,7 +1,17 @@
 \section{Related work}
 \label{sec:related}
+% related work
+% describe each task with related work: the same, the different
+% describe that we don't use the order of songs, conflicting findings in literature
+% mainly two pieces of work:
+% - music recommendation
+% - playlist generation
+{\it Some related work.}
 
-{\it
-Bipartite ranking losses, \eg P-Norm push, IR-push, top-push, bottom-push.
-Some work on Multi-label classification loss.
-}
+In this paper, we describe two variants of the playlist recommendation problem,
+one is augmenting a playlist by recommending a subset of songs from a collection of music $\SCal$,
+given the first $K$ seed songs, where $K$ can be any positive integer from 1 to the total number of songs in playlist minus 1.
+% in contrast to settings where all songs except the last one are observed\cite{}, or giving a fixed number of seed songs\cite{}.
+Another variant is restricting that all songs to recommend are not observed during learning,
+\ie in the setting of recommending newly released songs to augment a given playlist, which is an instance of the cold-start problem.
+We call the first variant \emph{playlist augmentation} and the second \emph{new song recommendation}.

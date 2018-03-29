@@ -3,9 +3,12 @@
 We can formulate the new song recommendation problem as bipartite ranking problems, 
 and we want to learn a scorer $f$ such that, for a given playlist, 
 songs in this playlist will be scored higher than those not in the given playlist.
+The features of song $m$ are song audio features, genre and popularity, in contrast to playlist augmentation,
+here the listening events from other users are not available due to songs in test set are cold-start items.
 
+The optimisation problem is:
 \begin{equation}
-\label{eq:primal}
+\label{eq:primal_nsr}
 \begin{aligned}
 &\min_{\V, \W, \mubm} \ \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
@@ -15,8 +18,64 @@ songs in this playlist will be scored higher than those not in the given playlis
 \end{aligned}
 \end{equation}
 
+Directly optimise the above problem is challenging due to the \emph{max} operator,
+readily approaches including approximate the \emph{max} operator or formulate and solve the dual problem.
 
-The Lagrangian dual problem of (\ref{eq:primal}) when using the exponential surrogate is
+
+\subsection{Approximate the primal problem}
+The optimisation objective in (\ref{eq:primal_nsr}) can be approximated as
+\begin{equation*}
+\begin{aligned}
+J 
+&\approx \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+& \hspace{2em}
+  + \sum_{i=1}^N \frac{1}{N M_i^+} 
+    \left( \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x^m} \right)
+    \left( \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x^n} \right)^\frac{1}{p}.
+\end{aligned}
+\end{equation*}
+
+The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as 
+\begin{equation*}
+\begin{aligned}
+\frac{\partial J}{\partial \bv_u}
+&\approx \frac{\lambda}{U} \bv_u
+  + \sum_{i \in P_u} \frac{1}{N M_i^+} 
+    \left( \sum_{m: y_i^m = 1} e^{-(\bv_u + \w_i + \mubm)^\top \x^m} \right)
+    \left( \sum_{n: y_i^n = 0} e^{p (\bv_u + \w_i + \mubm)^\top \x^n} \right)^\frac{1}{p} \\
+& \hspace{9.8em} \left[ 
+    \frac{ \displaystyle \sum_{n: y_i^n = 0} \x^n e^{p (\bv_u + \w_i + \mubm)^\top \x^n} }
+         { \displaystyle \sum_{n: y_i^n = 0} e^{p (\bv_u + \w_i + \mubm)^\top \x^n} }
+    - \frac{ \displaystyle \sum_{m: y_i^m = 1} \x^m e^{-(\bv_u + \w_i + \mubm)^\top \x^m} }
+           { \displaystyle \sum_{m: y_i^m = 1} e^{-(\bv_u + \w_i + \mubm)^\top \x^m} } \right] \\
+%
+\frac{\partial J}{\partial \w_i}
+&\approx \frac{\lambda}{N} \w_i
+  + \frac{1}{N M_i^+} 
+    \left( \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x^m} \right)
+    \left( \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x^n} \right)^\frac{1}{p} \\
+& \hspace{8em} \left[ 
+    \frac{ \displaystyle \sum_{n: y_i^n = 0} \x^n e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x^n} }
+         { \displaystyle \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x^n} }
+    - \frac{ \displaystyle \sum_{m: y_i^m = 1} \x^m e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x^m} }
+           { \displaystyle \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x^m} } \right] \\
+%
+\frac{\partial J}{\partial \mubm}
+&\approx \lambda \mubm
+  + \sum_{i=1}^N \frac{1}{N M_i^+} 
+    \left( \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x^m} \right)
+    \left( \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x^n} \right)^\frac{1}{p} \\
+& \hspace{8em} \left[ 
+    \frac{ \displaystyle \sum_{n: y_i^n = 0} \x^n e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x^n} }
+         { \displaystyle \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x^n} }
+    - \frac{ \displaystyle \sum_{m: y_i^m = 1} \x^m e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x^m} }
+           { \displaystyle \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x^m} } \right]
+\end{aligned}
+\end{equation*}
+
+
+\subsection{Formulate the dual problem}
+The Lagrangian dual problem of (\ref{eq:primal_nsr}) when using the exponential surrogate is
 \begin{equation}
 \label{eq:dual}
 \begin{aligned}

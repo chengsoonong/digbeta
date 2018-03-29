@@ -71,7 +71,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
            { \displaystyle \sum_{m: y_i^m = 1} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_u^m} } \right] \\
 %
 \frac{\partial J}{\partial \w_i}
-&= \frac{\lambda}{N} \w_i
+&\approx \frac{\lambda}{N} \w_i
   + \frac{1}{N M_i^+} 
     \left( \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m} \right)
     \left( \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n} \right)^\frac{1}{p} \\
@@ -82,7 +82,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
            { \displaystyle \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m} } \right] \\
 %
 \frac{\partial J}{\partial \mubm}
-&= \lambda \mubm
+&\approx \lambda \mubm
   + \sum_{i=1}^N \frac{1}{N M_i^+} 
     \left( \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m} \right)
     \left( \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n} \right)^\frac{1}{p} \\

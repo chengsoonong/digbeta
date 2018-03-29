@@ -1,34 +1,8 @@
 \section{Introduction}
 \label{sec:intro}
 
-{\it
-%Binary classification and bipartite ranking are the simplest form among their own kind, during the decades (or even tens of decades) of research,
-%quite a few loss functions have been proposed for these two tasks. 
-%Yet, the relationships between these losses are not fully clear.
-
-%There are many works that explored this topic, 
-%JMLR'11 and JMLR'16 are typically ones,
-%JMLR'11 showed that P-Norm push loss and P-Classification loss enjoys a nice equivalence relationships under exponential surrogate,
-%moreover, the RankBoost and AdaBoost ...
-
-%JMLR'16 showed that four of ... losses are equivalent. 
-
-Briefly describe bipartite ranking, binary classification, multi-label classification.
-the equivalence between P-Classification loss and P-Norm push loss under exponential surrogate.
-
-top-push vs. bottom push, top-push vs P-Classification vs p-norm.
-}
-
-Contributions:
-\begin{itemize}
-\item We generalise the equivalence relationships between P-Norm Push loss and P-Classification loss, 
-      with the equivalence between several pairs of bipartite ranking loss and classification loss as special cases,
-      such as the (approximated) Top Push and P-Classification loss, the (approximated) Bottom Push and another classification loss,
-      and the RankBoost and Cost-Sensitive AdaBoot loss.
-\item We generalise the equivalence relationships from binary to multilabel setting, where we described two variants -- 
-      by label and by example, we show that the former holds the equivalence claims similar to the binary setting, 
-      the latter one, however, holds those claims under a few strict assumptions.
-\item We empirically show that one can get good performance on both ranking and classification task by optimising only one loss function,
-      on a standard multilabel classification benchmark as well as a novel application on music playlist augmentation and 
-      new song recommendation.
-\end{itemize}
+% brief description of both recommendation tasks
+We are motivated by the problem of automatically augmenting music playlist with a collection of songs $\SCal$,
+in particular, given a partial playlist with the first $K$ songs\footnote{$K$ can be different for different partial playlists.},
+we would like to recommend a subset of $\SCal$ by learning from user created playlist dataset.
+This task is also known as Automatic Playlist Continuation~\cite{schedl2017,recsysch2018}.
