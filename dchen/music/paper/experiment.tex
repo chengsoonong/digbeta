@@ -1,102 +1,5 @@
-\clearpage
-\newpage
-
 \section{Experiment}
 \label{sec:experiment}
-
-We first evaluate the proposed method on the task of tag recommendation from text data,
-which was formulated as multi-label classification problem~\cite{katakis2008multilabel},
-then on two music playlist recommendation tasks using two playlist dataset.
-
-
-\subsection{Tag recommendation as multi-label classification}
-\label{ssec:mlc}
-
-We experiment on two dataset, \texttt{bibtex} and \texttt{bookmarks}~\cite{katakis2008multilabel}.
-The performance are evaluated on classification metrics, \ie F$_1$ scores averaged over either examples or labels 
-(which are also known as instance-F$_1$ and macro-F$_1$, respectively),
-as well as ranking metric, \ie R-Precision (averaged over either examples or labels).
-
-\paragraph{Baselines}
-We compare our method with four baselines.
-\begin{itemize}
-\item BR~\cite{tsoumakas2006multi}: the binary relevance method which independently learns a logistic regression classifier for each label.
-\item PRLR~\cite{lin2014multi}: a multi-label classifier with a regulariser which encourages sparse and low-rank predictions.
-\item SPEN~\cite{belanger2016structured}: a structured prediction framework which employs a deep network to represent the energy function,
-      and predictions are produced by minimising the energy.
-\item DVN~\cite{gygli2017deep}: a structured prediction method which uses a deep value network to distill the knowledge of a given loss function,
-      which is the F$_1$ score (averaged over examples) in this task.
-\end{itemize}
-
-\paragraph{Experimental design}
-We implemented Logistic regression using scikit-learn~\cite{scikit-learn}.
-The results of SPEN and DVN are reproduced using the coded released the authors,
-and the results of PRLR are taken from \cite{lin2014multi}.
-
-%$\RCal_\textsc{example}$ 
-For the proposed method, we used a linear score function $f(\x) = \w_k^\top \x + b$ for the $k$-th label,
-and the empirical risk was minimised with L2 regularisation using LBFGS in SciPy~\cite{scipy,lbfgsb},
-and hyper-parameters were tuned using 5-fold cross validation.
-
-\paragraph{Evaluation metrics}
-We evaluate the performance of each method using F$_1$ and R-Precision~\cite{manning2008introIR},
-averaged both over examples and labels\footnote{They are also known as the instance-F$_1$ and macro-F$_1$ respectively in the case of F$_1$.}
-
-
-\paragraph{Results}
-The results on test set are summarised in Table~\ref{tab:perf_mlc},
-\begin{itemize}
-\item $\RCal_\textsc{example}$ outperform the independent logistic regression baseline by a large margin.
-\item $\RCal_\textsc{example}$ also achieves better performance than PRLR~\cite{lin2014multi} which regularisation specific to multi-label classification.
-\item Finally, it is encouraging that our method performs better than (\cite{belanger2016structured}) and (\cite{gygli2017deep}),
-both work learn complex non-linear functions using deep neural networks to achieve state-of-the-art performance, while our method uses a linear function.
-\end{itemize}
-
-\begin{table}[!h]
-\centering
-\newcommand{\nan}{{\scriptsize N/A}}
-\caption{Performance on multi-label dataset (F$_1$ and R-Precision $\times 10^2$)}
-\label{tab:perf_mlc}
-\small
-\begin{tabular}{l|*{4}{r}|*{4}{r}}
-\toprule
-{} & \multicolumn{4}{c|}{\textbf{bibtex}} & \multicolumn{4}{c}{\textbf{bookmarks}} \\
-{} & F$_{1\,\text{exp}}$ & F$_{1\,\text{lab}}$ & R-Prec$_{\,\text{exp}}$ & R-Prec$_{\,\text{lab}}$ 
-   & F$_{1\,\text{exp}}$ & F$_{1\,\text{lab}}$ & R-Prec$_{\,\text{exp}}$ & R-Prec$_{\,\text{lab}}$ \\
-\midrule
-BR~\cite{tsoumakas2006multi}       &  $37.9$  &  $30.1$  &  $43.1$  &  $32.1$  &  $29.5$  &  $21.0$  &  $35.6$  &  $21.2$ \\
-PRLR~\cite{lin2014multi}           &  $44.2$  &  $37.2$  &    \nan  &    \nan  &  $34.9$  &  $23.0$  &    \nan  &    \nan \\
-SPEN~\cite{belanger2016structured} &  $41.3$  &  $33.7$  &  $45.6$  &  $34.4$  &  $35.5$  &  $24.1$  &  $39.6$  &  $24.9$ \\
-DVN~\cite{gygli2017deep}           &  $44.7$  &  $32.4$  &  $50.3$  &  $37.7$  &  $37.2$  &  $23.7$  &  $42.2$  &  $26.3$ \\
-\rowcolor[gray]{0.8}
-MLR (Ours)                         &  $47.0$  &  $38.8$  &  $51.3$  &  $40.5$  &  $37.7$  &  $28.4$  &  $42.3$  &  $29.5$ \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-
-\begin{table}[!h]
-\centering
-\caption{Performance on multi-label dataset}
-\label{tab:perf_mlc}
-%\resizebox{\linewidth}{!}{
-\setlength{\tabcolsep}{2pt} % tweak the space between columns
-%\begin{tabular}{l*{6}{c}}
-\begin{tabular}{l|ccc|ccc}
-\toprule
-{} & \multicolumn{3}{c|}{\textbf{bibtex}} & \multicolumn{3}{c}{\textbf{bookmarks}} \\
-{} &   F$_1$ Example & F$_1$ Label &    AUC &      F$_1$ Example & F$_1$ Label &    AUC \\
-\midrule
-Binary Relevance~\cite{}           &          $37.9$ &      $30.1$ & $85.3$ &             $29.5$ &      $21.0$ & $87.2$ \\
-PRLR~\cite{lin2014multi}           &          $44.2$ &      $37.2$ &    N/A &             $34.9$ &      $23.0$ &    N/A \\
-SPEN~\cite{belanger2016structured} &          $41.3$ &      $33.7$ & $92.6$ &             $35.5$ &      $24.1$ & $90.8$ \\
-DVN~\cite{gygli2017deep}           &          $44.7$ &      $32.4$ & $86.7$ &             $37.2$ &      $23.7$ & $76.9$ \\
-MLR (Ours)                         &          ${\bf 47.0}$ & ${\bf 38.8}$ & ${\bf 93.3}$ & ${\bf 37.7}$ & ${\bf 28.4}$ & ${\bf 91.8}$ \\
-\bottomrule
-\end{tabular}
-%}
-\end{table}
-
 
 \subsection{Music playlist dataset}
 We make use of publicly available playlist dataset: the AotM-2011~\cite{mcfee2012hypergraph} and 30Music~\cite{30music2015} playlist dataset. \\
@@ -150,8 +53,9 @@ tasks~\cite{schedl2017,hariri2012context,jannach2015beyond}:
 \item Hit-Rate@K~\cite{hariri2012context}, which computes the ratio of correctly recommended songs among top-$K$ recommendation, 
       where $K$ is a given number, \eg $10$, $100$. 
       This metric is also known as Precision@K in information retrieval literature~\cite{manning2008introIR}.
+\item NDCG and AUC.
 \end{itemize}
-We average over all playlists in test set for each metric.
+We break down the results according to either user or the playlist length (\ie the number of songs in playlist).
 
 
 \subsection{New song recommendation}
@@ -181,7 +85,7 @@ AotM-2011 & 68,657          & 22,885        & 22,886 \\
 %}
 \end{table}
 
-\input{tab_mlr}
+%\input{tab_nsr}
 
 
 \subsection{Playlist augmentation}
@@ -189,8 +93,7 @@ AotM-2011 & 68,657          & 22,885        & 22,886 \\
 
 We use the AotM-2011~\cite{mcfee2012hypergraph} and 30Music~\cite{30music2015} playlist dataset,
 In each dataset, we create the test set such that it contains 20\% of each user's playlists (chosen uniformly at random),
-if the user has 5 or more playlists. Further, for the $j$-th playlist in test set, we hold all tracks except the first $K$ ones,
-where $K$ is chosen from $[1, L_j-1]$ uniformly at random, and $L_j$ is the number of tracks in the $j$-th playlist.
+if the user has 5 or more playlists. Further, for the $j$-th playlist in test set, we hold all tracks except the first $K$ ones, where $K=1,2,3,4$.
 The validation set is constructed the same as the test test.
 All remaining playlists are used for training.
 As a remark, we observed the entire collection of songs during training, 
@@ -204,15 +107,15 @@ Table~\ref{tab:stats_pla} summarises the statistics of the two dataset used for 
 \label{tab:stats_pla}
 %\resizebox{\linewidth}{!}{
 \small
-\begin{tabular}{l|rrrrr}
+\begin{tabular}{l|rrr}
 \toprule
-Dataset   & \#Playlists (train) & \#Playlists (dev) & \#Playlists (test)  & \#Listen events held (dev) & \#Listen events held (test) \\
+Dataset   & \#Playlists (train) & \#Playlists (dev) & \#Playlists (test) \\ % & \#Listen events held (dev) & \#Listen events held (test) \\
 \midrule
-AotM-2011 & 60,260              & 12,225            & 12,225              & 62,396                     & 62,844 \\
-30Music   & 15,591              & 933               & 933                 & 8,459                      & 8,487  \\
+AotM-2011 & 60,260              & 12,225            & 12,225             \\ %& 62,396                     & 62,844 \\
+30Music   & 15,591              & 933               & 933                \\ %& 8,459                      & 8,487  \\
 \bottomrule
 \end{tabular}
 %}
 \end{table}
 
-\input{tab_pla}
+%\input{tab_pla}
