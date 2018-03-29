@@ -132,6 +132,7 @@ def objective_clf(w, dw, X, Y, C, p, cliques, data_helper, njobs=1, verbose=0, f
 
 # ncalls = 0
 
+
 def obj_clf_loop(w, dw, X, Y, C, p, cliques, data_helper, njobs=1, verbose=0, fnpy=None):
     # global ncalls; ncalls += 1; sys.stdout.write('\r%d' % ncalls); sys.stdout.flush()
     assert C > 0
@@ -174,7 +175,6 @@ def obj_clf_loop(w, dw, X, Y, C, p, cliques, data_helper, njobs=1, verbose=0, fn
     dW = W * C / N + dW / N
     dmu = C * mu + dmu / N
     dw[:] = np.r_[dmu.ravel(), dV.ravel(), dW.ravel()]
-    
     return J
 
 
