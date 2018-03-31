@@ -10,8 +10,8 @@ songs in this playlist will be scored higher than those not in the given playlis
 &\min_{\V, \W, \mubm} \ \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{4em}
-     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m
-     - \max_{n: y_i^n = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n \right).
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}
+     - \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n} \right).
 \end{aligned}
 \end{equation}
 
@@ -22,12 +22,12 @@ If we approximate the \emph{max} operator
 and use the exponential surrogate $\ell(f, y) = e^{-fy}$, we have
 \begin{equation*}
 \begin{aligned}
-&\ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m - \max_{n: y_i^n = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n \right) \\
-&= \exp \left( -(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m + \max_{n: y_i^n = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n \right) \\
-&\approx \exp \left( -(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m 
-            + \frac{1}{p} \log \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n} \right) \\
-&= e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m}
-   \left( \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n} \right)^\frac{1}{p}.
+&\ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m} - \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n} \right) \\
+&= \exp \left( -(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m} + \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n} \right) \\
+&\approx \exp \left( -(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m} 
+            + \frac{1}{p} \log \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right) \\
+&= e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}}
+   \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p}.
 \end{aligned}
 \end{equation*}
 
@@ -37,14 +37,14 @@ Then the optimisation objective in (\ref{eq:primal_pla}) can be approximated as
 J 
 &\approx \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{2em}
-  + \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_i^m = 1} 
-    e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m}
-    \left( \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n} \right)^\frac{1}{p} \\
+  + \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} 
+    e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}}
+    \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p} \\
 &= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{2em}
   + \sum_{i=1}^N \frac{1}{N M_i^+} 
-    \left( \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m} \right)
-    \left( \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n} \right)^\frac{1}{p}.
+    \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} \right)
+    \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p}.
 \end{aligned}
 \end{equation*}
 
@@ -54,42 +54,42 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
 \frac{\partial J}{\partial \bv_u}
 &\approx \frac{\lambda}{U} \bv_u
   + \sum_{i \in P_u} \frac{1}{N M_i^+} \left[
-    \left(-\sum_{m: y_i^m = 1} \phibm_u^m e^{-(\bv_u + \w_i + \mubm)^\top \phibm_u^m} \right)
-    \left( \sum_{n: y_i^n = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_u^n} \right)^\frac{1}{p} \right. \\
+    \left(-\sum_{m: y_m^i = 1} \phibm_{u,m} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_{u,m}} \right)
+    \left( \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} \right)^\frac{1}{p} \right. \\
 & \hspace{2em} + \left.
-    \left( \sum_{m: y_i^m = 1} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_u^m} \right)
-    \left( \sum_{n: y_i^n = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_u^n} \right)^{\frac{1}{p} - 1}
-    \left( \sum_{n: y_i^n = 0} \phibm_u^n e^{p (\bv_u + \w_i + \mubm)^\top \phibm_u^n} \right) \right] \\
+    \left( \sum_{m: y_m^i = 1} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_{u,m}} \right)
+    \left( \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} \right)^{\frac{1}{p} - 1}
+    \left( \sum_{n: y_n^i = 0} \phibm_{u,n} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} \right) \right] \\
 &= \frac{\lambda}{U} \bv_u
   + \sum_{i \in P_u} \frac{1}{N M_i^+} 
-    \left( \sum_{m: y_i^m = 1} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_u^m} \right)
-    \left( \sum_{n: y_i^n = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_u^n} \right)^\frac{1}{p} \\
+    \left( \sum_{m: y_m^i = 1} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_{u,m}} \right)
+    \left( \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} \right)^\frac{1}{p} \\
 & \hspace{9.8em} \left[ 
-    \frac{ \displaystyle \sum_{n: y_i^n = 0} \phibm_u^n e^{p (\bv_u + \w_i + \mubm)^\top \phibm_u^n} }
-         { \displaystyle \sum_{n: y_i^n = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_u^n} }
-    - \frac{ \displaystyle \sum_{m: y_i^m = 1} \phibm_u^m e^{-(\bv_u + \w_i + \mubm)^\top \phibm_u^m} }
-           { \displaystyle \sum_{m: y_i^m = 1} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_u^m} } \right] \\
+    \frac{ \displaystyle \sum_{n: y_n^i = 0} \phibm_{u,n} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} }
+         { \displaystyle \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} }
+    - \frac{ \displaystyle \sum_{m: y_m^i = 1} \phibm_{u,m} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_{u,m}} }
+           { \displaystyle \sum_{m: y_m^i = 1} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_{u,m}} } \right] \\
 %
 \frac{\partial J}{\partial \w_i}
 &\approx \frac{\lambda}{N} \w_i
   + \frac{1}{N M_i^+} 
-    \left( \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m} \right)
-    \left( \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n} \right)^\frac{1}{p} \\
+    \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} \right)
+    \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p} \\
 & \hspace{8em} \left[ 
-    \frac{ \displaystyle \sum_{n: y_i^n = 0} \phibm_{u(i)}^n e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n} }
-         { \displaystyle \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n} }
-    - \frac{ \displaystyle \sum_{m: y_i^m = 1} \phibm_{u(i)}^m e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m} }
-           { \displaystyle \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m} } \right] \\
+    \frac{ \displaystyle \sum_{n: y_n^i = 0} \phibm_{u(i),n} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} }
+         { \displaystyle \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} }
+    - \frac{ \displaystyle \sum_{m: y_m^i = 1} \phibm_{u(i),m} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} }
+           { \displaystyle \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} } \right] \\
 %
 \frac{\partial J}{\partial \mubm}
 &\approx \lambda \mubm
   + \sum_{i=1}^N \frac{1}{N M_i^+} 
-    \left( \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m} \right)
-    \left( \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n} \right)^\frac{1}{p} \\
+    \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} \right)
+    \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p} \\
 & \hspace{8em} \left[ 
-    \frac{ \displaystyle \sum_{n: y_i^n = 0} \phibm_{u(i)}^n e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n} }
-         { \displaystyle \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^n} }
-    - \frac{ \displaystyle \sum_{m: y_i^m = 1} \phibm_{u(i)}^m e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m} }
-           { \displaystyle \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i)}^m} } \right]
+    \frac{ \displaystyle \sum_{n: y_n^i = 0} \phibm_{u(i),n} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} }
+         { \displaystyle \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} }
+    - \frac{ \displaystyle \sum_{m: y_m^i = 1} \phibm_{u(i),m} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} }
+           { \displaystyle \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} } \right]
 \end{aligned}
 \end{equation*}

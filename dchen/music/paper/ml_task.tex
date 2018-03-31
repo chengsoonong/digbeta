@@ -42,10 +42,10 @@ As a remark, we do not care about the order of songs in a playlist.
 The score of song $m$ in playlist $i$ from user $u$ is a linear form,
 \begin{equation*}
 \begin{aligned}
-f(u, i, m) &= \bar\w_{u,i}^\top \x^m,
+f(u, i, m) &= \bar\w_{u,i}^\top \x_m,
 \end{aligned}
 \end{equation*}
-where $\x^m$ is a feature vector of song $m$ which contains audio features, song genre, and 
+where $\x_m$ is a feature vector of song $m$ which contains audio features, song genre, and 
 \begin{equation*}
 \bar\w_{u,i} = \bv_u + \w_i + \mubm,
 \end{equation*}
@@ -57,7 +57,7 @@ Further, when recommending songs for user $u$, we can also utilise song populari
 if these are available at test time (\eg playlist augmentation), \ie
 \begin{equation*}
 \begin{aligned}
-f(u, i, m) &= \bar\w_{u,i}^\top \phibm_u^m,
+f(u, i, m) &= \bar\w_{u,i}^\top \phibm_{u,m},
 \end{aligned}
 \end{equation*}
-where $\phibm_u^m$ is a new feature vector concatenating both $\x^m$ and the number of listening events by all users except $u$.
+where $\phibm_{u,m}$ is a new feature vector concatenating both $\x_m$ and the number of listening events by all users except $u$.

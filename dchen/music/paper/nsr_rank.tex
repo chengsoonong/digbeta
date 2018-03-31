@@ -13,8 +13,8 @@ The optimisation problem is:
 &\min_{\V, \W, \mubm} \ \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{4em}
-     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x^m 
-     - \max_{n: y_i^n = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \x^n \right).
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
+     - \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \x_n \right).
 \end{aligned}
 \end{equation}
 
@@ -30,8 +30,8 @@ J
 &\approx \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{2em}
   + \sum_{i=1}^N \frac{1}{N M_i^+} 
-    \left( \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x^m} \right)
-    \left( \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x^n} \right)^\frac{1}{p}.
+    \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x_m} \right)
+    \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x_n} \right)^\frac{1}{p}.
 \end{aligned}
 \end{equation*}
 
@@ -41,35 +41,35 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
 \frac{\partial J}{\partial \bv_u}
 &\approx \frac{\lambda}{U} \bv_u
   + \sum_{i \in P_u} \frac{1}{N M_i^+} 
-    \left( \sum_{m: y_i^m = 1} e^{-(\bv_u + \w_i + \mubm)^\top \x^m} \right)
-    \left( \sum_{n: y_i^n = 0} e^{p (\bv_u + \w_i + \mubm)^\top \x^n} \right)^\frac{1}{p} \\
+    \left( \sum_{m: y_m^i = 1} e^{-(\bv_u + \w_i + \mubm)^\top \x_m} \right)
+    \left( \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \x_n} \right)^\frac{1}{p} \\
 & \hspace{9.8em} \left[ 
-    \frac{ \displaystyle \sum_{n: y_i^n = 0} \x^n e^{p (\bv_u + \w_i + \mubm)^\top \x^n} }
-         { \displaystyle \sum_{n: y_i^n = 0} e^{p (\bv_u + \w_i + \mubm)^\top \x^n} }
-    - \frac{ \displaystyle \sum_{m: y_i^m = 1} \x^m e^{-(\bv_u + \w_i + \mubm)^\top \x^m} }
-           { \displaystyle \sum_{m: y_i^m = 1} e^{-(\bv_u + \w_i + \mubm)^\top \x^m} } \right] \\
+    \frac{ \displaystyle \sum_{n: y_n^i = 0} \x_n e^{p (\bv_u + \w_i + \mubm)^\top \x_n} }
+         { \displaystyle \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \x_n} }
+    - \frac{ \displaystyle \sum_{m: y_m^i = 1} \x_m e^{-(\bv_u + \w_i + \mubm)^\top \x_m} }
+           { \displaystyle \sum_{m: y_m^i = 1} e^{-(\bv_u + \w_i + \mubm)^\top \x_m} } \right] \\
 %
 \frac{\partial J}{\partial \w_i}
 &\approx \frac{\lambda}{N} \w_i
   + \frac{1}{N M_i^+} 
-    \left( \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x^m} \right)
-    \left( \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x^n} \right)^\frac{1}{p} \\
+    \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x_m} \right)
+    \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x_n} \right)^\frac{1}{p} \\
 & \hspace{8em} \left[ 
-    \frac{ \displaystyle \sum_{n: y_i^n = 0} \x^n e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x^n} }
-         { \displaystyle \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x^n} }
-    - \frac{ \displaystyle \sum_{m: y_i^m = 1} \x^m e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x^m} }
-           { \displaystyle \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x^m} } \right] \\
+    \frac{ \displaystyle \sum_{n: y_n^i = 0} \x_n e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x_n} }
+         { \displaystyle \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x_n} }
+    - \frac{ \displaystyle \sum_{m: y_m^i = 1} \x_m e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x_m} }
+           { \displaystyle \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x_m} } \right] \\
 %
 \frac{\partial J}{\partial \mubm}
 &\approx \lambda \mubm
   + \sum_{i=1}^N \frac{1}{N M_i^+} 
-    \left( \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x^m} \right)
-    \left( \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x^n} \right)^\frac{1}{p} \\
+    \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x_m} \right)
+    \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x_n} \right)^\frac{1}{p} \\
 & \hspace{8em} \left[ 
-    \frac{ \displaystyle \sum_{n: y_i^n = 0} \x^n e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x^n} }
-         { \displaystyle \sum_{n: y_i^n = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x^n} }
-    - \frac{ \displaystyle \sum_{m: y_i^m = 1} \x^m e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x^m} }
-           { \displaystyle \sum_{m: y_i^m = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x^m} } \right]
+    \frac{ \displaystyle \sum_{n: y_n^i = 0} \x_n e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x_n} }
+         { \displaystyle \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x_n} }
+    - \frac{ \displaystyle \sum_{m: y_m^i = 1} \x_m e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x_m} }
+           { \displaystyle \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x_m} } \right]
 \end{aligned}
 \end{equation*}
 
@@ -86,7 +86,7 @@ The Lagrangian dual problem of (\ref{eq:primal_nsr}) when using the exponential 
 & \hspace{1em}
    + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right) \\
 s.t. \ & \Thetabm^\top \one_M = \zero_N \\
-           & \theta_i^n \ge 0, \, i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_i^n = 0.
+           & \theta_i^n \ge 0, \, i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_n^i = 0.
 \end{aligned}
 \end{equation}
 Note that the above objective can be computed as
@@ -120,7 +120,7 @@ The gradient of the optimisation objective w.r.t. to dual variables $\thetabm_k 
    + N \thetabm_k^\top \X 
    + \sum_{i=1}^N \thetabm_i^\top \X \right)^\top
    - \log(N M_k^+) \y_k - \y_k \circ \log(-\thetabm_k) \\
-&= \frac{\X \X^\top}{\lambda} \left( U \sum_{i \in P_{u(k)}} \thetabm_i + N \thetabm_k + \sum_{i=1}^N \thetabm_i \right)^\top
+&= \frac{\X \X^\top}{\lambda} \left( U \sum_{i \in P_{u(k)}} \thetabm_i + N \thetabm_k + \sum_{i=1}^N \thetabm_i \right)
    - \log(N M_k^+) \y_k - \y_k \circ \log(-\thetabm_k) \\
 \end{aligned}
 \end{equation*}
@@ -135,5 +135,5 @@ The hessian is
 \end{equation*}
 where $\Hb_k \in \R^{M \times M}$ is a diagnoal matrix such that
 \begin{equation*}
-H_k^m = \frac{y_k^m}{\theta_k^m}, \ m = \{1,\dots,M\}.
+H_k^m = \frac{y_m^k}{\theta_k^m}, \ m = \{1,\dots,M\}.
 \end{equation*}
