@@ -4,17 +4,23 @@ We can formulate the playlist augmentation problem as bipartite ranking problems
 and we want to learn a scorer $f$ such that, for a given playlist, 
 songs in this playlist will be scored higher than those not in the given playlist.
 
+The optimisation problem is:
 \begin{equation}
 \label{eq:primal_pla}
 \begin{aligned}
 &\min_{\V, \W, \mubm} \ \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
-& \hspace{4em}
+& \hspace{5em}
      + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}
      - \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n} \right).
 \end{aligned}
 \end{equation}
 
+Directly optimise the above problem is challenging due to the \emph{max} operator,
+readily approaches including approximate the \emph{max} operator or formulate and solve the dual problem.
+
+
+\subsection{Approximate the primal problem}
 If we approximate the \emph{max} operator
 \begin{equation*}
 \max_i z_i \approx \frac{1}{p} \log \sum_i e^{p z_i},
@@ -36,12 +42,12 @@ Then the optimisation objective in (\ref{eq:primal_pla}) can be approximated as
 \begin{aligned}
 J 
 &\approx \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
-& \hspace{2em}
+& \hspace{3em}
   + \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} 
     e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}}
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p} \\
 &= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
-& \hspace{2em}
+& \hspace{3em}
   + \sum_{i=1}^N \frac{1}{N M_i^+} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p}.
@@ -56,7 +62,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
   + \sum_{i \in P_u} \frac{1}{N M_i^+} \left[
     \left(-\sum_{m: y_m^i = 1} \phibm_{u,m} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_{u,m}} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} \right)^\frac{1}{p} \right. \\
-& \hspace{2em} + \left.
+& \hspace{1.5em} + \left.
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_{u,m}} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} \right)^{\frac{1}{p} - 1}
     \left( \sum_{n: y_n^i = 0} \phibm_{u,n} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} \right) \right] \\
@@ -92,4 +98,60 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
     - \frac{ \displaystyle \sum_{m: y_m^i = 1} \phibm_{u(i),m} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} }
            { \displaystyle \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} } \right]
 \end{aligned}
+\end{equation*}
+
+
+\subsection{Formulate the dual problem}
+The Lagrangian dual problem of (\ref{eq:primal_pla}) when using the exponential surrogate is
+\begin{equation}
+\label{eq:dual_pla}
+\begin{aligned}
+\min_{\Thetabm} \ & \frac{1}{2 \lambda} \left[
+     U \sum_{u=1}^U \left( \sum_{i \in P_u} \thetabm_i^\top \Phibm_u \right) \left( \sum_{i \in P_u} \thetabm_i^\top \Phibm_u \right)^\top
+   + N \sum_{i=1}^N \left( \thetabm_i^\top \Phibm_{u(i)} \right) \left( \thetabm_i^\top \Phibm_{u(i)} \right)^\top \right. \\
+& \hspace{2em} \left.
+   + \left( \sum_{u=1}^U \sum_{i \in P_u} \thetabm_i^\top \Phibm_u \right)
+     \left( \sum_{u=1}^U \sum_{i \in P_u} \thetabm_i^\top \Phibm_u \right)^\top \right]
+   + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top 
+     \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right), \\
+s.t. \ 
+& \Thetabm \one_M = \zero_N, \\
+&\theta_i^m < 0, \ \mathrm{if} \ y_m^i = 1, \\
+&\theta_i^n \ge 0, \ \mathrm{if} \ y_n^i = 0, \ i \in \{1,\dots,N\}, \, m,n \in \{1,\dots,M\}.
+\end{aligned}
+\end{equation}
+
+The gradient of the optimisation objective w.r.t. to dual variables $\thetabm_k \in \R^{M}$, $k \in \{1,\dots,N\}$,
+\begin{equation*}
+\begin{aligned}
+\frac{\partial J}{\partial \thetabm_k}
+&= \frac{1}{2 \lambda} \left( U \cdot 2 \Phibm_{u(k)} \left(\sum_{i \in P_{u(k)}} \thetabm_i^\top \Phibm_{u(k)} \right)^\top 
+   + N \cdot 2 \Phibm_{u(k)} \left( \thetabm_k^\top \Phibm_{u(k)} \right)^\top
+   + 2 \Phibm_{u(k)} \left(\sum_{u=1}^U \sum_{i \in P_u} \thetabm_i^\top \Phibm_u \right)^\top \right) \\
+& \hspace{2.5em}
+   + (1 - \log(N M_k^+)) \y_k - \y_k \circ \log(-\thetabm_k) + \y_k \circ \thetabm_k \left( -\frac{-1}{-\y_k \circ \thetabm_k} \right) \\
+&= \frac{\Phibm_{u(k)}}{\lambda} \left( U \sum_{i \in P_{u(k)}} \thetabm_i^\top \Phibm_{u(k)}
+   + N \thetabm_k^\top \Phibm_{u(k)} 
+   + \sum_{u=1}^U \sum_{i \in P_u} \thetabm_i^\top \Phibm_u \right)^\top
+   - \log(N M_k^+) \y_k - \y_k \circ \log(-\thetabm_k) \\
+&= \frac{\Phibm_{u(k)}}{\lambda} \left( \left( U \sum_{i \in P_{u(k)}} \thetabm_i + N \thetabm_k \right)^\top \Phibm_{u(k)} 
+   + \sum_{u=1}^U \sum_{i \in P_u} \thetabm_i^\top \Phibm_u \right)^\top
+   - \log(N M_k^+) \y_k - \y_k \circ \log(-\thetabm_k),
+\end{aligned}
+\end{equation*}
+where $\Phibm_{u(k)} \in \R^{M \times (D + U - 1)}$ is the design matrix in which 
+the $m$-th row is the concatenation of the feature vector of song $m$ 
+and the number of listening events of all users except $u(k)$ (the user that owns playlist $k$) with regards to song $m$.
+
+The Hessian is
+\begin{equation*}
+\begin{aligned}
+\frac{\partial^2 J}{\partial \thetabm_k^2}
+&= \frac{\Phibm_{u(k)}}{\lambda} \left( U \Phibm_{u(k)} + N \Phibm_{u(k)} + \Phibm_{u(k)} \right)^\top - \Hb_k
+ = \frac{1}{\lambda} (U + N + 1) \Phibm_{u(k)} \Phibm_{u(k)}^\top - \Hb_k,
+\end{aligned}
+\end{equation*}
+where $\Hb_k \in \R^{M \times M}$ is a diagonal matrix such that
+\begin{equation*}
+H_k^m = \frac{y_m^k}{\theta_k^m}, \ m = \{1,\dots,M\}.
 \end{equation*}
