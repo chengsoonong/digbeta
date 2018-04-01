@@ -1,4 +1,4 @@
-\section{The dual problem of multitask bipartite ranking}
+\section{The dual problem of multitask bipartite ranking for new song recommendation}
 
 The optimisation problem is
 \begin{equation}
@@ -216,11 +216,11 @@ By (\ref{eq:dualfunc}, \ref{eq:gmin}, \ref{eq:expconj}), the \emph{Lagrangian du
 \begin{aligned}
 &\max_{\betabm} \ \inf_{\V, \W, \mubm, \xibm} L(\V, \W, \mubm, \xibm, \alphabm, \betabm) \\
 &= \max_{\alphabm, \betabm} \left[ \min_{\V, \W, \mubm, \xibm} g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right] \\
-&= \min_{\Thetabm} \ \frac{1}{2 \lambda} \left[
+&= \min_{\Thetabm} \, \frac{1}{2 \lambda} \left[
      U \sum_{u=1}^U \left( \sum_{i \in P_u} \thetabm_i^\top \X \right) \left( \sum_{i \in P_u} \thetabm_i^\top \X \right)^\top
    + N \sum_{i=1}^N \left( \thetabm_i^\top \X \right) \left( \thetabm_i^\top \X \right)^\top
    + \left( \sum_{i=1}^N \thetabm_i^\top \X \right) \left( \sum_{i=1}^N \thetabm_i^\top \X \right)^\top \right] \\
-& \hspace{4em}
+& \hspace{5em}
    + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top 
      \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right).
 \end{aligned}
@@ -228,7 +228,7 @@ By (\ref{eq:dualfunc}, \ref{eq:gmin}, \ref{eq:expconj}), the \emph{Lagrangian du
 subject to constraints
 \begin{equation*}
 \begin{aligned}
-\Thetabm^\top \one_M &= \zero_N \\
+\Thetabm \one_M &= \zero_N \\
 \theta_i^m & \ge 0, \ i \in \{1,\dots,N\}, \, m \in \{1,\dots,M\} \ \mathrm{and} \ y_m^i = 0.
 \end{aligned}
 \end{equation*}
