@@ -61,12 +61,15 @@ We break down the results according to either user or the playlist length (\ie t
 \subsection{New song recommendation}
 \label{ssec:newsongrec}
 
-In both the AotM-2011 and 30Music dataset, we hold (a random) half of the 40\% latest released songs for test,
-and other half as validation set, the remaining 60\% of songs are used for training.
-As a remark, in each dataset, the set of users and playlists are the same for training/dev/test split,
-these splits differ in the set of songs.
-
+We hold 5000 of the latest released songs for test in both the AotM-2011 and 30Music dataset,
+and we predict a song in test will be in a given playlist.
+As a remark, the set of users are the same for training and test set,
+so does the number of playlists; 
+further, we remove playlists in which all songs are in test set are removed.
 Table~\ref{tab:stats_newsongrec} summarises the statistics of the two dataset used for this task.
+
+To tune hyper-parameters, we hold a subset of songs in training set as the validation set, 
+which is constructed using the same approach as the test test.
 
 \begin{table}[!h]
 \centering
@@ -76,10 +79,10 @@ Table~\ref{tab:stats_newsongrec} summarises the statistics of the two dataset us
 \small
 \begin{tabular}{l|rrr}
 \toprule
-Dataset   & \#Songs (train) & \#Songs (dev) & \#Songs (test) \\
+Dataset   & \#Playlists \#Songs (train) & \#Songs (test) \\
 \midrule
-AotM-2011 & 68,657          & 22,885        & 22,886 \\
-30Music   & 27,281          & 9,093         & 9,094  \\
+AotM-2011 &           &          & \\
+30Music   &           &          & \\
 \bottomrule
 \end{tabular}
 %}
@@ -92,14 +95,15 @@ AotM-2011 & 68,657          & 22,885        & 22,886 \\
 \label{ssec:pla}
 
 We use the AotM-2011~\cite{mcfee2012hypergraph} and 30Music~\cite{30music2015} playlist dataset,
-In each dataset, we create the test set such that it contains 20\% of each user's playlists (chosen uniformly at random),
-if the user has 5 or more playlists. Further, for the $j$-th playlist in test set, we hold all tracks except the first $K$ ones, where $K=1,2,3,4$.
-The validation set is constructed the same as the test test.
-All remaining playlists are used for training.
+In each dataset, we create a test set by holding 20\% of each user's playlists (chosen uniformly at random) 
+if the user has 5 or more playlists. 
+The we hold all songs except the first $K, \, K \in \{1,2,3,4\}$ ones for every playlist in test set.
 As a remark, we observed the entire collection of songs during training, 
 and all users in test set have playlists in training set.
-
 Table~\ref{tab:stats_pla} summarises the statistics of the two dataset used for this task.
+
+To tune hyper-parameters, we hold a subset of playlists in training set as the validation set, 
+which is constructed using the same approach as the test test.
 
 \begin{table}[!h]
 \centering
@@ -109,10 +113,10 @@ Table~\ref{tab:stats_pla} summarises the statistics of the two dataset used for 
 \small
 \begin{tabular}{l|rrr}
 \toprule
-Dataset   & \#Playlists (train) & \#Playlists (dev) & \#Playlists (test) \\ % & \#Listen events held (dev) & \#Listen events held (test) \\
+Dataset   & \#Songs      & \#Playlists (train) & \#Playlists (test) \\
 \midrule
-AotM-2011 & 60,260              & 12,225            & 12,225             \\ %& 62,396                     & 62,844 \\
-30Music   & 15,591              & 933               & 933                \\ %& 8,459                      & 8,487  \\
+AotM-2011 &              &             &           
+30Music   &              &             &             
 \bottomrule
 \end{tabular}
 %}
