@@ -6,7 +6,7 @@ The optimisation problem is
 \begin{aligned}
 &\min_{\V, \W, \mubm} \ \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
-& \hspace{4em}
+& \hspace{5em}
      + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
      - \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \x_n \right).
 \end{aligned}
@@ -17,7 +17,7 @@ Let
 \begin{aligned}
 f_0(\V, \W, \mubm, \xibm) &= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
-& \quad \ 
+& \hspace{3em}
      + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} 
        \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m - \xi_i \right) \\
 f_{i,n} (\V, \W, \mubm, \xibm) &= (\bv_{u(i)} + \w_i + \mubm)^\top \x_n - \xi_i, \
@@ -59,9 +59,9 @@ Let
 g(\V, \W, \mubm, \xibm, \alphabm, \betabm)
 &= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
-& \hspace{2em}
+& \hspace{3em}
      + \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m - \xi_i \right) \alpha_i^m \\
-& \hspace{2em}
+& \hspace{3em}
      + \sum_{i=1}^N \sum_{n: y_n^i = 0} \beta_i^n \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_n - \xi_i \right), \\
 r(\alphabm)
 &= \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \ell^*(\alpha_i^m),
@@ -79,11 +79,11 @@ Assuming strong duality, the \emph{Lagrangian dual function} of (\ref{eq:stdopt}
 \begin{equation}
 \label{eq:dualfunc}
 \begin{aligned}
-&\inf_{\V, \W, \mubm, \xibm} L(\V, \W, \mubm, \xibm, \alphabm, \betabm) \\
-&= \inf_{\V, \W, \mubm, \xibm} \sup_\alphabm \left[ g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right] \\
-&= \sup_\alphabm \inf_{\V, \W, \mubm, \xibm} \left[ g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right] \\
-&= \sup_\alphabm \left[ \inf_{\V, \W, \mubm, \xibm} g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right] \\
-&= \max_\alphabm \left[ \min_{\V, \W, \mubm, \xibm} g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right].
+&\inf_{\V, \W, \mubm, \xibm} \ L(\V, \W, \mubm, \xibm, \alphabm, \betabm) \\
+&= \inf_{\V, \W, \mubm, \xibm} \ \sup_\alphabm \left[ g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right] \\
+&= \sup_\alphabm \ \inf_{\V, \W, \mubm, \xibm} \left[ g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right] \\
+&= \sup_\alphabm \left[ \inf_{\V, \W, \mubm, \xibm} \ g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right] \\
+&= \max_\alphabm \left[ \min_{\V, \W, \mubm, \xibm} \ g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right].
 \end{aligned}
 \end{equation}
 
@@ -112,26 +112,38 @@ To simplify the notation, let $\Thetabm \in \R^{N \times M}$ such that
 \end{cases}
 \end{equation*}
 then we have
-\begin{equation*}
+\begin{equation}
+\label{eq:dual2primal}
 \begin{aligned}
-\bv_u^\top &= -\frac{U}{\lambda} \sum_{i \in P_u} \thetabm_i^\top \X \\
-\w_i^\top  &= -\frac{N}{\lambda} \thetabm_i^\top \X \\
-\mubm^\top &= -\frac{1}{\lambda} \sum_{i=1}^N \thetabm_i^\top \X \\
-\thetabm_i^\top \one_M &= 0
+\bv_u
+&= -\frac{U}{\lambda} \sum_{i \in P_u} \sum_{m=1}^M \theta_i^m \x_m
+ = -\frac{U}{\lambda} \sum_{i \in P_u} \left( \thetabm_i^\top \X \right)^\top \\
+%
+\w_i
+&= -\frac{N}{\lambda} \sum_{m=1}^M \theta_i^m \x_m
+ = -\frac{N}{\lambda} \left( \thetabm_i^\top \X \right)^\top \\
+%
+\mubm
+&= -\frac{1}{\lambda} \sum_{i=1}^N \sum_{m=1}^M \theta_i^m \x_m 
+ = -\frac{1}{\lambda} \sum_{i=1}^N \left( \thetabm_i^\top \X \right)^\top \\
+%
+0
+&= \sum_{m=1}^M \theta_i^m 
+ = \thetabm_i^\top \one_M
 \end{aligned}
-\end{equation*}
+\end{equation}
 
-Thus, 
+Thus,
 \begin{equation*}
 \begin{aligned}
 &\min_{\V, \W, \mubm, \xibm} g(\V, \W, \mubm, \xibm, \alphabm, \betabm) \\
 &= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
-& \hspace{2em}
+& \hspace{3em}
      + \sum_{i=1}^N \left( 
        \sum_{m: y_m^i = 1} \frac{\alpha_i^m}{N M_i^+} (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
      + \sum_{n: y_n^i = 0} \beta_i^n (\bv_{u(i)} + \w_i + \mubm)^\top \x_n \right) \\
-& \hspace{2em}
+& \hspace{3em}
      - \sum_{i=1}^N \xi_i \left( \sum_{m: y_m^i = 1} \frac{\alpha_i^m}{N M_i^+} + \sum_{n: y_n^i = 0} \beta_i^n \right) \\
 &= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right)
@@ -139,7 +151,7 @@ Thus,
 \end{aligned}
 \end{equation*}
 
-Note that
+Note that by (\ref{eq:dual2primal})
 \begin{equation*}
 \begin{aligned}
 &\sum_{i=1}^N \sum_{m=1}^M \theta_i^m (\bv_{u(i)} + \w_i + \mubm)^\top \x_m \\
@@ -228,8 +240,8 @@ By (\ref{eq:dualfunc}, \ref{eq:gmin}, \ref{eq:expconj}), the \emph{Lagrangian du
 subject to constraints
 \begin{equation*}
 \begin{aligned}
-\Thetabm \one_M &= \zero_N \\
-\theta_i^m & \ge 0, \ i \in \{1,\dots,N\}, \, m \in \{1,\dots,M\} \ \mathrm{and} \ y_m^i = 0.
+\Thetabm \one_M &= \zero_N, \\
+\theta_i^m & < 0, \ \mathrm{if} \ y_m^i = 1, \\
+\theta_i^n & \ge 0, \ \mathrm{if} \ y_n^i = 0, \ i \in \{1,\dots,N\}, \, m,n \in \{1,\dots,M\}.
 \end{aligned}
 \end{equation*}
-

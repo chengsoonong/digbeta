@@ -12,7 +12,7 @@ The optimisation problem is:
 \begin{aligned}
 &\min_{\V, \W, \mubm} \ \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
-& \hspace{4em}
+& \hspace{5em}
      + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
      - \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \x_n \right).
 \end{aligned}
@@ -28,7 +28,7 @@ The optimisation objective in (\ref{eq:primal_nsr}) can be approximated as
 \begin{aligned}
 J 
 &\approx \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
-& \hspace{2em}
+& \hspace{3em}
   + \sum_{i=1}^N \frac{1}{N M_i^+} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x_m} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x_n} \right)^\frac{1}{p}.
@@ -77,16 +77,18 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
 \subsection{Formulate the dual problem}
 The Lagrangian dual problem of (\ref{eq:primal_nsr}) when using the exponential surrogate is
 \begin{equation}
-\label{eq:dual}
+\label{eq:dual_nsr}
 \begin{aligned}
 \min_{\Thetabm} \ & \frac{1}{2 \lambda} \left[
      U \sum_{u=1}^U \left( \sum_{i \in P_u} \thetabm_i^\top \X \right) \left( \sum_{i \in P_u} \thetabm_i^\top \X \right)^\top
    + N \sum_{i=1}^N \left( \thetabm_i^\top \X \right) \left( \thetabm_i^\top \X \right)^\top
    + \left( \sum_{i=1}^N \thetabm_i^\top \X \right) \left( \sum_{i=1}^N \thetabm_i^\top \X \right)^\top \right] \\
-& \hspace{1em}
-   + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right) \\
-s.t. \ & \Thetabm^\top \one_M = \zero_N \\
-           & \theta_i^n \ge 0, \, i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_n^i = 0.
+& \hspace{2em}
+   + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right), \\
+s.t. \ 
+& \Thetabm \one_M = \zero_N, \\
+& \theta_i^m < 0, \ \mathrm{if} \ y_m^i = 1, \\
+& \theta_i^n \ge 0, \ \mathrm{if} \ y_n^i = 0, \ i \in \{1,\dots,N\}, \, m,n \in \{1,\dots,M\}.
 \end{aligned}
 \end{equation}
 Note that the above objective can be computed as
@@ -94,11 +96,11 @@ Note that the above objective can be computed as
 \begin{aligned}
 J &= \frac{1}{2 \lambda} \sum_{n=1}^N \sum_{n'=1}^N (U \A + N \I_N + \one_{N \times N}) 
      \circ \left( \Thetabm^\top \X \right) \left( \Thetabm^\top \X \right)^\top \\
-& \hspace{2em}
+& \hspace{3em}
      + \sum_{i=1}^N \thetabm_i^\top \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right),
 \end{aligned}
 \end{equation*}
-where $\I_N \in \R^{N \times N}$ is an identity matirx and $\A \in \R^{N \times N}$ is a symmetric matrix such that
+where $\I_N \in \R^{N \times N}$ is an identity matrix and $\A \in \R^{N \times N}$ is a symmetric matrix such that
 \begin{equation*}
 A_{ij} = 
 \begin{cases}
@@ -114,7 +116,7 @@ The gradient of the optimisation objective w.r.t. to dual variables $\thetabm_k 
 &= \frac{1}{2 \lambda} \left( U \cdot 2 \X \left(\sum_{i \in P_{u(k)}} \thetabm_i^\top \X \right)^\top 
    + N \cdot 2 \X \left( \thetabm_k^\top \X \right)^\top
    + 2 \X \left(\sum_{i=1}^N \thetabm_i^\top \X \right)^\top \right) \\
-& \hspace{2em}
+& \hspace{2.5em}
    + (1 - \log(N M_k^+)) \y_k - \y_k \circ \log(-\thetabm_k) + \y_k \circ \thetabm_k \left( -\frac{-1}{-\y_k \circ \thetabm_k} \right) \\
 &= \frac{\X}{\lambda} \left( U \sum_{i \in P_{u(k)}} \thetabm_i^\top \X 
    + N \thetabm_k^\top \X 
@@ -125,7 +127,7 @@ The gradient of the optimisation objective w.r.t. to dual variables $\thetabm_k 
 \end{aligned}
 \end{equation*}
 
-The hessian is
+The Hessian is
 \begin{equation*}
 \begin{aligned}
 \frac{\partial^2 J}{\partial \thetabm_k^2}
@@ -133,7 +135,7 @@ The hessian is
  = \frac{1}{\lambda} (U + N + 1) \X \X^\top - \Hb_k,
 \end{aligned}
 \end{equation*}
-where $\Hb_k \in \R^{M \times M}$ is a diagnoal matrix such that
+where $\Hb_k \in \R^{M \times M}$ is a diagonal matrix such that
 \begin{equation*}
 H_k^m = \frac{y_m^k}{\theta_k^m}, \ m = \{1,\dots,M\}.
 \end{equation*}
