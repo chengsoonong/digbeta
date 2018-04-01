@@ -1,0 +1,31 @@
+\section{Notations}
+
+We introduce notations in Table~\ref{tab:symbol_tpush}.
+\begin{table}[!h]
+\caption{Glossary of commonly used symbols}
+\label{tab:symbol_tpush}
+\renewcommand{\arraystretch}{1.5} % tweak the space between rows
+\setlength{\tabcolsep}{1pt} % tweak the space between columns
+\centering
+\begin{tabular}{llll}
+\toprule
+\multicolumn{3}{l}{\textbf{Symbol}} & \textbf{Quantity} \\ \midrule
+$D$        &  $\in$  &  $\Z^+$            & The number of features for each song \\
+$M$        &  $\in$  &  $\Z^+$            & The number of songs \\
+$N$        &  $\in$  &  $\Z^+$            & The number of playlists \\
+$U$        &  $\in$  &  $\Z^+$            & The number of users \\
+$u(i)$     &  $\in$  &  $\Z^+$            & The user that owns playlist $i$ \\
+$\X$       &  $\in$  &  $\R^{M \times D}$ & The matrix of features of all songs \\
+$\Phibm_u$ &  $\in$  &  $\R^{M \times (D + U -1)}$ & The matrix of features of all songs with users' (except $u$) labels \\
+$\Y$       &  $\in$  &  $\R^{M \times N}$ & The matrix of binary labels that indicating if a song is in a playlist \\
+$\zero_N$  &  $\in$  &  $\R^N$            & The $N$ dimensional vector of $0$'s \\
+$\one_M$   &  $\in$  &  $\R^M$            & The $M$ dimensional vector of $1$'s \\
+$\V$       &  $\in$  &  $\R^{U \times D}$ & The matrix of user weights \\
+$\W$       &  $\in$  &  $\R^{N \times D}$ & The matrix of playlist weights \\
+$\mubm$    &  $\in$  &  $\R^D$            & The vector of bias weights \\
+$\alphabm$ &  $\in$  &  $\R^{N \times M}$ & The matrix of dual variables (corresponding to $y_m^i=1$) \\
+$\betabm$  &  $\in$  &  $\R^{N \times M}$ & The matrix of dual variables (corresponding to $y_n^i=0$) \\
+$\Thetabm$ &  $\in$  &  $\R^{N \times M}$ & The matrix of dual variables (combines $\alphabm$ and $\betabm$) \\
+\bottomrule
+\end{tabular}
+\end{table}
