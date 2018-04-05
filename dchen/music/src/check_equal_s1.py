@@ -56,4 +56,15 @@ for fname in ['Y_train', 'Y_dev', 'Y_test', 'Y_train_dev']:
     assert np.all(np.equal(y1.indices, y2.indices))
     # NOTE: the csr sparse representation of the same dense matrix can have different indices,
     # so transform them to another representation may result in the same indices.
+
+
+print('checking user playlists indices ...')
+
+for fname in ['cliques_train', 'cliques_trndev']:
+    clq1 = pkl.load(gzip.open(os.path.join(dir1, fname + '.pkl.gz'), 'rb'))
+    clq2 = pkl.load(gzip.open(os.path.join(dir2, fname + '.pkl.gz'), 'rb'))
+    assert len(clq1) == len(clq2)
+    for i in range(len(clq1)):
+        assert np.all(clq1[i] == clq2[i])
+
 print('done.')
