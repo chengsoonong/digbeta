@@ -2,7 +2,7 @@ import sys
 import time
 import numpy as np
 from scipy.sparse import issparse, isspmatrix_coo, isspmatrix_csc
-from lbfgs import LBFGS, LBFGSError
+from lbfgs import LBFGS, LBFGSError  # pip install pylbfgs
 from joblib import Parallel, delayed
 
 
