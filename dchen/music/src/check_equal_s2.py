@@ -23,38 +23,43 @@ assert np.all(np.array(songs1) == np.array(songs2))
 
 
 print('checking playlists ...')
+fname = 'playlists_train_dev_test_s2'
+for k in [1, 2, 3, 4]:
+    pl1 = pkl.load(gzip.open(os.path.join(dir1, '%s_%d.pkl.gz' % (fname, k)), 'rb'))
+    pl2 = pkl.load(gzip.open(os.path.join(dir2, '%s_%d.pkl.gz' % (fname, k)), 'rb'))
+    assert np.all(np.array(pl1) == np.array(pl2))
 
-pl1 = pkl.load(gzip.open(os.path.join(dir1, 'playlists_train_dev_test_s2.pkl.gz'), 'rb'))
-pl2 = pkl.load(gzip.open(os.path.join(dir2, 'playlists_train_dev_test_s2.pkl.gz'), 'rb'))
-assert np.all(np.array(pl1) == np.array(pl2))
 
 
 print('checking features ...')
 
-for fname in ['X_train', 'X_train_dev']:
-    x1 = pkl.load(gzip.open(os.path.join(dir1, fname + '.pkl.gz'), 'rb'))
-    x2 = pkl.load(gzip.open(os.path.join(dir2, fname + '.pkl.gz'), 'rb'))
-    assert np.all(np.isclose(x1, x2))
+for fname in ['X_train', 'X_trndev']:
+    for k in [1, 2, 3, 4]:
+        x1 = pkl.load(gzip.open(os.path.join(dir1, '%s_%d.pkl.gz' % (fname, k)), 'rb'))
+        x2 = pkl.load(gzip.open(os.path.join(dir2, '%s_%d.pkl.gz' % (fname, k)), 'rb'))
+        assert np.all(np.isclose(x1, x2))
+    
 
 
 print('checking labels (sparse boolean matrices) ...')
 
-for fname in ['Y', 'Y_train', 'Y_train_dev', 'PU_dev', 'PU_test']:
+for fname in ['Y', 'Y_train', 'Y_trndev', 'PU_dev', 'PU_test']:
     print('    checking %s ...' % fname)
-    y1 = pkl.load(gzip.open(os.path.join(dir1, fname + '.pkl.gz'), 'rb'))
-    y2 = pkl.load(gzip.open(os.path.join(dir2, fname + '.pkl.gz'), 'rb'))
-    assert type(y1) == type(y2)
-    if type(y1) == csr_matrix:
-        y1 = y1.tocsc()
-        y2 = y2.tocsc()
-    elif type(y1) == csc_matrix:
-        y1 = y1.tocsr()
-        y2 = y2.tocsr()
-    else:
-        assert False, 'NOT CSR or CSC format'
-    assert np.all(np.equal(y1.indices, y2.indices))
-    # NOTE: the csr sparse representation of the same dense matrix can have different indices,
-    # so transform them to another representation may result in the same indices.
+    for k in [1, 2, 3, 4]:
+        y1 = pkl.load(gzip.open(os.path.join(dir1, '%s_%d.pkl.gz' % (fname, k)), 'rb'))
+        y2 = pkl.load(gzip.open(os.path.join(dir2, '%s_%d.pkl.gz' % (fname, k)), 'rb'))
+        assert type(y1) == type(y2)
+        if type(y1) == csr_matrix:
+            y1 = y1.tocsc()
+            y2 = y2.tocsc()
+        elif type(y1) == csc_matrix:
+            y1 = y1.tocsr()
+            y2 = y2.tocsr()
+        else:
+            assert False, 'NOT CSR or CSC format'
+        assert np.all(np.equal(y1.indices, y2.indices))
+        # NOTE: the csr sparse representation of the same dense matrix can have different indices,
+        # so transform them to another representation may result in the same indices.
 
 
 print('checking song popularities ...')
