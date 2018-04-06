@@ -47,4 +47,5 @@ with open(fsplit, 'r') as fd:
 
 br1_perf = {dataset: {'Test': {'R-Precision': np.mean(rps), 'Hit-Rate': {top: np.mean(hitrates[top]) for top in TOPs}}}}
 pkl.dump(br1_perf, open(fperf, 'wb'))
+print(len(rps), Y_test.shape[1])
 print(br1_perf)
