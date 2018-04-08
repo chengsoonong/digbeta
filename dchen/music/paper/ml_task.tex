@@ -6,7 +6,7 @@ Let $M$ denote the total number of songs that was played at least once in any of
 
 \paragraph{Playlist augmentation}
 
-We formulate the task of playlist augmentation as either a \emph{bipartite ranking} or \emph{binary classification} problem ({\it multitask?}),
+We formulate the task of playlist augmentation as either a \emph{classification} or \emph{bipartite ranking} problem ({\it multitask?}),
 that is, for each song that is not in the given playlist, 
 we predict whether it will be added to the given playlist.
 This formulation is illustrated in Figure~\ref{fig:pla},
@@ -23,7 +23,7 @@ As a remark, columns represent playlists in test set contain only \texttt{1} and
 
 \paragraph{New song recommendation}
 
-We formulate the task of new song recommendation as either a \emph{bipartite ranking} or \emph{binary classification} problem ({\it multitask?}),
+We formulate the task of new song recommendation as either a \emph{classification} or \emph{bipartite ranking} problem ({\it multitask?}),
 where we predict, for each song in test set,
 whether it will be included in a given playlist.
 This formulation is illustrated in Figure~\ref{fig:mlr},
