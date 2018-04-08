@@ -1,13 +1,17 @@
 \begin{table}[!h]
 \centering
-\caption{Empirical results (R-Precision $\times 10^3$)}
-%\resizebox{\linewidth}{!}{
-\small
-\begin{tabular}{l|cccccccc}
+\caption{R-Precision $\times 10^3$ (30music)}
+\label{tab:hitrate_pla_30music}
+\begin{tabular}{l|*{3}{c|}}
 \toprule
-{}            & & & & BR & \textsc{PopRank} & MF & SAGH & CAGH \\
+{} & Logistic Regression & Popularity Rank & Multitask Classification \\
 \midrule
+K=1 &               $4.5$ &          $14.5$ &                   $15.2$ \\
+K=2 &               $7.3$ &          $13.8$ &                   $14.7$ \\
+K=3 &               $8.8$ &          $12.6$ &                   $14.4$ \\
+K=4 &               $8.8$ &          $11.7$ &                   $13.2$ \\
 \bottomrule
 \end{tabular}
-%}
 \end{table}
+
+% BR & \textsc{PopRank} & MF & SAGH & CAGH \\
