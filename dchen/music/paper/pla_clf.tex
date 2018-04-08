@@ -8,7 +8,7 @@ we use the P-Classification loss, with the exponential surrogate:
 \begin{equation*}
 \begin{aligned}
 \LCal_\textsc{pc}(f, \DCal) 
-&= \frac{1}{M_i^+} \sum_{m: y_m^i = 1} e^{-f(u, i, m)} + \frac{1}{M - M_i^+} \sum_{n: y_n^i = 0} \frac{1}{p} e^{p f(u, i, n)} \\
+%&= \frac{1}{M_i^+} \sum_{m: y_m^i = 1} e^{-f(u, i, m)} + \frac{1}{M - M_i^+} \sum_{n: y_n^i = 0} \frac{1}{p} e^{p f(u, i, n)} \\
 &= \frac{1}{M_i^+} \sum_{m: y_m^i = 1} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_{u,m}} 
    + \frac{1}{(1 - M_i^+) p} \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}},
 \end{aligned}
@@ -30,23 +30,3 @@ J &= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u
 \end{aligned}
 \end{equation*}
 where $\lambda > 0$ is a regularisation constant.
-
-The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ are
-\begin{equation*}
-\begin{aligned}
-\frac{\partial J}{\partial \bv_u}
-&= \frac{\lambda}{U} \bv_u + \frac{1}{N} \sum_{i \in P_u} \left( 
-   \frac{-1}{M_i^+} \sum_{m: y_m^i = 1} \phibm_{u,m} e^{-(\bv_{u} + \w_i + \mubm)^\top \phibm_{u,m}}
-   + \frac{1}{(M - M_i^+)} \sum_{n: y_n^i = 0} \phibm_{u,n} e^{p (\bv_{u} + \w_i + \mubm)^\top \phibm_{u,n}} \right), \\
-\frac{\partial J}{\partial \w_i}
-&= \frac{\lambda}{N} \w_i + \frac{1}{N} \left( 
-   \frac{-1}{M_i^+} \sum_{m: y_m^i = 1} \phibm_{u(i),m} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} \right. \\
-& \hspace{7.5em} \left.
-   + \frac{1}{(M - M_i^+)} \sum_{n: y_n^i = 0} \phibm_{u(i),n} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right), \\
-\frac{\partial J}{\partial \mubm}
-&= \lambda \mubm + \frac{1}{N} \sum_{i=1}^N \left( 
-   \frac{-1}{M_i^+} \sum_{m: y_m^i = 1} \phibm_{u(i),m} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} \right. \\
-& \hspace{7.5em} \left.
-   + \frac{1}{(M - M_i^+)} \sum_{n: y_n^i = 0} \phibm_{u(i),n} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right).
-\end{aligned}
-\end{equation*}
