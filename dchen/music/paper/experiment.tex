@@ -32,9 +32,9 @@ Table~\ref{tab:stats_pldata} summarises the two playlist dataset used in this wo
 \label{tab:stats_pldata}
 %\resizebox{\linewidth}{!}{
 \small
-\begin{tabular}{l|rrrr}
+\begin{tabular}{l|rcrc}
 \toprule
-Dataset   & \#Songs & \#Playlists & \#Users & Avg. \#Songs per Playlist \\
+Dataset   & \#Songs & \#Playlists & \#Users & \#Songs / Playlist \\
 \midrule
 AotM-2011 & 114,428 & 84,710      & 14,182  & 10.1 \\
 30Music   & 45,468  & 17,457      & 8,070   & 16.3 \\
@@ -58,14 +58,53 @@ tasks~\cite{schedl2017,hariri2012context,jannach2015beyond}:
 We break down the results according to either user or the playlist length (\ie the number of songs in playlist).
 
 
+\subsection{Playlist augmentation}
+\label{ssec:pla}
+
+We use the 30Music~\cite{30music2015} and AotM-2011~\cite{mcfee2012hypergraph} playlist dataset,
+In each dataset, we create a test set by holding 30\% playlists chosen uniformly at random,
+then we hold all songs except the first $K, \, K \in \{1,2,3,4\}$ ones for every playlist in test set.
+As a remark, we observed the entire collection of songs during training.
+%and all users in test set have playlists in training set.
+Table~\ref{tab:stats_pla} summarises the statistics of the two dataset used for this task.
+
+To tune hyper-parameters, we hold a subset of playlists in training set as the validation set, 
+which is constructed using the same approach as the test set.
+
+\begin{table}[!h]
+\centering
+\caption{Statistics of dataset for playlist augmentation}
+\label{tab:stats_pla}
+%\resizebox{\linewidth}{!}{
+\small
+\begin{tabular}{l|cr}
+\toprule
+Dataset   & \#Playlists (train) & \#Playlists (test) \\
+\midrule
+30Music   & 12,220              & 5,237 \\
+AotM-2011 & 59,297              & 25,413 \\       
+\bottomrule
+\end{tabular}
+%}
+\end{table}
+
+\input{tab_pla}
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\linewidth]{fig/30music-2.pdf}
+\caption{Hit rates given $K=1,2,3,4$ seed songs on 30Music dataset.}
+\end{figure}
+
+
 \subsection{New song recommendation}
 \label{ssec:newsongrec}
 
-We hold 5000 of the latest released songs for test in both the AotM-2011 and 30Music dataset,
-and we predict a song in test will be in a given playlist.
-As a remark, the set of users are the same for training and test set,
-so does the number of playlists; 
-further, we remove playlists in which all songs are in test set are removed.
+We hold 5,000 and 10,000 of the latest released songs for test in the 30Music and AotM-2011 dataset, respectively.
+For each song in test set, we predict whether it will be included in a given playlist.
+As a remark, the set of users are the same for training and test, 
+and playlists where every song is in test set are removed during training,
+further, we test for playlists that has songs in both training and test set.
 Table~\ref{tab:stats_newsongrec} summarises the statistics of the two dataset used for this task.
 
 To tune hyper-parameters, we hold a subset of songs in training set as the validation set, 
@@ -79,10 +118,10 @@ which is constructed using the same approach as the test test.
 \small
 \begin{tabular}{l|rrr}
 \toprule
-Dataset   & \#Playlists \#Songs (train) & \#Songs (test) \\
+Dataset   & \#Playlists & \#Songs (train) & \#Songs (test) \\
 \midrule
-AotM-2011 &           &          & \\
-30Music   &           &          & \\
+30Music   & 8,215       & 40,468          & 5,000 \\
+AotM-2011 & 19,504      & 104,428         & 10,000 \\
 \bottomrule
 \end{tabular}
 %}
@@ -90,36 +129,3 @@ AotM-2011 &           &          & \\
 
 %\input{tab_nsr}
 
-
-\subsection{Playlist augmentation}
-\label{ssec:pla}
-
-We use the AotM-2011~\cite{mcfee2012hypergraph} and 30Music~\cite{30music2015} playlist dataset,
-In each dataset, we create a test set by holding 20\% of each user's playlists (chosen uniformly at random) 
-if the user has 5 or more playlists. 
-The we hold all songs except the first $K, \, K \in \{1,2,3,4\}$ ones for every playlist in test set.
-As a remark, we observed the entire collection of songs during training, 
-and all users in test set have playlists in training set.
-Table~\ref{tab:stats_pla} summarises the statistics of the two dataset used for this task.
-
-To tune hyper-parameters, we hold a subset of playlists in training set as the validation set, 
-which is constructed using the same approach as the test test.
-
-\begin{table}[!h]
-\centering
-\caption{Statistics of dataset for playlist augmentation}
-\label{tab:stats_pla}
-%\resizebox{\linewidth}{!}{
-\small
-\begin{tabular}{l|rrr}
-\toprule
-Dataset   & \#Songs      & \#Playlists (train) & \#Playlists (test) \\
-\midrule
-AotM-2011 &              &             & \\       
-30Music   &              &             & \\          
-\bottomrule
-\end{tabular}
-%}
-\end{table}
-
-%\input{tab_pla}
