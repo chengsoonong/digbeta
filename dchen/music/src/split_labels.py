@@ -23,7 +23,7 @@ data_dir = os.path.join(work_dir, 'data/%s' % dataset)
 
 # setting 2
 pkl_data_dir = os.path.join(data_dir, 'setting2')
-fytrain = os.path.join(pkl_data_dir, 'PU_test.pkl.gz')
+fytrain = os.path.join(pkl_data_dir, 'PU_test_1.pkl.gz')
 
 Y_train = pkl.load(gzip.open(fytrain, 'rb'))
 
