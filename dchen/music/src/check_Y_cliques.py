@@ -16,7 +16,7 @@ dir1 = sys.argv[1]
 
 print('checking labels (sparse boolean matrices) ...')
 
-for fname in ['Y', 'Y_train']:
+for fname in ['Y', 'Y_train', 'Y_trndev']:
     y1 = pkl.load(gzip.open(os.path.join(dir1, '%s_1.pkl.gz' % fname), 'rb'))
     y2 = pkl.load(gzip.open(os.path.join(dir1, '%s_2.pkl.gz' % fname), 'rb'))
     y3 = pkl.load(gzip.open(os.path.join(dir1, '%s_3.pkl.gz' % fname), 'rb'))
