@@ -9,18 +9,19 @@ from tools import calc_RPrecision_HitRate
 
 TOPs = [5, 10, 20, 30, 50, 100, 200, 300, 500, 1000]
 
-if len(sys.argv) != 3:
-    print('Usage:', sys.argv[0], 'WORK_DIR  DATASET')
+if len(sys.argv) != 4:
+    print('Usage:', sys.argv[0], 'WORK_DIR  DATASET  N_SEED')
     sys.exit(0)
 
 work_dir = sys.argv[1]
 dataset = sys.argv[2]
+n_seed = int(sys.argv[3])
 data_dir = os.path.join(work_dir, 'data/%s/setting2' % dataset)
 fsplit = os.path.join(data_dir, 'br2/br2.%s.split' % dataset)
-fperf = os.path.join(data_dir, 'perf-br2.pkl')
-X = pkl.load(gzip.open(os.path.join(data_dir, 'X_train_dev.pkl.gz'), 'rb'))
+fperf = os.path.join(data_dir, 'perf-br2-%d.pkl' % n_seed)
+X = pkl.load(gzip.open(os.path.join(data_dir, 'X_trndev_%d.pkl.gz' % n_seed), 'rb'))
 Y = pkl.load(gzip.open(os.path.join(data_dir, 'Y.pkl.gz'), 'rb'))
-PU_test = pkl.load(gzip.open(os.path.join(data_dir, 'PU_test.pkl.gz'), 'rb'))
+PU_test = pkl.load(gzip.open(os.path.join(data_dir, 'PU_test_%d.pkl.gz' % n_seed), 'rb'))
 Y_test = Y[:, -PU_test.shape[1]:]
 
 rps = []
@@ -29,7 +30,7 @@ with open(fsplit, 'r') as fd:
     for line in fd:
         start, end = line.strip().split(' ')
         print(start, end)
-        fname = os.path.join(data_dir, 'br2/br2-%s-%s-%s.pkl.gz' % (dataset, start, end))
+        fname = os.path.join(data_dir, 'br2/br2-%s-%s-%s-%s.pkl.gz' % (dataset, n_seed, start, end))
         br = pkl.load(gzip.open(fname, 'rb'))
         preds = br.predict(X)
         for j in range(int(start), int(end)):
