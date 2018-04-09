@@ -4,7 +4,7 @@ The optimisation problem is
 \begin{equation}
 \label{eq:mbropt}
 \begin{aligned}
-&\min_{\V, \W, \mubm} \ \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+&\min_{\V, \W, \mubm} \ \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{5em}
      + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
@@ -15,7 +15,7 @@ The optimisation problem is
 Let 
 \begin{equation*}
 \begin{aligned}
-f_0(\V, \W, \mubm, \xibm) &= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+f_0(\V, \W, \mubm, \xibm) &= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{3em}
      + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} 
@@ -57,7 +57,7 @@ Let
 \begin{equation*}
 \begin{aligned}
 g(\V, \W, \mubm, \xibm, \alphabm, \betabm)
-&= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+&= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{3em}
      + \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m - \xi_i \right) \alpha_i^m \\
@@ -91,12 +91,12 @@ To solve the inner (unconstrained) minimisation, let
 \begin{equation*}
 \begin{aligned}
 \zero &= \frac{\partial g}{\partial \bv_u} 
-       = \frac{\lambda}{U} \bv_u 
+       = \frac{C}{U} \bv_u 
          + \sum_{i \in P_u} \left( \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \alpha_i^m \x_m + \sum_{n: y_n^i = 0} \beta_i^n \x_n \right) \\
 \zero &= \frac{\partial g}{\partial \w_i}
-       = \frac{\lambda}{N} \w_i + \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \alpha_i^m \x_m + \sum_{n: y_n^i = 0} \beta_i^n \x_n \\
+       = \frac{C}{N} \w_i + \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \alpha_i^m \x_m + \sum_{n: y_n^i = 0} \beta_i^n \x_n \\
 \zero &= \frac{\partial g}{\partial \mubm} 
-       = \lambda \mubm + \sum_{i=1}^N \left( \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \alpha_i^m \x_m + \sum_{n: y_n^i = 0} \beta_i^n \x_n \right) \\
+       = C \mubm + \sum_{i=1}^N \left( \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \alpha_i^m \x_m + \sum_{n: y_n^i = 0} \beta_i^n \x_n \right) \\
 0     &= \frac{\partial g}{\partial \xi_i}
        = - \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \alpha_i^m - \sum_{n: y_n^i = 0} \beta_i^n \\
 \end{aligned}
@@ -116,16 +116,16 @@ then we have
 \label{eq:dual2primal}
 \begin{aligned}
 \bv_u
-&= -\frac{U}{\lambda} \sum_{i \in P_u} \sum_{m=1}^M \theta_i^m \x_m
- = -\frac{U}{\lambda} \sum_{i \in P_u} \left( \thetabm_i^\top \X \right)^\top \\
+&= -\frac{U}{C} \sum_{i \in P_u} \sum_{m=1}^M \theta_i^m \x_m
+ = -\frac{U}{C} \sum_{i \in P_u} \left( \thetabm_i^\top \X \right)^\top \\
 %
 \w_i
-&= -\frac{N}{\lambda} \sum_{m=1}^M \theta_i^m \x_m
- = -\frac{N}{\lambda} \left( \thetabm_i^\top \X \right)^\top \\
+&= -\frac{N}{C} \sum_{m=1}^M \theta_i^m \x_m
+ = -\frac{N}{C} \left( \thetabm_i^\top \X \right)^\top \\
 %
 \mubm
-&= -\frac{1}{\lambda} \sum_{i=1}^N \sum_{m=1}^M \theta_i^m \x_m 
- = -\frac{1}{\lambda} \sum_{i=1}^N \left( \thetabm_i^\top \X \right)^\top \\
+&= -\frac{1}{C} \sum_{i=1}^N \sum_{m=1}^M \theta_i^m \x_m 
+ = -\frac{1}{C} \sum_{i=1}^N \left( \thetabm_i^\top \X \right)^\top \\
 %
 0
 &= \sum_{m=1}^M \theta_i^m 
@@ -137,7 +137,7 @@ Thus,
 \begin{equation*}
 \begin{aligned}
 &\min_{\V, \W, \mubm, \xibm} g(\V, \W, \mubm, \xibm, \alphabm, \betabm) \\
-&= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+&= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{3em}
      + \sum_{i=1}^N \left( 
@@ -145,7 +145,7 @@ Thus,
      + \sum_{n: y_n^i = 0} \beta_i^n (\bv_{u(i)} + \w_i + \mubm)^\top \x_n \right) \\
 & \hspace{3em}
      - \sum_{i=1}^N \xi_i \left( \sum_{m: y_m^i = 1} \frac{\alpha_i^m}{N M_i^+} + \sum_{n: y_n^i = 0} \beta_i^n \right) \\
-&= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+&= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right)
      + \sum_{i=1}^N \sum_{m=1}^M \theta_i^m (\bv_{u(i)} + \w_i + \mubm)^\top \x_m
 \end{aligned}
@@ -161,15 +161,15 @@ Note that by (\ref{eq:dual2primal})
      + \sum_{i=1}^N \w_i^\top \left( \thetabm_i^\top \X \right)^\top 
      + \mubm^\top \left( \sum_{i=1}^N \thetabm_i^\top \X \right)^\top \\
 &= \sum_{u=1}^U \sum_{i \in P_u} \bv_u^\top \left( \thetabm_i^\top \X \right)^\top
-     - \frac{\lambda}{N} \sum_{i=1}^N \w_i^\top \w_i 
-     - \lambda \mubm^\top \mubm \\
+     - \frac{C}{N} \sum_{i=1}^N \w_i^\top \w_i 
+     - C \mubm^\top \mubm \\
 &= \sum_{u=1}^U \bv_u^\top \left( \sum_{i \in P_u} \thetabm_i^\top \X \right)^\top
-     - \frac{\lambda}{N} \sum_{i=1}^N \w_i^\top \w_i 
-     - \lambda \mubm^\top \mubm \\
-&= -\frac{\lambda}{U} \sum_{u=1}^U \bv_u^\top \bv_u
-     - \frac{\lambda}{N} \sum_{i=1}^N \w_i^\top \w_i 
-     - \lambda \mubm^\top \mubm \\
-&= -\lambda \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u
+     - \frac{C}{N} \sum_{i=1}^N \w_i^\top \w_i 
+     - C \mubm^\top \mubm \\
+&= -\frac{C}{U} \sum_{u=1}^U \bv_u^\top \bv_u
+     - \frac{C}{N} \sum_{i=1}^N \w_i^\top \w_i 
+     - C \mubm^\top \mubm \\
+&= -C \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i 
      + \mubm^\top \mubm \right)
 \end{aligned}
@@ -180,11 +180,11 @@ As a result,
 \label{eq:gmin}
 \begin{aligned}
 &\min_{\V, \W, \mubm, \xibm} g(\V, \W, \mubm, \xibm, \alphabm, \betabm) \\
-&= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+&= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right)
-     -\lambda \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
-&= -\frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
-&= -\frac{1}{2 \lambda} \left[
+     -C \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+&= -\frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+&= -\frac{1}{2 C} \left[
      U \sum_{u=1}^U \left( \sum_{i \in P_u} \thetabm_i^\top \X \right) \left( \sum_{i \in P_u} \thetabm_i^\top \X \right)^\top
    + N \sum_{i=1}^N \left( \thetabm_i^\top \X \right) \left( \thetabm_i^\top \X \right)^\top
    + \left( \sum_{i=1}^N \thetabm_i^\top \X \right) \left( \sum_{i=1}^N \thetabm_i^\top \X \right)^\top \right]
@@ -228,7 +228,7 @@ By (\ref{eq:dualfunc}, \ref{eq:gmin}, \ref{eq:expconj}), the \emph{Lagrangian du
 \begin{aligned}
 &\max_{\betabm} \ \inf_{\V, \W, \mubm, \xibm} L(\V, \W, \mubm, \xibm, \alphabm, \betabm) \\
 &= \max_{\alphabm, \betabm} \left[ \min_{\V, \W, \mubm, \xibm} g(\V, \W, \mubm, \xibm, \alphabm, \betabm) - r(\alphabm) \right] \\
-&= \min_{\Thetabm} \, \frac{1}{2 \lambda} \left[
+&= \min_{\Thetabm} \, \frac{1}{2 C} \left[
      U \sum_{u=1}^U \left( \sum_{i \in P_u} \thetabm_i^\top \X \right) \left( \sum_{i \in P_u} \thetabm_i^\top \X \right)^\top
    + N \sum_{i=1}^N \left( \thetabm_i^\top \X \right) \left( \thetabm_i^\top \X \right)^\top
    + \left( \sum_{i=1}^N \thetabm_i^\top \X \right) \left( \sum_{i=1}^N \thetabm_i^\top \X \right)^\top \right] \\
@@ -243,5 +243,54 @@ subject to constraints
 \Thetabm \one_M &= \zero_N, \\
 \theta_i^m & < 0, \ \mathrm{if} \ y_m^i = 1, \\
 \theta_i^n & \ge 0, \ \mathrm{if} \ y_n^i = 0, \ i \in \{1,\dots,N\}, \, m,n \in \{1,\dots,M\}.
+\end{aligned}
+\end{equation*}
+
+The dual problem is a constrained convex minimisation problem, 
+which can be optimised directly using a general convext optimisation method, \eg the interior point method.
+However, if $M \gg D$ and $N \gg D$, recall that $\Thetabm \in \R^{N \times M}$, 
+the number of dual variables ($N \times M$) may be too big to optimise in practice.
+
+To deal with this situation, let $\lambdabm_i \in \R^D$ be
+\begin{equation*}
+\lambdabm_i = \X^\top \thetabm_i, \ i \in \{1,\dots,N\},
+\end{equation*}
+or equivalently $\Lambdabm = \Thetabm \X$, $\Lambdabm \in \R^{N \times D}$, then
+\begin{equation*}
+\thetabm_i = \Z \lambdabm_i,
+\end{equation*}
+where $\Z \in \R^{M \times D}$ is the left inverse of $\X^\top$, \ie $\Z \X^\top = \I_M$.
+
+The dual problem can be rewritten as 
+\begin{equation*}
+\begin{aligned}
+\min_{\Lambdabm} \ & \frac{1}{2 C} \left[
+     U \sum_{u=1}^U \left( \sum_{i \in P_u} \lambdabm_i \right)^\top \left( \sum_{i \in P_u} \lambdabm_i \right)
+   + N \sum_{i=1}^N \lambdabm_i^\top \lambdabm_i
+   + \left( \sum_{i=1}^N \lambdabm_i \right)^\top \left( \sum_{i=1}^N \lambdabm_i \right) \right] \\
+& \hspace{2em}
+   + \sum_{i=1}^N \left( \y_i \circ \Z \lambdabm_i \right)^\top 
+     \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\Z \lambdabm_i) \right) \\
+s.t. \
+& \left( \Z \lambdabm_i \right)^\top \one_M = 0, \\
+& \z_m^\top \lambdabm_i < 0, \ \mathrm{if} \ y_m^i = 1, \\
+& \z_n^\top \lambdabm_i \ge 0, \ \mathrm{if} \ y_n^i = 0, \ i \in \{1,\dots,N\}, \, m,n \in \{1,\dots,M\}.
+\end{aligned}
+\end{equation*}
+
+Let $\Lambdabm^*$ be an optimimal solution of the above problem, then
+\begin{equation*}
+\begin{aligned}
+\bv_u^*
+&= -\frac{U}{C} \sum_{i \in P_u} \left( (\thetabm_i^*)^\top \X \right)^\top 
+ = -\frac{U}{C} \sum_{i \in P_u} \lambdabm_i^* \\
+%
+\w_i^*
+&= -\frac{N}{C} \left( (\thetabm_i^*)^\top \X \right)^\top 
+ = -\frac{N}{C} \lambdabm_i^* \\
+%
+\mubm^*
+&= -\frac{1}{C} \sum_{i=1}^N \left( (\thetabm_i^*)^\top \X \right)^\top 
+ = -\frac{1}{C} \sum_{i=1}^N \lambdabm_i^*
 \end{aligned}
 \end{equation*}
