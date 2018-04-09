@@ -3,7 +3,7 @@ import time
 import numpy as np
 from scipy.sparse import issparse, isspmatrix_coo, isspmatrix_csc
 from lbfgs import LBFGS, LBFGSError  # pip install pylbfgs
-from joblib import Parallel, delayed
+# from joblib import Parallel, delayed
 
 
 def risk_pclassification(mu, v, Wu, X, Yu, Pu, Qu, param_dict, u, UF=None):
@@ -63,7 +63,7 @@ def risk_pclassification(mu, v, Wu, X, Yu, Pu, Qu, param_dict, u, UF=None):
     dmu = dv
 
     if np.isnan(risk) or np.isinf(risk):
-        sys.stderr('risk_pclassification(): risk is NaN or inf!\n')
+        sys.stderr.write('risk_pclassification(): risk is NaN or inf!\n')
         sys.exit(0)
     return risk, dmu, dv, dW
 
@@ -113,20 +113,21 @@ def accumulate_risk(mu, V, W, X, Y, C, p, cliques, data_helper, UF=None, njobs=1
     Ys, Ps, Qs = data_helper.get_data()
     assert U == len(Ys) == len(Ps) == len(Qs)
     param_dict = {'C': C, 'p': p, 'N': N, 'U': U}
-    if U == 1:
-        njobs = 1
+    # if U == 1:
+    #    njobs = 1
 
-    results = Parallel(n_jobs=njobs)(delayed(risk_pclassification)(mu, V[u, :], W[cliques[u], :], X, Ys[u], Ps[u],
-                                                                   Qs[u], param_dict, u, UF) for u in range(U))
+    # results = Parallel(n_jobs=njobs)(delayed(risk_pclassification)(mu, V[u, :], W[cliques[u], :], X, Ys[u], Ps[u],
+    #                                                               Qs[u], param_dict, u, UF) for u in range(U))
     J = np.dot(mu, mu) * C / 2
     dV_slices = []
     dW_slices = []
     dmu = C * mu
-    for t in results:
-        J += t[0]
-        dmu += t[1]
-        dV_slices.append(t[2])
-        dW_slices.append(t[3])
+    for u in range(U):
+        results = risk_pclassification(mu, V[u, :], W[cliques[u], :], X, Ys[u], Ps[u], Qs[u], param_dict, u, UF)
+        J += results[0]
+        dmu += results[1]
+        dV_slices.append(results[2])
+        dW_slices.append(results[3])
     dV = V * C / U + np.vstack(dV_slices)
     dW = W * C / N + np.vstack(dW_slices)
     return J, dmu, dV, dW
