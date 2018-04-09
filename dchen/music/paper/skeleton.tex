@@ -154,7 +154,7 @@ If the ranking function $f$ has a linear form, \ie $f(\x) = \w^\top \x$, it has 
 with L2 regularisation is~\cite{li2014top}:
 \begin{equation*}
 \begin{aligned}
-\min_{\alphabm, \betabm} \ & \frac{1}{2 \lambda M^+} \| \alphabm^\top \X^+ - \betabm^\top \X^- \|^2 + \ell^*(\alphabm), \\
+\min_{\alphabm, \betabm} \ & \frac{1}{2 C M^+} \| \alphabm^\top \X^+ - \betabm^\top \X^- \|^2 + \ell^*(\alphabm), \\
 s.t. \ & \one^\top \alphabm = \one^\top \betabm, \\
        & \alphabm \in \R_+^{M^+}, \, \betabm \in \R_+^{M-M^+},
 \end{aligned}
@@ -189,15 +189,15 @@ which results in an objective:
 \begin{equation}
 \label{eq:mtobj}
 \begin{aligned}
-&\frac{\lambda_1}{2 N} \sum_{i=1}^{N} \| \w_i \|^2
-+ \frac{\lambda_2}{2 N (N - 1) / 2} \sum_{i, j \in \{1,\dots,N\}, \, i < j} \| \w_i - \w_j \|^2 
+&\frac{C_1}{2 N} \sum_{i=1}^{N} \| \w_i \|^2
++ \frac{C_2}{2 N (N - 1) / 2} \sum_{i, j \in \{1,\dots,N\}, \, i < j} \| \w_i - \w_j \|^2 
 + \frac{1}{N} \sum_{i = 1}^{N} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \llb f(\x^m) \le \max_{n: y_i^n = 0} f(\x^n) \rrb \\
-&= \frac{\lambda_1 + 2\lambda_2}{2 N} \sum_{i=1}^{N} \w_i^\top \w_i 
-- \frac{2\lambda_2}{N (N - 1)} \sum_{i, j \in \{1,\dots,N\}, \, i < j} \w_i^\top \w_j
+&= \frac{C_1 + 2C_2}{2 N} \sum_{i=1}^{N} \w_i^\top \w_i 
+- \frac{2C_2}{N (N - 1)} \sum_{i, j \in \{1,\dots,N\}, \, i < j} \w_i^\top \w_j
 + \frac{1}{N} \sum_{i = 1}^{N} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \llb f(\x^m) \le \max_{n: y_i^n = 0} f(\x^n) \rrb,
 \end{aligned}
 \end{equation}
-where $\lambda_1$ and $\lambda_2$ are regularisation parameters.
+where $C_1$ and $C_2$ are regularisation parameters.
 
 If we assume a linear ranking function $f(\x) = \w^\top \x$, 
 and use the exponential surrogate loss $\ell(f, y) = e^{-fy}$,
@@ -218,8 +218,8 @@ $M_i^+$ is the number of songs in the $i$-th playlist of user $u$,
 and $\C \in \R^{N \times N}$ is a symmetric matrix such that
 \begin{equation*}
 C_{ij} = \begin{cases}
-\frac{\lambda_1 + 2\lambda_2}{N}, & i = j \\
-\frac{-2\lambda_2}{N (N - 1)},  & \mathrm{otherwise}.
+\frac{C_1 + 2C_2}{N}, & i = j \\
+\frac{-2C_2}{N (N - 1)},  & \mathrm{otherwise}.
 \end{cases}
 \end{equation*}
 

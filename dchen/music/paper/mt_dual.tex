@@ -3,15 +3,15 @@
 \begin{equation}
 \label{eq:mtopt}
 \begin{aligned}
-\min_{\W} \ \frac{\lambda_1 + 2\lambda_2}{2 N} \sum_{i=1}^{N} \w_i^\top \w_i 
-- \frac{2\lambda_2}{N (N - 1)} \sum_{i, j \in \{1,\dots,N\}, \, i < j} \w_i^\top \w_j
+\min_{\W} \ \frac{C_1 + 2C_2}{2 N} \sum_{i=1}^{N} \w_i^\top \w_i 
+- \frac{2C_2}{N (N - 1)} \sum_{i, j \in \{1,\dots,N\}, \, i < j} \w_i^\top \w_j
 + \frac{1}{N} \sum_{i = 1}^{N} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \ell \left( \w_i^\top \x^m - \max_{n: y_i^n = 0} \w_i^\top \x^n \right).
 \end{aligned}
 \end{equation}
 
 Problem (\ref{eq:mtopt}) is hard to optimise in general due to the \emph{max} operator,
 a widely used trick is to form its dual problem.
-Let $C_1 = \frac{\lambda_1 + 2\lambda_2}{2 N}$, $C_2 = \frac{-2\lambda_2}{N (N - 1)}$ and
+Let $C_1 = \frac{C_1 + 2C_2}{2 N}$, $C_2 = \frac{-2C_2}{N (N - 1)}$ and
 \begin{equation*}
 \begin{aligned}
 f_0(\W, \xibm) &=  C_1 \sum_{i=1}^{N} \w_i^\top \w_i + C_2 \sum_{i, j \in \{1,\dots,N\}, \, i < j} \w_i^\top \w_j

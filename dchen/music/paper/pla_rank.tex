@@ -8,7 +8,7 @@ The optimisation problem is:
 \begin{equation}
 \label{eq:primal_pla}
 \begin{aligned}
-&\min_{\V, \W, \mubm} \ \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+&\min_{\V, \W, \mubm} \ \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{5em}
      + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}
@@ -43,13 +43,13 @@ Then the optimisation objective in (\ref{eq:primal_pla}) can be approximated as
 \begin{aligned}
 J 
 &\approx 
-% \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+% \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 %& \hspace{3em}
 %  + \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} 
 %    e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}}
 %    \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p} \\
 %&= 
-\frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+\frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{3em}
   + \sum_{i=1}^N \frac{1}{N M_i^+} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} \right)
@@ -63,7 +63,7 @@ The Lagrangian dual problem of (\ref{eq:primal_pla}) when using the exponential 
 \begin{equation}
 \label{eq:dual_pla}
 \begin{aligned}
-\min_{\Thetabm} \ & \frac{1}{2 \lambda} \left[
+\min_{\Thetabm} \ & \frac{1}{2 C} \left[
      U \sum_{u=1}^U \left( \sum_{i \in P_u} \thetabm_i \right)^\top \Phibm_u \Phibm_u^\top \left( \sum_{i \in P_u} \thetabm_i \right)^\top
    + N \sum_{i=1}^N \thetabm_i^\top \Phibm_{u(i)} \Phibm_{u(i)}^\top \thetabm_i \right. \\
 & \hspace{2em} \left.

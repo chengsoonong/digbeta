@@ -5,7 +5,7 @@ The optimisation objective for playlist augmentation is:
 \label{eq:primal_pla}
 \begin{aligned}
 J_\textsc{pla} 
-&= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+&= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{5em}
      + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}
@@ -17,12 +17,12 @@ It can be approximated as
 \begin{equation*}
 \begin{aligned}
 J_\textsc{pla} 
-&\approx \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+&\approx \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{3em}
   + \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} 
     e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}}
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p} \\
-&= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+&= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{3em}
   + \sum_{i=1}^N \frac{1}{N M_i^+} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} \right)
@@ -34,7 +34,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
 \begin{equation*}
 \begin{aligned}
 \frac{\partial J_\textsc{pla}}{\partial \bv_u}
-&\approx \frac{\lambda}{U} \bv_u
+&\approx \frac{C}{U} \bv_u
   + \sum_{i \in P_u} \frac{1}{N M_i^+} \left[
     \left(-\sum_{m: y_m^i = 1} \phibm_{u,m} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_{u,m}} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} \right)^\frac{1}{p} \right. \\
@@ -42,7 +42,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_{u,m}} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} \right)^{\frac{1}{p} - 1}
     \left( \sum_{n: y_n^i = 0} \phibm_{u,n} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} \right) \right] \\
-&= \frac{\lambda}{U} \bv_u
+&= \frac{C}{U} \bv_u
   + \sum_{i \in P_u} \frac{1}{N M_i^+} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_{u,m}} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} \right)^\frac{1}{p} \\
@@ -53,7 +53,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
            { \displaystyle \sum_{m: y_m^i = 1} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_{u,m}} } \right] \\
 %
 \frac{\partial J_\textsc{pla}}{\partial \w_i}
-&\approx \frac{\lambda}{N} \w_i
+&\approx \frac{C}{N} \w_i
   + \frac{1}{N M_i^+} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p} \\
@@ -64,7 +64,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
            { \displaystyle \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} } \right] \\
 %
 \frac{\partial J_\textsc{pla}}{\partial \mubm}
-&\approx \lambda \mubm
+&\approx C \mubm
   + \sum_{i=1}^N \frac{1}{N M_i^+} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p} \\
@@ -81,7 +81,7 @@ The Lagrangian dual problem when using the exponential surrogate is
 \begin{equation}
 \label{eq:dual_pla}
 \begin{aligned}
-\min_{\Thetabm} \ & \frac{1}{2 \lambda} \left[
+\min_{\Thetabm} \ & \frac{1}{2 C} \left[
      U \sum_{u=1}^U \left( \sum_{i \in P_u} \thetabm_i \right)^\top \Phibm_u \Phibm_u^\top \left( \sum_{i \in P_u} \thetabm_i \right)^\top
    + N \sum_{i=1}^N \thetabm_i^\top \Phibm_{u(i)} \Phibm_{u(i)}^\top \thetabm_i \right. \\
 & \hspace{2em} \left.
@@ -100,16 +100,16 @@ The gradient of the optimisation objective w.r.t. to dual variables $\thetabm_k 
 \begin{equation*}
 \begin{aligned}
 \frac{\partial J_\textsc{pla}'}{\partial \thetabm_k}
-&= \frac{1}{2 \lambda} \left( U \cdot 2 \Phibm_{u(k)} \left(\sum_{i \in P_{u(k)}} \thetabm_i^\top \Phibm_{u(k)} \right)^\top 
+&= \frac{1}{2 C} \left( U \cdot 2 \Phibm_{u(k)} \left(\sum_{i \in P_{u(k)}} \thetabm_i^\top \Phibm_{u(k)} \right)^\top 
    + N \cdot 2 \Phibm_{u(k)} \left( \thetabm_k^\top \Phibm_{u(k)} \right)^\top
    + 2 \Phibm_{u(k)} \left(\sum_{u=1}^U \sum_{i \in P_u} \thetabm_i^\top \Phibm_u \right)^\top \right) \\
 & \hspace{2.5em}
    + (1 - \log(N M_k^+)) \y_k - \y_k \circ \log(-\thetabm_k) + \y_k \circ \thetabm_k \left( -\frac{-1}{-\y_k \circ \thetabm_k} \right) \\
-&= \frac{\Phibm_{u(k)}}{\lambda} \left( U \sum_{i \in P_{u(k)}} \thetabm_i^\top \Phibm_{u(k)}
+&= \frac{\Phibm_{u(k)}}{C} \left( U \sum_{i \in P_{u(k)}} \thetabm_i^\top \Phibm_{u(k)}
    + N \thetabm_k^\top \Phibm_{u(k)} 
    + \sum_{u=1}^U \sum_{i \in P_u} \thetabm_i^\top \Phibm_u \right)^\top
    - \log(N M_k^+) \y_k - \y_k \circ \log(-\thetabm_k) \\
-&= \frac{\Phibm_{u(k)}}{\lambda} \left( \left( U \sum_{i \in P_{u(k)}} \thetabm_i + N \thetabm_k \right)^\top \Phibm_{u(k)} 
+&= \frac{\Phibm_{u(k)}}{C} \left( \left( U \sum_{i \in P_{u(k)}} \thetabm_i + N \thetabm_k \right)^\top \Phibm_{u(k)} 
    + \sum_{u=1}^U \sum_{i \in P_u} \thetabm_i^\top \Phibm_u \right)^\top
    - \log(N M_k^+) \y_k - \y_k \circ \log(-\thetabm_k),
 \end{aligned}
@@ -122,8 +122,8 @@ The Hessian is
 \begin{equation*}
 \begin{aligned}
 \frac{\partial^2 J_\textsc{pla}'}{\partial \thetabm_k^2}
-&= \frac{\Phibm_{u(k)}}{\lambda} \left( U \Phibm_{u(k)} + N \Phibm_{u(k)} + \Phibm_{u(k)} \right)^\top - \Hb_k
- = \frac{1}{\lambda} (U + N + 1) \Phibm_{u(k)} \Phibm_{u(k)}^\top - \Hb_k,
+&= \frac{\Phibm_{u(k)}}{C} \left( U \Phibm_{u(k)} + N \Phibm_{u(k)} + \Phibm_{u(k)} \right)^\top - \Hb_k
+ = \frac{1}{C} (U + N + 1) \Phibm_{u(k)} \Phibm_{u(k)}^\top - \Hb_k,
 \end{aligned}
 \end{equation*}
 where $\Hb_k \in \R^{M \times M}$ is a diagonal matrix such that
@@ -137,7 +137,7 @@ The optimisation objective for new song recommendation is:
 \label{eq:primal_nsr}
 \begin{aligned}
 J_\textsc{nsr}
-&= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+&= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{5em}
      + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
@@ -149,7 +149,7 @@ It can be approximated as
 \begin{equation*}
 \begin{aligned}
 J_\textsc{nsr} 
-&\approx \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+&\approx \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{3em}
   + \sum_{i=1}^N \frac{1}{N M_i^+} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x_m} \right)
@@ -161,7 +161,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
 \begin{equation*}
 \begin{aligned}
 \frac{\partial J_\textsc{nsr}}{\partial \bv_u}
-&\approx \frac{\lambda}{U} \bv_u
+&\approx \frac{C}{U} \bv_u
   + \sum_{i \in P_u} \frac{1}{N M_i^+} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_u + \w_i + \mubm)^\top \x_m} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \x_n} \right)^\frac{1}{p} \\
@@ -172,7 +172,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
            { \displaystyle \sum_{m: y_m^i = 1} e^{-(\bv_u + \w_i + \mubm)^\top \x_m} } \right] \\
 %
 \frac{\partial J_\textsc{nsr}}{\partial \w_i}
-&\approx \frac{\lambda}{N} \w_i
+&\approx \frac{C}{N} \w_i
   + \frac{1}{N M_i^+} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x_m} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x_n} \right)^\frac{1}{p} \\
@@ -183,7 +183,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
            { \displaystyle \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x_m} } \right] \\
 %
 \frac{\partial J_\textsc{nsr}}{\partial \mubm}
-&\approx \lambda \mubm
+&\approx C \mubm
   + \sum_{i=1}^N \frac{1}{N M_i^+} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x_m} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x_n} \right)^\frac{1}{p} \\
@@ -200,7 +200,7 @@ The Lagrangian dual problem when using the exponential surrogate is
 \begin{equation}
 \label{eq:dual_nsr}
 \begin{aligned}
-\min_{\Thetabm} \ & \frac{1}{2 \lambda} \left[
+\min_{\Thetabm} \ & \frac{1}{2 C} \left[
      U \sum_{u=1}^U \left( \sum_{i \in P_u} \thetabm_i \right)^\top \X \X^\top \left( \sum_{i \in P_u} \thetabm_i \right)
    + N \sum_{i=1}^N \thetabm_i^\top \X \X^\top \thetabm_i
    + \left( \sum_{i=1}^N \thetabm_i \right)^\top \X \X^\top \left( \sum_{i=1}^N \thetabm_i \right) \right] \\
@@ -215,7 +215,7 @@ s.t. \
 Note that the above objective can be computed as
 \begin{equation*}
 \begin{aligned}
-J &= \frac{1}{2 \lambda} \sum_{n=1}^N \sum_{n'=1}^N (U \A + N \I_N + \one_{N \times N}) 
+J &= \frac{1}{2 C} \sum_{n=1}^N \sum_{n'=1}^N (U \A + N \I_N + \one_{N \times N}) 
      \circ \left( \Thetabm^\top \X \right) \left( \Thetabm^\top \X \right)^\top \\
 & \hspace{3em}
      + \sum_{i=1}^N \thetabm_i^\top \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right),
@@ -234,16 +234,16 @@ The gradient of the optimisation objective w.r.t. to dual variables $\thetabm_k 
 \begin{equation*}
 \begin{aligned}
 \frac{\partial J_\textsc{nsr}'}{\partial \thetabm_k}
-&= \frac{1}{2 \lambda} \left( U \cdot 2 \X \left(\sum_{i \in P_{u(k)}} \thetabm_i^\top \X \right)^\top 
+&= \frac{1}{2 C} \left( U \cdot 2 \X \left(\sum_{i \in P_{u(k)}} \thetabm_i^\top \X \right)^\top 
    + N \cdot 2 \X \left( \thetabm_k^\top \X \right)^\top
    + 2 \X \left(\sum_{i=1}^N \thetabm_i^\top \X \right)^\top \right) \\
 & \hspace{2.5em}
    + (1 - \log(N M_k^+)) \y_k - \y_k \circ \log(-\thetabm_k) + \y_k \circ \thetabm_k \left( -\frac{-1}{-\y_k \circ \thetabm_k} \right) \\
-&= \frac{\X}{\lambda} \left( U \sum_{i \in P_{u(k)}} \thetabm_i^\top \X 
+&= \frac{\X}{C} \left( U \sum_{i \in P_{u(k)}} \thetabm_i^\top \X 
    + N \thetabm_k^\top \X 
    + \sum_{i=1}^N \thetabm_i^\top \X \right)^\top
    - \log(N M_k^+) \y_k - \y_k \circ \log(-\thetabm_k) \\
-&= \frac{\X \X^\top}{\lambda} \left( U \sum_{i \in P_{u(k)}} \thetabm_i + N \thetabm_k + \sum_{i=1}^N \thetabm_i \right)
+&= \frac{\X \X^\top}{C} \left( U \sum_{i \in P_{u(k)}} \thetabm_i + N \thetabm_k + \sum_{i=1}^N \thetabm_i \right)
    - \log(N M_k^+) \y_k - \y_k \circ \log(-\thetabm_k) \\
 \end{aligned}
 \end{equation*}
@@ -252,8 +252,8 @@ The Hessian is
 \begin{equation*}
 \begin{aligned}
 \frac{\partial^2 J_\textsc{nsr}'}{\partial \thetabm_k^2}
-&= \frac{\X}{\lambda} \left( U \X + N \X + \X \right)^\top - \Hb_k
- = \frac{1}{\lambda} (U + N + 1) \X \X^\top - \Hb_k,
+&= \frac{\X}{C} \left( U \X + N \X + \X \right)^\top - \Hb_k
+ = \frac{1}{C} (U + N + 1) \X \X^\top - \Hb_k,
 \end{aligned}
 \end{equation*}
 where $\Hb_k \in \R^{M \times M}$ is a diagonal matrix such that

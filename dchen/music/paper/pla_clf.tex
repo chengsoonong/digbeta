@@ -22,11 +22,11 @@ and the number of listening events from users except $u$.
 The optimisation objective is:
 \begin{equation*}
 \begin{aligned}
-J &= \frac{\lambda}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+J &= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{3em}
      + \frac{1}{N} \sum_{i=1}^N \left( \frac{1}{M_i^+} \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} 
      + \frac{1}{(M - M_i^+) p} \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right),
 \end{aligned}
 \end{equation*}
-where $\lambda > 0$ is a regularisation constant.
+where $C > 0$ is a regularisation constant.
