@@ -30,7 +30,6 @@ for k in [1, 2, 3, 4]:
     assert np.all(np.array(pl1) == np.array(pl2))
 
 
-
 print('checking features ...')
 
 for fname in ['X_train', 'X_trndev']:
@@ -38,8 +37,6 @@ for fname in ['X_train', 'X_trndev']:
         x1 = pkl.load(gzip.open(os.path.join(dir1, '%s_%d.pkl.gz' % (fname, k)), 'rb'))
         x2 = pkl.load(gzip.open(os.path.join(dir2, '%s_%d.pkl.gz' % (fname, k)), 'rb'))
         assert np.all(np.isclose(x1, x2))
-    
-
 
 print('checking labels (sparse boolean matrices) ...')
 

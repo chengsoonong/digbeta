@@ -71,6 +71,18 @@ Table~\ref{tab:stats_pla} summarises the statistics of the two dataset used for 
 To tune hyper-parameters, we hold a subset of playlists in training set as the validation set, 
 which is constructed using the same approach as the test set.
 
+We compare the following baselines for playlist augmentation:
+\begin{itemize}
+\item Logistic Regression: learning a logistic regression classifier independently for each playlist,
+      seed songs are positive examples, while others are negative examples.
+%\item Matrix Factorisation: learning hidden representations of songs and playlists by factorising the indicator matrix.
+\item Popularity based ranking: recommending the most popular songs (without repeat).
+\item Same Artists - Greatest Hits (SAGH)~\cite{mcfee2012million}: 
+      recommending the most popular songs from artists of seed songs.
+\item Collocated Artists - Greatest Hits (CAGH)~\cite{bonnin2013evaluating}: 
+      recommending songs based on the frequency of the collocation of artists of seed songs.
+\end{itemize}
+
 \begin{table}[!h]
 \centering
 \caption{Statistics of dataset for playlist augmentation}
