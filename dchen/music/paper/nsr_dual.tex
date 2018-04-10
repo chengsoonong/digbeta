@@ -246,6 +246,8 @@ subject to constraints
 \end{aligned}
 \end{equation*}
 
+
+\eat{
 The dual problem is a constrained convex minimisation problem, 
 which can be optimised directly using a general convext optimisation method, \eg the interior point method.
 However, if $M \gg D$ and $N \gg D$, recall that $\Thetabm \in \R^{N \times M}$, 
@@ -261,24 +263,51 @@ or equivalently $\Lambdabm = \Thetabm \X$, $\Lambdabm \in \R^{N \times D}$, then
 \end{equation*}
 where $\Z \in \R^{M \times D}$ is the left inverse of $\X^\top$, \ie $\Z \X^\top = \I_M$.
 
-The dual problem can be rewritten as 
+Note that $\theta_i^m = \z_m^\top \lambdabm_i$ and by (\ref{eq:expconj})
 \begin{equation*}
+\begin{aligned}
+&\sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right) \\
+&= \sum_{i=1}^N \sum_{m: y_m^i = 1} \theta_i^m \left(1 - \log(-\theta_i^m) - \log(N M_i^+) \right) \\
+&= \sum_{i=1}^N \sum_{m: y_m^i = 1} \z_m^\top \lambdabm_i \left(1 - \log(-\z_m^\top \lambdabm_i) - \log(N M_i^+) \right) \\
+&= \sum_{i=1}^N \sum_{m: y_m^i = 1} \left[ \z_m^\top \lambdabm_i \left(1 - \log(N M_i^+) \right) 
+                                           - \z_m^\top \lambdabm_i \log(-\z_m^\top \lambdabm_i) \right].
+\end{aligned}
+\end{equation*}
+
+The dual problem can be rewritten as 
+\begin{equation}
+\label{eq:nsr_dual2}
 \begin{aligned}
 \min_{\Lambdabm} \ & \frac{1}{2 C} \left[
      U \sum_{u=1}^U \left( \sum_{i \in P_u} \lambdabm_i \right)^\top \left( \sum_{i \in P_u} \lambdabm_i \right)
    + N \sum_{i=1}^N \lambdabm_i^\top \lambdabm_i
    + \left( \sum_{i=1}^N \lambdabm_i \right)^\top \left( \sum_{i=1}^N \lambdabm_i \right) \right] \\
 & \hspace{2em}
-   + \sum_{i=1}^N \left( \y_i \circ \Z \lambdabm_i \right)^\top 
-     \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\Z \lambdabm_i) \right) \\
+   + \sum_{i=1}^N \sum_{m: y_m^i = 1} \left[ \z_m^\top \lambdabm_i \left(1 - \log(N M_i^+) \right) 
+                                           - \z_m^\top \lambdabm_i \log(-\z_m^\top \lambdabm_i) \right] \\
 s.t. \
-& \left( \Z \lambdabm_i \right)^\top \one_M = 0, \\
+& 0 = \left( \Z \lambdabm_i \right)^\top \one_M = \sum_{m=1}^M \z_m^\top \lambdabm_i = \left( \sum_{m=1}^M \z_m \right)^\top \lambdabm_i, \\
 & \z_m^\top \lambdabm_i < 0, \ \mathrm{if} \ y_m^i = 1, \\
 & \z_n^\top \lambdabm_i \ge 0, \ \mathrm{if} \ y_n^i = 0, \ i \in \{1,\dots,N\}, \, m,n \in \{1,\dots,M\}.
 \end{aligned}
+\end{equation}
+
+Let $\widetilde J$ be the objective in problem (\ref{eq:nsr_dual2}), 
+then the derivative w.r.t. to $\lambdabm_k, \, k \in \{1,\dots,N\}$ is
+\begin{equation*}
+\begin{aligned}
+\frac{\partial \widetilde J} {\partial \lambdabm_k}
+&= \frac{1}{2C} \left( 2U \sum_{i \in P_{u(k)}} \lambdabm_i + 2N \lambdabm_k + 2 \sum_{i=1}^N \lambdabm_k \right) \\
+& \hspace{3em}
+   + \sum_{m:y_m^k = 1} \left[ \z_m \left( 1 - \log(N M_k^+) \right) 
+     - \z_m \log(-\z_m^\top \lambdabm_k) - \z_m^\top \lambdabm_k \frac{-\z_m}{-\z_m^\top \lambdabm_k} \right] \\
+&= \frac{1}{C} \left( U \sum_{i \in P_{u(k)}} \lambdabm_i + N \lambdabm_k + \sum_{i=1}^N \lambdabm_k \right) 
+   - \sum_{m:y_m^k = 1} \z_m \left[ \log(N M_k^+) + \log(-\z_m^\top \lambdabm_k) \right] \\
+\end{aligned}
 \end{equation*}
 
-Let $\Lambdabm^*$ be an optimimal solution of the above problem, then
+
+Let $\Lambdabm^*$ be an optimal solution of the above problem, then
 \begin{equation*}
 \begin{aligned}
 \bv_u^*
@@ -294,3 +323,4 @@ Let $\Lambdabm^*$ be an optimimal solution of the above problem, then
  = -\frac{1}{C} \sum_{i=1}^N \lambdabm_i^*
 \end{aligned}
 \end{equation*}
+}

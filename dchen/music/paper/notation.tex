@@ -15,11 +15,11 @@ $M$        &  $\in$  &  $\Z^+$            & The number of songs \\
 $N$        &  $\in$  &  $\Z^+$            & The number of playlists \\
 $U$        &  $\in$  &  $\Z^+$            & The number of users \\
 $u(i)$     &  $\in$  &  $\Z^+$            & The user that owns playlist $i$ \\
-$\I_M$     &  $\in$  &  $\R^{M \times M}$ & The $M$-by-$M$ identity matrix \\
+%$\I_M$     &  $\in$  &  $\R^{M \times M}$ & The $M$-by-$M$ identity matrix \\
 $\X$       &  $\in$  &  $\R^{M \times D}$ & The matrix of features of all songs \\
 $\Phibm_u$ &  $\in$  &  $\R^{M \times (D + U -1)}$ & The matrix of features of all songs with users' (except $u$) labels \\
 $\Y$       &  $\in$  &  $\R^{M \times N}$ & The matrix of binary labels that indicating if a song is in a playlist \\
-$\Z$       &  $\in$  &  $\R^{M \times D}$ & The left inverse of matrix $\X^\top$ such that $\Z \X^\top = \I_M$ \\
+%$\Z$       &  $\in$  &  $\R^{M \times D}$ & The left inverse of matrix $\X^\top$ such that $\Z \X^\top = \I_M$ \\
 $\zero_N$  &  $\in$  &  $\R^N$            & The $N$ dimensional vector of $0$'s \\
 $\one_M$   &  $\in$  &  $\R^M$            & The $M$ dimensional vector of $1$'s \\
 $\V$       &  $\in$  &  $\R^{U \times D}$ & The matrix of user weights \\
@@ -28,7 +28,7 @@ $\mubm$    &  $\in$  &  $\R^D$            & The vector of bias weights \\
 $\alphabm$ &  $\in$  &  $\R^{N \times M}$ & The matrix of dual variables (corresponding to $y_m^i=1$) \\
 $\betabm$  &  $\in$  &  $\R^{N \times M}$ & The matrix of dual variables (corresponding to $y_n^i=0$) \\
 $\Thetabm$ &  $\in$  &  $\R^{N \times M}$ & The matrix of dual variables (combines $\alphabm$ and $\betabm$) \\
-$\Lambdabm$&  $\in$  &  $\R^{N \times D}$ & The matrix that denotes $\Thetabm \X$ \\
+%$\Lambdabm$&  $\in$  &  $\R^{N \times D}$ & The matrix that denotes $\Thetabm \X$ \\
 \bottomrule
 \end{tabular}
 \end{table}
