@@ -1,0 +1,88 @@
+\section{Multitask bipartite ranking for new song recommendation}
+
+The optimisation problem is
+\begin{equation}
+\label{eq:mbropt}
+\begin{aligned}
+&\min_{\V, \W, \mubm} \ \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+     + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+& \hspace{5em}
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
+     - \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \x_n \right).
+\end{aligned}
+\end{equation}
+
+Let 
+\begin{equation*}
+\begin{aligned}
+f_0(\V, \W, \mubm, \xibm) &= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+     + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+& \hspace{3em}
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} 
+       \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m - \xi_i \right) \\
+f_{i,n} (\V, \W, \mubm, \xibm) &= (\bv_{u(i)} + \w_i + \mubm)^\top \x_n - \xi_i, \
+i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_n^i = 0.
+\end{aligned}
+\end{equation*}
+
+Problem (\ref{eq:mbropt}) is equivalent to 
+\begin{equation}
+\label{eq:stdopt}
+\begin{aligned}
+\min_{\V, \W, \mubm, \xibm} \ & f_0(\V, \W, \mubm, \xibm) \\
+s.t. \quad & f_{i,n}(\V, \W, \mubm, \xibm) \le 0, \
+i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_n^i = 0.
+\end{aligned}
+\end{equation}
+
+Suppose we use the exponential surrogate loss $\ell(f, y) = e^{-fy}$, we have
+\begin{equation*}
+\ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m - \xi_i \right) 
+= \exp \left( \xi_i - (\bv_{u(i)} + \w_i + \mubm)^\top \x_m \right)
+\end{equation*}
+then
+\begin{equation*}
+\begin{aligned}
+\frac{\partial f_0}{\partial \bv_u}
+&= \frac{C}{2} \frac{2}{U} \bv_u + \frac{1}{N} \sum_{i \in P_u} \frac{1}{M_i^+} \sum_{m: y_m^i=1} \frac{\partial \ell}{\partial \bv_u} \\
+&= \frac{C}{U} \bv_u - \sum_{i \in P_u} \frac{1}{N M_i^+} \sum_{m: y_m^i=1} \x_m \exp \left( \xi_i - (\bv_u + \w_i + \mubm)^\top \x_m \right) \\
+%
+\frac{\partial f_0}{\partial \w_k}
+&= \frac{C}{2} \frac{2}{N} \w_k + \frac{1}{N} \frac{1}{M_k^+} \sum_{m: y_m^k=1} \frac{\partial \ell}{\partial \w_k} \\
+&= \frac{C}{N} \w_k - \frac{1}{N M_k^+} \sum_{m: y_m^k=1} \x_m \exp \left( \xi_k - (\bv_{u(k)} + \w_k + \mubm)^\top \x_m \right) \\
+%
+\frac{\partial f_0}{\partial \mubm}
+&= \frac{C}{2} 2 \mubm + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i=1} \frac{\partial \ell}{\partial \mubm} \\
+&= C \mubm - \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_m^i=1} \x_m \exp \left( \xi_i - (\bv_{u(i)} + \w_i + \mubm)^\top \x_m \right) \\
+%
+\frac{\partial f_0}{\partial \xi_k}
+&= \frac{1}{N} \frac{1}{M_k^+} \sum_{m: y_m^k=1} \frac{\partial \ell}{\partial \xi_k} \\
+&= \frac{1}{N M_k^+} \sum_{m: y_m^k=1} \exp \left( \xi_k - (\bv_{u(k)} + \w_k + \mubm)^\top \x_m \right),
+\end{aligned}
+\end{equation*}
+%
+further, for $i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\}$ and $y_n^i = 0$,
+\begin{equation*}
+\begin{aligned}
+\frac{\partial f_{i,n}}{\partial \bv_u}
+&= \begin{cases}
+\x_n, \ u = u(i), \\
+\zero, \ \text{otherwise}.
+\end{cases} \\
+%
+\frac{\partial f_{i,n}}{\partial \w_k}
+&= \begin{cases}
+\x_n, \ k = i, \\
+\zero, \ \text{otherwise}.
+\end{cases} \\
+%
+\frac{\partial f_{i,n}}{\partial \mubm} &= \x_n \\
+%
+\frac{\partial f_{i,n}}{\partial \xi_k}
+&= \begin{cases}
+-1, \ k = i, \\
+0, \ \text{otherwise}.
+\end{cases}
+\end{aligned}
+\end{equation*}
+
