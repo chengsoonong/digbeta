@@ -35,8 +35,16 @@ for playlist generation~\cite{mcfee2012million,bonnin2013evaluating,bonnin2015au
 A nice survey and review of various approaches for playlist generation~\cite{bonnin2015automated}.
 
 
-Generate coherent playlists that also match users' preferences. (the last song in playlist)\cite{jannach2015beyond}.
+\paragraph{Next song recommendation}
+Next song recommendation~\cite{jannach2015beyond} approach that first scoring each song by a number of features
+(\eg acoustic features, user preference of artists, social tags, song co-occurrence in playlists etc.),
+then fine-tune the ranks of top-scoring songs which hopefully make the recommended next song be a coherent continuation of user's listening history.
 
+Groove radio~\cite{ben2017groove} uses a classification approach to sequentially recommend 
+the next song by predicting the probability of each possible song for a specific user, given an artist as seed.
+It makes use of various information such as song metadata, usage statistics, acoustic features, popularity of song and artist,
+to build features by taking into consideration of user's listening history and the playlist seed (\ie specified artist and user).
+Further, this approach can deal with a cold user or artist by falling back higher levels thanks to its hierarchical architecture.
 
 
 In this paper, we describe two variants of the playlist recommendation problem,
