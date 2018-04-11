@@ -1,10 +1,12 @@
 \section{Introduction}
 \label{sec:intro}
-
-%help user explore large collection of music
+Online music streaming services (\eg Spotify, Pandora, Apple Music, Google Play Music, Amazon Music etc.) 
+are playing an increasingly important role in the digital music industry.
+A key ingredient is the ability to automatically continue playlists 
+to create an uninterrupted listening experience and help user explore a large collection of music.
 
 % brief description of both recommendation tasks
-We are motivated by the problem of automatically augmenting music playlist with a collection of songs $\SCal$,
+We are motivated by the problem of automatically augmenting (continuing?) music playlist with a collection of songs $\SCal$,
 in particular, given a partial playlist with the first $K$ songs\footnote{$K$ can be different for different partial playlists.},
 we would like to recommend a subset of $\SCal$ by learning from user created playlist dataset.
 This task is also known as Automatic Playlist Continuation~\cite{schedl2017,recsysch2018}.
