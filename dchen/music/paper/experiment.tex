@@ -45,15 +45,15 @@ AotM-2011 & 114,428 & 84,710      & 14,182  & 10.1 \\
 
 
 \subsection{Evaluation}
-We evaluate performance using metrics that are commonly used for music and playlist recommendation 
-tasks~\cite{schedl2017,hariri2012context,jannach2015beyond}:
+We evaluate performance using metrics that are commonly used for music recommendation and playlist generation
+tasks~\cite{hariri2012context,bonnin2013evaluating,jannach2015beyond,ben2017groove,schedl2017}:
 \begin{itemize}
 \item R-Precision~\cite{manning2008introIR}, which computes the ratio of correctly recommended songs in top-$n$ recommendation, 
       where $n$ is the number of songs held for a given playlist.
 \item Hit-Rate@K~\cite{hariri2012context}, which computes the ratio of correctly recommended songs among top-$K$ recommendation, 
       where $K$ is a given number, \eg $10$, $100$. 
       This metric is also known as Precision@K in information retrieval literature~\cite{manning2008introIR}.
-\item NDCG and AUC.
+\item Area under the ROC curve (AUC) and the normalised discounted cumulative gain (NDCG) as described in~\cite{agarwal2011infinite}.
 \end{itemize}
 We break down the results according to either user or the playlist length (\ie the number of songs in playlist).
 
@@ -102,11 +102,11 @@ AotM-2011 & 59,297              & 25,413 \\
 
 \input{tab_pla}
 
-\begin{figure}[!h]
+\begin{figure*}[!h]
 \centering
 \includegraphics[width=\linewidth]{fig/30music-2.pdf}
 \caption{Hit rates given $K=1,2,3,4$ seed songs on 30Music dataset.}
-\end{figure}
+\end{figure*}
 
 
 \subsection{New song recommendation}

@@ -1,17 +1,17 @@
-\begin{table}[!h]
+\begin{table*}[!h]
 \centering
-\caption{R-Precision $\times 10^3$ (30music)}
-\label{tab:hitrate_pla_30music}
-\begin{tabular}{l|*{3}{c|}}
+\caption{Performance $\times 10^2$ (30music)}
+\label{tab:perf_pla_30music}
+\begin{tabular}{l|*{12}{c}}
 \toprule
-{} & Logistic Regression & Popularity Rank & Multitask Classification \\
+{} & \multicolumn{3}{c}{Logistic Regression} & \multicolumn{3}{c}{Popularity Rank} & \multicolumn{3}{c}{Multitask Classification} & \multicolumn{3}{c}{SAGH} \\
+{} &    R-Precision &    AUC &  NDCG &     R-Precision &    AUC &  NDCG &              R-Precision &    AUC &   NDCG & R-Precision &    AUC &   NDCG \\
 \midrule
-K=1 &               $4.5$ &          $14.5$ &                   $15.2$ \\
-K=2 &               $7.3$ &          $13.8$ &                   $14.7$ \\
-K=3 &               $8.8$ &          $12.6$ &                   $14.4$ \\
-K=4 &               $8.8$ &          $11.7$ &                   $13.2$ \\
+K=1 &         $0.4$ & $67.1$ & $8.3$ &           $1.4$ & $76.9$ & $9.8$ &                    $1.5$ & $80.7$ &  $9.9$ &       $7.0$ & $54.9$ & $35.3$ \\
+K=2 &         $0.7$ & $71.1$ & $8.8$ &           $1.4$ & $76.9$ & $9.8$ &                    $1.5$ & $81.7$ & $10.0$ &       $7.3$ & $55.8$ & $27.4$ \\
+K=3 &         $0.9$ & $73.3$ & $9.0$ &           $1.3$ & $76.7$ & $9.8$ &                    $1.4$ & $83.1$ & $10.1$ &       $7.1$ & $56.6$ & $24.4$ \\
+K=4 &         $0.9$ & $74.7$ & $9.3$ &           $1.2$ & $76.4$ & $9.7$ &                    $1.3$ & $82.1$ & $10.0$ &       $6.7$ & $57.3$ & $23.1$ \\
 \bottomrule
 \end{tabular}
-\end{table}
 
-% BR & \textsc{PopRank} & MF & SAGH & CAGH \\
+\end{table*}
