@@ -8,12 +8,13 @@ we use the P-Classification loss, with the exponential surrogate:
 \begin{equation*}
 \begin{aligned}
 \LCal_\textsc{pc}(f, \DCal) 
-%&= \frac{1}{M_i^+} \sum_{m: y_m^i = 1} e^{-f(u, i, m)} + \frac{1}{M - M_i^+} \sum_{n: y_n^i = 0} \frac{1}{p} e^{p f(u, i, n)} \\
-&= \frac{1}{M_i^+} \sum_{m: y_m^i = 1} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_{u,m}} 
-   + \frac{1}{(1 - M_i^+) p} \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}},
+&= \frac{1}{M_i^+} \sum_{m: y_m^i = 1} e^{-f(u, i, m)} + \frac{1}{M_i^-} \sum_{n: y_n^i = 0} \frac{1}{p} e^{p f(u, i, n)}, \\
+%&= \frac{1}{M_i^+} \sum_{m: y_m^i = 1} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_{u,m}} 
+%   + \frac{1}{(1 - M_i^+) p} \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}},
 \end{aligned}
 \end{equation*}
 where $M_i^+$ is the number songs in playlist $i$,
+$M_i^- = M - M_i^+$,
 $p > 0$ is a trade-off parameter,
 and $\phibm_{u,m}$ is a feature vector,
 which includes audio features, genre, popularity of song $m$,
@@ -24,9 +25,12 @@ The optimisation objective is:
 \begin{aligned}
 J &= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
-& \hspace{3em}
-     + \frac{1}{N} \sum_{i=1}^N \left( \frac{1}{M_i^+} \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} 
-     + \frac{1}{(M - M_i^+) p} \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right),
+& \hspace{1em}
+     + \frac{1}{N} \sum_{i=1}^N \left( \frac{1}{M_i^+} \sum_{m: y_m^i = 1} e^{-f(u(i), i,m)} 
+     + \frac{1}{M_i^- p} \sum_{n: y_n^i = 0} e^{p f(u(i), i,n)} \right),
+%& \hspace{3em}
+%     + \frac{1}{N} \sum_{i=1}^N \left( \frac{1}{M_i^+} \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} 
+%     + \frac{1}{(M - M_i^+) p} \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right),
 \end{aligned}
 \end{equation*}
 where $C > 0$ is a regularisation constant.

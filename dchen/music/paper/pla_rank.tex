@@ -2,19 +2,22 @@
 
 We can formulate the playlist augmentation problem as bipartite ranking problems, 
 and we want to learn a scorer $f$ such that, for a given playlist, 
-songs in this playlist will be scored higher than those not in the given playlist.
+songs in this playlist will be scored higher than those not in the given playlist,
+which is known as the Top-Push loss~\cite{li2014top}.
 
-The optimisation problem is:
-\begin{equation}
-\label{eq:primal_pla}
+The optimisation problem (with L2 regularisation) is:
+\begin{equation*}
+%\label{eq:primal_pla}
 \begin{aligned}
 &\min_{\V, \W, \mubm} \ \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
-& \hspace{5em}
-     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}
-     - \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n} \right).
+& \hspace{3em}
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( f(u(i), i, m) - \max_{n: y_n^i = 0} f(u(i), i, n) \right).
+%& \hspace{5em}
+%     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}
+%     - \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n} \right).
 \end{aligned}
-\end{equation}
+\end{equation*}
 
 Directly optimise the above problem is challenging due to the \emph{max} operator,
 readily approaches including approximate the \emph{max} operator or formulate and solve the dual problem.
@@ -29,10 +32,6 @@ and use the exponential surrogate $\ell(f, y) = e^{-fy}$, we have
 \begin{equation*}
 \begin{aligned}
 &\ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m} - \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n} \right) \\
-%&= \exp \left( -(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m} + \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n} \right) \\
-%&\approx \exp \left( -(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m} 
-%            + \frac{1}{p} \log \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right) \\
-%&=
 &\approx e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}}
    \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p}.
 \end{aligned}
@@ -42,18 +41,33 @@ Then the optimisation objective in (\ref{eq:primal_pla}) can be approximated as
 \begin{equation*}
 \begin{aligned}
 J 
-&\approx 
-% \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
-%& \hspace{3em}
-%  + \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} 
-%    e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}}
-%    \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p} \\
-%&= 
-\frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
-& \hspace{3em}
+&\approx \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+& \hspace{2em}
   + \sum_{i=1}^N \frac{1}{N M_i^+} 
-    \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} \right)
-    \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p}.
+    \left( \sum_{m: y_m^i = 1} e^{-f(u(i), i, m)} \right)
+    \left( \sum_{n: y_n^i = 0} e^{p f(u(i), i, n)} \right)^\frac{1}{p}.
+%& \hspace{3em}
+%  + \sum_{i=1}^N \frac{1}{N M_i^+} 
+%    \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} \right)
+%    \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p}.
+\end{aligned}
+\end{equation*}
+
+
+\subsection{Formulate a constrained optimisation problem}
+If we introduce a slack variable $\xi_i \ge f(u(i), i, n), \, \forall n \in \{1,\dots,M\}$ where $y_i^n = 0$,
+and use the exponential surrogate loss as above, we have a constrained optimisation problem:
+\begin{equation*}
+\label{eq:primal_pla}
+\begin{aligned}
+\min_{\V, \W, \mubm} \ &
+\frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
+     + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
+& \hspace{1em}
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} e^{-f(u(i), i, m) + \xi_i} \\
+s.t. \quad & 
+f(u(i), i, n) - \xi_i \le 0, \\
+& i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_n^i = 0.
 \end{aligned}
 \end{equation*}
 
@@ -66,9 +80,10 @@ The Lagrangian dual problem of (\ref{eq:primal_pla}) when using the exponential 
 \min_{\Thetabm} \ & \frac{1}{2 C} \left[
      U \sum_{u=1}^U \left( \sum_{i \in P_u} \thetabm_i \right)^\top \Phibm_u \Phibm_u^\top \left( \sum_{i \in P_u} \thetabm_i \right)^\top
    + N \sum_{i=1}^N \thetabm_i^\top \Phibm_{u(i)} \Phibm_{u(i)}^\top \thetabm_i \right. \\
-& \hspace{2em} \left.
+& \quad \left.
    + \left( \sum_{u=1}^U \sum_{i \in P_u} \thetabm_i^\top \Phibm_u \right)
-     \left( \sum_{u=1}^U \sum_{i \in P_u} \thetabm_i^\top \Phibm_u \right)^\top \right]
+     \left( \sum_{u=1}^U \sum_{i \in P_u} \thetabm_i^\top \Phibm_u \right)^\top \right] \\
+& \quad
    + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top 
      \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right), \\
 s.t. \ 
