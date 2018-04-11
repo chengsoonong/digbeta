@@ -3,9 +3,9 @@ import sys
 import gzip
 import pickle as pkl
 import numpy as np
-# from sklearn.metrics import roc_auc_score
 from scipy.sparse import issparse
-from tools import calc_RPrecision_HitRate
+# from tools import calc_RPrecision_HitRate
+from tools import calc_metrics
 
 TOPs = [5, 10, 20, 30, 50, 100, 200, 300, 500, 1000]
 
@@ -36,6 +36,8 @@ assert clf.trained is True
 
 rps = []
 hitrates = {top: [] for top in TOPs}
+aucs = []
+ndcgs = []
 for j in range(Y_test.shape[1]):
     if (j+1) % 100 == 0:
         sys.stdout.write('\r%d / %d' % (j+1, Y_test.shape[1]))
@@ -52,11 +54,16 @@ for j in range(Y_test.shape[1]):
     wk = clf.V[u, :] + clf.W[k, :] + clf.mu
     X = X if clf.UF is None else np.concatenate([X, np.delete(clf.UF, u, axis=1)], axis=1)
     y_pred = np.dot(X, wk)[indices]
-    rp, hr_dict = calc_RPrecision_HitRate(y_true, y_pred, tops=TOPs)
+    # rp, hr_dict = calc_RPrecision_HitRate(y_true, y_pred, tops=TOPs)
+    rp, hr_dict, auc, ndcg = calc_metrics(y_true, y_pred, tops=TOPs)
     rps.append(rp)
     for top in TOPs:
         hitrates[top].append(hr_dict[top])
+    aucs.append(auc)
+    ndcgs.append(ndcg)
 
-pla_perf = {dataset: {'Test': {'R-Precision': np.mean(rps), 'Hit-Rate': {top: np.mean(hitrates[top]) for top in TOPs}}}}
+print('\n%d, %d' % (len(rps), Y_test.shape[1]))
+pla_perf = {dataset: {'Test': {'R-Precision': np.mean(rps), 'Hit-Rate': {top: np.mean(hitrates[top]) for top in TOPs},
+                               'AUC': np.mean(aucs), 'NDCG': np.mean(ndcgs)}}}
 pkl.dump(pla_perf, open(fperf, 'wb'))
 print(pla_perf)

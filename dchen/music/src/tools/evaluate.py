@@ -1,7 +1,36 @@
 import numpy as np
 # from sklearn.metrics import f1_score
-from sklearn.metrics import precision_recall_fscore_support
+from sklearn.metrics import precision_recall_fscore_support, roc_auc_score
 from joblib import Parallel, delayed
+
+
+def calc_metrics(y_true, y_pred, tops=[]):
+    assert y_true.ndim == y_pred.ndim == 1
+    assert len(y_true) == len(y_pred)
+    npos = y_true.sum()
+    assert npos > 0
+    assert npos < len(y_true)
+    rp, hitrates = calc_RPrecision_HitRate(y_true, y_pred, tops=tops)
+    auc = roc_auc_score(y_true, y_pred)
+    ndcg = calc_NDCG(y_true, y_pred)
+    return rp, hitrates, auc, ndcg
+
+
+def calc_NDCG(y_true, y_pred):
+    assert y_true.ndim == y_pred.ndim == 1
+    assert len(y_true) == len(y_pred)
+    assert y_true.dtype == np.bool
+    npos = y_true.sum()
+    assert npos > 0
+    pix = np.where(y_true > 0)[0]
+    assert len(pix) == npos
+    DCG = 0.
+    for ix in pix:
+        # ri = 1. + np.sum([int(y_pred[ix] < y_pred[k]) for k in range(len(y_true))])
+        ri = 1. + np.sum(y_pred[ix] < y_pred)
+        DCG += 1. / np.log2(ri + 1)
+    IDCG = npos
+    return DCG / IDCG
 
 
 def calc_RPrecision_HitRate(y_true, y_pred, tops=[]):
@@ -10,6 +39,7 @@ def calc_RPrecision_HitRate(y_true, y_pred, tops=[]):
     """
     assert y_true.ndim == y_pred.ndim == 1
     assert len(y_true) == len(y_pred)
+    assert y_true.dtype == np.bool
     assert type(tops) == list
     sortix = np.argsort(-y_pred)
     npos = y_true.sum()
