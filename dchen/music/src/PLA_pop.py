@@ -5,6 +5,7 @@ import time
 import numpy as np
 import pickle as pkl
 from scipy.sparse import hstack
+from sklearn.metrics import roc_auc_score
 from models import MTC
 
 
@@ -30,14 +31,14 @@ if trndev == 'N':
     fytrndev = os.path.join(data_dir, 'Y_trndev.pkl.gz')
     fydev = os.path.join(data_dir, 'PU_dev_%d.pkl.gz' % n_seed)
     fcliques = os.path.join(data_dir, 'cliques_trndev.pkl.gz')
-    fprefix = 'pla-%g-%g-%g' % (n_seed, C, p)
+    fprefix = 'pop-%g-%g-%g' % (n_seed, C, p)
 else:
     fxtrain = os.path.join(data_dir, 'X_trndev_pop_%d.pkl.gz' % n_seed)
     fytrain = os.path.join(data_dir, 'Y_trndev.pkl.gz')
     fytrndev = os.path.join(data_dir, 'Y.pkl.gz')
     fydev = os.path.join(data_dir, 'PU_test_%d.pkl.gz' % n_seed)
     fcliques = os.path.join(data_dir, 'cliques_all.pkl.gz')
-    fprefix = 'trndev-pla-%g-%g-%g' % (n_seed, C, p)
+    fprefix = 'trndev-pop-%g-%g-%g' % (n_seed, C, p)
 
 fmodel = os.path.join(data_dir, '%s.pkl.gz' % fprefix)
 fnpy = os.path.join(data_dir, '%s.npy' % fprefix)
@@ -66,6 +67,7 @@ if clf.trained is True:
     Y_dev = Y_train_dev[:, -PU_dev.shape[1]:]
     offset = Y_train_dev.shape[1] - PU_dev.shape[1]
     rps = []
+    aucs = []
     for j in range(Y_dev.shape[1]):
         y1 = Y_dev[:, j].toarray().reshape(-1)
         y2 = PU_dev[:, j].toarray().reshape(-1)
@@ -77,13 +79,12 @@ if clf.trained is True:
         k = offset + j
         u = clf.pl2u[k]
         wk = clf.V[u, :] + clf.W[k, :] + clf.mu
-        X = X_train if clf.UF is None else np.concatenate([X_train, np.delete(clf.UF, u, axis=1)], axis=1)
+        X = X_train
         y_pred = np.dot(X, wk)[indices]
-        # aucs.append(roc_auc_score(y_true, y_pred))
         sortix = np.argsort(-y_pred)
-        # hrs.append(np.sum(y_true[sortix[:top]]) / npos)
         y_ = y_true[sortix]
         rps.append(np.mean(y_[:npos]))
-    clf.metric_score = (np.mean(rps), len(rps), Y_dev.shape[1])
+        aucs.append(roc_auc_score(y_true, y_pred))
+    clf.metric_score = (np.mean(aucs), np.mean(rps), len(rps), Y_dev.shape[1])
     pkl.dump(clf, gzip.open(fmodel, 'wb'))
-    print('\n%.5f, %d / %d' % clf.metric_score)
+    print('\n%.5f, %.5f, %d / %d' % clf.metric_score)
