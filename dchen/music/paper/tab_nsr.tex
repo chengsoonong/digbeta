@@ -1,15 +1,27 @@
 \begin{table}[!h]
 \centering
-\caption{Empirical results (R-Precision $\times 10^3$)}
-%\resizebox{\linewidth}{!}{
-\small
-\begin{tabular}{l|cccc}
+\caption{Performance of new song recommendation $\times 10^2$}
+\label{tab:perf_nsr}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{ll|*{2}{c}}
 \toprule
-{}            & & & & BR \\
+        &               & R-Precision &     AUC \\
 \midrule
-AotM-2011     &  &  &  & 0.92 \\
-30Music       &  &  &  & 7.24 \\
+\multirow{6}{*}{aotm2011} & Logistic Regression &      $0.17$ & $60.01$ \\
+        & PopTest Rank &      $1.76$ & $86.64$ \\
+        & LR Popularity &      $1.66$ & $79.40$ \\
+        & Shortest First &      $0.01$ & $50.00$ \\
+        & Longest First &      $0.02$ & $50.00$ \\
+        & Multitask Classification &      $0.18$ & $62.28$ \\
+\cline{1-4}
+\multirow{6}{*}{30music} & Logistic Regression &      $0.64$ & $63.80$ \\
+        & PopTest Rank &      $2.72$ & $80.34$ \\
+        & LR Popularity &      $2.61$ & $73.62$ \\
+        & Shortest First &      $0.03$ & $50.01$ \\
+        & Longest First &      $0.02$ & $50.00$ \\
+        & Multitask Classification &      $0.32$ & $63.33$ \\
 \bottomrule
 \end{tabular}
-%}
+
+}
 \end{table}

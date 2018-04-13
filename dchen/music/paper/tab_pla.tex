@@ -1,37 +1,21 @@
-\begin{table*}[!h]
+\begin{table}[!h]
 \centering
-\caption{Performance $\times 10^2$ (30music)}
-\label{tab:perf_pla_30music}
-\resizebox{\linewidth}{!}{
-\begin{tabular}{l|*{3}{c}|*{3}{c}|*{3}{c}|*{3}{c}|*{3}{c}|}
+\caption{Performance in terms of R-Precision ($\times 10^2$)}
+\label{tab:perf_pla_r-precision}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{l|*{4}{c}|*{4}{c}}
 \toprule
-{} & \multicolumn{3}{c}{Logistic Regression} & \multicolumn{3}{c}{Popularity Rank} & \multicolumn{3}{c}{Multitask Classification} & \multicolumn{3}{c}{SAGH} & \multicolumn{3}{c}{CAGH} \\
-{} &         R-Precision &    AUC &  NDCG &     R-Precision &    AUC &  NDCG &              R-Precision &    AUC &   NDCG & R-Precision &    AUC &   NDCG & R-Precision &    AUC &   NDCG \\
+\multirow{2}{*}{Method}     & \multicolumn{4}{c|}{AotM-2011} & \multicolumn{4}{c}{30Music} \\
+     &       K=1 &   K=2 &   K=3 &   K=4 &     K=1 &   K=2 &   K=3 &   K=4 \\
 \midrule
-K=1 &               $0.4$ & $67.1$ & $8.3$ &           $1.4$ & $76.9$ & $9.8$ &                    $1.5$ & $80.7$ &  $9.9$ &       $7.0$ & $54.9$ & $35.3$ &       $7.8$ & $91.3$ & $15.0$ \\
-K=2 &               $0.7$ & $71.1$ & $8.8$ &           $1.4$ & $76.9$ & $9.8$ &                    $1.5$ & $81.7$ & $10.0$ &       $7.3$ & $55.8$ & $27.4$ &       $7.3$ & $91.2$ & $14.9$ \\
-K=3 &               $0.9$ & $73.3$ & $9.0$ &           $1.3$ & $76.7$ & $9.8$ &                    $1.4$ & $83.1$ & $10.1$ &       $7.1$ & $56.6$ & $24.4$ &       $6.4$ & $91.1$ & $14.7$ \\
-K=4 &               $0.9$ & $74.7$ & $9.3$ &           $1.2$ & $76.4$ & $9.7$ &                    $1.3$ & $82.1$ & $10.0$ &       $6.7$ & $57.3$ & $23.1$ &       $5.8$ & $91.0$ & $14.6$ \\
+Logistic Regression &     $0.1$ & $0.2$ & $0.2$ & $0.3$ &   $0.4$ & $0.7$ & $0.9$ & $0.9$ \\
+LR Popularity &     $0.5$ & $0.5$ & $0.4$ & $0.4$ &   $1.3$ & $1.3$ & $1.3$ & $1.2$ \\
+Popularity Rank &     $0.5$ & $0.4$ & $0.4$ & $0.3$ &   $1.4$ & $1.4$ & $1.3$ & $1.2$ \\
+SAGH &     $3.0$ & $3.1$ & $2.9$ & $2.7$ &   $7.0$ & $7.3$ & $7.1$ & $6.7$ \\
+CAGH &     $3.2$ & $3.0$ & $2.7$ & $2.5$ &   $7.8$ & $7.3$ & $6.4$ & $5.8$ \\
+Multitask Classification &     $0.5$ & $0.5$ & $0.5$ & $0.4$ &   $1.5$ & $1.5$ & $1.4$ & $1.3$ \\
 \bottomrule
 \end{tabular}
-}
-\end{table*}
 
-\begin{table*}[!h]
-\centering
-\caption{Performance $\times 10^2$ (aotm2011)}
-\label{tab:perf_pla_aotm2011}
-\resizebox{\linewidth}{!}{
-\begin{tabular}{l|*{3}{c}|*{3}{c}|*{3}{c}|*{3}{c}|*{3}{c}|}
-\toprule
-{} & \multicolumn{3}{c}{Logistic Regression} & \multicolumn{3}{c}{Popularity Rank} & \multicolumn{3}{c}{Multitask Classification} & \multicolumn{3}{c}{SAGH} & \multicolumn{3}{c}{CAGH} \\
-{} &         R-Precision &    AUC &  NDCG &     R-Precision &    AUC &  NDCG &              R-Precision &    AUC &  NDCG & R-Precision &    AUC &   NDCG & R-Precision &    AUC &   NDCG \\
-\midrule
-K=1 &               $0.1$ & $65.9$ & $7.3$ &           $0.5$ & $78.9$ & $8.6$ &                    $0.5$ & $82.0$ & $8.7$ &       $3.0$ & $53.0$ & $26.9$ &       $3.2$ & $89.1$ & $13.1$ \\
-K=2 &               $0.2$ & $69.7$ & $7.5$ &           $0.4$ & $79.1$ & $8.6$ &                    $0.5$ & $83.6$ & $8.8$ &       $3.1$ & $53.6$ & $19.6$ &       $3.0$ & $89.7$ & $11.5$ \\
-K=3 &               $0.2$ & $72.0$ & $7.7$ &           $0.4$ & $79.3$ & $8.6$ &                    $0.5$ & $84.2$ & $8.9$ &       $2.9$ & $54.0$ & $17.5$ &       $2.7$ & $89.7$ & $11.4$ \\
-K=4 &               $0.3$ & $73.6$ & $7.9$ &           $0.3$ & $79.4$ & $8.6$ &                    $0.4$ & $84.7$ & $8.9$ &       $2.7$ & $54.4$ & $16.5$ &       $2.5$ & $89.8$ & $11.4$ \\
-\bottomrule
-\end{tabular}
 }
-\end{table*}
+\end{table}
