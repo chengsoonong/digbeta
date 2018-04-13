@@ -12,24 +12,7 @@ def calc_metrics(y_true, y_pred, tops=[]):
     assert npos < len(y_true)
     rp, hitrates = calc_RPrecision_HitRate(y_true, y_pred, tops=tops)
     auc = roc_auc_score(y_true, y_pred)
-    ndcg = calc_NDCG(y_true, y_pred)
-    return rp, hitrates, auc, ndcg
-
-
-def calc_NDCG(y_true, y_pred):
-    assert y_true.ndim == y_pred.ndim == 1
-    assert len(y_true) == len(y_pred)
-    assert y_true.dtype == np.bool
-    npos = y_true.sum()
-    assert npos > 0
-    pix = np.where(y_true > 0)[0]
-    assert len(pix) == npos
-    DCG = 0.
-    for ix in pix:
-        ri = 1. + np.sum(y_pred[ix] < y_pred)
-        DCG += 1. / np.log2(ri + 1)
-    IDCG = np.sum([1. / np.log2(2 + npos - i) for i in range(1, npos+1)]
-    return DCG / IDCG
+    return rp, hitrates, auc
 
 
 def calc_RPrecision_HitRate(y_true, y_pred, tops=[]):
