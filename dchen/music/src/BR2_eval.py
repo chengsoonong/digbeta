@@ -27,7 +27,6 @@ Y_test = Y[:, -PU_test.shape[1]:]
 rps = []
 hitrates = {top: [] for top in TOPs}
 aucs = []
-ndcgs = []
 with open(fsplit, 'r') as fd:
     for line in fd:
         start, end = line.strip().split(' ')
@@ -51,15 +50,14 @@ with open(fsplit, 'r') as fd:
             assert y_true.sum() > 0
             y_pred = preds[indices, j-int(start)].reshape(-1)
             # rp, hr_dict = calc_RPrecision_HitRate(y_true, y_pred, tops=TOPs)
-            rp, hr_dict, auc, ndcg = calc_metrics(y_true, y_pred, tops=TOPs)
+            rp, hr_dict, auc = calc_metrics(y_true, y_pred, tops=TOPs)
             rps.append(rp)
             for top in TOPs:
                 hitrates[top].append(hr_dict[top])
             aucs.append(auc)
-            ndcgs.append(ndcg)
 
 print(len(rps), Y_test.shape[1])
 br2_perf = {dataset: {'Test': {'R-Precision': np.mean(rps), 'Hit-Rate': {top: np.mean(hitrates[top]) for top in TOPs},
-                               'AUC': np.mean(aucs), 'NDCG': np.mean(ndcgs)}}}
+                               'AUC': np.mean(aucs)}}}
 pkl.dump(br2_perf, open(fperf, 'wb'))
 print(br2_perf)

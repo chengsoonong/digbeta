@@ -31,7 +31,6 @@ assert clf.trained is True
 rps = []
 hitrates = {top: [] for top in TOPs}
 aucs = []
-ndcgs = []
 for j in range(Y_test.shape[1]):
     if (j+1) % 100 == 0:
         sys.stdout.write('\r%d / %d' % (j+1, Y_test.shape[1]))
@@ -43,15 +42,14 @@ for j in range(Y_test.shape[1]):
     u = clf.pl2u[j]
     wk = clf.V[u, :] + clf.W[j, :] + clf.mu
     y_pred = np.dot(X_test, wk)
-    rp, hr_dict, auc, ndcg = calc_metrics(y_true, y_pred, tops=TOPs)
+    rp, hr_dict, auc = calc_metrics(y_true, y_pred, tops=TOPs)
     rps.append(rp)
     for top in TOPs:
         hitrates[top].append(hr_dict[top])
     aucs.append(auc)
-    ndcgs.append(ndcg)
 
 print('\n%d, %d' % (len(rps), Y_test.shape[1]))
 nsr_perf = {dataset: {'Test': {'R-Precision': np.mean(rps), 'Hit-Rate': {top: np.mean(hitrates[top]) for top in TOPs},
-                               'AUC': np.mean(aucs), 'NDCG': np.mean(ndcgs)}}}
+                               'AUC': np.mean(aucs)}}}
 pkl.dump(nsr_perf, open(fperf, 'wb'))
 print(nsr_perf)
