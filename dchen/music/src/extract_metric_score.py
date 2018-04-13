@@ -2,7 +2,7 @@ import os
 import sys
 import gzip
 import pickle as pkl
-from models import MLC
+
 
 if len(sys.argv) != 2:
     print('Usage:', sys.argv[0], 'DIR')
@@ -10,7 +10,6 @@ if len(sys.argv) != 2:
 
 dir1 = sys.argv[1]
 for f in sorted(os.listdir(dir1)):
-    clf = MLC()
     clf = pkl.load(gzip.open(os.path.join(dir1, f), 'rb'))
     if hasattr(clf, 'metric_score'):
         print('%s | %s' % (str(clf.metric_score), f))
