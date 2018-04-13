@@ -21,22 +21,6 @@ As a remark, columns represent playlists in test set contain only \texttt{1} and
 \input{fig_pla}
 
 
-\paragraph{New song recommendation}
-
-We formulate the task of new song recommendation as either a \emph{classification} or \emph{bipartite ranking} problem ({\it multitask?}),
-where we predict, for each song in test set,
-whether it will be included in a given playlist.
-This formulation is illustrated in Figure~\ref{fig:mlr},
-where rows represent songs (from top to bottom, sorted by the release date in ascending order)
-and columns represent playlists (no specific order).
-Further, rows with white colour represent songs in training set, and rows with grey colour represent songs in test set.
-If entry $(i, j)$ is \texttt{1} (or \texttt{0}), it means the $i$-th song is (or not) found in the $j$-th playlist,
-otherwise, we do not know whether the $i$-th song is found in the $j$-th playlist (\ie entry $(i, j)$ is a question mark \texttt{?}).
-As a remark, we do not care about the order of songs in a playlist.
-
-\input{fig_nsr}
-
-
 \paragraph{Song scoring}
 
 The score of song $m$ in playlist $i$ from user $u$ is a linear form,
