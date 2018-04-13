@@ -26,10 +26,9 @@ def calc_NDCG(y_true, y_pred):
     assert len(pix) == npos
     DCG = 0.
     for ix in pix:
-        # ri = 1. + np.sum([int(y_pred[ix] < y_pred[k]) for k in range(len(y_true))])
         ri = 1. + np.sum(y_pred[ix] < y_pred)
         DCG += 1. / np.log2(ri + 1)
-    IDCG = npos
+    IDCG = np.sum([1. / np.log2(2 + npos - i) for i in range(1, npos+1)]
     return DCG / IDCG
 
 
