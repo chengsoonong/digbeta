@@ -5,7 +5,7 @@
 \resizebox{\columnwidth}{!}{
 \begin{tabular}{l|*{4}{c}|*{4}{c}}
 \toprule
-\multirow{2}{*}{Method}     & \multicolumn{4}{c|}{AotM-2011} & \multicolumn{4}{c}{30Music} \\
+     & \multicolumn{4}{c}{AotM-2011} & \multicolumn{4}{c}{30Music} \\
      &       K=1 &   K=2 &   K=3 &   K=4 &     K=1 &   K=2 &   K=3 &   K=4 \\
 \midrule
 Logistic Regression &     $0.1$ & $0.2$ & $0.2$ & $0.3$ &   $0.4$ & $0.7$ & $0.9$ & $0.9$ \\
@@ -14,8 +14,31 @@ Popularity Rank &     $0.5$ & $0.4$ & $0.4$ & $0.3$ &   $1.4$ & $1.4$ & $1.3$ & 
 SAGH &     $3.0$ & $3.1$ & $2.9$ & $2.7$ &   $7.0$ & $7.3$ & $7.1$ & $6.7$ \\
 CAGH &     $3.2$ & $3.0$ & $2.7$ & $2.5$ &   $7.8$ & $7.3$ & $6.4$ & $5.8$ \\
 Multitask Classification &     $0.5$ & $0.5$ & $0.5$ & $0.4$ &   $1.5$ & $1.5$ & $1.4$ & $1.3$ \\
+MTC Popularity &     $0.5$ & $0.5$ & $0.4$ & $0.4$ &   $1.5$ & $1.4$ & $1.3$ & $1.2$ \\
 \bottomrule
 \end{tabular}
+}
+\end{table}
 
+
+\begin{table}[!h]
+\centering
+\caption{Performance in terms of AUC ($\times 10^2$)}
+\label{tab:perf_pla_auc}
+\resizebox{\columnwidth}{!}{
+\begin{tabular}{l|*{4}{c}|*{4}{c}}
+\toprule
+     & \multicolumn{4}{c}{AotM-2011} & \multicolumn{4}{c}{30Music} \\
+     &       K=1 &    K=2 &    K=3 &    K=4 &     K=1 &    K=2 &    K=3 &    K=4 \\
+\midrule
+Logistic Regression &    $65.9$ & $69.7$ & $72.0$ & $73.6$ &  $67.1$ & $71.1$ & $73.3$ & $74.7$ \\
+LR Popularity &    $71.8$ & $78.7$ & $80.8$ & $81.9$ &  $69.2$ & $75.3$ & $77.6$ & $78.5$ \\
+Popularity Rank &    $78.9$ & $79.1$ & $79.3$ & $79.4$ &  $76.9$ & $76.9$ & $76.7$ & $76.4$ \\
+SAGH &    $53.0$ & $53.6$ & $54.0$ & $54.4$ &  $54.9$ & $55.8$ & $56.6$ & $57.3$ \\
+CAGH &    $89.1$ & $89.7$ & $89.7$ & $89.8$ &  $91.3$ & $91.2$ & $91.1$ & $91.0$ \\
+Multitask Classification &    $82.0$ & $83.6$ & $84.2$ & $84.7$ &  $80.7$ & $81.7$ & $83.1$ & $82.1$ \\
+MTC Popularity &    $84.6$ & $84.5$ & $84.4$ & $84.4$ &  $82.4$ & $82.3$ & $82.1$ & $81.8$ \\
+\bottomrule
+\end{tabular}
 }
 \end{table}
