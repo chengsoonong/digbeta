@@ -62,8 +62,12 @@ We break down the results according to either user or the playlist length (\ie t
 \label{ssec:pla}
 
 We use the 30Music~\cite{30music2015} and AotM-2011~\cite{mcfee2012hypergraph} playlist dataset,
-In each dataset, we create a test set by holding 30\% playlists chosen uniformly at random,
-then we hold all songs except the first $K, \, K \in \{1,2,3,4\}$ ones for every playlist in test set.
+In each dataset, we create a test set by holding 20\% playlists.
+To make sure that every song in test set is also in training set, 
+playlists in test set are chosen uniformly at random from a subset of all playlists 
+$\{\text{playlist}_i: \forall \text{song}_j \in \text{playlist} \text{song$_j$ is in at least $5$ playlists}\}$,
+\ie each song in the playlist should be in at least 4 playlists among all playlists.
+We then hold all songs except the first $K, \, K \in \{1,2,3,4\}$ ones for every playlist in test set.
 As a remark, we observed the entire collection of songs during training.
 %and all users in test set have playlists in training set.
 Table~\ref{tab:stats_pla} summarises the statistics of the two dataset used for this task.
@@ -93,8 +97,8 @@ We compare the following baselines for playlist augmentation:
 \toprule
 Dataset   & \#Playlists (train) & \#Playlists (test) \\
 \midrule
-30Music   & 12,220              & 5,237 \\
-AotM-2011 & 59,297              & 25,413 \\       
+30Music   & 13,966              & 3,491 \\
+AotM-2011 & 67,768              & 16,942 \\       
 \bottomrule
 \end{tabular}
 %}
