@@ -13,6 +13,17 @@ if __name__ == '__main__':
 
 dir1 = sys.argv[1]
 
+print('checking features ...')
+
+for fname in ['X_train', 'X_trndev']:
+    x1 = pkl.load(gzip.open(os.path.join(dir1, '%s_1.pkl.gz' % fname), 'rb'))
+    x2 = pkl.load(gzip.open(os.path.join(dir1, '%s_2.pkl.gz' % fname), 'rb'))
+    x3 = pkl.load(gzip.open(os.path.join(dir1, '%s_3.pkl.gz' % fname), 'rb'))
+    x4 = pkl.load(gzip.open(os.path.join(dir1, '%s_4.pkl.gz' % fname), 'rb'))
+    assert np.all(np.isclose(x1, x2))
+    assert np.all(np.isclose(x2, x3))
+    assert np.all(np.isclose(x3, x4))
+
 
 print('checking labels (sparse boolean matrices) ...')
 

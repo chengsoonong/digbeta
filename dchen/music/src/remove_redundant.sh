@@ -5,6 +5,12 @@ rm cliques_all_[2-4].pkl.gz
 mv cliques_trndev_1.pkl.gz cliques_trndev.pkl.gz
 rm cliques_trndev_[2-4].pkl.gz
 
+mv X_train_1.pkl.gz X_train.pkl.gz
+rm X_train_[2-4].pkl.gz
+
+mv X_trndev_1.pkl.gz X_trndev.pkl.gz
+rm X_trndev_[2-4].pkl.gz
+
 mv Y_1.pkl.gz Y.pkl.gz
 rm Y_[2-4].pkl.gz
 
