@@ -5,6 +5,7 @@ import time
 import numpy as np
 import pickle as pkl
 from scipy.sparse import hstack
+from sklearn.metrics import roc_auc_score
 from models import MTC
 
 
@@ -62,10 +63,11 @@ else:
     clf.fit(njobs=1, verbose=2, fnpy=fnpy)
 
 if clf.trained is True:
-    # pkl.dump(clf, gzip.open(fmodel, 'wb'))
+    pkl.dump(clf, gzip.open(fmodel, 'wb'))
     Y_dev = Y_train_dev[:, -PU_dev.shape[1]:]
     offset = Y_train_dev.shape[1] - PU_dev.shape[1]
     rps = []
+    aucs = []
     for j in range(Y_dev.shape[1]):
         y1 = Y_dev[:, j].toarray().reshape(-1)
         y2 = PU_dev[:, j].toarray().reshape(-1)
@@ -79,11 +81,11 @@ if clf.trained is True:
         wk = clf.V[u, :] + clf.W[k, :] + clf.mu
         X = X_train if clf.UF is None else np.concatenate([X_train, np.delete(clf.UF, u, axis=1)], axis=1)
         y_pred = np.dot(X, wk)[indices]
-        # aucs.append(roc_auc_score(y_true, y_pred))
         sortix = np.argsort(-y_pred)
         # hrs.append(np.sum(y_true[sortix[:top]]) / npos)
         y_ = y_true[sortix]
         rps.append(np.mean(y_[:npos]))
-    clf.metric_score = (np.mean(rps), len(rps), Y_dev.shape[1])
+        aucs.append(roc_auc_score(y_true, y_pred))
+    clf.metric_score = (np.mean(aucs), np.mean(rps), len(rps), Y_dev.shape[1])
     pkl.dump(clf, gzip.open(fmodel, 'wb'))
     print('\n%.5f, %d / %d' % clf.metric_score)
