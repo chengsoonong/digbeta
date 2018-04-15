@@ -88,4 +88,4 @@ if clf.trained is True:
         aucs.append(roc_auc_score(y_true, y_pred))
     clf.metric_score = (np.mean(aucs), np.mean(rps), len(rps), Y_dev.shape[1])
     pkl.dump(clf, gzip.open(fmodel, 'wb'))
-    print('\n%.5f, %d / %d' % clf.metric_score)
+    print('\n%g, %g, %d / %d' % clf.metric_score)
