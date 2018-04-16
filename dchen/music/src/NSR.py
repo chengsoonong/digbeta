@@ -62,17 +62,21 @@ else:
 if clf.trained is True:
     pkl.dump(clf, gzip.open(fmodel, 'wb'))
     rps = []
-    Y_pred = clf.predict(X_dev)
-    assert Y_dev.shape == Y_pred.shape
+    aucs = []
+    # Y_pred = clf.predict(X_dev)
+    # assert Y_dev.shape == Y_pred.shape
     for j in range(Y_dev.shape[1]):
-        y_true = Y_dev[:, j].toarray().reshape(-1)
+        y_true = Y_dev[:, j].A.reshape(-1)
         npos = y_true.sum()
         if npos < 1:
             continue
-        y_pred = Y_pred[:, j].reshape(-1)
+        u = clf.pl2u[j]
+        wj = clf.V[u, :] + clf.W[j, :] + clf.mu
+        y_pred = np.dot(X, wj).reshape(-1)
         sortix = np.argsort(-y_pred)
         y_ = y_true[sortix]
         rps.append(np.mean(y_[:npos]))
-    clf.metric_score = (np.mean(rps), len(rps), Y_dev.shape[1])
+        aucs.append(roc_auc_score(y_true, y_pred))
+    clf.metric_score = (np.mean(rps), np.mean(aucs), len(rps), Y_dev.shape[1])
     pkl.dump(clf, gzip.open(fmodel, 'wb'))
-    print('\n%.5f, %d / %d' % clf.metric_score)
+    print('\n%g, %g, %d / %d' % clf.metric_score)
