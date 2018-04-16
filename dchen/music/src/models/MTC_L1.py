@@ -112,7 +112,7 @@ def accumulate_risk(mu, V, W, X, Y, p, cliques, data_helper):
     return J, dmu, dV, dW
 
 
-def objective(w, dw, X, Y, p, cliques, data_helper, verbose=0, fnpy=None):
+def objective_L1(w, dw, X, Y, p, cliques, data_helper, verbose=0, fnpy=None):
     t0 = time.time()
     assert p > 0
     M, D = X.shape
@@ -182,7 +182,7 @@ class MTC_L1():
         Ycsc = self.Y.tocsc()
         self.data_helper = DataHelper(Ycsc, self.cliques)
 
-    def fit(self, w0=None, njobs=1, verbose=0, fnpy='_'):
+    def fit(self, w0=None, verbose=0, fnpy='_'):
         N, U, D = self.N, self.U, self.D
 
         if verbose > 0:
@@ -207,8 +207,8 @@ class MTC_L1():
             # LBFGS().minimize(f, x0, progress=progress, args=args)
             optim = LBFGS()
             optim.linesearch = 'wolfe'
-            optim.orthantwise_c = C
-            res = optim.minimize(objective, w0, progress,
+            optim.orthantwise_c = self.C
+            res = optim.minimize(objective_L1, w0, progress,
                                  args=(self.X, self.Y, self.p, self.cliques, self.data_helper, verbose, fnpy))
             self.mu = res[:D]
             self.V = res[D:(U + 1) * D].reshape(U, D)
