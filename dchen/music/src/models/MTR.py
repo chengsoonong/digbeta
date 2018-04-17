@@ -1,7 +1,8 @@
 import sys
 import time
+import copy
 import numpy as np
-from scipy.sparse import isspmatrix_csc
+from scipy.sparse import isspmatrix_csc, coo_matrix
 import cyipopt
 
 
@@ -33,12 +34,13 @@ class MTR(object):
         n_cp_iter = 1
         w = w0
         n_vars = self.problem.n_vars
-        n_cons = self.problem.n_constraints
+        n_cons = len(self.problem.constraint_pairs)
         while self.problem.all_constraints_satisfied is False:
             # create an optimisation problem (same objective, updated constraints) and solve it
             print('\nIteration %d of cutting plane\n' % n_cp_iter)
             nlp = cyipopt.problem(
-                problem_obj=self.problem,
+                # problem_obj=self.problem,
+                problem_obj=copy.deepcopy(self.problem),
                 n=n_vars,            # number of variables
                 m=n_cons,            # number of constraints
                 lb=None,             # lower bounds on variables
@@ -47,15 +49,21 @@ class MTR(object):
                 cu=np.zeros(n_cons)  # upper bounds on constraints
             )
 
+            # BUG: after each iteration, when IPOPT frees memory, self.problem will be destructed,
+            # which causes memory related problems such as segmentation fault or corrupted double linked list etc.
+            # deepcopy does not resolve this issue
+
             # Set solver options, https://www.coin-or.org/Ipopt/documentation/node51.html
             nlp.addOption(b'mu_strategy', b'adaptive')
             nlp.addOption(b'max_iter', int(1e4))
             nlp.addOption(b'tol', 1e-7)
             nlp.addOption(b'acceptable_tol', 1e-5)
-            nlp.addOption(b'linear_solver', b'ma57')
+            nlp.addOption(b'linear_solver', b'ma27')
+            # nlp.addOption(b'linear_solver', b'ma57')
             # nlp.addOption(b'derivative_test', b'first-order')
             # nlp.addOption(b'acceptable_constr_viol_tol', 1e-6)
             w, info = nlp.solve(w)
+            print('solved')
             print(info['status'], info['status_msg'])
             self.problem.update_constraints(w)
             n_cp_iter += 1
@@ -142,14 +150,13 @@ class RankPrimal(object):
             clq = self.cliques[u]
             self.pl2u[clq] = u
 
-        # self.all_constraints:
-        # - a list of N lists
-        # - let n = self.all_constraints[k][j], then x_n violates constraint f_{k,n} <= 0
+        # self.constraint_pairs:
+        # - a list of pairs (k, n) that denotes x_n violates constraint f_{k,n} <= 0
         # - it will be updated by self.update_constraints() given model parameters
         # - self.constraints(), self.jacobianstructure() and self.jacobian() depend on this data structure
-        self.all_constraints = [list() for _ in range(self.N)]
+        self.constraint_pairs = []
         self.all_constraints_satisfied = False
-        self.n_constraints = 0
+        self.constraint_grads = []
 
         self.n_vars = (self.U + self.N + 1) * self.D + self.N
         self.data_helper = DataHelper(self.Y, self.cliques)
@@ -258,17 +265,24 @@ class RankPrimal(object):
         xi = w[(U + N + 1) * D:]
         assert xi.shape == (N,)
 
-        cons_values = []
-        for k in range(N):
+#         cons_values = []
+#         for k in range(N):
+#             u = self.pl2u[k]
+#             v = V[u, :]
+#             wk = W[k, :]
+#             if len(self.all_constraints[k]) > 0:
+#                 indices = self.all_constraints[k]
+#                 values = self.X[indices, :].dot(v + wk + mu)
+#                 assert values.shape == (len(indices),)
+#                 cons_values.append(values)
+#         return np.concatenate(cons_values, axis=-1)
+        n_cons = len(self.constraint_pairs)
+        cons_values = np.zeros(n_cons)
+        for ix in range(n_cons):
+            k, n = self.constraint_pairs[ix]
             u = self.pl2u[k]
-            v = V[u, :]
-            wk = W[k, :]
-            if len(self.all_constraints[k]) > 0:
-                indices = self.all_constraints[k]
-                values = self.X[indices, :].dot(v + wk + mu)
-                assert values.shape == (len(indices),)
-                cons_values.append(values)
-        return np.concatenate(cons_values, axis=-1)
+            cons_values[ix] = self.X[n, :].dot(V[u, :] + W[k, :] + mu)
+        return cons_values
 
     def jacobianstructure(self):
         """
@@ -277,35 +291,57 @@ class RankPrimal(object):
         N, D, U = self.N, self.D, self.U
         rows = []
         cols = []
-        ix = 0
-        for k in range(N):
+        n_cons = len(self.constraint_pairs)
+        for ix in range(n_cons):
+            k, n = self.constraint_pairs[ix]
             u = self.pl2u[k]
-            if len(self.all_constraints[k]) > 0:
-                for n in self.all_constraints[k]:
-                    # indices of derivatives of constraint f_{k, n} <= 0
-                    rows += np.full(3 * D + 1, ix, dtype=np.int32).tolist()
-                    cols += list(range(D))                                 # dmu: D
-                    cols += list(range((u + 1) * D, (u + 2) * D))          # dV: U by D
-                    cols += list(range((U + 1 + k) * D, (U + 2 + k) * D))  # dW: N by D
-                    cols.append((U + N + 1) * D + k)                       # dxi: N
-                    ix += 1
-        return np.asarray(rows, dtype=np.int32), np.asarray(cols, dtype=np.int32)
+            rows.append(np.full(3 * D + 1, ix, dtype=np.int32))
+            cols.append(np.arange(D))
+            cols.append(np.arange((u + 1) * D, (u + 2) * D))
+            cols.append(np.arange((U + 1 + k) * D, (U + 2 + k) * D))
+            cols.append([(U + N + 1) * D + k])
+        return np.concatenate(rows, axis=-1), np.concatenate(cols, axis=-1)
+
+    def jacobian_sanity_check(self):
+        """
+        check if jacobian() and jacobianstructure() compute the correct results:
+            primal.update_constraints(w0)
+            jac0 = primal.jacobian_sanity_check()
+            rows, cols = primal.jacobianstructure()
+            jac = primal.jacobian(w0)
+            assert np.all(jac0.row == rows)
+            assert np.all(jac0.col == cols)
+            assert np.all(jac0.data == jac)
+        NOTE that the follow result:
+            mat = coo_matrix(data, (rows, cols))
+            assert np.all(mat.row == rows)  # NOT TRUE
+            assert np.all(mat.col == cols)  # NOT TRUE
+        """
+        U, N, D = self.U, self.N, self.D
+        X = self.X
+        grads = []
+        for k, n in self.constraint_pairs:
+            u = self.pl2u[k]
+            dmu = X[n, :]
+            dV = np.zeros((U, D), dtype=np.float)
+            dV[u, :] = X[n, :]
+            dW = np.zeros((N, D), dtype=np.float)
+            dW[k, :] = X[n, :]
+            dxi = np.zeros(N, dtype=np.float)
+            dxi[k] = -1
+            grad = np.hstack([dmu.reshape(1, -1), dV.reshape(1, -1), dW.reshape(1, -1), dxi.reshape(1, -1)])
+            grads.append(grad)
+        return coo_matrix(np.vstack(grads))
 
     def jacobian(self, w):
         """
             The callback for calculating the Jacobian of constraints
         """
-        N = self.N
         X = self.X
         jac = []
-        for k in range(N):
-            if len(self.all_constraints[k]) > 0:
-                for n in self.all_constraints[k]:
-                    # derivatives of constraints f_{k, n} <= 0
-                    jac.append(X[n, :])  # dmu
-                    jac.append(X[n, :])  # dV
-                    jac.append(X[n, :])  # dW
-                    jac.append([-1.])    # dxi
+        for k, n in self.constraint_pairs:
+            jac.append(np.tile(X[n, :].reshape(1, -1), (1, 3)))
+            jac.append(np.array([-1.]).reshape(1, 1))
         return np.concatenate(jac, axis=-1)
 
     # def intermediate(self, alg_mod, iter_count, obj_value, inf_pr, inf_du, mu, d_norm,
@@ -343,9 +379,8 @@ class RankPrimal(object):
             assert max_ix.shape[0] == len(clq)
             for j in range(max_ix.shape[0]):
                 k = clq[j]
-                row, col = max_ix[j], j
-                if xi[k] < T1[row, col]:
+                n, col = max_ix[j], j
+                if xi[k] < T1[n, col]:
                     all_satisfied = False
-                    self.n_constraints += 1
-                    self.all_constraints[k].append(row)
+                    self.constraint_pairs.append((k, n))
         self.all_constraints_satisfied = all_satisfied
