@@ -1,67 +1,96 @@
 import sys
 import time
 import numpy as np
-from scipy.sparse import isspmatrix_coo, isspmatrix_csc
+from scipy.sparse import isspmatrix_csc
 import cyipopt
 
 
-def risk_primal(mu, v, Wu, xiu, X, Yu, Pu, N, U, C):
-    assert N > 0
-    assert U > 0
-    assert C > 0
-    assert Yu.dtype == np.bool
-    assert isspmatrix_coo(Yu)  # scipy.sparse.coo_matrix type
-    M, D = X.shape
-    Nu = Yu.shape[1]
-    assert v.shape == mu.shape == (D,)
-    assert Wu.shape == (Nu, D)
-    assert xiu.shape == Pu.shape == (Nu,)
+class MTR(object):
+    def __init__(self, X_train, Y_train, C, cliques, verbose=0):
+        self.problem = RankPrimal(X=X_train, Y=Y_train, C=C, cliques=cliques, verbose=verbose)
+        self.trained = False
 
-    Wt = Wu + (v + mu).reshape(1, D)
-    T1 = xiu.reshape(1, Nu) - np.dot(X, Wt.T)
-    T1p = np.zeros(T1.shape)
-    T1p[Yu.row, Yu.col] = T1[Yu.row, Yu.col]
+    def fit(self, w0=None, fnpy=None):
+        N, U, D = self.problem.N, self.problem.U, self.problem.D
+        verbose = self.problem.verbose
+        if verbose > 0:
+            t0 = time.time()
+            print('\nC: %g' % self.C)
 
-    T2p = np.exp(T1p)
-    T2 = np.zeros(T1.shape)
-    T2[Yu.row, Yu.col] = T2p[Yu.row, Yu.col]
-    T2 *= Pu
+        if w0 is None:
+            if fnpy is None:
+                w0 = 0.001 * np.random.randn((U + N + 1) * D + N)
+            else:
+                try:
+                    w0 = np.load(fnpy, allow_pickle=False)
+                    print('Restore from %s' % fnpy)
+                except (IOError, ValueError):
+                    w0 = 0.001 * np.random.randn((U + N + 1) * D + N)
+        assert w0.shape == ((U + N + 1) * D + N,)
 
-    risk = np.dot(v, v) / U + np.sum([np.dot(Wu[k, :], Wu[k, :]) for k in range(Nu)]) / N
-    risk = risk * C / 2 + T2.sum()
+        # solve using IPOPT and cutting-plane method
+        self.problem.update_constraints(w0)
+        n_cp_iter = 1
+        w = w0
+        n_vars = self.problem.n_vars
+        n_cons = self.problem.n_constraints
+        while self.problem.all_constraints_satisfied is False:
+            # create an optimisation problem (same objective, updated constraints) and solve it
+            print('\nIteration %d of cutting plane\n' % n_cp_iter)
+            nlp = cyipopt.problem(
+                problem_obj=self.problem,
+                n=n_vars,            # number of variables
+                m=n_cons,            # number of constraints
+                lb=None,             # lower bounds on variables
+                ub=None,             # upper bounds on variables
+                cl=None,             # lower bounds on constraints
+                cu=np.zeros(n_cons)  # upper bounds on constraints
+            )
 
-    if np.isnan(risk) or np.isinf(risk):
-        sys.stderr.write('risk_pclassification(): risk is NaN or inf!\n')
-        sys.exit(0)
-    return risk
+            # Set solver options, https://www.coin-or.org/Ipopt/documentation/node51.html
+            nlp.addOption(b'mu_strategy', b'adaptive')
+            nlp.addOption(b'max_iter', int(1e4))
+            nlp.addOption(b'tol', 1e-7)
+            nlp.addOption(b'acceptable_tol', 1e-5)
+            nlp.addOption(b'linear_solver', b'ma57')
+            # nlp.addOption(b'derivative_test', b'first-order')
+            # nlp.addOption(b'acceptable_constr_viol_tol', 1e-6)
+            w, info = nlp.solve(w)
+            print(info['status'], info['status_msg'])
+            self.problem.update_constraints(w)
+            n_cp_iter += 1
 
+            if fnpy is not None:
+                assert type(fnpy) == str
+                assert fnpy.endswith('.npy')
+                try:
+                    np.save(fnpy, w, allow_pickle=False)
+                    if verbose > 0:
+                        print('Save to %s' % fnpy)
+                except (OSError, IOError, ValueError) as err:
+                    sys.stderr.write('Save intermediate weights failed: {0}\n'.format(err))
 
-def grad_primal(mu, v, Wu, xiu, X, Yu, Pu):
-    assert Yu.dtype == np.bool
-    assert isspmatrix_coo(Yu)  # scipy.sparse.coo_matrix type
-    M, D = X.shape
-    Nu = Yu.shape[1]
-    assert v.shape == mu.shape == (D,)
-    assert Wu.shape == (Nu, D)
-    assert xiu.shape == Pu.shape == (Nu,)
+        assert self.problem.all_constraints_satisfied is True
+        self.mu = w[:D]
+        self.V = w[D:(U + 1) * D].reshape(U, D)
+        self.W = w[(U + 1) * D:(U + N + 1) * D].reshape(N, D)
+        self.xi = w[(U + N + 1) * D:]
+        self.trained = True
 
-    Wt = Wu + (v + mu).reshape(1, D)
-    T1 = xiu.reshape(1, Nu) - np.dot(X, Wt.T)
-    T1p = np.zeros(T1.shape)
-    T1p[Yu.row, Yu.col] = T1[Yu.row, Yu.col]
+        if verbose > 0:
+            print('Training finished in %.1f seconds' % (time.time() - t0))
 
-    T2p = np.exp(T1p)
-    T2 = np.zeros(T1.shape)
-    T2[Yu.row, Yu.col] = T2p[Yu.row, Yu.col]
-    T2 *= Pu
-
-    T3 = np.dot(T2.T, X)
-    dW = T3
-    dv = T3.sum(axis=0)
-    dmu = dv
-    dxi = T2.sum(axis=0)
-
-    return dmu, dv, dW, dxi
+    def predict(self, X_test):
+        """Make predictions (score is a real number)"""
+        assert self.trained is True, 'Cannot make prediction before training'
+        U, D = self.primal.U, self.primal.D
+        assert D == X_test.shape[1]
+        preds = []
+        for u in range(U):
+            clq = self.cliques[u]
+            Wt = self.W[clq, :] + (self.V[u, :] + self.mu).reshape(1, D)
+            preds.append(np.dot(X_test, Wt.T))
+        return np.hstack(preds)
 
 
 class DataHelper:
@@ -93,19 +122,19 @@ class DataHelper:
         return self.Ys, self.Ps
 
 
-class MTR(cyipopt.problem):
-    """Multitask ranking"""
+class RankPrimal(object):
+    """Primal Problem of Multitask Ranking"""
 
-    def __init__(self, X_train, Y_train, C, user_playlist_indices):
-        assert isspmatrix_csc(Y_train)
+    def __init__(self, X, Y, C, cliques, verbose=0):
+        assert isspmatrix_csc(Y)
         assert C > 0
-        self.X, self.Y = X_train, Y_train
+        self.X, self.Y = X, Y
         self.M, self.D = self.X.shape
         self.N = self.Y.shape[1]
         assert self.M == self.Y.shape[0]
         self.C = C
 
-        self.cliques = user_playlist_indices
+        self.cliques = cliques
         self.U = len(self.cliques)
         self.u2pl = self.cliques
         self.pl2u = np.zeros(self.N, dtype=np.int32)
@@ -113,78 +142,18 @@ class MTR(cyipopt.problem):
             clq = self.cliques[u]
             self.pl2u[clq] = u
 
-        self.data_helper = DataHelper(self.Y, self.cliques)
-
-        # self.constraints:
+        # self.all_constraints:
         # - a list of N lists
-        # - let n = self.constraints[k][j], then x_n violates constraint f_{k,n} <= 0
+        # - let n = self.all_constraints[k][j], then x_n violates constraint f_{k,n} <= 0
         # - it will be updated by self.update_constraints() given model parameters
         # - self.constraints(), self.jacobianstructure() and self.jacobian() depend on this data structure
-        self.constraints = [list() for _ in range(self.N)]
+        self.all_constraints = [list() for _ in range(self.N)]
         self.all_constraints_satisfied = False
         self.n_constraints = 0
 
-    def fit(self, w0=None, verbose=0, fnpy='_'):
-        N, U, D = self.N, self.U, self.D
-
-        if verbose > 0:
-            t0 = time.time()
-
-        if verbose > 0:
-            print('\nC: %g' % self.C)
-
-        if w0 is not None:
-            assert w0.shape == ((U + N + 1) * D + N,)
-        else:
-            if fnpy is not None:
-                try:
-                    w0 = np.load(fnpy, allow_pickle=False)
-                    assert w0.shape == ((U + N + 1) * D + N,)
-                    print('Restore from %s' % fnpy)
-                except (IOError, ValueError):
-                    w0 = 0.001 * np.random.randn((U + N + 1) * D + N)
-        self.n_vars = (U + N + 1) * D + N
-        LB = np.full(self.n_vars, -1e3, dtype=np.float)
-        UB = np.full(self.n_vars,  1e3, dtype=np.float)
-
-        # solve using IPOPT and cutting-plane method
-        n_cp_iter = 1
-        w = w0
-        self.update_constraints(w)
-        while self.all_constraints_satisfied is False:
-            print('\nThe %3d-th iteration of cutting plane\n' % n_cp_iter)
-            # create an optimisation problem (same objective, updated constraints) and solve it
-            super(MTR, self).__init__(
-                n=self.n_vars,            # number of variables
-                m=self.n_constraints,     # number of constraints
-                lb=LB,                    # lower bounds on variables
-                ub=UB,                    # upper bounds on variables
-                # cl=np.zeros(N),         # lower bounds on constraints
-                cu=np.zeros(self.n_vars)  # upper bounds on constraints
-            )
-
-            # Set solver options, https://www.coin-or.org/Ipopt/documentation/node51.html
-            self.addOption(b'mu_strategy', b'adaptive')
-            self.addOption(b'max_iter', int(1e4))
-            self.addOption(b'tol', 1e-7)
-            self.addOption(b'acceptable_tol', 1e-5)
-            self.addOption(b'linear_solver', b'ma57')
-            # self.addOption(b'derivative_test', b'first-order')
-            # self.addOption(b'acceptable_constr_viol_tol', 1e-6)
-            w, info = super(MTR, self).solve(w)
-            print(info['status'], info['status_msg'])
-            self.update_constraints(w)
-            n_cp_iter += 1
-
-        assert self.all_constraints_satisfied is True
-        self.mu = w[:D]
-        self.V = w[D:(U + 1) * D].reshape(U, D)
-        self.W = w[(U + 1) * D:(U + N + 1) * D].reshape(N, D)
-        self.xi = w[(U + N + 1) * D:]
-        self.trained = True
-
-        if self.verbose > 0:
-            print('Training finished in %.1f seconds' % (time.time() - t0))
+        self.n_vars = (self.U + self.N + 1) * self.D + self.N
+        self.data_helper = DataHelper(self.Y, self.cliques)
+        self.verbose = verbose
 
     def objective(self, w):
         """
@@ -202,11 +171,26 @@ class MTR(cyipopt.problem):
         Ys, Ps = self.data_helper.get_data()
         assert U == len(Ys) == len(Ps)
 
-        J = np.dot(mu, mu) * C / 2
+        J = np.dot(mu, mu)
+        J += np.sum([np.dot(V[u, :], V[u, :]) for u in range(U)]) / U
+        J += np.sum([np.dot(W[k, :], W[k, :]) for k in range(N)]) / N
+        J *= C / 2
         for u in range(U):
             clq = self.cliques[u]
-            risk = risk_primal(mu, V[u, :], W[clq, :], xi[clq], self.X, Ys[u], Ps[u], N, U, C)
-            J += risk
+            Nu = len(clq)
+            Yu = Ys[u]
+
+            Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
+            T1 = xi[clq].reshape(1, Nu) - np.dot(self.X, Wt.T)
+            T1p = np.zeros(T1.shape)
+            T1p[Yu.row, Yu.col] = T1[Yu.row, Yu.col]
+
+            T2p = np.exp(T1p)
+            T2 = np.zeros(T1.shape)
+            T2[Yu.row, Yu.col] = T2p[Yu.row, Yu.col]
+            T2 *= Ps[u]
+
+            J += T2.sum()
 
         if self.verbose > 0:
             print('Eval f: %.1f seconds used.' % (time.time() - t0))
@@ -229,20 +213,32 @@ class MTR(cyipopt.problem):
         Ys, Ps = self.data_helper.get_data()
         assert U == len(Ys) == len(Ps)
 
-        dV_slices = []
-        dW_slices = []
         dmu = C * mu
-        dxi_slices = []
+        dV = V * C / U
+        dW = W * C / N
+        dxi = np.zeros_like(xi)
         for u in range(U):
             clq = self.cliques[u]
-            results = grad_primal(mu, V[u, :], W[clq, :], xi[clq], self.X, Ys[u], Ps[u])
-            dmu += results[0]
-            dV_slices.append(results[1])
-            dW_slices.append(results[2])
-            dxi_slices.append(results[3])
-        dV = V * C / U + np.vstack(dV_slices)
-        dW = W * C / N + np.vstack(dW_slices)
-        dxi = np.concatenate(dxi_slices, axis=-1)
+            Nu = len(clq)
+            Yu = Ys[u]
+
+            Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
+            T1 = xi[clq].reshape(1, Nu) - np.dot(self.X, Wt.T)
+            T1p = np.zeros(T1.shape)
+            T1p[Yu.row, Yu.col] = T1[Yu.row, Yu.col]
+
+            T2p = np.exp(T1p)
+            T2 = np.zeros(T1.shape)
+            T2[Yu.row, Yu.col] = T2p[Yu.row, Yu.col]
+            T2 *= Ps[u]
+
+            T3 = np.dot(T2.T, self.X)
+
+            dv = T3.sum(axis=0)
+            dmu -= dv
+            dV[u, :] -= dv
+            dW[clq, :] -= T3
+            dxi[clq] = T2.sum(axis=0)
 
         if self.verbose > 0:
             print('Eval g: %.1f seconds used.' % (time.time() - t0))
@@ -255,6 +251,7 @@ class MTR(cyipopt.problem):
         """
         N, D, U = self.N, self.D, self.U
         assert w.shape == ((U + N + 1) * D + N,)
+
         mu = w[:D]
         V = w[D:(U + 1) * D].reshape(U, D)
         W = w[(U + 1) * D:(U + N + 1) * D].reshape(N, D)
@@ -266,44 +263,31 @@ class MTR(cyipopt.problem):
             u = self.pl2u[k]
             v = V[u, :]
             wk = W[k, :]
-            if len(self.constraints[k]) > 0:
-                ix = self.constraints[k]
-                values = self.X[ix, :].dot(v + wk + mu)
-                assert values.shape == (len(ix),)
-                cons_values += values.tolist()
-
-        return np.asarray(cons_values)
+            if len(self.all_constraints[k]) > 0:
+                indices = self.all_constraints[k]
+                values = self.X[indices, :].dot(v + wk + mu)
+                assert values.shape == (len(indices),)
+                cons_values.append(values)
+        return np.concatenate(cons_values, axis=-1)
 
     def jacobianstructure(self):
         """
             The sparse structure (i.e., rows, cols) of the Jacobian matrix
         """
-        N, D = self.N, self.D
+        N, D, U = self.N, self.D, self.U
         rows = []
         cols = []
-
         ix = 0
         for k in range(N):
             u = self.pl2u[k]
-            if len(self.constraints[k]) > 0:
-                for n in self.constraints[k]:
+            if len(self.all_constraints[k]) > 0:
+                for n in self.all_constraints[k]:
                     # indices of derivatives of constraint f_{k, n} <= 0
-                    # dmu: D
-                    # rows += np.full(D, ix, dtype=np.int32).tolist()
-                    cols += list(range(D))
-
-                    # dV: U by D
-                    # rows += np.full(D, ix, dtype=np.int32).tolist()
-                    cols += list(range((u + 1) * D, (u + 2) * D))
-
-                    # dW: N by D
-                    # rows += np.full(D, ix, dtype=np.int32).tolist()
-                    cols += list(range((u + 2 + k) * D, (u + 3 + k) * D))
-
-                    # dxi: N
-                    # rows.append(ix)
-                    cols.append((u + 3 + k) * D + k)
                     rows += np.full(3 * D + 1, ix, dtype=np.int32).tolist()
+                    cols += list(range(D))                                 # dmu: D
+                    cols += list(range((u + 1) * D, (u + 2) * D))          # dV: U by D
+                    cols += list(range((U + 1 + k) * D, (U + 2 + k) * D))  # dW: N by D
+                    cols.append((U + N + 1) * D + k)                       # dxi: N
                     ix += 1
         return np.asarray(rows, dtype=np.int32), np.asarray(cols, dtype=np.int32)
 
@@ -314,40 +298,22 @@ class MTR(cyipopt.problem):
         N = self.N
         X = self.X
         jac = []
-
         for k in range(N):
-            if len(self.constraints[k]) > 0:
-                for n in self.constraints[k]:
+            if len(self.all_constraints[k]) > 0:
+                for n in self.all_constraints[k]:
                     # derivatives of constraints f_{k, n} <= 0
-                    # dmu
-                    jac.append(X[n, :])
-
-                    # dV
-                    jac.append(X[n, :])
-
-                    # dW
-                    jac.append(X[n, :])
-
-                    # dxi
-                    jac.append([-1.])
+                    jac.append(X[n, :])  # dmu
+                    jac.append(X[n, :])  # dV
+                    jac.append(X[n, :])  # dW
+                    jac.append([-1.])    # dxi
         return np.concatenate(jac, axis=-1)
 
-    def intermediate(self, alg_mod, iter_count, obj_value, inf_pr, inf_du, mu, d_norm,
-                     regularization_size, alpha_du, alpha_pr, ls_trials):
-        """
-            The intermediate callback
-        """
-        print('Iter %5d: %g' % (iter_count, obj_value))
-        # save intermediate weights
-#         fnpy = self.fnpy
-#         assert type(fnpy) == str
-#         if fnpy.endswith('.npy') and k > 20 and k % 10 == 0:
-#             try:
-#                 np.save(fnpy, x, allow_pickle=False)
-#                 if verbose > 0:
-#                     print('Save to %s' % fnpy)
-#             except (OSError, IOError, ValueError) as err:
-#                 sys.stderr.write('Save intermediate weights failed: {0}\n'.format(err))
+    # def intermediate(self, alg_mod, iter_count, obj_value, inf_pr, inf_du, mu, d_norm,
+    #                  regularization_size, alpha_du, alpha_pr, ls_trials):
+    #     """
+    #         The intermediate callback
+    #     """
+    #     print('Iter %5d: %g' % (iter_count, obj_value))
 
     def update_constraints(self, w):
         N, D, U = self.N, self.D, self.U
@@ -381,17 +347,5 @@ class MTR(cyipopt.problem):
                 if xi[k] < T1[row, col]:
                     all_satisfied = False
                     self.n_constraints += 1
-                    self.constraints[k].append(row)
+                    self.all_constraints[k].append(row)
         self.all_constraints_satisfied = all_satisfied
-
-    def predict(self, X_test):
-        """Make predictions (score is a real number)"""
-        assert self.trained is True, 'Cannot make prediction before training'
-        U, D = self.U, self.D
-        assert D == X_test.shape[1]
-        preds = []
-        for u in range(U):
-            clq = self.cliques[u]
-            Wt = self.W[clq, :] + (self.V[u, :] + self.mu).reshape(1, D)
-            preds.append(np.dot(X_test, Wt.T))
-        return np.hstack(preds)
