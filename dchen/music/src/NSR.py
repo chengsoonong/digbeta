@@ -4,6 +4,7 @@ import gzip
 import time
 import numpy as np
 import pickle as pkl
+from sklearn.metrics import roc_auc_score
 from models import MTC
 
 
@@ -72,7 +73,7 @@ if clf.trained is True:
             continue
         u = clf.pl2u[j]
         wj = clf.V[u, :] + clf.W[j, :] + clf.mu
-        y_pred = np.dot(X, wj).reshape(-1)
+        y_pred = np.dot(X_dev, wj).reshape(-1)
         sortix = np.argsort(-y_pred)
         y_ = y_true[sortix]
         rps.append(np.mean(y_[:npos]))
