@@ -8,6 +8,55 @@
 % - playlist generation
 %{\it Some related work.}
 
+
+{\bf Problem type}.
+\begin{itemize}
+\item playlist generation given seed (\eg a seed song, artist etc.)
+\item next song recommendation, given an incomplete playlist with numerous tracks, recommend the next track that the user likely to listen.
+\item another closely related task is playlist continuation, given an incomplete playlist with a few tracks, recommend a list of tracks for continuing that playlist.
+\end{itemize}
+
+
+{\bf Method}.
+\begin{itemize}
+\item Markov chain based approaches + stochastic process based (\ie autodj)
+\item closely related to MC approach is finding a path in a graph (\ie kdd'12) or hypergraph (\ie aotm2011)
+\item ranking based, especially popularity has been proved to be very informative, further, 
+artist info has been combined with popularity in (msd paper) and (cagh paper) proposed to weighting popularity by the collocation of artists, 
+achieving even better performance.
+\end{itemize}
+
+
+{\bf Information used}.
+\begin{itemize}
+\item content data such as acoustic features extracted from the audio waves of songs, lyrics, genre to be shown very informative
+\item artist info
+\item metadata from the interaction between users and songs, such as popularity, usage stats (groove paper), generally learn latent feature 
+by collaborative filtering or family of matrix factorisation techniques.
+\item order of tracks in playlist, no consensus in research community, some (a few papers) report the order info is crucial to achieve high quality recommendation,
+others (another bunch of papers) found the effects of track order in playlist were negligible.
+Mention that we treat playlist as a set of songs in this work, and defer the investigation of track order in playlist as future work.
+\end{itemize}
+
+
+{\bf Problems investigated in this paper}.
+\begin{itemize}
+\item given a known user (a user whom we have observed a few playlists), recommend a set of songs
+\item given a new user (the recsys does not have any information about the user), recommend a set of songs
+\item given a set of newly released songs, recommend songs to augment current playlists.
+\end{itemize}
+
+{\bf Methods proposed}.
+Two ostensibly different but in fact closely related methods,
+each one can address all three tasks.
+\begin{itemize}
+\item classification by focusing at positive examples
+\item ranking by focusing at the top
+\end{itemize}
+
+
+
+
 \paragraph{Gaussian process}
 The AutoDJ system~\cite{platt2002learning} automatically generate playlists given one or more seed songs, 
 it learns user preference from song metadata using Gaussian Process Regression,

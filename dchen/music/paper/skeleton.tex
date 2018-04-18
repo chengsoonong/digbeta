@@ -191,10 +191,10 @@ which results in an objective:
 \begin{aligned}
 &\frac{C_1}{2 N} \sum_{i=1}^{N} \| \w_i \|^2
 + \frac{C_2}{2 N (N - 1) / 2} \sum_{i, j \in \{1,\dots,N\}, \, i < j} \| \w_i - \w_j \|^2 
-+ \frac{1}{N} \sum_{i = 1}^{N} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \llb f(\x^m) \le \max_{n: y_i^n = 0} f(\x^n) \rrb \\
++ \frac{1}{N} \sum_{i = 1}^{N} \frac{1}{M_+^i} \sum_{m: y_i^m = 1} \llb f(\x^m) \le \max_{n: y_i^n = 0} f(\x^n) \rrb \\
 &= \frac{C_1 + 2C_2}{2 N} \sum_{i=1}^{N} \w_i^\top \w_i 
 - \frac{2C_2}{N (N - 1)} \sum_{i, j \in \{1,\dots,N\}, \, i < j} \w_i^\top \w_j
-+ \frac{1}{N} \sum_{i = 1}^{N} \frac{1}{M_i^+} \sum_{m: y_i^m = 1} \llb f(\x^m) \le \max_{n: y_i^n = 0} f(\x^n) \rrb,
++ \frac{1}{N} \sum_{i = 1}^{N} \frac{1}{M_+^i} \sum_{m: y_i^m = 1} \llb f(\x^m) \le \max_{n: y_i^n = 0} f(\x^n) \rrb,
 \end{aligned}
 \end{equation}
 where $C_1$ and $C_2$ are regularisation parameters.
@@ -206,7 +206,7 @@ it can be shown that the dual of (\ref{eq:mtobj}) is
 \label{eq:mtdual}
 \begin{aligned}
 \min_{\Thetabm} \ \ & \frac{1}{2} \sum_{d=1}^{D} \sum_{d'=1}^{D} \C \circ \left( \X^\top \Thetabm (\C^{-1})^2 \Thetabm^\top \X \right) 
-    + \sum_{i = 1}^{N} \sum_{m: y_i^m = 1} \theta_i^m \left( 1 - \log(-\theta_i^m) - \log(N M_i^+) \right) \\
+    + \sum_{i = 1}^{N} \sum_{m: y_i^m = 1} \theta_i^m \left( 1 - \log(-\theta_i^m) - \log(N M_+^i) \right) \\
 s.t. \ & \Thetabm^\top \one_M = \zero_{N} \\
        & \theta_k^n \ge 0, \, k \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_k^n = 0.
 \end{aligned}
@@ -214,7 +214,7 @@ s.t. \ & \Thetabm^\top \one_M = \zero_{N} \\
 where $\circ$ denotes the element-wise multiplication,
 $\Thetabm \in \R^{M \times N}$ are the dual variables, $D$ is the number of features of a song, 
 $\X \in \R^{M \times D}$ is the design matrix where each row is the features of a song,
-$M_i^+$ is the number of songs in the $i$-th playlist of user $u$,
+$M_+^i$ is the number of songs in the $i$-th playlist of user $u$,
 and $\C \in \R^{N \times N}$ is a symmetric matrix such that
 \begin{equation*}
 C_{ij} = \begin{cases}

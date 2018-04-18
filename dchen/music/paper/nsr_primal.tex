@@ -7,7 +7,7 @@ The optimisation problem is
 &\min_{\V, \W, \mubm} \ \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{5em}
-     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
      - \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \x_n \right).
 \end{aligned}
 \end{equation}
@@ -18,7 +18,7 @@ Let
 f_0(\V, \W, \mubm, \xibm) &= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{3em}
-     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} 
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} \sum_{m: y_m^i = 1} 
        \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m - \xi_i \right) \\
 f_{i,n} (\V, \W, \mubm, \xibm) &= (\bv_{u(i)} + \w_i + \mubm)^\top \x_n - \xi_i, \
 i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_n^i = 0.
@@ -44,16 +44,16 @@ then
 \begin{equation*}
 \begin{aligned}
 \frac{\partial f_0}{\partial \bv_u}
-&= \frac{C}{2} \frac{2}{U} \bv_u + \frac{1}{N} \sum_{i \in P_u} \frac{1}{M_i^+} \sum_{m: y_m^i=1} \frac{\partial \ell}{\partial \bv_u} \\
-&= \frac{C}{U} \bv_u - \sum_{i \in P_u} \frac{1}{N M_i^+} \sum_{m: y_m^i=1} \x_m \exp \left( \xi_i - (\bv_u + \w_i + \mubm)^\top \x_m \right) \\
+&= \frac{C}{2} \frac{2}{U} \bv_u + \frac{1}{N} \sum_{i \in P_u} \frac{1}{M_+^i} \sum_{m: y_m^i=1} \frac{\partial \ell}{\partial \bv_u} \\
+&= \frac{C}{U} \bv_u - \sum_{i \in P_u} \frac{1}{N M_+^i} \sum_{m: y_m^i=1} \x_m \exp \left( \xi_i - (\bv_u + \w_i + \mubm)^\top \x_m \right) \\
 %
 \frac{\partial f_0}{\partial \w_k}
 &= \frac{C}{2} \frac{2}{N} \w_k + \frac{1}{N} \frac{1}{M_k^+} \sum_{m: y_m^k=1} \frac{\partial \ell}{\partial \w_k} \\
 &= \frac{C}{N} \w_k - \frac{1}{N M_k^+} \sum_{m: y_m^k=1} \x_m \exp \left( \xi_k - (\bv_{u(k)} + \w_k + \mubm)^\top \x_m \right) \\
 %
 \frac{\partial f_0}{\partial \mubm}
-&= \frac{C}{2} 2 \mubm + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i=1} \frac{\partial \ell}{\partial \mubm} \\
-&= C \mubm - \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_m^i=1} \x_m \exp \left( \xi_i - (\bv_{u(i)} + \w_i + \mubm)^\top \x_m \right) \\
+&= \frac{C}{2} 2 \mubm + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} \sum_{m: y_m^i=1} \frac{\partial \ell}{\partial \mubm} \\
+&= C \mubm - \sum_{i=1}^N \frac{1}{N M_+^i} \sum_{m: y_m^i=1} \x_m \exp \left( \xi_i - (\bv_{u(i)} + \w_i + \mubm)^\top \x_m \right) \\
 %
 \frac{\partial f_0}{\partial \xi_k}
 &= \frac{1}{N} \frac{1}{M_k^+} \sum_{m: y_m^k=1} \frac{\partial \ell}{\partial \xi_k} \\

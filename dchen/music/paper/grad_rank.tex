@@ -8,7 +8,7 @@ J_\textsc{pla}
 &= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{5em}
-     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}
      - \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n} \right).
 \end{aligned}
 \end{equation}
@@ -19,12 +19,12 @@ It can be approximated as
 J_\textsc{pla} 
 &\approx \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{3em}
-  + \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} 
+  + \sum_{i=1}^N \frac{1}{N M_+^i} \sum_{m: y_m^i = 1} 
     e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}}
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p} \\
 &= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{3em}
-  + \sum_{i=1}^N \frac{1}{N M_i^+} 
+  + \sum_{i=1}^N \frac{1}{N M_+^i} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p}.
 \end{aligned}
@@ -35,7 +35,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
 \begin{aligned}
 \frac{\partial J_\textsc{pla}}{\partial \bv_u}
 &\approx \frac{C}{U} \bv_u
-  + \sum_{i \in P_u} \frac{1}{N M_i^+} \left[
+  + \sum_{i \in P_u} \frac{1}{N M_+^i} \left[
     \left(-\sum_{m: y_m^i = 1} \phibm_{u,m} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_{u,m}} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} \right)^\frac{1}{p} \right. \\
 & \hspace{1.5em} + \left.
@@ -43,7 +43,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} \right)^{\frac{1}{p} - 1}
     \left( \sum_{n: y_n^i = 0} \phibm_{u,n} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} \right) \right] \\
 &= \frac{C}{U} \bv_u
-  + \sum_{i \in P_u} \frac{1}{N M_i^+} 
+  + \sum_{i \in P_u} \frac{1}{N M_+^i} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_u + \w_i + \mubm)^\top \phibm_{u,m}} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \phibm_{u,n}} \right)^\frac{1}{p} \\
 & \hspace{9.8em} \left[ 
@@ -54,7 +54,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
 %
 \frac{\partial J_\textsc{pla}}{\partial \w_i}
 &\approx \frac{C}{N} \w_i
-  + \frac{1}{N M_i^+} 
+  + \frac{1}{N M_+^i} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p} \\
 & \hspace{8em} \left[ 
@@ -65,7 +65,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
 %
 \frac{\partial J_\textsc{pla}}{\partial \mubm}
 &\approx C \mubm
-  + \sum_{i=1}^N \frac{1}{N M_i^+} 
+  + \sum_{i=1}^N \frac{1}{N M_+^i} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p} \\
 & \hspace{8em} \left[ 
@@ -88,7 +88,7 @@ The Lagrangian dual problem when using the exponential surrogate is
    + \left( \sum_{u=1}^U \sum_{i \in P_u} \thetabm_i^\top \Phibm_u \right)
      \left( \sum_{u=1}^U \sum_{i \in P_u} \thetabm_i^\top \Phibm_u \right)^\top \right]
    + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top 
-     \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right), \\
+     \left( (1 - \log(N M_+^i)) \y_i - \y_i \circ \log(-\thetabm_i) \right), \\
 s.t. \ 
 & \Thetabm \one_M = \zero_N, \\
 &\theta_i^m < 0, \ \mathrm{if} \ y_m^i = 1, \\
@@ -140,7 +140,7 @@ J_\textsc{nsr}
 &= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{5em}
-     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
      - \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \x_n \right).
 \end{aligned}
 \end{equation}
@@ -151,7 +151,7 @@ It can be approximated as
 J_\textsc{nsr} 
 &\approx \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{3em}
-  + \sum_{i=1}^N \frac{1}{N M_i^+} 
+  + \sum_{i=1}^N \frac{1}{N M_+^i} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x_m} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x_n} \right)^\frac{1}{p}.
 \end{aligned}
@@ -162,7 +162,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
 \begin{aligned}
 \frac{\partial J_\textsc{nsr}}{\partial \bv_u}
 &\approx \frac{C}{U} \bv_u
-  + \sum_{i \in P_u} \frac{1}{N M_i^+} 
+  + \sum_{i \in P_u} \frac{1}{N M_+^i} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_u + \w_i + \mubm)^\top \x_m} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_u + \w_i + \mubm)^\top \x_n} \right)^\frac{1}{p} \\
 & \hspace{9.8em} \left[ 
@@ -173,7 +173,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
 %
 \frac{\partial J_\textsc{nsr}}{\partial \w_i}
 &\approx \frac{C}{N} \w_i
-  + \frac{1}{N M_i^+} 
+  + \frac{1}{N M_+^i} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x_m} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x_n} \right)^\frac{1}{p} \\
 & \hspace{8em} \left[ 
@@ -184,7 +184,7 @@ The gradient w.r.t. $\bv_u, \w_i$ and $\mubm$ can be approximated as
 %
 \frac{\partial J_\textsc{nsr}}{\partial \mubm}
 &\approx C \mubm
-  + \sum_{i=1}^N \frac{1}{N M_i^+} 
+  + \sum_{i=1}^N \frac{1}{N M_+^i} 
     \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x_m} \right)
     \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x_n} \right)^\frac{1}{p} \\
 & \hspace{8em} \left[ 
@@ -205,7 +205,7 @@ The Lagrangian dual problem when using the exponential surrogate is
    + N \sum_{i=1}^N \thetabm_i^\top \X \X^\top \thetabm_i
    + \left( \sum_{i=1}^N \thetabm_i \right)^\top \X \X^\top \left( \sum_{i=1}^N \thetabm_i \right) \right] \\
 & \hspace{2em}
-   + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right), \\
+   + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top \left( (1 - \log(N M_+^i)) \y_i - \y_i \circ \log(-\thetabm_i) \right), \\
 s.t. \ 
 & \Thetabm \one_M = \zero_N, \\
 & \theta_i^m < 0, \ \mathrm{if} \ y_m^i = 1, \\
@@ -218,7 +218,7 @@ Note that the above objective can be computed as
 J &= \frac{1}{2 C} \sum_{n=1}^N \sum_{n'=1}^N (U \A + N \I_N + \one_{N \times N}) 
      \circ \left( \Thetabm^\top \X \right) \left( \Thetabm^\top \X \right)^\top \\
 & \hspace{3em}
-     + \sum_{i=1}^N \thetabm_i^\top \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right),
+     + \sum_{i=1}^N \thetabm_i^\top \left( (1 - \log(N M_+^i)) \y_i - \y_i \circ \log(-\thetabm_i) \right),
 \end{aligned}
 \end{equation*}
 where $\I_N \in \R^{N \times N}$ is an identity matrix and $\A \in \R^{N \times N}$ is a symmetric matrix such that
