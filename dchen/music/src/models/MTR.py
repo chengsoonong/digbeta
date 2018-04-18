@@ -21,7 +21,7 @@ class MTR(object):
         self.U = len(self.cliques)
         self.trained = False
 
-    def fit(self, w0=None, fnpy=None, loss='exponential'):
+    def fit(self, loss='exponential', max_iter=1e3, w0=None, fnpy=None):
         assert loss in ['exponential', 'squared_hinge']
         M, N, U, D = self.M, self.N, self.U, self.D
         verbose = self.verbose
@@ -49,23 +49,28 @@ class MTR(object):
         assert w0.shape == (num_vars,)
 
         # solve using IPOPT and cutting-plane method
-        cp_iter = 1
+        # first create an optimisation problem and solve it,
+        # then add constraints violated by current solution,
+        # create a new optimisation problem (same objective, update constraints)
+        # keep doing this util termination cretieria satisfied.
         w = w0
-        prev_constraints = None
+        cp_iter = 0
+        # prev_constraints = None
         print('[CUTTING-PLANE] %d variables, %d maximum possible constraints.' % (num_vars, max_num_cons))
-        while True:
-            # create an optimisation problem (same objective, updated constraints) and solve it
-            problem = RankPrimal(X=self.X, Y=self.Y, C=self.C, cliques=self.cliques, verbose=verbose)
-            problem.add_constraints(prev_constraints)  # first restore previous constraints
-            # w = 1e-3 * np.random.randn(num_vars)        # cold start, comment this line for warm start
-            problem.update_constraints(w)              # then add constraints violated by current model paramters
+        while cp_iter < max_iter:
+            cp_iter += 1
+            problem = RankPrimal(X=self.X, Y=self.Y, C=self.C, cliques=self.cliques, loss=loss, verbose=verbose)
+            # problem.add_constraints(prev_constraints)  # first restore previous constraints
+            # problem.update_constraints(w)              # then add constraints violated by current model paramters
+            problem.generate_all_constraints()
+            print('Number of constraints: %d' % problem.get_num_constraints())
             if problem.all_constraints_satisfied is True:
                 print('[CUTTING-PLANE] All constraints satisfied.')
                 break
             else:
                 if problem.get_num_constraints() >= max_num_cons:
                     print('[CUTTING-PLANE] All constraints have been used, problem is probably infeasible.')
-                    break
+                    # break
 
             problem.compute_constraint_info()
             num_cons = problem.get_num_constraints()
@@ -76,21 +81,28 @@ class MTR(object):
                 n=num_vars,            # number of variables
                 m=num_cons,            # number of constraints
                 lb=None,               # lower bounds on variables
+                # lb=np.zeros(num_vars),
                 ub=None,               # upper bounds on variables
                 cl=None,               # lower bounds on constraints
                 cu=np.zeros(num_cons)  # upper bounds on constraints
             )
 
-            # Set solver options, https://www.coin-or.org/Ipopt/documentation/node51.html
-            nlp.addOption(b'mu_strategy', b'adaptive')
+            # ROOT_URL = www.coin-or.org/Ipopt/documentation
+            # set solver options: $ROOT_URL/node40.html
             nlp.addOption(b'max_iter', int(1e4))
-            nlp.addOption(b'tol', 1e-7)
+            # nlp.addOption(b'mu_strategy', b'adaptive')
+            # nlp.addOption(b'tol', 1e-7)
             # nlp.addOption(b'acceptable_tol', 1e-5)
-            nlp.addOption(b'linear_solver', b'ma27')
-            # nlp.addOption(b'linear_solver', b'ma57')
-            # nlp.addOption(b'derivative_test', b'first-order')
             # nlp.addOption(b'acceptable_constr_viol_tol', 1e-6)
 
+            # linear solver for the augmented linear system: $ROOT_URL/node51.html
+            nlp.addOption(b'linear_solver', b'ma27')
+            # nlp.addOption(b'linear_solver', b'ma57')
+
+            # gradient checking for objective and constraints: $ROOT_URL/node30.html
+            # nlp.addOption(b'derivative_test', b'first-order')
+
+            # w = 1e-3 * np.random.randn(num_vars)  # cold start, comment this line for warm start
             w, info = nlp.solve(w)
             # print(info['status'], info['status_msg'])
             print('\n[IPOPT] %s\n' % info['status_msg'].decode('utf-8'))
@@ -103,8 +115,11 @@ class MTR(object):
                 except (OSError, IOError, ValueError) as err:
                     sys.stderr.write('Save intermediate weights failed: {0}\n'.format(err))
 
-            prev_constraints = problem.get_current_constraints()
-            cp_iter += 1
+            # prev_constraints = problem.get_current_constraints()
+            break
+
+        if cp_iter >= max_iter:
+            print('[CUTTING-PLANE] Reaching max number of iterations.')
 
         self.mu = w[:D]
         self.V = w[D:(U + 1) * D].reshape(U, D)
@@ -118,7 +133,7 @@ class MTR(object):
     def predict(self, X_test):
         """Make predictions (score is a real number)"""
         assert self.trained is True, 'Cannot make prediction before training'
-        U, D = self.primal.U, self.primal.D
+        U, D = self.U, self.D
         assert D == X_test.shape[1]
         preds = []
         for u in range(U):
@@ -275,22 +290,6 @@ class RankPrimal(object):
             else:
                 J += risk_squared_hinge(u)
 
-            # clq = self.cliques[u]
-            # Nu = len(clq)
-            # Yu = Ys[u]
-            #
-            # Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
-            # T1 = xi[clq].reshape(1, Nu) - np.dot(self.X, Wt.T)
-            # T1p = np.zeros(T1.shape)
-            # T1p[Yu.row, Yu.col] = T1[Yu.row, Yu.col]
-            #
-            # T2p = np.exp(T1p)
-            # T2 = np.zeros(T1.shape)
-            # T2[Yu.row, Yu.col] = T2p[Yu.row, Yu.col]
-            # T2 *= Ps[u]
-            #
-            # J += T2.sum()
-
         if np.isnan(J) or np.isinf(J):
             sys.stderr.write('objective(): objective is NaN or inf!\n')
             sys.exit(0)
@@ -378,28 +377,6 @@ class RankPrimal(object):
             dW[clq, :] -= dWu
             dxi[clq] = dxiu
 
-            # clq = self.cliques[u]
-            # Nu = len(clq)
-            # Yu = Ys[u]
-            #
-            # Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
-            # T1 = xi[clq].reshape(1, Nu) - np.dot(self.X, Wt.T)
-            # T1p = np.zeros(T1.shape)
-            # T1p[Yu.row, Yu.col] = T1[Yu.row, Yu.col]
-            #
-            # T2p = np.exp(T1p)
-            # T2 = np.zeros(T1.shape)
-            # T2[Yu.row, Yu.col] = T2p[Yu.row, Yu.col]
-            # T2 *= Ps[u]
-            #
-            # T3 = np.dot(T2.T, self.X)
-            #
-            # dv = T3.sum(axis=0)
-            # dmu -= dv
-            # dV[u, :] -= dv
-            # dW[clq, :] -= T3
-            # dxi[clq] = T2.sum(axis=0)
-
         if self.verbose > 0:
             print('Eval g: %.1f seconds used.' % (time.time() - t0))
 
@@ -425,7 +402,7 @@ class RankPrimal(object):
             wk = W[k, :]
             if len(self.current_constraints[k]) > 0:
                 indices = self.current_constraints[k]
-                values = self.X[indices, :].dot(v + wk + mu)
+                values = self.X[indices, :].dot(v + wk + mu) - xi[k]
                 assert values.shape == (len(indices),)
                 cons_values.append(values)
         return np.concatenate(cons_values, axis=-1)
@@ -438,33 +415,12 @@ class RankPrimal(object):
         assert self.js_cols is not None
         return self.js_rows, self.js_cols
 
-        # N, D, U = self.N, self.D, self.U
-        # rows = []
-        # cols = []
-        # n_cons = len(self.constraint_pairs)
-        # for ix in range(n_cons):
-        #     k, n = self.constraint_pairs[ix]
-        #     u = self.pl2u[k]
-        #     rows.append(np.full(3 * D + 1, ix, dtype=np.int32))
-        #     cols.append(np.arange(D))
-        #     cols.append(np.arange((u + 1) * D, (u + 2) * D))
-        #     cols.append(np.arange((U + 1 + k) * D, (U + 2 + k) * D))
-        #     cols.append([(U + N + 1) * D + k])
-        # return np.concatenate(rows, axis=-1), np.concatenate(cols, axis=-1)
-
     def jacobian(self, w):
         """
             The callback for calculating the Jacobian of constraints
         """
         assert self.jac is not None
         return self.jac
-
-        # X = self.X
-        # jac = []
-        # for k, n in self.constraint_pairs:
-        #     jac.append(np.tile(X[n, :].reshape(1, -1), (1, 3)))
-        #     jac.append(np.array([-1.]).reshape(1, 1))
-        # return np.concatenate(jac, axis=-1)
 
     # def intermediate(self, alg_mod, iter_count, obj_value, inf_pr, inf_du, mu, d_norm,
     #                  regularization_size, alpha_du, alpha_pr, ls_trials):
@@ -497,8 +453,13 @@ class RankPrimal(object):
                 dW[k, :] = X[n, :]
                 dxi = np.zeros(N, dtype=np.float)
                 dxi[k] = -1
-                jac.append(np.hstack([dmu.reshape(1, -1), dV.reshape(1, -1), dW.reshape(1, -1), dxi.reshape(1, -1)]))
+                # jac.append(np.hstack([dmu.reshape(1, -1), dV.reshape(1, -1), dW.reshape(1, -1), dxi.reshape(1, -1)]))
+                jac.append(np.r_[dmu, dV.ravel(), dW.ravel(), dxi])
         jac_coo = coo_matrix(np.vstack(jac))
+
+        # self.jac = jac_coo.data
+        # self.js_rows = jac_coo.row
+        # self.js_cols = jac_coo.col
 
         print('checking jacobianstructure ...')
         assert np.all(jac_coo.row == self.js_rows)
@@ -508,10 +469,11 @@ class RankPrimal(object):
         assert np.all(jac_coo.data == self.jac)
 
     def compute_constraint_info(self):
+        """
+            compute jacobian of constraints and its sparse structure (rows, cols of non-zero elements)
+        """
         N, D, U = self.N, self.D, self.U
         X = self.X
-
-        # compute jacobian of constraints and its sparse structure (rows, cols of non-zero elements)
         rows, cols, jac = [], [], []
         ix = 0
         for k in range(N):
@@ -519,18 +481,28 @@ class RankPrimal(object):
             for n in self.current_constraints[k]:
                 jac.append(np.tile(X[n, :].reshape(1, -1), (1, 3)))
                 jac.append(np.array([-1.]).reshape(1, 1))
-
                 rows.append(np.full(3 * D + 1, ix, dtype=np.int32))
                 cols.append(np.arange(D))
                 cols.append(np.arange((u + 1) * D, (u + 2) * D))
                 cols.append(np.arange((U + 1 + k) * D, (U + 2 + k) * D))
                 cols.append([(U + N + 1) * D + k])
-
                 ix += 1
-
         self.jac = np.concatenate(jac, axis=-1)
         self.js_rows = np.concatenate(rows, axis=-1)
         self.js_cols = np.concatenate(cols, axis=-1)
+
+    def generate_all_constraints(self):
+        """
+            generate all possible constraints
+        """
+        print('Generate all possible constraints.')
+        M, N = self.M, self.N
+        Y = self.Y
+        assert Y.dtype == np.bool
+        for n in range(M):
+            for k in range(N):
+                if Y[n, k] < 1:
+                    self.current_constraints[k].append(n)
 
     def update_constraints(self, w):
         N, D, U = self.N, self.D, self.U
@@ -562,7 +534,10 @@ class RankPrimal(object):
                 k = clq[j]
                 row, col = max_ix[j], j
                 # if xi[k] + self.tol < T1[row, col]:
+                # if xi[k] < T1[row, col]:
                 if xi[k] < T1[row, col] + self.margin:
+                    # assert xi[k] >= 0
+                    # if 1 - xi[k] / T1[row, col] > self.tol:
                     all_satisfied = False
                     self.current_constraints[k].append(row)
         self.all_constraints_satisfied = all_satisfied
