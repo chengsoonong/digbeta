@@ -231,7 +231,9 @@ class MTC():
         if w0 is not None:
             assert w0.shape[0] == (U + N + 1) * D
         else:
-            if fnpy is not None:
+            if fnpy is None:
+                w0 = np.zeros((U + N + 1) * D)
+            else:
                 try:
                     w0 = np.load(fnpy, allow_pickle=False)
                     assert w0.shape[0] == (U + N + 1) * D
