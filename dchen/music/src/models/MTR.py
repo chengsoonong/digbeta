@@ -21,6 +21,15 @@ class MTR(object):
         self.U = len(self.cliques)
         self.trained = False
 
+    def _init_vars(self):
+        N, U, D = self.N, self.U, self.D
+        # w0 = np.zeros(num_vars)
+        # w0 = 0.001 * np.random.randn()
+        # w0 = 1e-4 * np.random.rand(num_vars)
+        # w0 = np.r_[1e-3 * np.random.randn((U + N + 1) * D), np.random.rand(N)]
+        w0 = np.r_[1e-3 * np.random.randn((U + N + 1) * D), np.zeros(N)]
+        return w0
+
     def fit(self, loss='exponential', max_iter=1e3, w0=None, fnpy=None):
         assert loss in ['exponential', 'squared_hinge']
         M, N, U, D = self.M, self.N, self.U, self.D
@@ -33,9 +42,7 @@ class MTR(object):
         max_num_cons = M * N - self.Y.sum()
         if w0 is None:
             if fnpy is None:
-                w0 = np.zeros(num_vars)
-                # w0 = 0.001 * np.random.randn(num_vars)
-                # w0 = 1e-4 * np.random.rand(num_vars)
+                w0 = self._init_vars()
             else:
                 try:
                     assert type(fnpy) == str
@@ -43,9 +50,7 @@ class MTR(object):
                     w0 = np.load(fnpy, allow_pickle=False)
                     print('Restore from %s' % fnpy)
                 except (IOError, ValueError):
-                    w0 = np.zeros(num_vars)
-                    # w0 = 0.001 * np.random.randn(num_vars)
-                    # w0 = 1e-4 * np.random.rand(num_vars)
+                    w0 = self._init_vars()
         assert w0.shape == (num_vars,)
 
         # solve using IPOPT and cutting-plane method
@@ -55,14 +60,14 @@ class MTR(object):
         # keep doing this util termination cretieria satisfied.
         w = w0
         cp_iter = 0
-        # prev_constraints = None
+        prev_constraints = None
         print('[CUTTING-PLANE] %d variables, %d maximum possible constraints.' % (num_vars, max_num_cons))
         while cp_iter < max_iter:
             cp_iter += 1
             problem = RankPrimal(X=self.X, Y=self.Y, C=self.C, cliques=self.cliques, loss=loss, verbose=verbose)
-            # problem.add_constraints(prev_constraints)  # first restore previous constraints
-            # problem.update_constraints(w)              # then add constraints violated by current model paramters
-            problem.generate_all_constraints()
+            problem.add_constraints(prev_constraints)  # first restore previous constraints
+            problem.update_constraints(w)              # then add constraints violated by current model paramters
+            # problem.generate_all_constraints()
             print('Number of constraints: %d' % problem.get_num_constraints())
             if problem.all_constraints_satisfied is True:
                 print('[CUTTING-PLANE] All constraints satisfied.')
@@ -115,8 +120,8 @@ class MTR(object):
                 except (OSError, IOError, ValueError) as err:
                     sys.stderr.write('Save intermediate weights failed: {0}\n'.format(err))
 
-            # prev_constraints = problem.get_current_constraints()
-            break
+            prev_constraints = problem.get_current_constraints()
+            # break
 
         if cp_iter >= max_iter:
             print('[CUTTING-PLANE] Reaching max number of iterations.')
@@ -205,7 +210,7 @@ class RankPrimal(object):
         self.num_vars = (self.U + self.N + 1) * self.D + self.N
         self.data_helper = DataHelper(self.Y, self.cliques)
         self.verbose = verbose
-        self.margin = 1e-4
+        self.margin = 1e-8
         # self.tol = 1e-3
 
         self.jac = None
@@ -402,7 +407,7 @@ class RankPrimal(object):
             wk = W[k, :]
             if len(self.current_constraints[k]) > 0:
                 indices = self.current_constraints[k]
-                values = self.X[indices, :].dot(v + wk + mu) - xi[k]
+                values = self.X[indices, :].dot(v + wk + mu) - xi[k] + self.margin
                 assert values.shape == (len(indices),)
                 cons_values.append(values)
         return np.concatenate(cons_values, axis=-1)
@@ -528,6 +533,9 @@ class RankPrimal(object):
             T1 = np.dot(X, Wt.T)
             T1[Yu.row, Yu.col] = -np.inf  # mask entry (m,i) if y_m^i = 1
             max_ix = T1.argmax(axis=0)
+
+            print(np.max(T1, axis=0))
+            print(xi[clq])
 
             assert max_ix.shape[0] == len(clq)
             for j in range(max_ix.shape[0]):
