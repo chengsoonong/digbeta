@@ -7,7 +7,7 @@ The optimisation problem is
 &\min_{\V, \W, \mubm} \ \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{5em}
-     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
      - \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \x_n \right).
 \end{aligned}
 \end{equation}
@@ -18,7 +18,7 @@ Let
 f_0(\V, \W, \mubm, \xibm) &= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{3em}
-     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} 
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} \sum_{m: y_m^i = 1} 
        \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m - \xi_i \right) \\
 f_{i,n} (\V, \W, \mubm, \xibm) &= (\bv_{u(i)} + \w_i + \mubm)^\top \x_n - \xi_i, \
 i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_n^i = 0.
@@ -60,11 +60,11 @@ g(\V, \W, \mubm, \xibm, \alphabm, \betabm)
 &= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{3em}
-     + \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m - \xi_i \right) \alpha_i^m \\
+     + \sum_{i=1}^N \frac{1}{N M_+^i} \sum_{m: y_m^i = 1} \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m - \xi_i \right) \alpha_i^m \\
 & \hspace{3em}
      + \sum_{i=1}^N \sum_{n: y_n^i = 0} \beta_i^n \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_n - \xi_i \right), \\
 r(\alphabm)
-&= \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \ell^*(\alpha_i^m),
+&= \sum_{i=1}^N \frac{1}{N M_+^i} \sum_{m: y_m^i = 1} \ell^*(\alpha_i^m),
 \end{aligned}
 \end{equation*}
 then 
@@ -92,13 +92,13 @@ To solve the inner (unconstrained) minimisation, let
 \begin{aligned}
 \zero &= \frac{\partial g}{\partial \bv_u} 
        = \frac{C}{U} \bv_u 
-         + \sum_{i \in P_u} \left( \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \alpha_i^m \x_m + \sum_{n: y_n^i = 0} \beta_i^n \x_n \right) \\
+         + \sum_{i \in P_u} \left( \frac{1}{N M_+^i} \sum_{m: y_m^i = 1} \alpha_i^m \x_m + \sum_{n: y_n^i = 0} \beta_i^n \x_n \right) \\
 \zero &= \frac{\partial g}{\partial \w_i}
-       = \frac{C}{N} \w_i + \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \alpha_i^m \x_m + \sum_{n: y_n^i = 0} \beta_i^n \x_n \\
+       = \frac{C}{N} \w_i + \frac{1}{N M_+^i} \sum_{m: y_m^i = 1} \alpha_i^m \x_m + \sum_{n: y_n^i = 0} \beta_i^n \x_n \\
 \zero &= \frac{\partial g}{\partial \mubm} 
-       = C \mubm + \sum_{i=1}^N \left( \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \alpha_i^m \x_m + \sum_{n: y_n^i = 0} \beta_i^n \x_n \right) \\
+       = C \mubm + \sum_{i=1}^N \left( \frac{1}{N M_+^i} \sum_{m: y_m^i = 1} \alpha_i^m \x_m + \sum_{n: y_n^i = 0} \beta_i^n \x_n \right) \\
 0     &= \frac{\partial g}{\partial \xi_i}
-       = - \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \alpha_i^m - \sum_{n: y_n^i = 0} \beta_i^n \\
+       = - \frac{1}{N M_+^i} \sum_{m: y_m^i = 1} \alpha_i^m - \sum_{n: y_n^i = 0} \beta_i^n \\
 \end{aligned}
 \end{equation*}
 where $P_u$ denotes the indices of playlists from user $u$.
@@ -107,7 +107,7 @@ To simplify the notation, let $\Thetabm \in \R^{N \times M}$ such that
 \begin{equation*}
 \theta_i^m = 
 \begin{cases}
-    \frac{\alpha_i^m}{N M_i^+}, & y_m^i = 1 \\
+    \frac{\alpha_i^m}{N M_+^i}, & y_m^i = 1 \\
     \beta_i^m, & y_m^i = 0, \ i \in \{1,\dots,N\}, \, m \in \{1,\dots,M\},
 \end{cases}
 \end{equation*}
@@ -141,10 +141,10 @@ Thus,
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{3em}
      + \sum_{i=1}^N \left( 
-       \sum_{m: y_m^i = 1} \frac{\alpha_i^m}{N M_i^+} (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
+       \sum_{m: y_m^i = 1} \frac{\alpha_i^m}{N M_+^i} (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
      + \sum_{n: y_n^i = 0} \beta_i^n (\bv_{u(i)} + \w_i + \mubm)^\top \x_n \right) \\
 & \hspace{3em}
-     - \sum_{i=1}^N \xi_i \left( \sum_{m: y_m^i = 1} \frac{\alpha_i^m}{N M_i^+} + \sum_{n: y_n^i = 0} \beta_i^n \right) \\
+     - \sum_{i=1}^N \xi_i \left( \sum_{m: y_m^i = 1} \frac{\alpha_i^m}{N M_+^i} + \sum_{n: y_n^i = 0} \beta_i^n \right) \\
 &= \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right)
      + \sum_{i=1}^N \sum_{m=1}^M \theta_i^m (\bv_{u(i)} + \w_i + \mubm)^\top \x_m
@@ -212,14 +212,14 @@ Thus,
 \label{eq:expconj}
 \begin{aligned}
 r(\alphabm)
-&= \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \ell^*(\alpha_i^m) \\
-&= \sum_{i=1}^N \frac{1}{N M_i^+} \sum_{m: y_m^i = 1} \alpha_i^m (1 - \log(-\alpha_i^m)) \\
-&= \sum_{i=1}^N \sum_{m: y_m^i = 1} \frac{\alpha_i^m}{N M_i^+} \left(1 - \log \left( -\frac{\alpha_i^m}{N M_i^+} \cdot N M_i^+ \right) \right) \\
-&= \sum_{i=1}^N \sum_{m: y_m^i = 1} \theta_i^m \left(1 - \log(-\theta_i^m) - \log(N M_i^+) \right) \\
+&= \sum_{i=1}^N \frac{1}{N M_+^i} \sum_{m: y_m^i = 1} \ell^*(\alpha_i^m) \\
+&= \sum_{i=1}^N \frac{1}{N M_+^i} \sum_{m: y_m^i = 1} \alpha_i^m (1 - \log(-\alpha_i^m)) \\
+&= \sum_{i=1}^N \sum_{m: y_m^i = 1} \frac{\alpha_i^m}{N M_+^i} \left(1 - \log \left( -\frac{\alpha_i^m}{N M_+^i} \cdot N M_+^i \right) \right) \\
+&= \sum_{i=1}^N \sum_{m: y_m^i = 1} \theta_i^m \left(1 - \log(-\theta_i^m) - \log(N M_+^i) \right) \\
 &= \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top 
-                \left( \y_i \circ \left( (1 - \log(N M_i^+)) \one_M - \log(-\thetabm_i) \right) \right) \\
+                \left( \y_i \circ \left( (1 - \log(N M_+^i)) \one_M - \log(-\thetabm_i) \right) \right) \\
 &= \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top 
-                \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right)
+                \left( (1 - \log(N M_+^i)) \y_i - \y_i \circ \log(-\thetabm_i) \right)
 \end{aligned}
 \end{equation}
 
@@ -234,7 +234,7 @@ By (\ref{eq:dualfunc}, \ref{eq:gmin}, \ref{eq:expconj}), the \emph{Lagrangian du
    + \left( \sum_{i=1}^N \thetabm_i^\top \X \right) \left( \sum_{i=1}^N \thetabm_i^\top \X \right)^\top \right] \\
 & \hspace{5em}
    + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top 
-     \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right).
+     \left( (1 - \log(N M_+^i)) \y_i - \y_i \circ \log(-\thetabm_i) \right).
 \end{aligned}
 \end{equation*}
 subject to constraints
@@ -266,10 +266,10 @@ where $\Z \in \R^{M \times D}$ is the left inverse of $\X^\top$, \ie $\Z \X^\top
 Note that $\theta_i^m = \z_m^\top \lambdabm_i$ and by (\ref{eq:expconj})
 \begin{equation*}
 \begin{aligned}
-&\sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right) \\
-&= \sum_{i=1}^N \sum_{m: y_m^i = 1} \theta_i^m \left(1 - \log(-\theta_i^m) - \log(N M_i^+) \right) \\
-&= \sum_{i=1}^N \sum_{m: y_m^i = 1} \z_m^\top \lambdabm_i \left(1 - \log(-\z_m^\top \lambdabm_i) - \log(N M_i^+) \right) \\
-&= \sum_{i=1}^N \sum_{m: y_m^i = 1} \left[ \z_m^\top \lambdabm_i \left(1 - \log(N M_i^+) \right) 
+&\sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top \left( (1 - \log(N M_+^i)) \y_i - \y_i \circ \log(-\thetabm_i) \right) \\
+&= \sum_{i=1}^N \sum_{m: y_m^i = 1} \theta_i^m \left(1 - \log(-\theta_i^m) - \log(N M_+^i) \right) \\
+&= \sum_{i=1}^N \sum_{m: y_m^i = 1} \z_m^\top \lambdabm_i \left(1 - \log(-\z_m^\top \lambdabm_i) - \log(N M_+^i) \right) \\
+&= \sum_{i=1}^N \sum_{m: y_m^i = 1} \left[ \z_m^\top \lambdabm_i \left(1 - \log(N M_+^i) \right) 
                                            - \z_m^\top \lambdabm_i \log(-\z_m^\top \lambdabm_i) \right].
 \end{aligned}
 \end{equation*}
@@ -283,7 +283,7 @@ The dual problem can be rewritten as
    + N \sum_{i=1}^N \lambdabm_i^\top \lambdabm_i
    + \left( \sum_{i=1}^N \lambdabm_i \right)^\top \left( \sum_{i=1}^N \lambdabm_i \right) \right] \\
 & \hspace{2em}
-   + \sum_{i=1}^N \sum_{m: y_m^i = 1} \left[ \z_m^\top \lambdabm_i \left(1 - \log(N M_i^+) \right) 
+   + \sum_{i=1}^N \sum_{m: y_m^i = 1} \left[ \z_m^\top \lambdabm_i \left(1 - \log(N M_+^i) \right) 
                                            - \z_m^\top \lambdabm_i \log(-\z_m^\top \lambdabm_i) \right] \\
 s.t. \
 & 0 = \left( \Z \lambdabm_i \right)^\top \one_M = \sum_{m=1}^M \z_m^\top \lambdabm_i = \left( \sum_{m=1}^M \z_m \right)^\top \lambdabm_i, \\

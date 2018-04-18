@@ -13,9 +13,9 @@ The optimisation problem is:
 &\min_{\V, \W, \mubm} \ \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{3em}
-     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( f(u(i), i, m) - \max_{n: y_n^i = 0} f(u(i), i, n) \right).
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} \sum_{m: y_m^i = 1} \ell \left( f(u(i), i, m) - \max_{n: y_n^i = 0} f(u(i), i, n) \right).
 %& \hspace{5em}
-%     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
+%     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} \sum_{m: y_m^i = 1} \ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \x_m 
 %     - \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \x_n \right).
 \end{aligned}
 \end{equation*}
@@ -31,11 +31,11 @@ The optimisation objective in (\ref{eq:primal_nsr}) can be approximated as
 J 
 &\approx \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{1em}
-  + \sum_{i=1}^N \frac{1}{N M_i^+} 
+  + \sum_{i=1}^N \frac{1}{N M_+^i} 
     \left( \sum_{m: y_m^i = 1} e^{-f(u(i), i, m)} \right)
     \left( \sum_{n: y_n^i = 0} e^{p f(u(i), i, n)} \right)^\frac{1}{p}.
 %& \hspace{3em}
-%  + \sum_{i=1}^N \frac{1}{N M_i^+} 
+%  + \sum_{i=1}^N \frac{1}{N M_+^i} 
 %    \left( \sum_{m: y_m^i = 1} e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \x_m} \right)
 %    \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \x_n} \right)^\frac{1}{p}.
 \end{aligned}
@@ -52,7 +52,7 @@ and use the exponential surrogate loss as above, we have a constrained optimisat
 \frac{C}{2} \left( \frac{1}{U} \sum_{u=1}^U \bv_u^\top \bv_u 
      + \frac{1}{N} \sum_{i=1}^N \w_i^\top \w_i + \mubm^\top \mubm \right) \\
 & \hspace{1em}
-     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_i^+} \sum_{m: y_m^i = 1} e^{-f(u(i), i, m) + \xi_i} \\
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-f(u(i), i, m) + \xi_i} \\
 s.t. \quad & 
 f(u(i), i, n) - \xi_i \le 0, \\
 & i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_n^i = 0.
@@ -71,7 +71,7 @@ The Lagrangian dual problem of (\ref{eq:primal_nsr}) when using the exponential 
 & \hspace{1em} \left.
    + \left( \sum_{i=1}^N \thetabm_i \right)^\top \X \X^\top \left( \sum_{i=1}^N \thetabm_i \right) \right] \\
 & \hspace{1em}
-   + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top \left( (1 - \log(N M_i^+)) \y_i - \y_i \circ \log(-\thetabm_i) \right), \\
+   + \sum_{i=1}^N \left( \y_i \circ \thetabm_i \right)^\top \left( (1 - \log(N M_+^i)) \y_i - \y_i \circ \log(-\thetabm_i) \right), \\
 s.t. \ 
 & \Thetabm \one_M = \zero_N, \\
 & \theta_i^m < 0, \ \mathrm{if} \ y_m^i = 1, \\
