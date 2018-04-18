@@ -21,7 +21,8 @@ class MTR(object):
         self.U = len(self.cliques)
         self.trained = False
 
-    def fit(self, w0=None, fnpy=None):
+    def fit(self, w0=None, fnpy=None, loss='exponential'):
+        assert loss in ['exponential', 'squared_hinge']
         M, N, U, D = self.M, self.N, self.U, self.D
         verbose = self.verbose
         if verbose > 0:
@@ -159,15 +160,17 @@ class DataHelper:
 class RankPrimal(object):
     """Primal Problem of Multitask Ranking"""
 
-    def __init__(self, X, Y, C, cliques, verbose=0):
+    def __init__(self, X, Y, C, cliques, loss, verbose=0):
         assert isspmatrix_csc(Y)
         assert C > 0
         assert X.shape[0] == Y.shape[0]
+        assert loss in ['exponential', 'squared_hinge'], "'loss' should be either 'exponential' or 'squared_hinge'"
         self.X = X
         self.Y = Y
         self.M, self.D = self.X.shape
         self.N = self.Y.shape[1]
         self.C = C
+        self.loss = loss
 
         self.cliques = cliques
         self.U = len(self.cliques)
@@ -234,7 +237,8 @@ class RankPrimal(object):
         J += np.sum([np.dot(V[u, :], V[u, :]) for u in range(U)]) / U
         J += np.sum([np.dot(W[k, :], W[k, :]) for k in range(N)]) / N
         J *= C / 2
-        for u in range(U):
+
+        def risk_exponential(u):
             clq = self.cliques[u]
             Nu = len(clq)
             Yu = Ys[u]
@@ -248,8 +252,44 @@ class RankPrimal(object):
             T2 = np.zeros(T1.shape)
             T2[Yu.row, Yu.col] = T2p[Yu.row, Yu.col]
             T2 *= Ps[u]
+            return T2.sum()
 
-            J += T2.sum()
+        def risk_squared_hinge(u):
+            clq = self.cliques[u]
+            Nu = len(clq)
+            Yu = Ys[u]
+
+            Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
+            T1 = (1 + xi[clq]).reshape(1, Nu) - np.dot(self.X, Wt.T)
+            v1p = T1[Yu.row, Yu.col]
+            v1p[v1p < 0] = 0
+
+            T2 = np.zeros(T1.shape)
+            T2[Yu.row, Yu.col] = v1p * v1p  # square it
+            T2 *= Ps[u]
+            return T2.sum()
+
+        for u in range(U):
+            if self.loss == 'exponential':
+                J += risk_exponential(u)
+            else:
+                J += risk_squared_hinge(u)
+
+            # clq = self.cliques[u]
+            # Nu = len(clq)
+            # Yu = Ys[u]
+            #
+            # Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
+            # T1 = xi[clq].reshape(1, Nu) - np.dot(self.X, Wt.T)
+            # T1p = np.zeros(T1.shape)
+            # T1p[Yu.row, Yu.col] = T1[Yu.row, Yu.col]
+            #
+            # T2p = np.exp(T1p)
+            # T2 = np.zeros(T1.shape)
+            # T2[Yu.row, Yu.col] = T2p[Yu.row, Yu.col]
+            # T2 *= Ps[u]
+            #
+            # J += T2.sum()
 
         if np.isnan(J) or np.isinf(J):
             sys.stderr.write('objective(): objective is NaN or inf!\n')
@@ -276,11 +316,7 @@ class RankPrimal(object):
         Ys, Ps = self.data_helper.get_data()
         assert U == len(Ys) == len(Ps)
 
-        dmu = C * mu
-        dV = V * C / U
-        dW = W * C / N
-        dxi = np.zeros_like(xi)
-        for u in range(U):
+        def grad_exponential(u):
             clq = self.cliques[u]
             Nu = len(clq)
             Yu = Ys[u]
@@ -296,12 +332,73 @@ class RankPrimal(object):
             T2 *= Ps[u]
 
             T3 = np.dot(T2.T, self.X)
-
             dv = T3.sum(axis=0)
-            dmu -= dv
-            dV[u, :] -= dv
-            dW[clq, :] -= T3
-            dxi[clq] = T2.sum(axis=0)
+
+            dmuu = dv
+            dVu = dv
+            dWu = T3
+            dxiu = T2.sum(axis=0)
+            return dmuu, dVu, dWu, dxiu
+
+        def grad_squred_hinge(u):
+            clq = self.cliques[u]
+            Nu = len(clq)
+            Yu = Ys[u]
+
+            Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
+            T1 = (1 + xi[clq]).reshape(1, Nu) - np.dot(self.X, Wt.T)
+            v1p = T1[Yu.row, Yu.col]
+            v1p[v1p < 0] = 0
+
+            T2 = np.zeros(T1.shape)
+            T2[Yu.row, Yu.col] = v1p
+            T2 *= Ps[u]
+
+            T3 = 2 * np.dot(T2.T, self.X)
+            dv = T3.sum(axis=0)
+
+            dmuu = dv
+            dVu = dv
+            dWu = T3
+            dxiu = 2 * T2.sum(axis=0)
+            return dmuu, dVu, dWu, dxiu
+
+        dmu = C * mu
+        dV = V * C / U
+        dW = W * C / N
+        dxi = np.zeros_like(xi)
+        for u in range(U):
+            clq = self.cliques[u]
+            if self.loss == 'exponential':
+                dmuu, dVu, dWu, dxiu = grad_exponential(u)
+            else:
+                dmuu, dVu, dWu, dxiu = grad_squred_hinge(u)
+            dmu -= dmuu
+            dV[u, :] -= dVu
+            dW[clq, :] -= dWu
+            dxi[clq] = dxiu
+
+            # clq = self.cliques[u]
+            # Nu = len(clq)
+            # Yu = Ys[u]
+            #
+            # Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
+            # T1 = xi[clq].reshape(1, Nu) - np.dot(self.X, Wt.T)
+            # T1p = np.zeros(T1.shape)
+            # T1p[Yu.row, Yu.col] = T1[Yu.row, Yu.col]
+            #
+            # T2p = np.exp(T1p)
+            # T2 = np.zeros(T1.shape)
+            # T2[Yu.row, Yu.col] = T2p[Yu.row, Yu.col]
+            # T2 *= Ps[u]
+            #
+            # T3 = np.dot(T2.T, self.X)
+            #
+            # dv = T3.sum(axis=0)
+            # dmu -= dv
+            # dV[u, :] -= dv
+            # dW[clq, :] -= T3
+            # dxi[clq] = T2.sum(axis=0)
 
         if self.verbose > 0:
             print('Eval g: %.1f seconds used.' % (time.time() - t0))
