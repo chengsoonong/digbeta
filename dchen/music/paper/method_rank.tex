@@ -1,0 +1,63 @@
+\subsection{Music recommendation as bipartite ranking}
+
+We can formulate the playlist augmentation problem as bipartite ranking problems, 
+and we want to learn a scorer $f$ such that, for a given playlist, 
+songs in this playlist will be scored higher than those not in the given playlist,
+which is known as the Top-Push loss~\cite{li2014top}
+\begin{equation*}
+\LCal_\textsc{tp} = \llb f_(u(i), i, m) \ge \max_{n: y_n^i=0} f(u(i), i, n), \ \forall m, y_m^i = 1.
+\end{equation*}
+
+Similar to the classification approach, we encourage sparse parameters for playlist specific weights using $\ell_1$ regularisation,
+and $\ell_2$ regularisation for other parameters. 
+The optimisation problem is:
+\begin{equation*}
+%\label{eq:primal_pla}
+\begin{aligned}
+&\min_{\V, \W, \mubm} \ C \left( \frac{1}{2U} \sum_{u=1}^U \| \bv_u \|_2^2 
+     + \frac{1}{N} \sum_{i=1}^N \| \w_i \|_1 + \frac{1}{2} \| \mubm \|_2^2 \right) \\
+& \hspace{3em}
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} \sum_{m: y_m^i = 1} \ell \left( f(u(i), i, m) - \max_{n: y_n^i = 0} f(u(i), i, n) \right).
+\end{aligned}
+\end{equation*}
+
+Directly optimise the above problem is challenging due to the \emph{max} operator,
+we could transform it into a constraint optimisation problem, as described in the next section.
+
+
+\subsection{Formulate a constrained optimisation problem}
+If we introduce a slack variable $\xi_i \ge f(u(i), i, n), \, \forall n \in \{1,\dots,M\}$ where $y_i^n = 0$,
+and use the exponential surrogate loss as above, we have a constrained optimisation problem:
+\begin{equation*}
+\label{eq:primal_pla}
+\begin{aligned}
+\min_{\V, \W, \mubm} \ &
+C \left( \frac{1}{2U} \sum_{u=1}^U \| \bv_u \|_2^2  
+     + \frac{1}{N} \sum_{i=1}^N \| \w_i \|_1 + \frac{1}{2} \| \mubm \|_2^2 \right) \\
+& \hspace{1em}
+     + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-f(u(i), i, m) + \xi_i} \\
+s.t. \quad & 
+f(u(i), i, n) - \xi_i + \epsilon \le 0, \\
+& i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_n^i = 0.
+\end{aligned}
+\end{equation*}
+where $\epsilon > 0$ is a small number used to avoid trivial solutions (\ie all parameters are zero).
+
+This is a convex optimisation problem with inequality constraints, 
+further, the number of constraints is $\sum_{i=1}^N \sum_{n=1}^M \llb y_n^i = 0 \rrb = M * N - \sum_{i=1}^N \sum_{m=1}^M \llb y_m^i = 1 \rrb$,
+note that the number of songs in each playlist is very small compared with the total number of songs $M$ in music collection,
+it means the number of constraints is of order $O(MN)$ which can be very big for a system with a large number of both songs and playlists,
+this is generally true for production systems deployed by music streaming service providers.
+
+To address this issue, we propose to use a cutting plane method which starts by using a small number of constraints,
+optimise the above objective using an off-the-shelf convex optimiser\footnote{We use IPOPT solver in this work.},
+then search new constraints by 
+\begin{equation*}
+\widetilde n_i = \argmax_{n: y_i^n=0} f(u(i), i, n),
+\end{equation*}
+if example $x_n$ violated constraint
+\begin{equation*}
+f(u(i), i, \widetilde n_i) - \xi_i + \epsilon \le 0,
+\end{equation*}
+we add this constraint to the previous set of constraints to form a new convex optimisation problem with the same objective,
+then solve this new problem, we keep doing this procedure until a solution that does not violate any constraints has been found.

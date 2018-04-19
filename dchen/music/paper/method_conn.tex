@@ -1,0 +1,42 @@
+\subsection{Relationship between the classification method and bipartite ranking method}
+The two methods proposed in this section is ostensibly different, 
+however, they are in fact closely related, we detail this relationship in this section.
+
+Suppose we approximate the \emph{max} operator
+\begin{equation*}
+\max_i z_i \approx \frac{1}{p} \log \sum_i e^{p z_i},
+\end{equation*}
+and use the exponential surrogate $\ell(f, y) = e^{-fy}$, we have
+\begin{equation*}
+\begin{aligned}
+&\ell \left( (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m} - \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n} \right) \\
+&\approx e^{-(\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),m}}
+   \left( \sum_{n: y_n^i = 0} e^{p (\bv_{u(i)} + \w_i + \mubm)^\top \phibm_{u(i),n}} \right)^\frac{1}{p}.
+\end{aligned}
+\end{equation*}
+
+Recall the empirical risk of the classification problem is
+\begin{equation*}
+\RCal_\textsc{clf} 
+= \frac{1}{N} \sum_{i=1}^N \left( 
+  \frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-f(u(i), i,m)} 
+  + \frac{1}{M_-^i p} \sum_{n: y_n^i = 0} e^{p f(u(i), i,n)} \right),
+\end{equation*}
+and the empirical risk of the bipartite ranking problem is
+\begin{equation*}
+\RCal_\textsc{rank} 
+= \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} 
+  \left( \sum_{m: y_m^i = 1} e^{-f(u(i), i, m)} \right)
+  \left( \sum_{n: y_n^i = 0} e^{p f(u(i), i, n)} \right)^\frac{1}{p}.
+\end{equation*}
+
+Let $\thetabm$ denote all parameters $\V, \W, \mubm$, we have the following theorem:
+\begin{theorem}
+Problem $\min_{\thetabm} \RCal_\textsc{clf}$ and $\min_{\thetabm} \RCal_\textsc{rank}$ share the same minimisers
+(assuming minimisers exist).
+\end{theorem}
+
+\begin{proof}
+We start by introducing a constant bias feature $x_m^0 = 1$ for all examples $m \in \{1,\dots,M\}$.
+then we show the minimisers of one problem also minimise the other, and vice versa.
+\end{proof}

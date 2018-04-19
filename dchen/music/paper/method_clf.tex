@@ -1,0 +1,36 @@
+\section{Methods}
+
+\subsection{Music recommendation via multitask classification}
+
+We can formulate the music recommendation task as a multi-label classification problem,
+where we learn a classifier which hopefully assign positive labels to songs in playlist and negative labels to those not.
+
+To focus on the most plausible songs for playlist $i$ from user $u$,
+we use the P-Classification loss, with the exponential surrogate:
+\begin{equation*}
+\begin{aligned}
+\LCal_\textsc{pc}(f, \DCal) 
+&= \frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-f(u, i, m)} + \frac{1}{M_-^i} \sum_{n: y_n^i = 0} \frac{1}{p} e^{p f(u, i, n)}, \\
+\end{aligned}
+\end{equation*}
+where $M_+^i$ is the number songs in playlist $i$,
+$M_-^i = M - M_+^i$,
+$p > 0$ is a trade-off parameter,
+and $\phibm_{u,m}$ is a feature vector,
+which includes audio features, genre, popularity of song $m$,
+and the number of listening events from users except $u$.
+
+To encourage sparsity, we use $\ell_1$ regularisation for playlist specific parameters $\w_i$, 
+and use $\ell_2$ regularisation for user and bias/default parameters (\ie $\bv_u$ and $\mubm$)
+
+The optimisation objective is:
+\begin{equation*}
+\begin{aligned}
+J &= C \left( \frac{1}{2U} \sum_{u=1}^U \| \bv_u \|_2^2
+     + \frac{1}{N} \sum_{i=1}^N \| \w_i \|_1 + \frac{1}{2} \| \mubm \|_2^2 \right) \\
+& \hspace{1em}
+     + \frac{1}{N} \sum_{i=1}^N \left( \frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-f(u(i), i,m)} 
+     + \frac{1}{M_-^i p} \sum_{n: y_n^i = 0} e^{p f(u(i), i,n)} \right),
+\end{aligned}
+\end{equation*}
+where $C > 0$ is a regularisation constant.
