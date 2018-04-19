@@ -32,7 +32,7 @@ Table~\ref{tab:stats_pldata} summarises the two playlist dataset used in this wo
 \label{tab:stats_pldata}
 %\resizebox{\linewidth}{!}{
 \small
-\begin{tabular}{l|rcrc}
+\begin{tabular}{lrcrc}
 \toprule
 Dataset   & \#Songs & \#Playlists & \#Users & \#Songs / Playlist \\
 \midrule
@@ -53,21 +53,19 @@ tasks~\cite{hariri2012context,bonnin2013evaluating,jannach2015beyond,ben2017groo
 \item Hit-Rate@K~\cite{hariri2012context}, which computes the ratio of correctly recommended songs among top-$K$ recommendation, 
       where $K$ is a given number, \eg $10$, $100$. 
       This metric is also known as Precision@K in information retrieval literature~\cite{manning2008introIR}.
-\item Area under the ROC curve (AUC) and the normalised discounted cumulative gain (NDCG) as described in~\cite{agarwal2011infinite}.
+\item Area under the ROC curve (AUC).
 \end{itemize}
-We break down the results according to either user or the playlist length (\ie the number of songs in playlist).
 
 
-\subsection{Playlist augmentation}
+\subsection{Playlist generation}
 \label{ssec:pla}
 
 We use the 30Music~\cite{30music2015} and AotM-2011~\cite{mcfee2012hypergraph} playlist dataset,
-In each dataset, we create a test set by holding 20\% playlists.
+In each dataset, we create a test set by holding 20\% of user's playlists for those who has more than $5$ playlists.
 To make sure that every song in test set is also in training set, 
 playlists in test set are chosen uniformly at random from a subset of all playlists 
 $\{\text{playlist}_i: \forall \text{song}_j \in \text{playlist} \text{song$_j$ is in at least $5$ playlists}\}$,
 \ie each song in the playlist should be in at least 4 playlists among all playlists.
-We then hold all songs except the first $K, \, K \in \{1,2,3,4\}$ ones for every playlist in test set.
 As a remark, we observed the entire collection of songs during training.
 %and all users in test set have playlists in training set.
 Table~\ref{tab:stats_pla} summarises the statistics of the two dataset used for this task.
@@ -75,48 +73,50 @@ Table~\ref{tab:stats_pla} summarises the statistics of the two dataset used for 
 To tune hyper-parameters, we hold a subset of playlists in training set as the validation set, 
 which is constructed using the same approach as the test set.
 
+To test the ability to recommend songs for new users, we hold 20\% of users and their playlists uniformly at random.
+
 We compare the following baselines for playlist augmentation:
 \begin{itemize}
 \item Logistic Regression: learning a logistic regression classifier independently for each playlist,
       seed songs are positive examples, while others are negative examples.
 %\item Matrix Factorisation: learning hidden representations of songs and playlists by factorising the indicator matrix.
-\item Popularity based ranking: recommending the most popular songs (without repeat).
-\item Same Artists - Greatest Hits (SAGH)~\cite{mcfee2012million}: 
-      recommending the most popular songs from artists of seed songs.
-\item Collocated Artists - Greatest Hits (CAGH)~\cite{bonnin2013evaluating}: 
-      recommending songs based on the frequency of the collocation of artists of seed songs.
+%\item Popularity based ranking: recommending the most popular songs (without repeat).
+%\item Same Artists - Greatest Hits (SAGH)~\cite{mcfee2012million}: 
+%      recommending the most popular songs from artists of seed songs.
+%\item Collocated Artists - Greatest Hits (CAGH)~\cite{bonnin2013evaluating}: 
+%      recommending songs based on the frequency of the collocation of artists of seed songs.
 \end{itemize}
 
-\begin{table}[!h]
-\centering
-\caption{Statistics of dataset for playlist augmentation}
-\label{tab:stats_pla}
+%\begin{table}[!h]
+%\centering
+%\caption{Statistics of dataset for playlist augmentation}
+%\label{tab:stats_pla}
 %\resizebox{\linewidth}{!}{
-\small
-\begin{tabular}{l|cr}
-\toprule
-Dataset   & \#Playlists (train) & \#Playlists (test) \\
-\midrule
-30Music   & 13,966              & 3,491 \\
-AotM-2011 & 67,768              & 16,942 \\       
-\bottomrule
-\end{tabular}
+%\small
+%\begin{tabular}{l|cr}
+%\toprule
+%Dataset   & \#Playlists (train) & \#Playlists (test) \\
+%\midrule
+%30Music   & 13,966              & 3,491 \\
+%AotM-2011 & 67,768              & 16,942 \\       
+%\bottomrule
+%\end{tabular}
 %}
-\end{table}
+%\end{table}
 
-\input{tab_pla}
+%\input{tab_pla}
 
-\begin{figure*}[!h]
-\centering
-\includegraphics[width=\linewidth]{fig/30music-2.pdf}
-\caption{Hit rates given $K$ seed songs on 30Music dataset.}
-\end{figure*}
+%\begin{figure*}[!h]
+%\centering
+%\includegraphics[width=\linewidth]{fig/30music-2.pdf}
+%\caption{Hit rates given $K$ seed songs on 30Music dataset.}
+%\end{figure*}
 
-\begin{figure*}[!h]
-\centering
-\includegraphics[width=\linewidth]{fig/aotm2011-2.pdf}
-\caption{Hit rates given $K$ seed songs on AotM-2011 dataset.}
-\end{figure*}
+%\begin{figure*}[!h]
+%\centering
+%\includegraphics[width=\linewidth]{fig/aotm2011-2.pdf}
+%\caption{Hit rates given $K$ seed songs on AotM-2011 dataset.}
+%\end{figure*}
 
 
 
@@ -139,7 +139,7 @@ which is constructed using the same approach as the test test.
 \label{tab:stats_newsongrec}
 %\resizebox{\linewidth}{!}{
 \small
-\begin{tabular}{l|rrr}
+\begin{tabular}{lrrr}
 \toprule
 Dataset   & \#Playlists & \#Songs (train) & \#Songs (test) \\
 \midrule
@@ -150,5 +150,15 @@ AotM-2011 & 19,504      & 104,428         & 10,000 \\
 %}
 \end{table}
 
-%\input{tab_nsr}
+\paragraph{Baselines}
+\begin{itemize}
+\item Logistic Regression: independently learn a logistic regression classifier for each playlist.
+\item Shortest First: for each new song, recommend it to the shortest playlists in consideration.
+\item Longest First: for each new song, recommend it to the longest playlists in consideration.
+\item Ranking songs by the popularity of its artist and recommend the top-k, considering all songs in music collection.
+\item Similar to the above method, but only considering songs of artists that the given user used to listen. 
+(Note this baseline require the user is given).
+\end{itemize}
+
+\input{tab_nsr}
 
