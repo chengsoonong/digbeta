@@ -199,8 +199,8 @@ class MTC_L1():
             optim = LBFGS()
             optim.linesearch = 'wolfe'
             optim.orthantwise_c = self.C
-            optim.orthanwise_start = (U + 1) * D  # start index to compute L1 regularisation (included)
-            optim.ortanwise_end = w0.shape[0]     # end   index to compute L1 regularisation (not included)
+            optim.orthantwise_start = (U + 1) * D  # start index to compute L1 regularisation (included)
+            optim.orthantwise_end = w0.shape[0]     # end   index to compute L1 regularisation (not included)
             res = optim.minimize(objective_L1, w0, progress,
                                  args=(self.X, self.Y, self.C, self.p, self.cliques, self.data_helper, verbose, fnpy))
             self.mu = res[:D]
