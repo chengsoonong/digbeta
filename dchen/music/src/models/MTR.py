@@ -24,11 +24,13 @@ class MTR(object):
     def _init_vars(self):
         N, U, D = self.N, self.U, self.D
         # w0 = np.zeros((U + N + 1) * D + N)
+        # w0 = 1e-5 * np.random.rand((U + N + 1) * D + N)
         # w0 = np.r_[1e-3 * np.random.randn((U + N + 1) * D), np.random.rand(N)]
-        w0 = np.r_[1e-3 * np.random.randn((U + N + 1) * D), np.zeros(N)]
+        # w0 = np.r_[1e-3 * np.random.randn((U + N + 1) * D), np.zeros(N)]
+        w0 = np.r_[1e-3 * np.random.rand((U + 1) * D), np.zeros(N * (D + 1))]
         return w0
 
-    def fit(self, loss='exponential', regu='l2', max_iter=1e3, w0=None, fnpy=None):
+    def fit(self, loss='exponential', regu='l2', max_iter=1e3, use_all_constraints=False, w0=None, fnpy=None):
         assert loss in ['exponential', 'squared_hinge']
         assert regu in ['l1', 'l2']
         M, N, U, D = self.M, self.N, self.U, self.D
@@ -66,28 +68,26 @@ class MTR(object):
             cp_iter += 1
             problem = RankPrimal(X=self.X, Y=self.Y, C=self.C, cliques=self.cliques,
                                  loss=loss, regu=regu, verbose=verbose)
-            problem.add_constraints(prev_constraints)  # first restore previous constraints
-            problem.update_constraints(w)              # then add constraints violated by current model parameters
-            # problem.generate_all_constraints()
+
+            if use_all_constraints is True:
+                problem.generate_all_constraints()
+            else:
+                problem.add_constraints(prev_constraints)  # first restore previous constraints
+                problem.update_constraints(w)              # then add constraints violated by current model parameters
+            num_cons = problem.get_num_constraints()
 
             if problem.all_constraints_satisfied is True:
                 print('[CUTTING-PLANE] All constraints satisfied.')
                 break
-            else:
-                if problem.get_num_constraints() >= max_num_cons:
-                    print('[CUTTING-PLANE] All constraints have been used, problem might be infeasible.')
-                    # break
-
-            num_cons = problem.get_num_constraints()
-            if num_cons == prev_num_cons:
+            elif num_cons == prev_num_cons:
                 print('[CUTTING-PLANE] No more effective constraints, violations are considered acceptable by IPOPT.')
                 break
             else:
                 prev_num_cons = num_cons
+                if num_cons >= max_num_cons:
+                    print('[CUTTING-PLANE] All constraints will be used.')
 
-            print('Number of constraints: %d' % problem.get_num_constraints())
             print('[CUTTING-PLANE] Iter %d: %d constraints.' % (cp_iter, num_cons))
-
             problem.compute_constraint_info()
             nlp = cyipopt.problem(
                 problem_obj=problem,   # problem instance
@@ -106,18 +106,23 @@ class MTR(object):
             # nlp.addOption(b'tol', 1e-7)
             # nlp.addOption(b'acceptable_tol', 1e-5)
             # nlp.addOption(b'acceptable_constr_viol_tol', 1e-6)
+            nlp.addOption(b'print_level', 6)
 
-            # linear solver for the augmented linear system: $ROOT_URL/node51.html
-            nlp.addOption(b'linear_solver', b'ma27')
-            # nlp.addOption(b'linear_solver', b'ma57')
+            # linear solver for the augmented linear system: $ROOT_URL/node51.html, www.hsl.rl.ac.uk/ipopt/
+            # nlp.addOption(b'linear_solver', b'ma27')  # default
+            nlp.addOption(b'linear_solver', b'ma57')  # small/medium problem
+            # nlp.addOption(b'linear_solver', b'ma86')  # large problem
 
             # gradient checking for objective and constraints: $ROOT_URL/node30.html
-            # nlp.addOption(b'derivative_test', b'first-order')
+            nlp.addOption(b'derivative_test', b'first-order')
 
             # w = self._init_vars()  # cold start, comment this line for warm start
             w, info = nlp.solve(w)
             # print(info['status'], info['status_msg'])
             print('\n[IPOPT] %s\n' % info['status_msg'].decode('utf-8'))
+
+            if use_all_constraints is True:
+                break
 
             if fnpy is not None:
                 try:
@@ -218,7 +223,6 @@ class RankPrimal(object):
         self.num_vars = (self.U + self.N + 1) * self.D + self.N
         self.data_helper = DataHelper(self.Y, self.cliques)
         self.verbose = verbose
-        self.eps = 1e-9
 
         self.jac = None
         self.js_rows = None
@@ -419,7 +423,7 @@ class RankPrimal(object):
             wk = W[k, :]
             if len(self.current_constraints[k]) > 0:
                 indices = sorted(self.current_constraints[k])
-                values = self.X[indices, :].dot(v + wk + mu) - xi[k] + self.eps
+                values = self.X[indices, :].dot(v + wk + mu) - xi[k]
                 assert values.shape == (len(indices),)
                 cons_values.append(values)
         return np.concatenate(cons_values, axis=-1)
@@ -512,14 +516,15 @@ class RankPrimal(object):
         """
             generate all possible constraints
         """
-        print('Generate all possible constraints.')
+        sys.stdout.write('Generating all possible constraints ... ')
         M, N = self.M, self.N
         Y = self.Y
         assert Y.dtype == np.bool
         for n in range(M):
             for k in range(N):
                 if Y[n, k] < 1:
-                    self.current_constraints[k].append(n)
+                    self.current_constraints[k].add(n)
+        print("%d constraints in total." % self.get_num_constraints())
 
     def update_constraints(self, w):
         N, D, U = self.N, self.D, self.U
@@ -554,7 +559,7 @@ class RankPrimal(object):
             for j in range(max_ix.shape[0]):
                 k = clq[j]
                 row, col = max_ix[j], j
-                if xi[k] < T1[row, col] + self.eps:
+                if xi[k] < T1[row, col] or (xi[k] == T1[row, col] == 0):
                     all_satisfied = False
                     self.current_constraints[k].add(row)
         self.all_constraints_satisfied = all_satisfied
