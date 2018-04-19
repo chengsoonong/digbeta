@@ -88,31 +88,7 @@ class DataHelper:
         return self.Ys, self.Ps, self.Qs
 
 
-def accumulate_risk(mu, V, W, X, Y, p, cliques, data_helper):
-    M, D = X.shape
-    N = Y.shape[1]
-    U = len(cliques)
-    assert mu.shape == (D,)
-    assert V.shape == (U, D)
-    assert W.shape == (N, D)
-    Ys, Ps, Qs = data_helper.get_data()
-    assert U == len(Ys) == len(Ps) == len(Qs)
-    J = 0.
-    dV_slices = []
-    dW_slices = []
-    dmu = np.zeros_like(mu)
-    for u in range(U):
-        results = risk_pclassification(mu, V[u, :], W[cliques[u], :], X, Ys[u], Ps[u], Qs[u], p, N)
-        J += results[0]
-        dmu += results[1]
-        dV_slices.append(results[2])
-        dW_slices.append(results[3])
-    dV = np.vstack(dV_slices)
-    dW = np.vstack(dW_slices)
-    return J, dmu, dV, dW
-
-
-def objective_L1(w, dw, X, Y, p, cliques, data_helper, verbose=0, fnpy=None):
+def objective_L1(w, dw, X, Y, C, p, cliques, data_helper, verbose=0, fnpy=None):
     t0 = time.time()
     assert p > 0
     M, D = X.shape
@@ -123,7 +99,22 @@ def objective_L1(w, dw, X, Y, p, cliques, data_helper, verbose=0, fnpy=None):
     V = w[D:(U + 1) * D].reshape(U, D)
     W = w[(U + 1) * D:].reshape(N, D)
 
-    J, dmu, dV, dW = accumulate_risk(mu, V, W, X, Y, p, cliques, data_helper)
+    Ys, Ps, Qs = data_helper.get_data()
+    assert U == len(Ys) == len(Ps) == len(Qs)
+
+    J = mu.dot(mu) * 0.5 * C
+    dmu = C * mu
+    dV = V * C / U
+    dW = np.zeros(W.shape)
+    for u in range(U):
+        clq = cliques[u]
+        v = V[u, :]
+        res = risk_pclassification(mu, v, W[clq, :], X, Ys[u], Ps[u], Qs[u], p, N)
+        J += v.dot(v) * 0.5 * C / U + res[0]
+        dmu += res[1]
+        dV[u, :] += res[2]
+        dW[clq, :] = res[3]
+
     dw[:] = np.r_[dmu.ravel(), dV.ravel(), dW.ravel()]  # in-place assignment
 
     if verbose > 0:
@@ -208,8 +199,10 @@ class MTC_L1():
             optim = LBFGS()
             optim.linesearch = 'wolfe'
             optim.orthantwise_c = self.C
+            optim.orthanwise_start = (U + 1) * D  # start index to compute L1 regularisation (included)
+            optim.ortanwise_end = w0.shape[0]     # end   index to compute L1 regularisation (not included)
             res = optim.minimize(objective_L1, w0, progress,
-                                 args=(self.X, self.Y, self.p, self.cliques, self.data_helper, verbose, fnpy))
+                                 args=(self.X, self.Y, self.C, self.p, self.cliques, self.data_helper, verbose, fnpy))
             self.mu = res[:D]
             self.V = res[D:(U + 1) * D].reshape(U, D)
             self.W = res[(U + 1) * D:].reshape(N, D)
