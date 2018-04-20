@@ -74,6 +74,6 @@ if clf.trained is True:
         y_ = y_true[sortix]
         rps.append(np.mean(y_[:npos]))
         aucs.append(roc_auc_score(y_true, y_pred))
-    clf.metric_score = (np.mean(rps), np.mean(aucs), len(rps), Y_dev.shape[1])
+    clf.metric_score = (np.mean(rps), np.mean(aucs), len(rps), Y_test.shape[1])
     pkl.dump(clf, gzip.open(fmodel, 'wb'))
     print('\n%g, %g, %d / %d' % clf.metric_score)
