@@ -72,4 +72,3 @@ for fname in ['cliques_train', 'cliques_all']:
     nclqs = len(clq1)
     for i in range(nclqs):
         assert np.all(clq1[i] == clq2[i])
-

@@ -59,7 +59,7 @@ if clf.trained is True:
     for u in range(U):
         clq = cliques_all[u]
         pl2u[clq] = u
-    assert np.all(clf.pl2u  == pl2u[:Y_train.shape[1]])
+    assert np.all(clf.pl2u == pl2u[:Y_train.shape[1]])
     rps = []
     aucs = []
     offset = Y_train.shape[1]

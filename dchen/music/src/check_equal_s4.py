@@ -72,4 +72,3 @@ assert len(clq1) == len(clq2)
 nclqs = len(clq1)
 for i in range(nclqs):
     assert np.all(clq1[i] == clq2[i])
-
