@@ -5,10 +5,40 @@ from scipy.sparse import isspmatrix_csc, coo_matrix
 import cyipopt
 
 
+class DataHelper:
+    """
+        SciPy sparse matrix slicing is slow, as stated here:
+        https://stackoverflow.com/questions/42127046/fast-slicing-and-multiplication-of-scipy-sparse-csr-matrix
+        Profiling confirms this inefficient slicing.
+        This iterator aims to do slicing only once and cache the results.
+    """
+    def __init__(self, Y, cliques):
+        assert isspmatrix_csc(Y)
+        M, N = Y.shape
+        assert np.all(np.arange(N) == np.asarray(sorted([k for clq in cliques for k in clq])))
+        U = len(cliques)
+        self.init = False
+        self.Ys = []
+        self.Ps = []
+        Mplus = Y.sum(axis=0).A.reshape(-1)
+        P = 1. / (N * Mplus)
+        for u in range(U):
+            clq = cliques[u]
+            Yu = Y[:, clq]
+            self.Ys.append(Yu.tocoo())
+            self.Ps.append(P[clq])
+        self.init = True
+
+    def get_data(self):
+        assert self.init is True
+        return self.Ys, self.Ps
+
+
 class MTR(object):
     def __init__(self, X_train, Y_train, C, cliques, verbose=0):
         assert C > 0
         assert X_train.shape[0] == Y_train.shape[0]
+        assert isspmatrix_csc(Y_train)
 
         self.X = X_train
         self.Y = Y_train
@@ -19,6 +49,7 @@ class MTR(object):
         self.M, self.D = self.X.shape
         self.N = self.Y.shape[1]
         self.U = len(self.cliques)
+        self.data_helper = DataHelper(self.Y, self.cliques)
         self.trained = False
 
     def _init_vars(self):
@@ -27,8 +58,21 @@ class MTR(object):
         # w0 = 1e-5 * np.random.rand((U + N + 1) * D + N)
         # w0 = np.r_[1e-3 * np.random.randn((U + N + 1) * D), np.random.rand(N)]
         # w0 = np.r_[1e-3 * np.random.randn((U + N + 1) * D), np.zeros(N)]
-        w0 = np.r_[1e-3 * np.random.rand((U + 1) * D), np.zeros(N * (D + 1))]
-        return w0
+        # w0 = np.r_[1e-3 * np.random.rand((U + 1) * D), np.zeros(N * (D + 1))]
+        mu = 1e-3 * np.random.randn(D)
+        V = 1e-3 * np.random.randn(U, D)
+        W = 1e-3 * np.random.randn(N, D)
+        xi = np.zeros(N)
+        Ys, _ = self.data_helper.get_data()
+        assert U == len(Ys)
+        for u in range(U):
+            clq = self.cliques[u]
+            Yu = Ys[u]
+            Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
+            T1 = np.dot(self.X, Wt.T)
+            T1[Yu.row, Yu.col] = -np.inf  # mask entry (m,i) if y_m^i = 1
+            xi[clq] = T1.max(axis=0)
+        return np.r_[mu, V.ravel(), W.ravel(), xi]
 
     def fit(self, loss='exponential', regu='l2', max_iter=1e3, use_all_constraints=False, w0=None, fnpy=None):
         assert loss in ['exponential', 'squared_hinge']
@@ -61,34 +105,28 @@ class MTR(object):
         # keep doing this until termination criteria satisfied.
         w = w0
         cp_iter = 0
-        prev_num_cons = 0
-        prev_constraints = None
+        current_constraints = None
         print('[CUTTING-PLANE] %d variables, %d maximum possible constraints.' % (num_vars, max_num_cons))
         while cp_iter < max_iter:
             cp_iter += 1
-            problem = RankPrimal(X=self.X, Y=self.Y, C=self.C, cliques=self.cliques,
+            problem = RankPrimal(X=self.X, Y=self.Y, C=self.C, cliques=self.cliques, data_helper=self.data_helper,
                                  loss=loss, regu=regu, verbose=verbose)
 
             if use_all_constraints is True:
                 problem.generate_all_constraints()
-            else:
-                problem.add_constraints(prev_constraints)  # first restore previous constraints
-                problem.update_constraints(w)              # then add constraints violated by current model parameters
-            num_cons = problem.get_num_constraints()
+                print('[CUTTING-PLANE] All constraints will be used.')
 
-            if problem.all_constraints_satisfied is True:
-                print('[CUTTING-PLANE] All constraints satisfied.')
-                break
-            elif num_cons == prev_num_cons:
-                print('[CUTTING-PLANE] No more effective constraints, violations are considered acceptable by IPOPT.')
-                break
+            if current_constraints is not None:
+                problem.add_constraints(current_constraints)  # restore constraints
+
+            num_cons = problem.get_num_constraints()
+            if num_cons > 0:
+                problem.compute_constraint_info()
             else:
-                prev_num_cons = num_cons
-                if num_cons >= max_num_cons:
-                    print('[CUTTING-PLANE] All constraints will be used.')
+                problem.jacobian = None
+                problem.jacobianstructure = None
 
             print('[CUTTING-PLANE] Iter %d: %d constraints.' % (cp_iter, num_cons))
-            problem.compute_constraint_info()
             nlp = cyipopt.problem(
                 problem_obj=problem,   # problem instance
                 n=num_vars,            # number of variables
@@ -106,7 +144,6 @@ class MTR(object):
             # nlp.addOption(b'tol', 1e-7)
             # nlp.addOption(b'acceptable_tol', 1e-5)
             # nlp.addOption(b'acceptable_constr_viol_tol', 1e-6)
-            nlp.addOption(b'print_level', 6)
 
             # linear solver for the augmented linear system: $ROOT_URL/node51.html, www.hsl.rl.ac.uk/ipopt/
             # nlp.addOption(b'linear_solver', b'ma27')  # default
@@ -114,7 +151,8 @@ class MTR(object):
             # nlp.addOption(b'linear_solver', b'ma86')  # large problem
 
             # gradient checking for objective and constraints: $ROOT_URL/node30.html
-            nlp.addOption(b'derivative_test', b'first-order')
+            # nlp.addOption(b'derivative_test', b'first-order')
+            # nlp.addOption(b'print_level', 6)
 
             # w = self._init_vars()  # cold start, comment this line for warm start
             w, info = nlp.solve(w)
@@ -124,6 +162,16 @@ class MTR(object):
             if use_all_constraints is True:
                 break
 
+            problem.update_constraints(w)
+            if problem.all_constraints_satisfied is True:
+                print('[CUTTING-PLANE] All constraints satisfied.')
+                break
+            elif num_cons == problem.get_num_constraints():
+                print('[CUTTING-PLANE] No more effective constraints, violations are considered acceptable by IPOPT.')
+                break
+            else:
+                current_constraints = problem.get_current_constraints()
+
             if fnpy is not None:
                 try:
                     np.save(fnpy, w, allow_pickle=False)
@@ -131,8 +179,6 @@ class MTR(object):
                         print('Save to %s' % fnpy)
                 except (OSError, IOError, ValueError) as err:
                     sys.stderr.write('Save intermediate weights failed: {0}\n'.format(err))
-
-            prev_constraints = problem.get_current_constraints()
 
         if cp_iter >= max_iter:
             print('[CUTTING-PLANE] Reaching max number of iterations.')
@@ -159,39 +205,10 @@ class MTR(object):
         return np.hstack(preds)
 
 
-class DataHelper:
-    """
-        SciPy sparse matrix slicing is slow, as stated here:
-        https://stackoverflow.com/questions/42127046/fast-slicing-and-multiplication-of-scipy-sparse-csr-matrix
-        Profiling confirms this inefficient slicing.
-        This iterator aims to do slicing only once and cache the results.
-    """
-    def __init__(self, Y, cliques):
-        assert isspmatrix_csc(Y)
-        M, N = Y.shape
-        assert np.all(np.arange(N) == np.asarray(sorted([k for clq in cliques for k in clq])))
-        U = len(cliques)
-        self.init = False
-        self.Ys = []
-        self.Ps = []
-        Mplus = Y.sum(axis=0).A.reshape(-1)
-        P = 1. / (N * Mplus)
-        for u in range(U):
-            clq = cliques[u]
-            Yu = Y[:, clq]
-            self.Ys.append(Yu.tocoo())
-            self.Ps.append(P[clq])
-        self.init = True
-
-    def get_data(self):
-        assert self.init is True
-        return self.Ys, self.Ps
-
-
 class RankPrimal(object):
     """Primal Problem of Multitask Ranking"""
 
-    def __init__(self, X, Y, C, cliques, loss, regu, verbose=0):
+    def __init__(self, X, Y, C, cliques, data_helper, loss, regu, verbose=0):
         assert isspmatrix_csc(Y)
         assert C > 0
         assert X.shape[0] == Y.shape[0]
@@ -221,8 +238,9 @@ class RankPrimal(object):
         self.all_constraints_satisfied = False
 
         self.num_vars = (self.U + self.N + 1) * self.D + self.N
-        self.data_helper = DataHelper(self.Y, self.cliques)
+        self.data_helper = data_helper
         self.verbose = verbose
+        # self.tol = 1e-8
 
         self.jac = None
         self.js_rows = None
@@ -559,6 +577,7 @@ class RankPrimal(object):
             for j in range(max_ix.shape[0]):
                 k = clq[j]
                 row, col = max_ix[j], j
+                # if xi[k] + self.tol < T1[row, col]:
                 if xi[k] < T1[row, col] or (xi[k] == T1[row, col] == 0):
                     all_satisfied = False
                     self.current_constraints[k].add(row)
