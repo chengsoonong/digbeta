@@ -1,12 +1,11 @@
 import sys
 import time
 import numpy as np
-from scipy.sparse import issparse, isspmatrix_coo, isspmatrix_csc
+from scipy.sparse import isspmatrix_coo, isspmatrix_csc
 from lbfgs import LBFGS, LBFGSError  # pip install pylbfgs
-# from joblib import Parallel, delayed
 
 
-def risk_pclassification(mu, v, Wu, X, Yu, Pu, Qu, param_dict, u, UF=None):
+def risk_per_user(mu, v, Wu, X, Yu, Pu, Qu, p, N):
     """
         Empirical risk of p-classification loss for multilabel classification
 
@@ -20,27 +19,17 @@ def risk_pclassification(mu, v, Wu, X, Yu, Pu, Qu, param_dict, u, UF=None):
             - risk: empirical risk
             - dW  : gradients of weights
     """
-    C, p, N, U = param_dict['C'], param_dict['p'], param_dict['N'], param_dict['U']
-    assert C > 0
     assert p > 0
     assert Yu.dtype == np.bool
     assert isspmatrix_coo(Yu)  # scipy.sparse.coo_matrix type
     M, D = X.shape
     Nu = Yu.shape[1]
-    if UF is not None:
-        assert UF.shape == (M, U)
-        assert 0 <= u < U
-        assert UF.shape == (M, U)
-        Xu = np.concatenate([X, np.delete(UF, u, axis=1)], axis=1)
-        D += U - 1
-    else:
-        Xu = X
 
     assert v.shape == mu.shape == (D,)
     assert Wu.shape == (Nu, D)
     assert Pu.shape == Qu.shape == (Nu,)
     Wt = Wu + (v + mu).reshape(1, D)
-    T1 = np.dot(Xu, Wt.T)
+    T1 = np.dot(X, Wt.T)
     T1p = np.zeros(T1.shape)
     T1p[Yu.row, Yu.col] = T1[Yu.row, Yu.col]
     T1n = T1 - T1p
@@ -54,10 +43,9 @@ def risk_pclassification(mu, v, Wu, X, Yu, Pu, Qu, param_dict, u, UF=None):
     T3[Yu.row, Yu.col] = 0
     T3 *= Qu
 
-    risk = np.dot(v, v) / U + np.sum([np.dot(Wu[k, :], Wu[k, :]) for k in range(Nu)]) / N
-    risk = risk * C / 2 + np.sum(T2 + T3 / p) / N
+    risk = np.sum(T2 + T3 / p) / N
     T4 = T3 - T2
-    T5 = np.dot(T4.T, Xu) / N
+    T5 = np.dot(T4.T, X) / N
     dW = T5
     dv = np.sum(T5, axis=0)
     dmu = dv
@@ -100,55 +88,38 @@ class DataHelper:
         return self.Ys, self.Ps, self.Qs
 
 
-def accumulate_risk(mu, V, W, X, Y, C, p, cliques, data_helper, UF=None, njobs=1):
-    M, D = X.shape
-    N = Y.shape[1]
-    U = len(cliques)
-    if UF is not None:
-        assert UF.shape == (M, U)
-        D += U - 1
-    assert mu.shape == (D,)
-    assert V.shape == (U, D)
-    assert W.shape == (N, D)
-    Ys, Ps, Qs = data_helper.get_data()
-    assert U == len(Ys) == len(Ps) == len(Qs)
-    param_dict = {'C': C, 'p': p, 'N': N, 'U': U}
-    # if U == 1:
-    #    njobs = 1
-
-    # results = Parallel(n_jobs=njobs)(delayed(risk_pclassification)(mu, V[u, :], W[cliques[u], :], X, Ys[u], Ps[u],
-    #                                                               Qs[u], param_dict, u, UF) for u in range(U))
-    J = np.dot(mu, mu) * C / 2
-    dV_slices = []
-    dW_slices = []
-    dmu = C * mu
-    for u in range(U):
-        results = risk_pclassification(mu, V[u, :], W[cliques[u], :], X, Ys[u], Ps[u], Qs[u], param_dict, u, UF)
-        J += results[0]
-        dmu += results[1]
-        dV_slices.append(results[2])
-        dW_slices.append(results[3])
-    dV = V * C / U + np.vstack(dV_slices)
-    dW = W * C / N + np.vstack(dW_slices)
-    return J, dmu, dV, dW
-
-
-def objective(w, dw, X, Y, C, p, cliques, data_helper, UF=None, njobs=1, verbose=0, fnpy=None):
+def objective(w, dw, X, Y, C1, C2, C3, p, cliques, data_helper, verbose=0, fnpy=None):
     t0 = time.time()
-    assert C > 0
+    assert C1 > 0
+    assert C2 > 0
+    assert C3 > 0
     assert p > 0
     M, D = X.shape
     N = Y.shape[1]
     U = len(cliques)
-    if UF is not None:
-        assert UF.shape == (M, U)
-        D += U - 1
     assert w.shape == ((U + N + 1) * D,)
     mu = w[:D]
     V = w[D:(U + 1) * D].reshape(U, D)
     W = w[(U + 1) * D:].reshape(N, D)
 
-    J, dmu, dV, dW = accumulate_risk(mu, V, W, X, Y, C, p, cliques, data_helper, UF, njobs)
+    Ys, Ps, Qs = data_helper.get_data()
+    assert U == len(Ys) == len(Ps) == len(Qs)
+
+    dV = V * C1 / U
+    dW = W * C2 / N
+    dmu = C3 * mu
+    J = mu.dot(mu) * 0.5 * C3
+    for u in range(U):
+        clq = cliques[u]
+        v = V[u, :]
+        J += v.dot(v) * 0.5 * C1 / U
+        J += np.sum([np.dot(W[k, :], W[k, :]) for k in clq]) * 0.5 * C2 / N
+        res = risk_per_user(mu, v, W[clq, :], X, Ys[u], Ps[u], Qs[u], p, N)
+        J += res[0]
+        dmu += res[1]
+        dV[u, :] += res[2]
+        dW[clq, :] += res[3]
+
     dw[:] = np.r_[dmu.ravel(), dV.ravel(), dW.ravel()]  # in-place assignment
 
     if verbose > 0:
@@ -185,15 +156,21 @@ def progress(x, g, f_x, xnorm, gnorm, step, k, ls, *args):
 class MTC():
     """Multitask classification"""
 
-    def __init__(self, X_train, Y_train, C, p, user_playlist_indices, label_feature=False):
-        assert issparse(Y_train)
-        assert C > 0
-        assert p > 0
+    def __init__(self, X_train, Y_train, C1, C2, C3, p, user_playlist_indices):
+        if not isspmatrix_csc(Y_train):
+            raise ValueError('ERROR: %s\n' % 'Y_train should be a parse csc_matrix.')
+        if not np.all(np.array([C1, C2, C3]) > 0):
+            raise ValueError('ERROR: %s\n' % 'Regularisation parameters should be positive.')
+        if p <= 0:
+            raise ValueError('ERROR: %s\n' % 'parameter "p" should be positive.')
+
         self.X, self.Y = X_train, Y_train
         self.M, self.D = self.X.shape
         self.N = self.Y.shape[1]
         assert self.M == self.Y.shape[0]
-        self.C = C
+        self.C1 = C1
+        self.C2 = C2
+        self.C3 = C3
         self.p = p
 
         self.cliques = user_playlist_indices
@@ -203,43 +180,26 @@ class MTC():
         for u in range(self.U):
             clq = self.cliques[u]
             self.pl2u[clq] = u
+        self.data_helper = DataHelper(self.Y, self.cliques)
 
-        Ycsc = self.Y.tocsc()
-        self.data_helper = DataHelper(Ycsc, self.cliques)
-        if label_feature is True:
-            self.UF = np.zeros((self.M, self.U), dtype=np.float)
-            for u in range(self.U):
-                clq = self.u2pl[u]
-                self.UF[:, u] = Ycsc[:, clq].sum(axis=1).A.reshape(-1)
-            UF_mean = np.mean(self.UF, axis=0).reshape((1, -1))
-            UF_std = np.std(self.UF, axis=0).reshape((1, -1)) + 10 ** (-6)
-            self.UF -= UF_mean
-            self.UF /= UF_std
-            self.D += self.U - 1
-        else:
-            self.UF = None
-
-    def fit(self, w0=None, njobs=1, verbose=0, fnpy='_'):
+    def fit(self, w0=None, verbose=0, fnpy='_'):
         N, U, D = self.N, self.U, self.D
 
         if verbose > 0:
             t0 = time.time()
 
         if verbose > 0:
-            print('\nC: %g, p: %g' % (self.C, self.p))
+            print('\nC: %g, %g, %g, p: %g' % (self.C1, self.C2, self.C3, self.p))
 
-        if w0 is not None:
-            assert w0.shape[0] == (U + N + 1) * D
-        else:
-            if fnpy is None:
-                w0 = np.zeros((U + N + 1) * D)
-            else:
+        if w0 is None:
+            if fnpy is not None:
                 try:
                     w0 = np.load(fnpy, allow_pickle=False)
-                    assert w0.shape[0] == (U + N + 1) * D
                     print('Restore from %s' % fnpy)
                 except (IOError, ValueError):
                     w0 = np.zeros((U + N + 1) * D)
+        if w0.shape != ((U + N + 1) * D,):
+            raise ValueError('ERROR: incorrect dimention for initial weights.')
 
         try:
             # f: callable(x, g, *args)
@@ -247,8 +207,8 @@ class MTC():
             optim = LBFGS()
             optim.linesearch = 'wolfe'
             res = optim.minimize(objective, w0, progress,
-                                 args=(self.X, self.Y, self.C, self.p, self.cliques, self.data_helper,
-                                       self.UF, njobs, verbose, fnpy))
+                                 args=(self.X, self.Y, self.C1, self.C2, self.C3, self.p, self.cliques,
+                                       self.data_helper, verbose, fnpy))
             self.mu = res[:D]
             self.V = res[D:(U + 1) * D].reshape(U, D)
             self.W = res[(U + 1) * D:].reshape(N, D)
