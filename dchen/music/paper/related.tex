@@ -64,13 +64,6 @@ The AutoDJ system~\cite{platt2002learning}
 \end{itemize}
 
 
-\begin{itemize}
-\item Problem:
-\item Method:
-\item Info:
-\end{itemize}
-
-
 \cite{mcfee2011natural}
 \begin{itemize}
 \item Problem: playlist generation
@@ -105,7 +98,6 @@ a playlist is a path in the latent space (by sampling repeatedly from the transi
 \end{itemize}
 
 
-
 \cite{bonnin2013evaluating}
 \begin{itemize}
 \item Problem: next song recommendation 
@@ -118,8 +110,16 @@ This work also argues about order may or may not be useful.
 \cite{jannach2015beyond} approach that first scoring each song by a number of features
 \begin{itemize}
 \item Problem: Next song recommendation
-\item Method:
-\item Info:
+\item Method: ranking, first score songs by numerous features, then take top-scoring songs and re-ranking to minimise the difference between the next track and listening history in terms of one or more playlist characteristics (\eg distribution of tempo, loudness etc.).
+\item Info: acoustic features, user preference (\eg artists), social tags, song co-occurrence in playlists etc.
+\end{itemize}
+
+
+Groove radio~\cite{ben2017groove} uses a classification approach to sequentially recommend 
+\begin{itemize}
+\item Problem: playlist generation, next song recommendation
+\item Method: classification 
+\item Info: acoustic audio features, latent usage features learned by factorising the user-artist rating matrix, semantic tags, song and artist popularity.
 \end{itemize}
 
 
