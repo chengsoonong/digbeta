@@ -15,6 +15,16 @@ and use the exponential surrogate $\ell(f, y) = e^{-fy}$, we have
 \end{aligned}
 \end{equation*}
 
+The empirical risk of the bipartite ranking formulation with the exponential surrogate 
+can then be approximated as
+\begin{equation*}
+\RCal_\textsc{rank} 
+\approx \widetilde\RCal_\textsc{rank} 
+= \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} 
+  \left( \sum_{m: y_m^i = 1} e^{-f(u(i), i, m)} \right)
+  \left( \sum_{n: y_n^i = 0} e^{p f(u(i), i, n)} \right)^\frac{1}{p}.
+\end{equation*}
+
 Recall the empirical risk of the classification problem is
 \begin{equation*}
 \RCal_\textsc{clf} 
@@ -22,17 +32,10 @@ Recall the empirical risk of the classification problem is
   \frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-f(u(i), i,m)} 
   + \frac{1}{M_-^i p} \sum_{n: y_n^i = 0} e^{p f(u(i), i,n)} \right),
 \end{equation*}
-and the empirical risk of the bipartite ranking problem is
-\begin{equation*}
-\RCal_\textsc{rank} 
-= \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} 
-  \left( \sum_{m: y_m^i = 1} e^{-f(u(i), i, m)} \right)
-  \left( \sum_{n: y_n^i = 0} e^{p f(u(i), i, n)} \right)^\frac{1}{p}.
-\end{equation*}
 
 Let $\thetabm$ denote all parameters $\V, \W, \mubm$, we have the following theorem:
 \begin{theorem}
-Problem $\min_{\thetabm} \RCal_\textsc{clf}$ and $\min_{\thetabm} \RCal_\textsc{rank}$ share the same minimisers
+Problem $\min_{\thetabm} \RCal_\textsc{clf}$ and $\min_{\thetabm} \widetilde\RCal_\textsc{rank}$ share the same minimisers
 (assuming minimisers exist).
 \end{theorem}
 

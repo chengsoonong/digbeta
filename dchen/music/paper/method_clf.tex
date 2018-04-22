@@ -20,17 +20,23 @@ and $\phibm_{u,m}$ is a feature vector,
 which includes audio features, genre, popularity of song $m$,
 and the number of listening events from users except $u$.
 
-To encourage sparsity, we use $\ell_1$ regularisation for playlist specific parameters $\w_i$, 
-and use $\ell_2$ regularisation for user and bias/default parameters (\ie $\bv_u$ and $\mubm$)
+The empirical risk is
+$$
+\RCal_\textsc{clf} 
+= \frac{1}{N} \sum_{i=1}^N \left( \frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-f(u(i), i,m)} 
+  + \frac{1}{M_-^i p} \sum_{n: y_n^i = 0} e^{p f(u(i), i,n)} \right),
+$$
 
-The optimisation objective is:
+Let $R(\V, \W, \mubm)$ be the regularisation term:
+$$
+R(\V, \W, \mubm) 
+= \frac{\lambda_1}{2U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{\lambda_2}{2N} \sum_{i=1}^N \w_i^\top \w_i + \frac{\lambda_3}{2} \mubm^\top \mubm,
+$$
+where $\lambda_1, \lambda_2, \lambda_3 \in \R_+$ are regularisation constants.
+
+The optimisation problem of this formulation is
 \begin{equation*}
 \begin{aligned}
-J &= C \left( \frac{1}{2U} \sum_{u=1}^U \| \bv_u \|_2^2
-     + \frac{1}{N} \sum_{i=1}^N \| \w_i \|_1 + \frac{1}{2} \| \mubm \|_2^2 \right) \\
-& \hspace{1em}
-     + \frac{1}{N} \sum_{i=1}^N \left( \frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-f(u(i), i,m)} 
-     + \frac{1}{M_-^i p} \sum_{n: y_n^i = 0} e^{p f(u(i), i,n)} \right),
+\min_{\V, \W, \mubm} \ \RCal_\textsc{clf} + R(\V, \W, \mubm).
 \end{aligned}
 \end{equation*}
-where $C > 0$ is a regularisation constant.
