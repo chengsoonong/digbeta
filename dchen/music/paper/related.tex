@@ -56,6 +56,74 @@ each one can address all three tasks.
 
 
 
+The AutoDJ system~\cite{platt2002learning} 
+\begin{itemize}
+\item Problem: generate playlists given one or more seed songs
+\item Method: Gaussian process regression, learn user preference by using songs selected/removed by user are positive/negative examples
+\item Info: a large number of albums
+\end{itemize}
+
+
+\begin{itemize}
+\item Problem:
+\item Method:
+\item Info:
+\end{itemize}
+
+
+\cite{mcfee2011natural}
+\begin{itemize}
+\item Problem: playlist generation
+\item Method: Markov chain, Cast playlist generation as a language modelling problem, assume Markov property.
+\item Info: acoustic features, tags, artists familiarity.
+\end{itemize}
+
+
+\cite{mcfee2012hypergraph}
+\begin{itemize}
+\item Problem: playlist generation 
+\item Method: Markov chain, random walks in hyper-graph, model playlists as a collection of dialects of languages
+\item Info: edge (\ie groups of songs) features:  audio features, learn latent features by factoring users-by-songs matrix 
+era of song (release year), artist familiarity, lyrics (applied LDA), social tags from Last.fm, combined a pair of the above features.
+\end{itemize}
+
+
+\cite{chen2012playlist}
+\begin{itemize}
+\item Problem: playlist generation
+\item Method: Markov chains, learns a latent representation of songs from playlists, a song is mapped to a point or a pair of points into a latent space.
+a playlist is a path in the latent space (by sampling repeatedly from the transition distribution)
+\item Info: playlists only (latent representation of songs are learned)
+\end{itemize}
+
+
+\cite{hariri2012context}
+\begin{itemize}
+\item Problem: next song recommendation 
+\item Method: ranking, topic-based sequential pattern, a song is a set of topics, playlist is a sequence of topicsets, recommend the next song by first matching user's listening history with learned sequential patterns, predict a set of topics for next song, then rank songs using predicted topics as context. (in the context of predicted topics)
+\item Info: song title, artist name, frequent tags of songs from last.fm, use song tags to learn a topic-model
+\end{itemize}
+
+
+
+\cite{bonnin2013evaluating}
+\begin{itemize}
+\item Problem: next song recommendation 
+\item Method: ranking, based on song popularity and artist information
+\item Info: popularity of songs, artist information, collocation of artists in playlist, user listening history.
+\end{itemize}
+This work also argues about order may or may not be useful.
+
+
+\cite{jannach2015beyond} approach that first scoring each song by a number of features
+\begin{itemize}
+\item Problem: Next song recommendation
+\item Method:
+\item Info:
+\end{itemize}
+
+
+
 
 \paragraph{Gaussian process}
 The AutoDJ system~\cite{platt2002learning} automatically generate playlists given one or more seed songs, 
