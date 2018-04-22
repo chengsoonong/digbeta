@@ -8,19 +8,23 @@ from sklearn.metrics import roc_auc_score
 from models import MTC
 
 
-if len(sys.argv) != 6:
+if len(sys.argv) != 8:
     print('Usage: python', sys.argv[0],
-          'WORK_DIR  DATASET  C  P  TRAIN_DEV(Y/N)')
+          'WORK_DIR  DATASET  C1  C2  C3  P  TRAIN_DEV(Y/N)')
     sys.exit(0)
 else:
     work_dir = sys.argv[1]
     dataset = sys.argv[2]
-    C = float(sys.argv[3])
-    p = float(sys.argv[4])
-    trndev = sys.argv[5]
+    C1 = float(sys.argv[3])
+    C2 = float(sys.argv[4])
+    C3 = float(sys.argv[5])
+    p = float(sys.argv[6])
+    trndev = sys.argv[7]
 
-assert trndev in ['Y', 'N']
-assert trndev == 'Y'
+# assert trndev in ['Y', 'N']
+# assert trndev == 'Y'
+if trndev != 'Y':
+    raise ValueError('trndev should be "Y"')
 
 data_dir = os.path.join(work_dir, 'data/%s/setting3' % dataset)
 fx = os.path.join(data_dir, 'X.pkl.gz')
@@ -28,7 +32,7 @@ fytrain = os.path.join(data_dir, 'Y_train.pkl.gz')
 fytest = os.path.join(data_dir, 'Y_test.pkl.gz')
 fcliques_train = os.path.join(data_dir, 'cliques_train.pkl.gz')
 fcliques_all = os.path.join(data_dir, 'cliques_all.pkl.gz')
-fprefix = 'trndev-plgen1-%g-%g' % (C, p)
+fprefix = 'trndev-plgen1-%g-%g-%g-%g' % (C1, C2, C3, p)
 
 fmodel = os.path.join(data_dir, '%s.pkl.gz' % fprefix)
 fnpy = os.path.join(data_dir, '%s.npy' % fprefix)
@@ -39,7 +43,7 @@ Y_test = pkl.load(gzip.open(fytest, 'rb'))
 cliques_train = pkl.load(gzip.open(fcliques_train, 'rb'))
 cliques_all = pkl.load(gzip.open(fcliques_all, 'rb'))
 
-print('C: %g, p: %g' % (C, p))
+print('C: %g, %g, %g, p: %g' % (C1, C2, C3, p))
 print(X.shape, Y_train.shape)
 print(time.strftime('%Y-%m-%d %H:%M:%S'))
 
@@ -48,8 +52,8 @@ if os.path.exists(fmodel):
     clf = pkl.load(gzip.open(fmodel, 'rb'))   # for evaluation
 else:
     print('training ...')
-    clf = MTC(X, Y_train, C=C, p=p, user_playlist_indices=cliques_train)
-    clf.fit(njobs=1, verbose=2, fnpy=fnpy)
+    clf = MTC(X, Y_train, C1=C1, C2=C2, C3=C3, p=p, user_playlist_indices=cliques_train)
+    clf.fit(verbose=2, fnpy=fnpy)
 
 if clf.trained is True:
     pkl.dump(clf, gzip.open(fmodel, 'wb'))
