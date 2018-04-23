@@ -19,21 +19,17 @@ class DataHelper:
         U = len(cliques)
         self.init = False
         self.Ys = []
-        self.Ps = []
-        self.Ms = []
-        Mplus = Y.sum(axis=0).A.reshape(-1)
-        P = 1. / (N * Mplus)
+        self.Mplus = Y.sum(axis=0).A.reshape(-1)
+        self.P = 1. / (N * self.Mplus)
         for u in range(U):
             clq = cliques[u]
             Yu = Y[:, clq]
             self.Ys.append(Yu.tocoo())
-            self.Ps.append(P[clq])
-            self.Ms.append(Mplus[clq])
         self.init = True
 
     def get_data(self):
         assert self.init is True
-        return self.Ys, self.Ps, self.Ms
+        return self.Ys, self.P, self.Mplus
 
 
 class MTR(object):
@@ -71,7 +67,7 @@ class MTR(object):
         W = 1e-3 * np.random.randn(N, D)
         xi = np.zeros(N)
         di = np.zeros(N)
-        Ys, _ = self.data_helper.get_data()
+        Ys, _, _ = self.data_helper.get_data()
         assert U == len(Ys)
         for u in range(U):
             clq = self.cliques[u]
@@ -90,7 +86,7 @@ class MTR(object):
         verbose = self.verbose
         if verbose > 0:
             t0 = time.time()
-            print('\nC: %g' % self.C)
+            print('\nC: %g, %g, %g' % (self.C1, self.C2, self.C3))
 
         num_vars = (U + N + 1) * D + N * 2
         max_num_cons = M * N - self.Y.sum() + N
@@ -128,19 +124,17 @@ class MTR(object):
             if current_constraints is not None:
                 problem.add_constraints(current_constraints)  # restore constraints
 
+            problem.compute_constraint_info()
             num_cons = problem.get_num_constraints()
-            if num_cons > 0:
-                problem.compute_constraint_info()
-            else:
-                problem.jacobian = None
-                problem.jacobianstructure = None
+            LB = np.full(num_vars, -cyipopt.INF, dtype=np.float)
+            LB[-N:] = 0.
 
             print('[CUTTING-PLANE] Iter %d: %d constraints.' % (cp_iter, num_cons))
             nlp = cyipopt.problem(
                 problem_obj=problem,   # problem instance
                 n=num_vars,            # number of variables
                 m=num_cons,            # number of constraints
-                lb=None,               # lower bounds on variables
+                lb=LB,                 # lower bounds on variables
                 ub=None,               # upper bounds on variables
                 cl=None,               # lower bounds on constraints
                 cu=np.zeros(num_cons)  # upper bounds on constraints
@@ -148,7 +142,7 @@ class MTR(object):
 
             # ROOT_URL = www.coin-or.org/Ipopt/documentation
             # set solver options: $ROOT_URL/node40.html
-            nlp.addOption(b'max_iter', int(1e5))
+            nlp.addOption(b'max_iter', int(1e4))
             # nlp.addOption(b'mu_strategy', b'adaptive')
             # nlp.addOption(b'tol', 1e-7)
             # nlp.addOption(b'acceptable_tol', 1e-5)
@@ -161,6 +155,7 @@ class MTR(object):
 
             # gradient checking for objective and constraints: $ROOT_URL/node30.html
             # nlp.addOption(b'derivative_test', b'first-order')
+            # nlp.addOption(b'derivative_test_tol', 0.0009)  # default is 0.0001
             # nlp.addOption(b'print_level', 6)
 
             # w = self._init_vars()  # cold start, comment this line for warm start
@@ -288,13 +283,14 @@ class RankPrimal(object):
         di = w[(U + N + 1) * D + N:]
         assert di.shape == (N,)
 
-        Ys, Ps = self.data_helper.get_data()
-        assert U == len(Ys) == len(Ps)
+        Ys, P, _ = self.data_helper.get_data()
+        assert U == len(Ys)
+        assert P.shape == (N,)
 
         J = np.dot(mu, mu) * 0.5 * C3
         J += np.sum([np.dot(V[u, :], V[u, :]) for u in range(U)]) * 0.5 * C1 / U
         J += np.sum([np.dot(W[k, :], W[k, :]) for k in range(N)]) * 0.5 * C2 / N
-        J += np.sum([Ps.dot(di[self.cliques[u]]) for u in range(U)])
+        J += np.sum([P[clq].dot(di[clq]) for clq in self.cliques])
 
         if np.isnan(J) or np.isinf(J):
             sys.stderr.write('objective(): objective is NaN or inf!\n')
@@ -319,14 +315,15 @@ class RankPrimal(object):
         di = w[(U + N + 1) * D + N:]
         assert di.shape == (N,)
 
-        Ys, Ps = self.data_helper.get_data()
-        assert U == len(Ys) == len(Ps)
+        Ys, P, _ = self.data_helper.get_data()
+        assert U == len(Ys)
+        assert P.shape == (N,)
 
         dmu = mu * C3
         dV = V * C1 / U
         dW = W * C2 / N
         dxi = np.zeros(N)
-        ddi = np.r_[[Ps[u] for u in range(U)]]
+        ddi = P
 
         if self.verbose > 2:
             print('Eval g: %.1f seconds used.' % (time.time() - t0))
@@ -346,8 +343,9 @@ class RankPrimal(object):
         di = w[(U + N + 1) * D + N:]
         assert di.shape == (N,)
 
-        Ys, Ps, Ms = self.data_helper.get_data()
-        assert U == len(Ys) == len(Ps) == len(Ms)
+        Ys, _, Mplus = self.data_helper.get_data()
+        assert U == len(Ys)
+        assert Mplus.shape == (N,)
 
         cons_values = []
         di_cons_values = np.zeros(N)
@@ -358,7 +356,7 @@ class RankPrimal(object):
             T1 = np.dot(self.X, Wt.T)
             T2 = np.zeros(T1.shape)
             T2[Yu.row, Yu.col] = T1[Yu.row, Yu.col]
-            di_cons_values[clq] = (1. + xi[clq]) * Ms[u] - T2.sum(axis=0) - di[clq]
+            di_cons_values[clq] = (1. + xi[clq]) * Mplus[clq] - T2.sum(axis=0) - di[clq]
         cons_values.append(di_cons_values)
 
         for k in range(N):
@@ -406,20 +404,34 @@ class RankPrimal(object):
             self.compute_constraint_info()
 
         U, N, D = self.U, self.N, self.D
-        X = self.X
         jac = []
         for k in range(N):
             u = self.pl2u[k]
+            yk = self.Y[:, k].A.reshape(-1)
+            vec = -yk.dot(self.X)
+            dmu = vec
+            dV = np.zeros((U, D), dtype=np.float)
+            dV[u, :] = vec
+            dW = np.zeros((N, D), dtype=np.float)
+            dW[k, :] = vec
+            dxi = np.zeros(N, dtype=np.float)
+            dxi[k] = yk.sum()
+            ddi = np.zeros(N, dtype=np.float)
+            ddi[k] = -1
+            jac.append(np.r_[dmu, dV.ravel(), dW.ravel(), dxi, ddi])
+        for k in range(N):
+            u = self.pl2u[k]
             for n in sorted(self.current_constraints[k]):
-                dmu = X[n, :]
+                vec = self.X[n, :]
+                dmu = vec
                 dV = np.zeros((U, D), dtype=np.float)
-                dV[u, :] = X[n, :]
+                dV[u, :] = vec
                 dW = np.zeros((N, D), dtype=np.float)
-                dW[k, :] = X[n, :]
+                dW[k, :] = vec
                 dxi = np.zeros(N, dtype=np.float)
-                dxi[k] = -1
-                # jac.append(np.hstack([dmu.reshape(1, -1), dV.reshape(1, -1), dW.reshape(1, -1), dxi.reshape(1, -1)]))
-                jac.append(np.r_[dmu, dV.ravel(), dW.ravel(), dxi])
+                dxi[k] = -1.
+                ddi = np.zeros(N, dtype=np.float)
+                jac.append(np.r_[dmu, dV.ravel(), dW.ravel(), dxi, ddi])
         jac_coo = coo_matrix(np.vstack(jac))
 
         # self.jac = jac_coo.data
@@ -438,14 +450,27 @@ class RankPrimal(object):
             compute jacobian of constraints and its sparse structure (rows, cols of non-zero elements)
         """
         N, D, U = self.N, self.D, self.U
-        X = self.X
         rows, cols, jac = [], [], []
         ix = 0
         for k in range(N):
+            # constraint: \sum_{m: y_m^k=1} (1 - f(u(k), k, m) + \xi_k) - \delta_k <= 0
+            u = self.pl2u[k]
+            yk = self.Y[:, k].A.reshape(-1)
+            vec = -yk.dot(self.X)
+            jac += [vec, vec, vec, [yk.sum(), -1.]]
+            rows.append(np.full(3 * D + 2, ix, dtype=np.int32))
+            cols.append(np.arange(D))
+            cols.append(np.arange((u + 1) * D, (u + 2) * D))
+            cols.append(np.arange((U + 1 + k) * D, (U + 2 + k) * D))
+            cols.append([(U + N + 1) * D + k])
+            cols.append([(U + N + 1) * D + N + k])
+            ix += 1
+        for k in range(N):
             u = self.pl2u[k]
             for n in sorted(self.current_constraints[k]):
-                jac.append(np.tile(X[n, :].reshape(1, -1), (1, 3)))
-                jac.append(np.array([-1.]).reshape(1, 1))
+                # constraint: f(u(k), k, n) - \xi_k <= 0
+                vec = self.X[n, :]
+                jac += [vec, vec, vec, [-1.]]
                 rows.append(np.full(3 * D + 1, ix, dtype=np.int32))
                 cols.append(np.arange(D))
                 cols.append(np.arange((u + 1) * D, (u + 2) * D))
@@ -473,14 +498,12 @@ class RankPrimal(object):
     def update_constraints(self, w):
         N, D, U = self.N, self.D, self.U
         X = self.X
-        assert w.shape == ((U + N + 1) * D + N,)
+        assert w.shape == ((U + N + 1) * D + N * 2,)
         mu = w[:D]
         V = w[D:(U + 1) * D].reshape(U, D)
         W = w[(U + 1) * D:(U + N + 1) * D].reshape(N, D)
-        xi = w[(U + N + 1) * D:]
-        assert xi.shape == (N,)
-
-        Ys, _ = self.data_helper.get_data()
+        xi = w[(U + N + 1) * D:(U + N + 1) * D + N]
+        Ys, _, _ = self.data_helper.get_data()
         assert U == len(Ys)
 
         all_satisfied = True
