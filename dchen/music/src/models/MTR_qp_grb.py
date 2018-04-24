@@ -204,31 +204,33 @@ class MTR(object):
             Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
             T1 = np.dot(self.X, Wt.T)
             T1[Yu.row, Yu.col] = -np.inf  # mask entry (m,i) if y_m^i = 1
-            # max_ix = T1.argmax(axis=0)
-            # assert max_ix.shape[0] == len(clq)
-            # for j in range(len(clq)):
-            #     k = clq[j]
-            #     n = max_ix[j]
-            #     # if xi[k] < T1[n, j] or (xi[k] == T1[n, j] == 0):
-            #     if xi[k] + self.tol < T1[n, j]:
-            #         all_satisfied = False
-            #         # if xi[k] + self.gap > T1[n, j]:  # skip weak constraint
-            #         #    continue
-            #         grb_qp.addConstr(quicksum((grb_V[u, d] + grb_W[k, d] + grb_mu[d])*self.X[n, d] for d in range(D))
-            #                          - grb_xi[k] <= 0, name='ckn_%d_%d' % (k, n))
-            #         self.constraints_dict[k].add(n)
-            #         self.inactive_cnts[(k, n)] = 0
-            sort_ix = (-T1).argsort(axis=0)
-            for i in range(2):
-                for j in range(len(clq)):
-                    k = clq[j]
-                    n = sort_ix[i, j]
-                    if xi[k] + self.tol < T1[n, j]:
-                        all_satisfied = False
-                        grb_qp.addConstr(quicksum((grb_V[u, d] + grb_W[k, d] + grb_mu[d]) * self.X[n, d]
-                                                  for d in range(D)) - grb_xi[k] <= 0, name='ckn_%d_%d' % (k, n))
-                        self.constraints_dict[k].add(n)
-                        # self.inactive_cnts[(k, n)] = 0
+            max_ix = T1.argmax(axis=0)
+            assert max_ix.shape[0] == len(clq)
+            for j in range(len(clq)):
+                k = clq[j]
+                n = max_ix[j]
+                # if xi[k] < T1[n, j] or (xi[k] == T1[n, j] == 0):
+                if xi[k] + self.tol < T1[n, j]:
+                    all_satisfied = False
+                    # feasibility cut at query point q for constraint f(z) <= 0:
+                    # f(q) + f'(q)^T (z - q) <= 0
+                    grb_qp.addConstr(
+                        quicksum(T1[n, j] - xi[k]
+                                 + (grb_V[u, d] - V[u, d] + grb_W[k, d] - W[k, d] + grb_mu[d] - mu[d]) * self.X[n, d]
+                                 - (grb_xi[k] - xi[k]) for d in range(D)) <= 0, name='ckn_%d_%d' % (k, n))
+                    self.constraints_dict[k].add(n)
+                    self.inactive_cnts[(k, n)] = 0
+            # sort_ix = (-T1).argsort(axis=0)
+            # for i in range(2):
+            #     for j in range(len(clq)):
+            #         k = clq[j]
+            #         n = sort_ix[i, j]
+            #         if xi[k] + self.tol < T1[n, j]:
+            #             all_satisfied = False
+            #             grb_qp.addConstr(quicksum((grb_V[u, d] + grb_W[k, d] + grb_mu[d]) * self.X[n, d]
+            #                                       for d in range(D)) - grb_xi[k] <= 0, name='ckn_%d_%d' % (k, n))
+            #             self.constraints_dict[k].add(n)
+            #             self.inactive_cnts[(k, n)] = 0
 
                     # try:
                     #     updated_dict[k].append(n)
