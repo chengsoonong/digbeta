@@ -52,7 +52,7 @@ Suppose we use the hinge loss $\ell(f, y) = \max \{ 0, \, 1 - fy \}$ as the conv
 \end{equation*}
 
 Inspired by the one-slack formulation of structured Support Vector Machine~\cite{joachims2009cutting}, 
-we introduce another variable $\delta_i$ such that
+we introduce another variable $\delta_{i,m}$ such that
 \begin{equation*}
 \begin{aligned}
 \delta_{i,m} & \ge 0, \\
@@ -85,9 +85,10 @@ $$
 \sum_{i=1}^N \sum_{n=1}^M \llb y_n^i = 0 \rrb + N = MN - \sum_{i=1}^N \sum_{m=1}^M \llb y_m^i = 1 \rrb + N,
 $$
 %
-note that the number of songs in each playlist is very small compared with the total number of songs $M$ in music collection,
-it means the number of constraints is of order $O(MN)$ which can be very big for a system with a large number of both songs and playlists,
-this is generally true for production systems deployed by music streaming service providers.
+this can be a large number (\eg greater than 700 millions even for the smaller dataset in Section~\ref{sec:experiment}),
+given that the number of songs in each playlist is very small compared with the total number of songs $M$ in music collection,
+asymptotically, it is of order $O(MN)$ which can be very big for a system with a large number of songs and playlists,
+and this is generally true for production systems deployed by music streaming service providers.
 
 To address this issue, we propose to use a cutting plane method which starts by using a small number of constraints,
 optimise the above objective using an off-the-shelf QP solver,
