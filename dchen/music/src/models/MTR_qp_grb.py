@@ -4,7 +4,9 @@ import gzip
 import numpy as np
 import pickle as pkl
 from scipy.sparse import isspmatrix_csc
-from gurobipy import quicksum, Model, GRB, QuadExpr, LinExpr
+from gurobipy import quicksum, Model, GRB
+# from gurobipy import QuadExpr, LinExpr
+# from joblib import Parallel, delayed
 
 
 class DataHelper:
@@ -49,8 +51,6 @@ class MTR(object):
         self.C2 = C2
         self.C3 = C3
         self.cliques = cliques
-        self.verbose = verbose
-
         self.M, self.D = self.X.shape
         self.N = self.Y.shape[1]
         self.U = len(self.cliques)
@@ -62,33 +62,42 @@ class MTR(object):
         self.num_vars = (self.U + self.N + 1) * self.D + self.N
         self.data_helper = DataHelper(self.Y, self.cliques)
 
-        # self.current_constraints:
-        # - a list of N sets
-        # - if `n` \in self.current_constraints[k], it means `x_n` violates constraint `f_{k,n} <= 0`
-        # - it will be modified by self.update_constraints() and self.restore_constraints()
-        # self.current_constraints = [set() for _ in range(self.N)]
-        self.grb_cons = []
-        self.inactive_cnt = []  # number of survives from constraints pruning
-        self.inactive_threshold = 10
-        self.all_constraints_satisfied = False
+        # self.constraints_dict:
+        # - a dictionary of N sets
+        # - if `n` \in self.constraints_dict[k], it means `x_n` violates constraint `xi_k >= f(u(k), k, n)`
+        # - it will be modified by _update_constraints() and _prune_constraints()
+        self.constraints_dict = {k: set() for k in range(self.N)}
+
+        # self.inactive_cnts:
+        # - a dictionary with key (k, n), k \in {0,...,N-1}, n \in {0,...,M-1} and integer values
+        # - inactive_cnts[(k, n)] represents the number of survives (from pruning) of constraint (k, n)
+        # - it will be modified by _update_constraints() and _prune_constraints()
+        self.inactive_cnts = dict()
+        self.inactive_threshold = 5
+        self.slack_threshold = 1e-2
 
         self.mu = np.zeros(self.D)
         self.V = np.zeros((self.U, self.D))
         self.W = np.zeros((self.N, self.D))
         self.xi = np.zeros(self.N)
         self.delta = np.zeros(self.N)
-        self.tol = 1e-6
 
         self._create_model()
+        self.all_constraints_satisfied = False
         self.trained = False
 
     def _get_num_vars(self):
+        # return self.grb_qp.numVars
         return self.num_vars
 
     def _get_num_constraints(self):
-        return len(self.grb_cons)
+        # return self.grb_qp.numConstrs  # could be incorrect due to gurobi lazy evaluation
+        return self.N + np.sum([len(v) for k, v in self.constraints_dict.items()])
 
     def _create_model(self):
+        """
+            Create a QP model.
+        """
         N, U, D, C1, C2, C3 = self.N, self.U, self.D, self.C1, self.C2, self.C3
         _, Q, Mplus = self.data_helper.get_data()
         assert Q.shape == Mplus.shape == (N,)
@@ -104,30 +113,26 @@ class MTR(object):
         delta = qp.addVars(N, lb=0, name='delta')
 
         # create objective
-        # most efficient approach: use QuadExpr.addTerms() and LinExpr.addTerms()
-        qexpr = QuadExpr()
-        lexpr = LinExpr()
+        obj = quicksum(V[u, d] * V[u, d] for u in range(U) for d in range(D)) * 0.5 * C1 / U
+        obj += quicksum(W[k, d] * W[k, d] for k in range(N) for d in range(D)) * 0.5 * C2 / N
+        obj += quicksum(mu[d] * mu[d] for d in range(D)) * 0.5 * C3
+        obj += quicksum(Q[k] * delta[k] for k in range(N))
 
-        coefU = np.ones(U * D) * 0.5 * C1 / U
-        varsU = [V[u, d] for u in range(U) for d in range(D)]
-        qexpr.addTerms(coefU, varsU, varsU)
-
-        coefW = np.ones(N * D) * 0.5 * C2 / N
-        varsW = [W[k, d] for k in range(N) for d in range(D)]
-        qexpr.addTerms(coefW, varsW, varsW)
-
-        coefmu = np.ones(D) * 0.5 * C3
-        varsmu = [mu[d] for d in range(D)]
-        qexpr.addTerms(coefmu, varsmu, varsmu)
-
-        lexpr.addTerms(Q, [delta[k] for k in range(N)])
-        obj = qexpr + lexpr
-
-        # alternative approach
-#         obj = quicksum(V[u, d] * V[u, d] for u in range(U) for d in range(D)) * 0.5 * C1 / U
-#         obj += quicksum(W[k, d] * W[k, d] for k in range(N) for d in range(D)) * 0.5 * C2 / N
-#         obj += quicksum(mu[d] * mu[d] for d in range(D)) * 0.5 * C3
-#         obj += quicksum(Q[k] * delta[k] for k in range(N))
+        # alterative approach: use QuadExpr.addTerms() and LinExpr.addTerms()
+        # it could be more efficient but less readable
+        # qexpr = QuadExpr()
+        # lexpr = LinExpr()
+        # coefU = np.ones(U * D) * 0.5 * C1 / U
+        # varsU = [V[u, d] for u in range(U) for d in range(D)]
+        # qexpr.addTerms(coefU, varsU, varsU)
+        # coefW = np.ones(N * D) * 0.5 * C2 / N
+        # varsW = [W[k, d] for k in range(N) for d in range(D)]
+        # qexpr.addTerms(coefW, varsW, varsW)
+        # coefmu = np.ones(D) * 0.5 * C3
+        # varsmu = [mu[d] for d in range(D)]
+        # qexpr.addTerms(coefmu, varsmu, varsmu)
+        # lexpr.addTerms(Q, [delta[k] for k in range(N)])
+        # obj = qexpr + lexpr
 
         qp.setObjective(obj, GRB.MINIMIZE)
 
@@ -139,10 +144,8 @@ class MTR(object):
             u = self.pl2u[k]
             y = self.Y[:, k].A.reshape(-1)
             vec = y.dot(self.X)
-            c_k = qp.addConstr(Mplus[k] * (1 + xi[k]) - delta[k]
-                               - quicksum((V[u, d] + W[k, d] + mu[d]) * vec[d] for d in range(D)) <= 0)
-            self.grb_cons.append(c_k)
-            self.inactive_cnt.append(0)
+            qp.addConstr(Mplus[k] * (1 + xi[k]) - delta[k]
+                         - quicksum((V[u, d] + W[k, d] + mu[d]) * vec[d] for d in range(D)) <= 0)
         self.grb_qp = qp
         self.grb_obj = obj
         self.grb_V = V
@@ -151,32 +154,32 @@ class MTR(object):
         self.grb_xi = xi
         self.grb_delta = delta
 
-        # control verbose output
-        if self.verbose > 0:
-            self.grb_qp.Params.OutputFlag = 1
-        else:
-            self.grb_qp.Params.OutputFlag = 0
-
     def _generate_all_constraints(self):
         """
-            generate all possible constraints
+            Generate all possible constraints:
+                xi_k >= f(u(k), k, n), k \in {0,...N-1}, y_n^k = 0
         """
         sys.stdout.write('Generating all possible constraints ... ')
         M, N, D = self.M, self.N, self.D
-        grb_V, grb_W, grb_mu, grb_xi = self.grb_V, self.grb_W, self.grb_mu, self.grb_xi
-        grb_qp = self.grb_qp
+        grb_qp, grb_V, grb_W, grb_mu, grb_xi = self.grb_qp, self.grb_V, self.grb_W, self.grb_mu, self.grb_xi
         assert self.Y.dtype == np.bool
         for k in range(N):
             u = self.pl2u[k]
-            grb_qp.addConstrs((quicksum((grb_V[u, d] + grb_W[k, d] + grb_mu[d]) * self.X[n, d]
-                                        for d in range(D)) - grb_xi[k] <= 0
-                              for n in range(M) if self.Y[n, k] < 1))
+            grb_qp.addConstrs((quicksum((grb_V[u, d] + grb_W[k, d] + grb_mu[d]) * self.X[n, d] for d in range(D))
+                               - grb_xi[k] <= 0 for n in range(M) if self.Y[n, k] < 1))
         print('%d constraints in total.' % grb_qp.getAttr('NumConstrs'))
 
     def _update_constraints(self):
+        """
+            Check if current solution satisfies constraint:
+                xi_k >= f(u(k), k, n), k \in {0,...N-1}, y_n^k = 0
+            If not, add constraint:
+                f(u(k), k, n^*) - xi_k <= 0
+            where
+                n^* = argmax_n f(u(k), k, n)
+        """
         N, D, U = self.N, self.D, self.U
         grb_qp, grb_V, grb_W, grb_mu, grb_xi = self.grb_qp, self.grb_V, self.grb_W, self.grb_mu, self.grb_xi
-        # grb_delta = self.grb_delta
 
         self.mu[:] = [grb_mu[d].x for d in range(D)]
         for u in range(U):
@@ -184,27 +187,15 @@ class MTR(object):
         for k in range(N):
             self.W[k, :] = [grb_W[k, d].x for d in range(D)]
         self.xi[:] = [grb_xi[k].x for k in range(N)]
-        # self.delta[:] = [grb_delta[k].x for k in range(N)]
 
         mu, V, W, xi = self.mu, self.V, self.W, self.xi
         Ys, _, Mplus = self.data_helper.get_data()
         assert U == len(Ys)
         assert Mplus.shape == (N,)
 
-        all_satisfied = True
-        # for k in range(N):
-        #     # constraint: \delta_k >= \sum_{m: y_m^k=1} (1 - f(u(k), k, m) + \xi_k)
-        #     u = self.pl2u[k]
-        #     y = self.Y[:, k].A.reshape(-1)
-        #     vec = y.dot(self.X)
-        #     if delta[k] < Mplus[k] * (1 + xi[k]) - vec.dot(V[u, :] + W[k, :] + mu):
-        #         all_satisfied = False
-        #         c_k = grb_qp.addConstr(Mplus[k] * (1 + grb_xi[k]) - grb_delta[k]
-        #                                - quicksum((grb_V[u, d] + grb_W[k, d] + grb_mu[d]) * vec[d]
-        #                                   for d in range(D)) <= 0)
-        #         self.grb_cons.append(c_k)
-        #         self.inactive_cnt.append(0)
+        updated_dict = dict()
 
+        all_satisfied = True
         for u in range(U):
             clq = self.cliques[u]
             Yu = Ys[u]
@@ -212,52 +203,106 @@ class MTR(object):
             T1 = np.dot(self.X, Wt.T)
             T1[Yu.row, Yu.col] = -np.inf  # mask entry (m,i) if y_m^i = 1
             max_ix = T1.argmax(axis=0)
-
-            if self.verbose > 1:
-                print(np.max(T1, axis=0))
-                print(xi[clq])
-
             assert max_ix.shape[0] == len(clq)
-            for j in range(max_ix.shape[0]):
+            for j in range(len(clq)):
                 k = clq[j]
                 n = max_ix[j]
                 # if xi[k] + self.tol < T1[row, col]:
                 if xi[k] < T1[n, j] or (xi[k] == T1[n, j] == 0):
                     all_satisfied = False
-                    c_kn = grb_qp.addConstr(quicksum((grb_V[u, d] + grb_W[k, d] + grb_mu[d]) * self.X[n, d]
-                                            for d in range(D)) - grb_xi[k] <= 0)
-                    self.grb_cons.append(c_kn)
-                    self.inactive_cnt.append(0)
+                    grb_qp.addConstr(quicksum((grb_V[u, d] + grb_W[k, d] + grb_mu[d]) * self.X[n, d] for d in range(D))
+                                     - grb_xi[k] <= 0, name='ckn_%d_%d' % (k, n))
+                    self.constraints_dict[k].add(n)
+                    self.inactive_cnts[(k, n)] = 0
+
+                    try:
+                        updated_dict[k].append(n)
+                    except KeyError:
+                        updated_dict[k] = [n]
+
         self.all_constraints_satisfied = all_satisfied
 
-    def _prune_constraints(self):
-        prune_ix = []
-        num_cons = len(self.grb_cons)
-        # assert num_cons == len(self.inactive_cnt)
-        if len(self.inactive_cnt) != num_cons:
-            raise ValueError('len(inactive_cnt) != num_cons')
-        for j in range(self.N, num_cons):  # keep the first N constraints
-            cons = self.grb_cons[j]
-            if abs(cons.slack) < 1e-10:
-                self.inactive_cnt[j] += 1
-                if self.inactive_cnt[j] > self.inactive_threshold:
-                    prune_ix.append(j)
-        if len(prune_ix) > 0:
-            print('[CUTTING-PLANE] Pruning %d inactive constraints.' % len(prune_ix))
-            for j in prune_ix:
-                self.grb_qp.remove(self.grb_cons[j])
-            prune_ix_set = set(prune_ix)
-            self.grb_cons[:] = [self.grb_cons[ix] for ix in range(num_cons) if ix not in prune_ix_set]
-            self.inactive_cnt[:] = [self.inactive_cnt[ix] for ix in range(num_cons) if ix not in prune_ix_set]
+    def _prune_constraints(self, check_only=False):
+        """
+            Pruning inactive constraints:
+                f(u(k), k, n) - xi_k <= 0
+        """
+        # linear_constrs = self.grb_qp.getConstrs()
+        # num_cons = len(linear_constrs)
+        #
+        # def _check_inactive_cons(cons):
+        #     if cons.slack > self.slack_threshold:
+        #         cname = cons.constrName
+        #         if cname.startswith('ckn_'):
+        #             _, k, n = cname.split('_')
+        #             k, n = int(k), int(n)
+        #             return True, k, n
+        #     return False, None, None
+        #
+        # if num_cons <= 0:
+        #     return 0
+        # tuples = Parallel(n_jobs=-1)(delayed(_check_inactive_cons)(linear_constrs[i]) for i in range(num_cons))
+        # assert len(tuples) == len(num_cons)
+        # inactive_keys = [(ix, tuples[1], tuples[2]) for ix in range(num_cons) if tuples[0] is True]
+        # prune_keys = []
+        # for ix, k, n in inactive_keys:
+        #     try:
+        #         self.inactive_cnts[(k, n)] += 1
+        #         if check_only is False:
+        #             if self.inactive_cnts[(k, n)] > self.inactive_threshold:
+        #                 self.grb_qp.remove(linear_constrs[ix])
+        #                 prune_keys.append((k, n))
+        #     except KeyError:
+        #         raise ValueError('ERROR: %s' % ('NO inactive counts for constraint (%d, %d)!' % (k, n)))
+        # if check_only is False and len(prune_keys) > 0:
+        #     for k, n in prune_keys:
+        #         try:
+        #             self.constraints_dict[k].remove(n)
+        #             self.inactive_cnts.pop((k, n))
+        #         except KeyError:
+        #             raise ValueError('ERROR: %s' % ('constraint (%d, %d) not found!' % (k, n)))
+        # return len(prune_keys)
+        pruned_dict = dict()
 
-    def fit(self, max_iter=1e3, njobs=10, use_all_constraints=False, w0=None, fpkl=None):
+        num_pruned = 0
+        for cons in self.grb_qp.getConstrs():
+            if cons.slack > self.slack_threshold:
+                cname = cons.constrName
+                if cname.startswith('ckn_'):
+                    _, k, n = cname.split('_')
+                    k, n = int(k), int(n)
+                    try:
+                        self.inactive_cnts[(k, n)] += 1
+                        if check_only is False:
+                            if self.inactive_cnts[(k, n)] > self.inactive_threshold:
+                                self.grb_qp.remove(cons)
+                                self.constraints_dict[k].remove(n)
+                                self.inactive_cnts.pop((k, n))
+                                num_pruned += 1
+
+                                try:
+                                    pruned_dict[k].append(n)
+                                except KeyError:
+                                    pruned_dict[k] = [n]
+                    except KeyError:
+                        raise ValueError('ERROR: %s' % ('NO inactive counts for constraint (%d, %d)!' % (k, n)))
+        if check_only is False:
+            print(pruned_dict)
+
+        return num_pruned
+
+    def fit(self, max_iter=1e3, njobs=10, use_all_constraints=False, verbose=0, fpkl=None):
+        """
+            Model fitting by solving a QP using cutting plane method in addition to a QP solver.
+        """
         t0 = time.time()
         print(time.strftime('%Y-%m-%d %H:%M:%S'))
-
         M, N, = self.M, self.N
-        verbose = self.verbose
         if verbose > 0:
+            self.grb_qp.Params.OutputFlag = 1
             print('\nC: %g, %g, %g' % (self.C1, self.C2, self.C3))
+        else:
+            self.grb_qp.Params.OutputFlag = 0
 
         # solve QP using a QP solver and cutting-plane method
         # first create an optimisation problem and solve it,
@@ -267,8 +312,8 @@ class MTR(object):
         cp_iter = 0
         max_num_cons = M * N - self.Y.sum() + N
         self.grb_qp.Params.Threads = njobs
-        self.grb_qp.Params.Presolve = 2
-        print('[CUTTING-PLANE] %d variables, %d maximum possible constraints.' % (self.num_vars, max_num_cons))
+        # self.grb_qp.Params.Presolve = 2
+        print('[CUTTING-PLANE] %d variables, %d maximum possible constraints.' % (self._get_num_vars(), max_num_cons))
         while cp_iter < max_iter:
             cp_iter += 1
 
@@ -281,8 +326,11 @@ class MTR(object):
             self.grb_qp.optimize()
 
             # pruning constraints
-            # if cp_iter > 50 and cp_iter % 10 == 0:
-            #    self._prune_constraints()
+            self._prune_constraints(check_only=True)
+            if cp_iter % 10 == 0:
+                sys.stdout.write('[CUTTING-PLANE] Pruning inactive constraints ... ')
+                num_pruned = self._prune_constraints(check_only=False)
+                print('%d constaints pruned.' % num_pruned)
 
             if use_all_constraints is True:
                 break
@@ -312,7 +360,9 @@ class MTR(object):
         print('Training finished in %.1f seconds' % (time.time() - t0))
 
     def predict(self, X_test):
-        """Make predictions (score is a real number)"""
+        """
+            Making predictions (score is a real number)
+        """
         assert self.trained is True, 'Cannot make prediction before training'
         U, D = self.U, self.D
         assert D == X_test.shape[1]
