@@ -73,8 +73,10 @@ class MTR(object):
         # - inactive_cnts[(k, n)] represents the number of survives (from pruning) of constraint (k, n)
         # - it will be modified by _update_constraints() and _prune_constraints()
         self.inactive_cnts = dict()
-        self.inactive_threshold = 5
-        self.slack_threshold = 1e-2
+        self.inactive_threshold = 10
+        self.slack_threshold = 0.001
+        self.gap = 0.1
+        self.tol = 1e-6
 
         self.mu = np.zeros(self.D)
         self.V = np.zeros((self.U, self.D))
@@ -193,7 +195,7 @@ class MTR(object):
         assert U == len(Ys)
         assert Mplus.shape == (N,)
 
-        updated_dict = dict()
+        # updated_dict = dict()
 
         all_satisfied = True
         for u in range(U):
@@ -202,23 +204,37 @@ class MTR(object):
             Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
             T1 = np.dot(self.X, Wt.T)
             T1[Yu.row, Yu.col] = -np.inf  # mask entry (m,i) if y_m^i = 1
-            max_ix = T1.argmax(axis=0)
-            assert max_ix.shape[0] == len(clq)
-            for j in range(len(clq)):
-                k = clq[j]
-                n = max_ix[j]
-                # if xi[k] + self.tol < T1[row, col]:
-                if xi[k] < T1[n, j] or (xi[k] == T1[n, j] == 0):
-                    all_satisfied = False
-                    grb_qp.addConstr(quicksum((grb_V[u, d] + grb_W[k, d] + grb_mu[d]) * self.X[n, d] for d in range(D))
-                                     - grb_xi[k] <= 0, name='ckn_%d_%d' % (k, n))
-                    self.constraints_dict[k].add(n)
-                    self.inactive_cnts[(k, n)] = 0
+            # max_ix = T1.argmax(axis=0)
+            # assert max_ix.shape[0] == len(clq)
+            # for j in range(len(clq)):
+            #     k = clq[j]
+            #     n = max_ix[j]
+            #     # if xi[k] < T1[n, j] or (xi[k] == T1[n, j] == 0):
+            #     if xi[k] + self.tol < T1[n, j]:
+            #         all_satisfied = False
+            #         # if xi[k] + self.gap > T1[n, j]:  # skip weak constraint
+            #         #    continue
+            #         grb_qp.addConstr(quicksum((grb_V[u, d] + grb_W[k, d] + grb_mu[d])*self.X[n, d] for d in range(D))
+            #                          - grb_xi[k] <= 0, name='ckn_%d_%d' % (k, n))
+            #         self.constraints_dict[k].add(n)
+            #         self.inactive_cnts[(k, n)] = 0
+            sort_ix = (-T1).argsort(axis=0)
+            for i in range(2):
+                for j in range(len(clq)):
+                    k = clq[j]
+                    n = sort_ix[i, j]
+                    if xi[k] + self.tol < T1[n, j]:
+                        all_satisfied = False
+                        grb_qp.addConstr(quicksum((grb_V[u, d] + grb_W[k, d] + grb_mu[d]) * self.X[n, d]
+                                                  for d in range(D)) - grb_xi[k] <= 0, name='ckn_%d_%d' % (k, n))
+                        self.constraints_dict[k].add(n)
+                        # self.inactive_cnts[(k, n)] = 0
 
-                    try:
-                        updated_dict[k].append(n)
-                    except KeyError:
-                        updated_dict[k] = [n]
+                    # try:
+                    #     updated_dict[k].append(n)
+                    # except KeyError:
+                    #     updated_dict[k] = [n]
+        # print(updated_dict)
 
         self.all_constraints_satisfied = all_satisfied
 
@@ -326,11 +342,12 @@ class MTR(object):
             self.grb_qp.optimize()
 
             # pruning constraints
-            self._prune_constraints(check_only=True)
-            if cp_iter % 10 == 0:
-                sys.stdout.write('[CUTTING-PLANE] Pruning inactive constraints ... ')
-                num_pruned = self._prune_constraints(check_only=False)
-                print('%d constaints pruned.' % num_pruned)
+            # if cp_iter % 5 == 0:
+            #     self._prune_constraints(check_only=True)
+            # if cp_iter % 50 == 0:
+            #     sys.stdout.write('[CUTTING-PLANE] Pruning inactive constraints ... ')
+            #     num_pruned = self._prune_constraints(check_only=False)
+            #     print('%d constaints pruned.' % num_pruned)
 
             if use_all_constraints is True:
                 break
@@ -341,8 +358,12 @@ class MTR(object):
                 print('[CUTTING-PLANE] All constraints satisfied.')
                 break
             if num_cons == self._get_num_constraints():
-                print('[CUTTING-PLANE] No more effective constraints, violations are considered acceptable.')
                 break
+            #    print('[CUTTING-PLANE] No more strong cuts, starts to use weaker cuts')
+            #    self.gap /= 2
+            #    self._update_constraints()
+            #     print('[CUTTING-PLANE] No more effective constraints, violations are considered acceptable.')
+            #     break
 
         if cp_iter >= max_iter:
             print('[CUTTING-PLANE] Reaching max number of iterations.')
