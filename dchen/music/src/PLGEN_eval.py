@@ -29,19 +29,22 @@ X = pkl.load(gzip.open(os.path.join(data_dir, 'X.pkl.gz'), 'rb'))
 Y_train = pkl.load(gzip.open(os.path.join(data_dir, 'Y_train.pkl.gz'), 'rb'))
 Y_test = pkl.load(gzip.open(os.path.join(data_dir, 'Y_test.pkl.gz'), 'rb'))
 cliques_train = pkl.load(gzip.open(os.path.join(data_dir, 'cliques_train.pkl.gz'), 'rb'))
-cliques_all = pkl.load(gzip.open(os.path.join(data_dir, 'cliques_all.pkl.gz'), 'rb'))
+
+if task == 3:
+    cliques_all = pkl.load(gzip.open(os.path.join(data_dir, 'cliques_all.pkl.gz'), 'rb'))
 
 assert issparse(Y_test)
 clf = pkl.load(gzip.open(fmodel, 'rb'))
 assert clf.trained is True
 
-pl2u = np.zeros(Y_train.shape[1] + Y_test.shape[1], dtype=np.int)
-U = len(cliques_train)
-assert len(cliques_all) == U
-for u in range(U):
-    clq = cliques_all[u]
-    pl2u[clq] = u
-assert np.all(clf.pl2u == pl2u[:Y_train.shape[1]])
+if task == 3:
+    pl2u = np.zeros(Y_train.shape[1] + Y_test.shape[1], dtype=np.int)
+    U = len(cliques_train)
+    assert len(cliques_all) == U
+    for u in range(U):
+        clq = cliques_all[u]
+        pl2u[clq] = u
+    assert np.all(clf.pl2u == pl2u[:Y_train.shape[1]])
 
 rps = []
 hitrates = {top: [] for top in TOPs}
@@ -53,9 +56,12 @@ for j in range(Y_test.shape[1]):
         sys.stdout.flush()
     y_true = Y_test[:, j].A.reshape(-1)
     assert y_true.sum() > 0
-    u = pl2u[j + offset]
-    wj = clf.V[u, :] + clf.mu
-    y_pred = np.dot(X, wj).reshape(-1)
+    if task == 3:
+        u = pl2u[j + offset]
+        wj = clf.V[u, :] + clf.mu
+        y_pred = np.dot(X, wj).reshape(-1)
+    else:
+        y_pred = np.dot(X, clf.mu).reshape(-1)
 
     # rp, hr_dict = calc_RPrecision_HitRate(y_true, y_pred, tops=TOPs)
     rp, hr_dict, auc = calc_metrics(y_true, y_pred, tops=TOPs)
