@@ -143,16 +143,16 @@ class MTR(object):
         self.C1 = C1
         self.C2 = C2
         self.C3 = C3
+        self.M, self.D = self.X.shape
+        self.N = self.Y.shape[1]
         self.cliques = cliques
+        self.U = len(self.cliques)
         self.u2pl = self.cliques
         self.pl2u = np.zeros(self.N, dtype=np.int32)
         for u in range(self.U):
             clq = self.cliques[u]
             self.pl2u[clq] = u
 
-        self.M, self.D = self.X.shape
-        self.N = self.Y.shape[1]
-        self.U = len(self.cliques)
         self.data_helper = DataHelper(self.Y, self.cliques)
         self.trained = False
 
