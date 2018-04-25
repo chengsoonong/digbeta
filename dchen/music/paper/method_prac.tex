@@ -55,6 +55,19 @@ As described above, we prefer not to approximate it,
 which leaves us with techniques such as sub-gradient methods or 
 reformulating it as a constrained optimisation problem, which is the method of choice in this paper.
 
+\begin{equation}
+\label{eq:cvxopt}
+\begin{aligned}
+\min_{\V, \W, \mubm} \
+& \frac{\lambda_1}{2U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{\lambda_2}{2N} \sum_{i=1}^N \w_i^\top \w_i + \frac{\lambda_3}{2} \mubm^\top \mubm \\
+& + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} 
+    \exp \left( \max_{n: y_n^i = 0} (\bv_{u(i)} + \w_i + \mubm)^\top \x_n \right) \\
+& \hspace{5em} \sum_{m: y_m^i = 1} \exp \left( - (\bv_{u(i)} + \w_i + \mubm)^\top \x_m \right).
+\end{aligned}
+\end{equation}
+
+
+
 \subsubsection{Formulate a constrained optimisation problem}
 If we introduce a slack variable $\xi_i \ge f(u(i), i, n)$
 we can reformulate problem~\ref{eq:unconsopt} as a constrained optimisation problem:
