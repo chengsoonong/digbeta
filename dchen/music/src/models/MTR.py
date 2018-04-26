@@ -5,7 +5,7 @@ import numpy as np
 import pickle as pkl
 from scipy.sparse import isspmatrix_csc
 from gurobipy import quicksum, Model, GRB
-# from gurobipy import QuadExpr, LinExpr
+from gurobipy import QuadExpr, LinExpr
 # from joblib import Parallel, delayed
 
 
@@ -68,6 +68,7 @@ class MTR(object):
         # - it will be modified by _update_constraints() and _prune_constraints()
         self.constraints_dict = {k: set() for k in range(self.N)}
         self.tol = 1e-6
+        self.num_cons = 0
 
         self.mu = np.zeros(self.D)
         self.V = np.zeros((self.U, self.D))
@@ -85,7 +86,8 @@ class MTR(object):
 
     def _get_num_constraints(self):
         # return self.grb_qp.numConstrs  # could be incorrect due to gurobi lazy evaluation
-        return self.N + np.sum([len(v) for k, v in self.constraints_dict.items()])
+        # return self.N + np.sum([len(v) for k, v in self.constraints_dict.items()])
+        return self.N + self.num_cons
 
     def _create_model(self):
         """
@@ -106,26 +108,26 @@ class MTR(object):
         delta = qp.addVars(N, lb=0, name='delta')
 
         # create objective
-        obj = quicksum(V[u, d] * V[u, d] for u in range(U) for d in range(D)) * 0.5 * C1 / U
-        obj += quicksum(W[k, d] * W[k, d] for k in range(N) for d in range(D)) * 0.5 * C2 / N
-        obj += quicksum(mu[d] * mu[d] for d in range(D)) * 0.5 * C3
-        obj += quicksum(Q[k] * delta[k] for k in range(N))
+        # obj = quicksum(V[u, d] * V[u, d] for u in range(U) for d in range(D)) * 0.5 * C1 / U
+        # obj += quicksum(W[k, d] * W[k, d] for k in range(N) for d in range(D)) * 0.5 * C2 / N
+        # obj += quicksum(mu[d] * mu[d] for d in range(D)) * 0.5 * C3
+        # obj += quicksum(Q[k] * delta[k] for k in range(N))
 
         # alterative approach: use QuadExpr.addTerms() and LinExpr.addTerms()
         # it could be more efficient but less readable
-        # qexpr = QuadExpr()
-        # lexpr = LinExpr()
-        # coefU = np.ones(U * D) * 0.5 * C1 / U
-        # varsU = [V[u, d] for u in range(U) for d in range(D)]
-        # qexpr.addTerms(coefU, varsU, varsU)
-        # coefW = np.ones(N * D) * 0.5 * C2 / N
-        # varsW = [W[k, d] for k in range(N) for d in range(D)]
-        # qexpr.addTerms(coefW, varsW, varsW)
-        # coefmu = np.ones(D) * 0.5 * C3
-        # varsmu = [mu[d] for d in range(D)]
-        # qexpr.addTerms(coefmu, varsmu, varsmu)
-        # lexpr.addTerms(Q, [delta[k] for k in range(N)])
-        # obj = qexpr + lexpr
+        qexpr = QuadExpr()
+        lexpr = LinExpr()
+        coefV = np.ones(U * D) * 0.5 * C1 / U
+        coefW = np.ones(N * D) * 0.5 * C2 / N
+        coefmu = np.ones(D) * 0.5 * C3
+        varsV = [V[u, d] for u in range(U) for d in range(D)]
+        varsW = [W[k, d] for k in range(N) for d in range(D)]
+        varsmu = [mu[d] for d in range(D)]
+        qexpr.addTerms(coefV, varsV, varsV)
+        qexpr.addTerms(coefW, varsW, varsW)
+        qexpr.addTerms(coefmu, varsmu, varsmu)
+        lexpr.addTerms(Q, [delta[k] for k in range(N)])
+        obj = qexpr + lexpr
 
         qp.setObjective(obj, GRB.MINIMIZE)
 
@@ -137,8 +139,16 @@ class MTR(object):
             u = self.pl2u[k]
             y = self.Y[:, k].A.reshape(-1)
             vec = y.dot(self.X)
-            qp.addConstr(Mplus[k] * (1 + xi[k]) - delta[k]
-                         - quicksum((V[u, d] + W[k, d] + mu[d]) * vec[d] for d in range(D)) <= 0)
+
+            # qp.addConstr(Mplus[k] * (1 + xi[k]) - delta[k]
+            #              - quicksum((V[u, d] + W[k, d] + mu[d]) * vec[d] for d in range(D)) <= 0)
+
+            expr = LinExpr()
+            expr.addTerms(vec, [V[u, d] for d in range(D)])
+            expr.addTerms(vec, [W[k, d] for d in range(D)])
+            expr.addTerms(vec, [mu[d] for d in range(D)])
+            qp.addConstr(Mplus[k] + Mplus[k] * xi[k] - delta[k] - expr <= 0)
+
         self.grb_qp = qp
         self.grb_obj = obj
         self.grb_V = V
@@ -175,6 +185,8 @@ class MTR(object):
         grb_qp, grb_V, grb_W, grb_mu, grb_xi = self.grb_qp, self.grb_V, self.grb_W, self.grb_mu, self.grb_xi
 
         self.mu[:] = [grb_mu[d].x for d in range(D)]
+        # self.V[:] = np.asarray([grb_V[u, d].x for u in range(U) for d in range(D)]).reshape(U, D)
+        # self.W[:] = np.asarray([grb_W[k, d].x for k in range(N) for d in range(D)]).reshape(N, D)  # no savings
         for u in range(U):
             self.V[u, :] = [grb_V[u, d].x for d in range(D)]
         for k in range(N):
@@ -193,22 +205,45 @@ class MTR(object):
             Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
             T1 = np.dot(self.X, Wt.T)
             T1[Yu.row, Yu.col] = -np.inf  # mask entry (m,i) if y_m^i = 1
-            max_ix = T1.argmax(axis=0)
-            assert max_ix.shape[0] == len(clq)
+            # max_ix = T1.argmax(axis=0)
+            # assert max_ix.shape[0] == len(clq)
+            assert T1.shape[1] == len(clq)
             for j in range(len(clq)):
                 k = clq[j]
-                n = max_ix[j]
-                # if xi[k] < T1[n, j] or (xi[k] == T1[n, j] == 0):
-                if xi[k] + self.tol < T1[n, j]:
+                # n = max_ix[j]
+                indices = np.where(T1[:, j] > xi[k])[0]
+                if len(indices) > 0:
                     all_satisfied = False
+                    coef = self.X[indices, :].mean(axis=0)
+
+                # if xi[k] < T1[n, j] or (xi[k] == T1[n, j] == 0):
+                # if xi[k] + self.tol < T1[n, j]:
                     # feasibility cut at query point q for constraint f(z) <= 0:
                     # f(q) + f'(q)^T (z - q) <= 0
-                    grb_qp.addConstr(
-                        quicksum(T1[n, j] - xi[k]
-                                 + (grb_V[u, d] - V[u, d] + grb_W[k, d] - W[k, d] + grb_mu[d] - mu[d]) * self.X[n, d]
-                                 - (grb_xi[k] - xi[k]) for d in range(D)) <= 0, name='ckn_%d_%d' % (k, n))
-                    self.constraints_dict[k].add(n)
-                    self.inactive_cnts[(k, n)] = 0
+                    # grb_qp.addConstr(
+                    #    quicksum(T1[n, j] - xi[k]
+                    #             + (grb_V[u, d] - V[u, d] + grb_W[k, d] - W[k, d] + grb_mu[d] - mu[d]) * self.X[n, d]
+                    #             - (grb_xi[k] - xi[k]) for d in range(D)) <= 0, name='ckn_%d_%d' % (k, n))
+
+                    # grb_qp.addConstr(quicksum((grb_V[u, d] + grb_W[k, d] + grb_mu[d])*self.X[n, d] for d in range(D))
+                    #                  - D * grb_xi[k] + (D - 1) * T1[n, j] <= 0)
+
+                    # coef = [self.X[n, d] for d in range(D)]
+                    varV = [grb_V[u, d] for d in range(D)]
+                    varW = [grb_W[k, d] for d in range(D)]
+                    varmu = [grb_mu[d] for d in range(D)]
+                    expr = LinExpr()
+                    expr.addTerms(coef, varV)
+                    expr.addTerms(coef, varW)
+                    expr.addTerms(coef, varmu)
+                    # grb_qp.addConstr(expr - D * grb_xi[k] + (D - 1) * T1[n, j] <= 0)
+                    grb_qp.addConstr(expr - grb_xi[k] <= 0)
+                    self.num_cons += 1
+
+                    # grb_qp.addConstr(quicksum((grb_V[u, d] + grb_W[k, d] + grb_mu[d])*self.X[n, d] for d in range(D))
+                    #                  - grb_xi[k] <= 0)
+
+                    # self.constraints_dict[k].add(n)
 
         self.all_constraints_satisfied = all_satisfied
 
