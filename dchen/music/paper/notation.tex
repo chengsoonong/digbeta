@@ -11,24 +11,20 @@ We introduce notations in Table~\ref{tab:symbol_tpush}.
 \toprule
 \multicolumn{3}{l}{\textbf{Symbol}} & \textbf{Quantity} \\ \midrule
 $D$        &  $\in$  &  $\Z^+$            & The number of features for each song \\
-$M$        &  $\in$  &  $\Z^+$            & The number of songs \\
-$N$        &  $\in$  &  $\Z^+$            & The number of playlists \\
-$U$        &  $\in$  &  $\Z^+$            & The number of users \\
-$u(i)$     &  $\in$  &  $\Z^+$            & The user that owns playlist $i$ \\
-%$\I_M$     &  $\in$  &  $\R^{M \times M}$ & The $M$-by-$M$ identity matrix \\
-$\X$       &  $\in$  &  $\R^{M \times D}$ & The matrix of features of all songs \\
-$\Phibm_u$ &  $\in$  &  $\R^{M \times (D + U -1)}$ & The matrix of features of all songs with users' (except $u$) labels \\
+$M$        &  $\in$  &  $\Z^+$            & The number of songs, indexed by $m, n \in \{1,\dots,M\}$ \\
+$N$        &  $\in$  &  $\Z^+$            & The number of playlists, indexed by $k \in \{1,\dots,N\}$ \\
+$U$        &  $\in$  &  $\Z^+$            & The number of users, indexed by $i \in \{1,\dots,U\}$ \\
+$\bu_i$    &  $\in$  &  $\R^D$            & The weights of user $i$ \\
+$\bv_k$    &  $\in$  &  $\R^D$            & The weights of playlist $k$ \\
+$\mubm$    &  $\in$  &  $\R^D$            & The weights shared by all playlists \\
+$\w_{i,k}$ &  $\in$  &  $\R^D$            & The combined weights for user $i$ and playlist $k$, $\w_{i,k} = \bu_i + \bv_k + \mubm$ \\
+$\bu_{i(k)}$  &  $\in$  &  $\R^D$         & The weights of user that owns playlist $k$ \\
 $\Y$       &  $\in$  &  $\R^{M \times N}$ & The matrix of binary labels that indicating if a song is in a playlist \\
-%$\Z$       &  $\in$  &  $\R^{M \times D}$ & The left inverse of matrix $\X^\top$ such that $\Z \X^\top = \I_M$ \\
-$\zero_N$  &  $\in$  &  $\R^N$            & The $N$ dimensional vector of $0$'s \\
-$\one_M$   &  $\in$  &  $\R^M$            & The $M$ dimensional vector of $1$'s \\
-$\V$       &  $\in$  &  $\R^{U \times D}$ & The matrix of user weights \\
-$\W$       &  $\in$  &  $\R^{N \times D}$ & The matrix of playlist weights \\
-$\mubm$    &  $\in$  &  $\R^D$            & The vector of bias weights \\
-$\alphabm$ &  $\in$  &  $\R^{N \times M}$ & The matrix of dual variables (corresponding to $y_m^i=1$) \\
-$\betabm$  &  $\in$  &  $\R^{N \times M}$ & The matrix of dual variables (corresponding to $y_n^i=0$) \\
-$\Thetabm$ &  $\in$  &  $\R^{N \times M}$ & The matrix of dual variables (combines $\alphabm$ and $\betabm$) \\
-%$\Lambdabm$&  $\in$  &  $\R^{N \times D}$ & The matrix that denotes $\Thetabm \X$ \\
+$y_m^k$    &  $\in$  &  $\R^D$            & The positive binary label $y_m^k = 1$, \ie song $m$ in playlist $k$ \\
+$y_n^k$    &  $\in$  &  $\R^D$            & The negative binary label $y_n^k = 0$, \ie song $n$ not in playlist $k$ \\
+$\X$       &  $\in$  &  $\R^{M \times D}$ & The matrix of features of all songs \\
+$\x_m$     &  $\in$  &  $\R^D$            & The feature vector of song $m$ \\
+$\x_n$     &  $\in$  &  $\R^D$            & The feature vector of song $n$ \\
 \bottomrule
 \end{tabular}
 \end{table}
