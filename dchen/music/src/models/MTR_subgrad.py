@@ -157,6 +157,7 @@ class MTR(object):
         self.trained = False
 
     def _init_vars(self):
+        np.random.seed(0)
         w0 = 0.001 * np.random.randn((self.U + self.N + 1) * self.D)
         return w0
 
@@ -185,6 +186,7 @@ class MTR(object):
             # LBFGS().minimize(f, x0, progress=progress, args=args)
             optim = LBFGS()
             optim.linesearch = 'wolfe'
+            optim.max_linesearch = 100
             param_dict = {'N': self.N, 'C': (self.C1, self.C2, self.C3)}
             res = optim.minimize(objective, w0, progress,
                                  args=(self.X, self.cliques, self.data_helper, param_dict, verbose, fnpy))
