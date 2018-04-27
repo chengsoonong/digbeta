@@ -1,8 +1,8 @@
 import sys
 import time
 import numpy as np
-from scipy.sparse import isspmatrix_csc, csc_matrix
-from osqp import OSQP
+from scipy.sparse import isspmatrix_csc, coo_matrix
+import cvxopt
 
 
 class DataHelper:
@@ -104,24 +104,26 @@ class QPMTR(object):
         ix_W = np.arange((U + 1) * D, (U + 1 + N) * D)
         rows.append(ix_W)
         cols.append(ix_W)
-        # csc_matrix((data, (row_ind, col_ind)), [shape=(M, N)])
-        P = csc_matrix((np.concatenate(values, axis=-1),
-                        (np.concatenate(rows, axis=-1), np.concatenate(cols, axis=-1))),
-                       shape=(self.num_vars, self.num_vars))
+        P = cvxopt.spmatrix(np.concatenate(values, axis=-1),
+                            np.concatenate(rows, axis=-1),
+                            np.concatenate(cols, axis=-1),
+                            size=(self.num_vars, self.num_vars))
         return P
 
     def _create_q(self):
         N = self.N
-        q = np.zeros(self.num_vars)  # should be dense matrix
+        q = cvxopt.matrix(0., size=(self.num_vars, 1))  # should be dense matrix
         q[-N:] = 1. / N
         return q
 
-    def _create_Alb(self):
+    def _create_Gh(self):
         N, D, U = self.N, self.D, self.U
         Ys, Minus = self.data_helper.get_data()
         pl2u = self.pl2u
-        rows, cols, A = [], [], []
+        rows, cols, G = [], [], []
         ix = 0
+        print('---- stage 1 --------------')
+        sys.stdout.flush()
         for k in range(N):
             # constraint: \delta_k >= 1 - \xi_k + \sum_{n: y_n^k=0} f(u(k), k, n) / M_-^k
             # which is equivalent to
@@ -129,8 +131,8 @@ class QPMTR(object):
             #
             u = pl2u[k]
             ny = 1 - self.Y[:, k].A.reshape(-1)
-            vec = -ny.dot(self.X) / Minus[k]
-            A += [vec, vec, vec, [1., 1.]]
+            vec = ny.dot(self.X) / Minus[k]
+            G += [vec, vec, vec, [-1., -1.]]
             rows.append(np.full(3 * D + 2, ix, dtype=np.int32))
             cols.append(np.arange(D))
             cols.append(np.arange((u + 1) * D, (u + 2) * D))
@@ -139,8 +141,10 @@ class QPMTR(object):
             cols.append([(U + N + 1) * D + N + k])
             ix += 1
 
+        print('---- stage 2 --------------')
+        sys.stdout.flush()
         # constraint: \delta_k >= 0
-        A.append(np.full(N, 1., dtype=np.float))
+        G.append(np.full(N, -1., dtype=np.float))
         rows.append(np.arange(ix, ix + N))
         cols.append(np.arange(self.num_vars - N, self.num_vars))
         ix += N
@@ -153,22 +157,25 @@ class QPMTR(object):
         #     u = self.pl2u[k]
         #     for m in range(self.M):
         #         if self.Y[m, k] == 1:
-        #             vec = self.X[m, :]
-        #             A += [vec, vec, vec, [-1.]]
+        #             vec = -self.X[m, :]
+        #             G += [vec, vec, vec, [1.]]
         #             rows.append(np.full(3 * D + 1, ix, dtype=np.int32))
         #             cols.append(np.arange(D))
         #             cols.append(np.arange((u + 1) * D, (u + 2) * D))
         #             cols.append(np.arange((U + 1 + k) * D, (U + 2 + k) * D))
         #             cols.append([(U + N + 1) * D + k])
         #             ix += 1
-
+        print('---- stage 3 --------------')
+        sys.stdout.flush()
         Ycoo = self.Y.tocoo(copy=False)
+        print('---- stage 4 --------------')
+        sys.stdout.flush()
         m_ix = Ycoo.row
         k_ix = Ycoo.col
-        mat = self.X[m_ix, :]
+        mat = -self.X[m_ix, :]
         npos = mat.shape[0]
-        coef = np.hstack([np.tile(mat, (1, 3)), -1. * np.ones((npos, 1))]).ravel()
-        A.append(coef)
+        coef = np.hstack([np.tile(mat, (1, 3)), np.ones((npos, 1))]).ravel()
+        G.append(coef)
         rowix_p0 = np.arange(ix, ix + npos, dtype=np.int32).reshape(npos, 1)
         rowix = np.tile(rowix_p0, (1, 3 * D + 1)).ravel()
         rows.append(rowix)
@@ -181,19 +188,27 @@ class QPMTR(object):
         assert coef.shape == rowix.shape == colix.shape
         ix += npos
 
+        print('---- stage 5 --------------')
+        sys.stdout.flush()
         assert ix == self.num_cons
-        A = csc_matrix((np.concatenate(A, axis=-1),
-                        (np.concatenate(rows, axis=-1), np.concatenate(cols, axis=-1))),
-                       shape=(self.num_cons, self.num_vars))
-        lb = np.zeros(self.num_cons)
-        lb[:N] = 1.
-        return A, lb
+        # coo_matrix((data, (row, col)), shape=())
+        Gcoo = coo_matrix((np.concatenate(G, axis=-1),
+                           (np.concatenate(rows, axis=-1), np.concatenate(cols, axis=-1))),
+                          shape=(self.num_cons, self.num_vars))
+        print('---- stage 6 --------------')
+        G = cvxopt.spmatrix(Gcoo.data, Gcoo.row.tolist(), Gcoo.col.tolist(), size=Gcoo.shape)
+        # np.concatenate(rows, axis=-1),
+        # np.concatenate(cols, axis=-1),
+        # size=(self.num_cons, self.num_vars))
+        h = cvxopt.matrix(0., size=(self.num_cons, 1))  # should be dense matrix
+        h[:N] = -1.
+        return G, h
 
     def fit(self, w0=None, verbose=0):
         N, U, D = self.N, self.U, self.D
         if verbose > 0:
             t0 = time.time()
-            print('\nC: {:g}, {:g}, {:g}'.format(self.C1, self.C2, self.C3))
+            print('\nC: %g, %g, %g' % (self.C1, self.C2, self.C3))
 
         if verbose > 0:
             sys.stdout.write('Creating P ... ')
@@ -203,7 +218,7 @@ class QPMTR(object):
 
         if verbose > 0:
             t1 = time.time()
-            print('{:,} by {:,} sparse matrix created in {:.1f} seconds.'.format(P.shape[0], P.shape[1], t1 - t0))
+            print('%d by %d sparse matrix created in %.1f seconds.' % (P.size[0], P.size[1], t1 - t0))
 
         if verbose > 0:
             sys.stdout.write('Creating q ... ')
@@ -213,33 +228,35 @@ class QPMTR(object):
 
         if verbose > 0:
             t2 = time.time()
-            print('{:,} dense vector created in {:.1f} seconds.'.format(q.shape[0], t2 - t1))
+            print('%d dense vector created in %.1f seconds.' % (q.size[0], t2 - t1))
 
         if verbose > 0:
-            sys.stdout.write('Creating A, lb ... ')
+            sys.stdout.write('Creating G, h ... ')
             sys.stdout.flush()
 
-        A, lb = self._create_Alb()
+        G, h = self._create_Gh()
 
         if verbose > 0:
             t3 = time.time()
-            print('{:,} by {:,} sparse matrix, {:,} dense vector created in {:.1f} seconds.'.format(
-                  A.shape[0], A.shape[1], lb.shape[0], t3 - t2))
+            print('%d by %d sparse matrix, %d dense vector created in %.1f seconds.' %
+                  (G.size[0], G.size[1], h.size[0], t3 - t2))
 
         w0 = self._init_vars()
         assert w0.shape == (self.num_vars,)
 
         if verbose > 0:
-            sys.stdout.write('Solving QP: {:,} variables, {:,} constraints ...\n'.format(self.num_vars, self.num_cons))
+            sys.stdout.write('Solving QP: %d variables, %d constraints ...\n' % (self.num_vars, self.num_cons))
             sys.stdout.flush()
 
-        # solve using OSQP
-        qp = OSQP()
-        # qp.setup(P, q, A, lb, linsys_solver='mkl pardiso', verbose=True if verbose > 0 else False)
-        qp.setup(P, q, A, lb, verbose=True if verbose > 0 else False)
-        results = qp.solve()
-        w = results.x
-        print('\n[OSQP] %s\n' % results.info.status)
+        cvxopt.solvers.options['show_progress'] = False
+        cvxopt.solvers.options['feastol'] = 1e-5
+        try:
+            solution = cvxopt.solvers.qp(P, q, G, h, initvals=self._init_vars())
+        except ValueError:
+            solution = {'status': 'error'}
+        if solution['status'] != "optimal":
+            raise ValueError('QP solver failed.')
+        w = np.ravel(solution['x'])
 
         self.mu = w[:D]
         self.V = w[D:(U + 1) * D].reshape(U, D)
@@ -249,7 +266,7 @@ class QPMTR(object):
         self.trained = True
 
         if verbose > 0:
-            print('Training finished in {:.1f} seconds.'.format(time.time() - t0))
+            print('Training finished in %.1f seconds' % (time.time() - t0))
 
     def predict(self, X_test):
         """
