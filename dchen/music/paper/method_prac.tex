@@ -38,7 +38,7 @@ To optimise the objective of multitask ranking, note that
 & R(\V, \W, \mu) + \RCal_\textsc{rank} \\
 &= \frac{\lambda_1}{2U} \sum_{u=1}^U \bv_u^\top \bv_u + \frac{\lambda_2}{2N} \sum_{i=1}^N \w_i^\top \w_i + \frac{\lambda_3}{2} \mubm^\top \mubm \\
 & \quad
-   + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} \sum_{m: y_m^i = 1} \ell \left( f(u(i), i, m) - \max_{n: y_n^i = 0} f(u(i), i, n) \right).
+   + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \sum_{n: y_n^i = 0} \ell \left( \min_{m: y_m^i = 0} f(u(i), i, m) - f_(u(i), i, n) \right).
 \end{aligned}
 \end{equation}
 
@@ -55,6 +55,7 @@ As described above, we prefer not to approximate it,
 which leaves us with techniques such as sub-gradient methods or 
 reformulating it as a constrained optimisation problem, which is the method of choice in this paper.
 
+\eat{
 \begin{equation}
 \label{eq:cvxopt}
 \begin{aligned}
@@ -65,7 +66,7 @@ reformulating it as a constrained optimisation problem, which is the method of c
 & \hspace{5em} \sum_{m: y_m^i = 1} \exp \left( - (\bv_{u(i)} + \w_i + \mubm)^\top \x_m \right).
 \end{aligned}
 \end{equation}
-
+}
 
 
 \subsubsection{Formulate a constrained optimisation problem}
@@ -75,48 +76,48 @@ we can reformulate problem~\ref{eq:unconsopt} as a constrained optimisation prob
 \label{eq:cvxopt}
 \begin{aligned}
 \min_{\V, \W, \mubm, \xibm} \ & R(\V, \W, \mubm)
-  + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_+^i} \sum_{m: y_m^i = 1} \ell \left( f(u(i), i, m) - \xi_i \right) \\
+  + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \sum_{n: y_n^i = 0} \ell \left( \xi_i - f(u(i), i, n) \right) \\
 s.t. \quad & 
-\xi_i \ge f(u(i), i, n), \\
-& i \in \{1,\dots,N\}, \, n \in \{1,\dots,M\} \ \mathrm{and} \ y_n^i = 0.
+\xi_i \le f(u(i), i, m), \\
+& i \in \{1,\dots,N\}, \, m \in \{1,\dots,M\} \ \mathrm{and} \ y_m^i = 1.
 \end{aligned}
 \end{equation}
 
 This is a convex optimisation problem with inequality constraints, 
 and the number of constraints is 
 $$
-\sum_{i=1}^N \sum_{n=1}^M \llb y_n^i = 0 \rrb = MN - \sum_{i=1}^N \sum_{m=1}^M \llb y_m^i = 1 \rrb.
+\sum_{i=1}^N \sum_{n=1}^M \llb y_m^i = 1 \rrb = MN - \sum_{i=1}^N \sum_{m=1}^M \llb y_n^i = 0 \rrb.
 $$
 
 Suppose we use the hinge loss $\ell(f, y) = \max \{ 0, \, 1 - fy \}$ as the convex surrogate of 0-1 loss, we have
 \begin{equation*}
-\ell \left( f(u(i), i, m) - \xi_i \right) = \max \left\{ 0, \, 1 - f( u(i), i, m) + \xi_i \right\}.
+\ell \left( \xi_i - f(u(i), i, n) \right) = \max \left\{ 0, \, 1 - \xi_i + f(u(i), i, n) \right\}.
 \end{equation*}
 
 Inspired by the one-slack formulation of structured Support Vector Machine~\cite{joachims2009cutting}, 
-we introduce another variable $\delta_{i,m}$ such that
+we introduce another variable $\delta_{i,n}$ such that
 \begin{equation*}
 \begin{aligned}
-\delta_{i,m} & \ge 0, \\
-\delta_{i,m} & \ge 1 - f( u(i), i, m) + \xi_i, 
+\delta_{i,n} & \ge 0, \\
+\delta_{i,n} & \ge 1 - \xi_i + f(u(i), i, n),
 \end{aligned}
 \end{equation*}
 as a result,
 \begin{equation*}
-\ell \left( f(u(i), i, m) - \xi_i \right) = \delta_{i,m},
+\ell \left( \xi_i - f(u(i), i, n) \right) = \delta_{i,n},
 \end{equation*}
 we further let
 \begin{equation*}
-\delta_i = \sum_{m: y_m^i = 1} \delta_{i,m} = \sum_{m: y_m^i = 1} \ell \left( f(u(i), i, m) - \xi_i \right),
+\delta_i = \frac{1}{M_-^i} \sum_{n: y_n^i = 0} \delta_{i,n} = \frac{1}{M_-^i} \sum_{n: y_n^i = 0} \ell \left( \xi_i - f(u(i), i, n) \right),
 \end{equation*}
 then we can reformulate convex optimisation problem~\ref{eq:cvxopt} into a quadratic program,
 \begin{equation}
 \label{eq:qp}
 \begin{aligned}
-\min_{\V, \W, \mubm, \xibm, \deltabm} \ & R(\V, \W, \mubm) + \frac{1}{N} \sum_{i=1}^N \frac{\delta_i}{M_+^i} \\
+\min_{\V, \W, \mubm, \xibm, \deltabm} \ & R(\V, \W, \mubm) + \frac{1}{N} \sum_{i=1}^N \delta_i \\
 s.t. \quad 
-& \xi_i \ge f(u(i), i, n), \\
-& \delta_i \ge \sum_{m: y_m^i = 1} \left( 1 - f( u(i), i, m) + \xi_i \right), \ \delta_i \ge 0 \\
+& \xi_i \le f(u(i), i, m), \\
+& \delta_i \ge 1 - \xi_i + \frac{1}{M_-^i} \sum_{n: y_n^i = 0} f(u(i), i, n), \ \delta_i \ge 0 \\
 & i \in \{1,\dots,N\}, \\
 & m, n \in \{1,\dots,M\} \ \mathrm{and} \ \y_m^i = 1, \,  y_n^i = 0. 
 \end{aligned}
@@ -124,13 +125,13 @@ s.t. \quad
 
 The number of variables in problem~\ref{eq:qp} is $(U + N + 1) D + 2N$ and the number of constraints is
 $$
-\sum_{i=1}^N \sum_{n=1}^M \llb y_n^i = 0 \rrb + N = MN - \sum_{i=1}^N \sum_{m=1}^M \llb y_m^i = 1 \rrb + N,
+\sum_{i=1}^N \sum_{n=1}^M \llb y_m^i = 1 \rrb + N.
 $$
 %
-this can be a large number (\eg about 700 millions even for the smaller dataset in our experiment (Section~\ref{sec:experiment})),
+this can be a large number (\eg about 271k even for the smaller dataset in our experiment (Section~\ref{sec:experiment})),
 given that the number of songs in each playlist is very small compared with the total number of songs $M$ in music collection,
-asymptotically, it is of order $O(MN)$ which can be very big for a system with a large number of songs and playlists,
-and this is generally true for production systems deployed by music streaming service providers.
+%asymptotically, it is of order $O(MN)$ which can be very big for a system with a large number of songs and playlists,
+%and this is generally true for production systems deployed by music streaming service providers.
 
 
 \subsubsection{Cutting-plane optimisation}
@@ -140,17 +141,7 @@ To address this issue, we propose to use a cutting plane method which starts by 
 optimise the above objective using an off-the-shelf QP solver,
 then search new constraints using the following greedy strategy,
 \begin{equation*}
-\widetilde n_i = \argmax_{n: y_i^n=0} f(u(i), i, n),
+\widetilde m_i = \argmin_{m: y_i^m = 1} f(u(i), i, m),
 \end{equation*}
-if example $x_n$ violated constraint
-\begin{equation*}
-g(\z) = f(u(i), i, \widetilde n_i) - \xi_i \le 0,
-\end{equation*}
-we form a \emph{feasibility cut} at query point $\q$ (\ie the current solution of problem~\ref{eq:qp})
-$$
-g(\q) + \nabla g(\q)^\top (\z - \q) \le 0,
-$$
-and add this constraint to form a new QP with the same objective,
+and add this constraint $\xi_i \le f(u(i), i, \widetilde m_i)$ to form a new QP with the same objective,
 we then solve this new QP, and keep doing this until a solution that does not violate any constraints has been found.
-
-{\it the key here is the feasibility cut, simply adding the violated constraints will not work for large problems.}
