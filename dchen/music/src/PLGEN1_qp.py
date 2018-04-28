@@ -34,7 +34,6 @@ fcliques_all = os.path.join(data_dir, 'cliques_all.pkl.gz')
 fprefix = 'trndev-plgen1-qp-%g-%g-%g' % (C1, C2, C3)
 
 fmodel = os.path.join(data_dir, '%s.pkl.gz' % fprefix)
-fnpy = os.path.join(data_dir, '%s.npy' % fprefix)
 
 X = pkl.load(gzip.open(fx, 'rb'))
 Y_train = pkl.load(gzip.open(fytrain, 'rb'))
