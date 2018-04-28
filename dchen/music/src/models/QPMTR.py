@@ -182,9 +182,19 @@ class QPMTR(object):
         ix += npos
 
         assert ix == self.num_cons
-        A = csc_matrix((np.concatenate(A, axis=-1),
-                        (np.concatenate(rows, axis=-1), np.concatenate(cols, axis=-1))),
-                       shape=(self.num_cons, self.num_vars))
+        # A = csc_matrix((np.concatenate(A, axis=-1),
+        #                (np.concatenate(rows, axis=-1), np.concatenate(cols, axis=-1))),
+        #               shape=(self.num_cons, self.num_vars))
+        data = np.concatenate(A, axis=-1)
+        del A
+        rowix = np.concatenate(rows, axis=-1)
+        del rows
+        colix = np.concatenate(cols, axis=-1)
+        del cols
+        A = csc_matrix((data, (rowix, colix)), shape=(self.num_cons, self.num_vars))
+        del data
+        del rowix
+        del colix
         lb = np.zeros(self.num_cons)
         lb[:N] = 1.
         return A, lb
