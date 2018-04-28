@@ -236,6 +236,7 @@ class QPMTR(object):
         # solve using OSQP
         qp = OSQP()
         # qp.setup(P, q, A, lb, linsys_solver='mkl pardiso', verbose=True if verbose > 0 else False)
+        # qp.setup(P, q, A, lb, eps_prim_inf=1e-6, eps_dual_inf=1e-6, verbose=True if verbose > 0 else False)
         qp.setup(P, q, A, lb, verbose=True if verbose > 0 else False)
         results = qp.solve()
         w = results.x
@@ -245,7 +246,7 @@ class QPMTR(object):
         self.V = w[D:(U + 1) * D].reshape(U, D)
         self.W = w[(U + 1) * D:(U + N + 1) * D].reshape(N, D)
         # self.xi = w[(U + N + 1) * D:(U + N + 1) * D + N]
-        # self.di = w[self.num_vars - N:self.num_vars]
+        # self.delta = w[-N:]
         self.trained = True
 
         if verbose > 0:
