@@ -36,6 +36,7 @@ fprefix = 'trndev-plgen1-qp-%g-%g-%g' % (C1, C2, C3)
 fmodel = os.path.join(data_dir, '%s.pkl.gz' % fprefix)
 
 X = pkl.load(gzip.open(fx, 'rb'))
+X = np.hstack([np.ones((X.shape[0], 1)), X])
 Y_train = pkl.load(gzip.open(fytrain, 'rb'))
 Y_test = pkl.load(gzip.open(fytest, 'rb'))
 cliques_train = pkl.load(gzip.open(fcliques_train, 'rb'))
