@@ -26,19 +26,16 @@ As a remark, columns represent playlists in test set contain only \texttt{1} and
 
 \paragraph{Song scoring}
 
-The score of song $m$ in playlist $i$ from user $u$ is a linear form,
+The score of song $m$ in playlist $i$ is a linear form,
 \begin{equation*}
 \begin{aligned}
-f(u, i, m) &= \bar\w_{u,i}^\top \x_m,
+f(i, m) &= (\w_i + \bu_j + \bar\bu)^\top \x_m,
 \end{aligned}
 \end{equation*}
-where $\x_m$ is a feature vector of song $m$ which contains audio features, song genre, and 
-\begin{equation*}
-\bar\w_{u,i} = \bv_u + \w_i + \mubm,
-\end{equation*}
-where $\bv_u$ is a weight vector specific to user $u$,
-$\w_i$ is a weight vector specific to playlist $i$,
-and $\mubm$ is a weight vector shared by all users.
+where $\w_i$ is a weight vector specific to playlist $i$,
+$\bu_j$ is a weight vector specific to user $j$ that owns playlist $i$,
+$\mubm$ is a weight vector shared by all users,
+and $\x_m$ is a feature vector of song $m$ which contains audio features, song genre, artist features etc.
 
 Further, when recommending songs for user $u$, we can also utilise song popularity as well as the listening events of all other users as features,
 if these are available at test time (\eg playlist augmentation), \ie
