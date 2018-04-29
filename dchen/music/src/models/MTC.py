@@ -7,7 +7,7 @@ from lbfgs import LBFGS, LBFGSError  # pip install pylbfgs
 
 def risk_per_user(mu, v, Wu, X, Yu, Pu, Qu, p, N):
     """
-        Empirical risk of p-classification loss for multilabel classification
+        Empirical risk of bottom version of p-classification loss
 
         Input:
             - W: current weight matrix, N by D
@@ -34,16 +34,16 @@ def risk_per_user(mu, v, Wu, X, Yu, Pu, Qu, p, N):
     T1p[Yu.row, Yu.col] = T1[Yu.row, Yu.col]
     T1n = T1 - T1p
 
-    T2p = np.exp(-T1p)
+    T2p = np.exp(-p * T1p)
     T2 = np.zeros(T1.shape)
     T2[Yu.row, Yu.col] = T2p[Yu.row, Yu.col]
     T2 *= Pu
 
-    T3 = np.exp(p * T1n)
+    T3 = np.exp(T1n)
     T3[Yu.row, Yu.col] = 0
     T3 *= Qu
 
-    risk = np.sum(T2 + T3 / p) / N
+    risk = np.sum(T2 / p + T3) / N
     T4 = T3 - T2
     T5 = np.dot(T4.T, X) / N
     dW = T5
@@ -106,19 +106,18 @@ def objective(w, dw, X, Y, C1, C2, C3, p, cliques, data_helper, verbose=0, fnpy=
     assert U == len(Ys) == len(Ps) == len(Qs)
 
     dV = V * C1 / U
-    dW = W * C2 / N
+    dW = np.zeros(W.shape)
     dmu = C3 * mu
     J = mu.dot(mu) * 0.5 * C3
     for u in range(U):
         clq = cliques[u]
         v = V[u, :]
         J += v.dot(v) * 0.5 * C1 / U
-        J += np.sum([np.dot(W[k, :], W[k, :]) for k in clq]) * 0.5 * C2 / N
         res = risk_per_user(mu, v, W[clq, :], X, Ys[u], Ps[u], Qs[u], p, N)
         J += res[0]
         dmu += res[1]
         dV[u, :] += res[2]
-        dW[clq, :] += res[3]
+        dW[clq, :] = res[3]
 
     dw[:] = np.r_[dmu.ravel(), dV.ravel(), dW.ravel()]  # in-place assignment
 
@@ -206,6 +205,9 @@ class MTC():
             # LBFGS().minimize(f, x0, progress=progress, args=args)
             optim = LBFGS()
             optim.linesearch = 'wolfe'
+            optim.orthantwise_c = self.C2 / N
+            optim.orthantwise_start = (U + 1) * D  # start index to compute L1 regularisation (included)
+            optim.orthantwise_end = w0.shape[0]    # end   index to compute L1 regularisation (not included)
             res = optim.minimize(objective, w0, progress,
                                  args=(self.X, self.Y, self.C1, self.C2, self.C3, self.p, self.cliques,
                                        self.data_helper, verbose, fnpy))
@@ -220,15 +222,3 @@ class MTC():
 
         if verbose > 0:
             print('Training finished in %.1f seconds' % (time.time() - t0))
-
-    def predict(self, X_test):
-        """Make predictions (score is a real number)"""
-        assert self.trained is True, 'Cannot make prediction before training'
-        U, D = self.U, self.D
-        assert D == X_test.shape[1]
-        preds = []
-        for u in range(U):
-            clq = self.cliques[u]
-            Wt = self.W[clq, :] + (self.V[u, :] + self.mu).reshape(1, D)
-            preds.append(np.dot(X_test, Wt.T))
-        return np.hstack(preds)

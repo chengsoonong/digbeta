@@ -1,12 +1,7 @@
-import sys
 import time
-import gzip
 import numpy as np
-import pickle as pkl
-from scipy.sparse import isspmatrix_csc
-from gurobipy import quicksum, Model, GRB
-from gurobipy import QuadExpr, LinExpr
-# from joblib import Parallel, delayed
+from scipy.sparse import isspmatrix_csc, coo_matrix
+import cyipopt
 
 
 class DataHelper:
@@ -23,28 +18,30 @@ class DataHelper:
         U = len(cliques)
         self.init = False
         self.Ys = []
-        self.Mplus = Y.sum(axis=0).A.reshape(-1)
-        self.Q = 1. / (N * self.Mplus)
+        self.Pindices = [list() for k in range(N)]
+        Minus = M - Y.sum(axis=0).A.reshape(-1)
+        self.Q = 1. / (N * Minus)
         for u in range(U):
             clq = cliques[u]
             Yu = Y[:, clq]
             self.Ys.append(Yu.tocoo())
+            for k in clq:
+                y = Y[:, k].A.reshape(-1)
+                self.Pindices[k][:] = np.where(y > 0)[0]
         self.init = True
 
     def get_data(self):
         assert self.init is True
-        return self.Ys, self.Q, self.Mplus
+        return self.Ys, self.Q, self.Pindices
 
 
 class MTR(object):
-    def __init__(self, X_train, Y_train, C1, C2, C3, cliques, verbose=0):
-        if not isspmatrix_csc(Y_train):
-            raise ValueError('ERROR: %s\n' % 'Y_train should be a parse csc_matrix.')
-        if not np.all(np.array([C1, C2, C3]) > 0):
-            raise ValueError('ERROR: %s\n' % 'Regularisation parameters should be positive.')
-        if X_train.shape[0] != Y_train.shape[0]:
-            raise ValueError('X_train.shape[0] != Y_train.shape[0]')
-
+    def __init__(self, X_train, Y_train, C1, C2, C3, cliques):
+        assert C1 > 0
+        assert C2 > 0
+        assert C3 > 0
+        assert X_train.shape[0] == Y_train.shape[0]
+        assert isspmatrix_csc(Y_train)
         self.X = X_train
         self.Y = Y_train
         self.C1 = C1
@@ -54,271 +51,366 @@ class MTR(object):
         self.M, self.D = self.X.shape
         self.N = self.Y.shape[1]
         self.U = len(self.cliques)
-        self.pl2u = np.zeros(self.N, dtype=np.int32)
-        for u in range(self.U):
-            clq = self.cliques[u]
-            self.pl2u[clq] = u
-
-        self.num_vars = (self.U + self.N + 1) * self.D + self.N
         self.data_helper = DataHelper(self.Y, self.cliques)
-
-        # self.constraints_dict:
-        # - a dictionary of N sets
-        # - if `n` \in self.constraints_dict[k], it means `x_n` violates constraint `xi_k >= f(u(k), k, n)`
-        # - it will be modified by _update_constraints() and _prune_constraints()
-        self.constraints_dict = {k: set() for k in range(self.N)}
-        self.tol = 1e-6
-        self.num_cons = 0
-
-        self.mu = np.zeros(self.D)
-        self.V = np.zeros((self.U, self.D))
-        self.W = np.zeros((self.N, self.D))
-        self.xi = np.zeros(self.N)
-        self.delta = np.zeros(self.N)
-
-        self._create_model()
-        self.all_constraints_satisfied = False
         self.trained = False
 
-    def _get_num_vars(self):
-        # return self.grb_qp.numVars
-        return self.num_vars
+    def _init_vars(self):
+        N, U, D = self.N, self.U, self.D
+        w0 = np.zeros((U + N + 1) * D + N)
+        # w0 = 1e-3 * np.random.randn((U + N + 1) * D + N)
+        return w0
 
-    def _get_num_constraints(self):
-        # return self.grb_qp.numConstrs  # could be incorrect due to gurobi lazy evaluation
-        # return self.N + np.sum([len(v) for k, v in self.constraints_dict.items()])
-        return self.N + self.num_cons
-
-    def _create_model(self):
-        """
-            Create a QP model.
-        """
-        N, U, D, C1, C2, C3 = self.N, self.U, self.D, self.C1, self.C2, self.C3
-        _, Q, Mplus = self.data_helper.get_data()
-        assert Q.shape == Mplus.shape == (N,)
-
-        # create model
-        qp = Model()
-
-        # create variables
-        V = qp.addVars(U, D, name='V')
-        W = qp.addVars(N, D, name='W')
-        mu = qp.addVars(D, name='mu')
-        xi = qp.addVars(N, name='xi')
-        delta = qp.addVars(N, lb=0, name='delta')
-
-        # create objective
-        # obj = quicksum(V[u, d] * V[u, d] for u in range(U) for d in range(D)) * 0.5 * C1 / U
-        # obj += quicksum(W[k, d] * W[k, d] for k in range(N) for d in range(D)) * 0.5 * C2 / N
-        # obj += quicksum(mu[d] * mu[d] for d in range(D)) * 0.5 * C3
-        # obj += quicksum(Q[k] * delta[k] for k in range(N))
-
-        # alterative approach: use QuadExpr.addTerms() and LinExpr.addTerms()
-        # it could be more efficient but less readable
-        qexpr = QuadExpr()
-        lexpr = LinExpr()
-        coefV = np.ones(U * D) * 0.5 * C1 / U
-        coefW = np.ones(N * D) * 0.5 * C2 / N
-        coefmu = np.ones(D) * 0.5 * C3
-        varsV = [V[u, d] for u in range(U) for d in range(D)]
-        varsW = [W[k, d] for k in range(N) for d in range(D)]
-        varsmu = [mu[d] for d in range(D)]
-        qexpr.addTerms(coefV, varsV, varsV)
-        qexpr.addTerms(coefW, varsW, varsW)
-        qexpr.addTerms(coefmu, varsmu, varsmu)
-        lexpr.addTerms(Q, [delta[k] for k in range(N)])
-        obj = qexpr + lexpr
-
-        qp.setObjective(obj, GRB.MINIMIZE)
-
-        # create constraints
-        for k in range(N):
-            # constraint: \delta_k >= \sum_{m: y_m^k=1} (1 - f(u(k), k, m) + \xi_k)
-            # which is equivalent to
-            # M_+^k * (1 + \xi_k) - \delta_k - (v_{u(k)} + w_k + \mu)^T \sum_{m: y_m^k=1} x_m <= 0
-            u = self.pl2u[k]
-            y = self.Y[:, k].A.reshape(-1)
-            vec = y.dot(self.X)
-
-            # qp.addConstr(Mplus[k] * (1 + xi[k]) - delta[k]
-            #              - quicksum((V[u, d] + W[k, d] + mu[d]) * vec[d] for d in range(D)) <= 0)
-
-            expr = LinExpr()
-            expr.addTerms(vec, [V[u, d] for d in range(D)])
-            expr.addTerms(vec, [W[k, d] for d in range(D)])
-            expr.addTerms(vec, [mu[d] for d in range(D)])
-            qp.addConstr(Mplus[k] + Mplus[k] * xi[k] - delta[k] - expr <= 0)
-
-        self.grb_qp = qp
-        self.grb_obj = obj
-        self.grb_V = V
-        self.grb_W = W
-        self.grb_mu = mu
-        self.grb_xi = xi
-        self.grb_delta = delta
-
-    def _generate_all_constraints(self):
-        """
-            Generate all possible constraints:
-                xi_k >= f(u(k), k, n), k \in {0,...N-1}, y_n^k = 0
-        """
-        sys.stdout.write('Generating all possible constraints ... ')
-        M, N, D = self.M, self.N, self.D
-        grb_qp, grb_V, grb_W, grb_mu, grb_xi = self.grb_qp, self.grb_V, self.grb_W, self.grb_mu, self.grb_xi
-        assert self.Y.dtype == np.bool
-        for k in range(N):
-            u = self.pl2u[k]
-            grb_qp.addConstrs((quicksum((grb_V[u, d] + grb_W[k, d] + grb_mu[d]) * self.X[n, d] for d in range(D))
-                               - grb_xi[k] <= 0 for n in range(M) if self.Y[n, k] < 1))
-        print('%d constraints in total.' % grb_qp.getAttr('NumConstrs'))
-
-    def _update_constraints(self):
-        """
-            Check if current solution satisfies constraint:
-                xi_k >= f(u(k), k, n), k \in {0,...N-1}, y_n^k = 0
-            If not, add constraint:
-                f(u(k), k, n^*) - xi_k <= 0
-            where
-                n^* = argmax_n f(u(k), k, n)
-        """
-        N, D, U = self.N, self.D, self.U
-        grb_qp, grb_V, grb_W, grb_mu, grb_xi = self.grb_qp, self.grb_V, self.grb_W, self.grb_mu, self.grb_xi
-
-        self.mu[:] = [grb_mu[d].x for d in range(D)]
-        # self.V[:] = np.asarray([grb_V[u, d].x for u in range(U) for d in range(D)]).reshape(U, D)
-        # self.W[:] = np.asarray([grb_W[k, d].x for k in range(N) for d in range(D)]).reshape(N, D)  # no savings
-        for u in range(U):
-            self.V[u, :] = [grb_V[u, d].x for d in range(D)]
-        for k in range(N):
-            self.W[k, :] = [grb_W[k, d].x for d in range(D)]
-        self.xi[:] = [grb_xi[k].x for k in range(N)]
-
-        mu, V, W, xi = self.mu, self.V, self.W, self.xi
-        Ys, _, Mplus = self.data_helper.get_data()
+        mu = 1e-3 * np.random.randn(D)
+        V = 1e-3 * np.random.randn(U, D)
+        W = 1e-3 * np.random.randn(N, D)
+        xi = np.zeros(N)
+        Ys, _, _ = self.data_helper.get_data()
         assert U == len(Ys)
-        assert Mplus.shape == (N,)
-
-        all_satisfied = True
         for u in range(U):
             clq = self.cliques[u]
             Yu = Ys[u]
             Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
             T1 = np.dot(self.X, Wt.T)
-            T1[Yu.row, Yu.col] = -np.inf  # mask entry (m,i) if y_m^i = 1
-            # max_ix = T1.argmax(axis=0)
-            # assert max_ix.shape[0] == len(clq)
-            assert T1.shape[1] == len(clq)
-            for j in range(len(clq)):
-                k = clq[j]
-                # n = max_ix[j]
-                indices = np.where(T1[:, j] > xi[k])[0]
-                if len(indices) > 0:
-                    all_satisfied = False
-                    coef = self.X[indices, :].mean(axis=0)
+            T2 = np.full(T1.shape, np.inf)  # mask entry (n,k) if y_n^k = 0
+            T2[Yu.row, Yu.col] = T1[Yu.row, Yu.col]
+            xi[clq] = T1.min(axis=0)
+        return np.r_[mu, V.ravel(), W.ravel(), xi]
 
-                # if xi[k] < T1[n, j] or (xi[k] == T1[n, j] == 0):
-                # if xi[k] + self.tol < T1[n, j]:
-                    # feasibility cut at query point q for constraint f(z) <= 0:
-                    # f(q) + f'(q)^T (z - q) <= 0
-                    # grb_qp.addConstr(
-                    #    quicksum(T1[n, j] - xi[k]
-                    #             + (grb_V[u, d] - V[u, d] + grb_W[k, d] - W[k, d] + grb_mu[d] - mu[d]) * self.X[n, d]
-                    #             - (grb_xi[k] - xi[k]) for d in range(D)) <= 0, name='ckn_%d_%d' % (k, n))
-
-                    # grb_qp.addConstr(quicksum((grb_V[u, d] + grb_W[k, d] + grb_mu[d])*self.X[n, d] for d in range(D))
-                    #                  - D * grb_xi[k] + (D - 1) * T1[n, j] <= 0)
-
-                    # coef = [self.X[n, d] for d in range(D)]
-                    varV = [grb_V[u, d] for d in range(D)]
-                    varW = [grb_W[k, d] for d in range(D)]
-                    varmu = [grb_mu[d] for d in range(D)]
-                    expr = LinExpr()
-                    expr.addTerms(coef, varV)
-                    expr.addTerms(coef, varW)
-                    expr.addTerms(coef, varmu)
-                    # grb_qp.addConstr(expr - D * grb_xi[k] + (D - 1) * T1[n, j] <= 0)
-                    grb_qp.addConstr(expr - grb_xi[k] <= 0)
-                    self.num_cons += 1
-
-                    # grb_qp.addConstr(quicksum((grb_V[u, d] + grb_W[k, d] + grb_mu[d])*self.X[n, d] for d in range(D))
-                    #                  - grb_xi[k] <= 0)
-
-                    # self.constraints_dict[k].add(n)
-
-        self.all_constraints_satisfied = all_satisfied
-
-    def fit(self, max_iter=1e3, njobs=10, use_all_constraints=False, verbose=0, fpkl=None):
-        """
-            Model fitting by solving a QP using cutting plane method in addition to a QP solver.
-        """
+    def fit(self, loss='exponential', verbose=0, w0=None):
         t0 = time.time()
-        print(time.strftime('%Y-%m-%d %H:%M:%S'))
-        M, N, = self.M, self.N
+        if loss not in ['exponential', 'squared_hinge']:
+            raise ValueError("'loss' should be either 'exponential' or 'squared_hinge'")
+        N, U, D = self.N, self.U, self.D
         if verbose > 0:
-            self.grb_qp.Params.OutputFlag = 1
-            print('\nC: %g, %g, %g' % (self.C1, self.C2, self.C3))
-        else:
-            self.grb_qp.Params.OutputFlag = 0
+            print('\nC: {:g}, {:g}, {:g}'.format(self.C1, self.C2, self.C3))
 
-        # solve QP using a QP solver and cutting-plane method
-        # first create an optimisation problem and solve it,
-        # then add constraints violated by current solution,
-        # create a new optimisation problem (same objective, update constraints)
-        # keep doing this until termination criteria satisfied.
-        cp_iter = 0
-        max_num_cons = M * N - self.Y.sum() + N
-        self.grb_qp.Params.Threads = njobs
-        # self.grb_qp.Params.Presolve = 2
-        print('[CUTTING-PLANE] %d variables, %d maximum possible constraints.' % (self._get_num_vars(), max_num_cons))
-        while cp_iter < max_iter:
-            cp_iter += 1
+        num_vars = (U + N + 1) * D + N
+        num_cons = int(self.Y.sum())
+        if w0 is None:
+            w0 = self._init_vars()
+        assert w0.shape == (num_vars,)
 
-            if use_all_constraints is True:
-                self._generate_all_constraints()
+        # solve using IPOPT
+        problem = RankPrimal(X=self.X, Y=self.Y, C1=self.C1, C2=self.C2, C3=self.C3, cliques=self.cliques,
+                             data_helper=self.data_helper, loss=loss, verbose=verbose)
 
-            num_cons = self._get_num_constraints()
-            print('[CUTTING-PLANE] Iter %d: %d constraints.' % (cp_iter, num_cons))
+        if verbose > 0:
+            print('[IPOPT] {:,d} variables, {:,d} constraints.'.format(num_vars, num_cons))
 
-            self.grb_qp.optimize()
+        problem.compute_constraint_info()
 
-            if use_all_constraints is True:
-                break
-            else:
-                self._update_constraints()
+        nlp = cyipopt.problem(
+            problem_obj=problem,    # problem instance
+            n=num_vars,             # number of variables
+            m=num_cons,             # number of constraints
+            lb=None,                # lower bounds on variables
+            ub=None,                # upper bounds on variables
+            cl=np.zeros(num_cons),  # lower bounds on constraints
+            cu=None                 # upper bounds on constraints
+        )
 
-            if self.all_constraints_satisfied is True:
-                print('[CUTTING-PLANE] All constraints satisfied.')
-                break
-            if num_cons == self._get_num_constraints():
-                break
-            #     print('[CUTTING-PLANE] No more effective constraints, violations are considered acceptable.')
-            #     break
+        # ROOT_URL = www.coin-or.org/Ipopt/documentation
+        # set solver options: $ROOT_URL/node40.html
+        nlp.addOption(b'max_iter', int(1e5))
+        # nlp.addOption(b'mu_strategy', b'adaptive')
+        # nlp.addOption(b'tol', 1e-7)
+        # nlp.addOption(b'acceptable_tol', 1e-5)
+        # nlp.addOption(b'acceptable_constr_viol_tol', 1e-6)
 
-        if cp_iter >= max_iter:
-            print('[CUTTING-PLANE] Reaching max number of iterations.')
+        # linear solver for the augmented linear system: $ROOT_URL/node51.html, www.hsl.rl.ac.uk/ipopt/
+        nlp.addOption(b'linear_solver', b'ma27')  # default
+        # nlp.addOption(b'linear_solver', b'ma57')  # small/medium problem
+        # nlp.addOption(b'linear_solver', b'ma86')  # large problem
 
+        # gradient checking for objective and constraints: $ROOT_URL/node30.html
+        # nlp.addOption(b'derivative_test', b'first-order')
+        # nlp.addOption(b'print_level', 6)
+
+        w, info = nlp.solve(w0)
+        # print(info['status'], info['status_msg'])
+        print('\n[IPOPT] %s\n' % info['status_msg'].decode('utf-8'))
+
+        self.mu = w[:D]
+        self.V = w[D:(U + 1) * D].reshape(U, D)
+        self.W = w[(U + 1) * D:(U + N + 1) * D].reshape(N, D)
+        self.xi = w[(U + N + 1) * D:]
         self.trained = True
 
-        if fpkl is not None:
-            try:
-                pkl.dump([self.mu, self.V, self.W], gzip.open(fpkl, 'wb'))
-                if verbose > 0:
-                    print('Save to %s' % fpkl)
-            except (OSError, IOError, ValueError) as err:
-                sys.stderr.write('Save weights failed: {0}\n'.format(err))
+        if verbose > 0:
+            print('Training finished in %.1f seconds' % (time.time() - t0))
 
-        print('Training finished in %.1f seconds' % (time.time() - t0))
 
-    def predict(self, X_test):
+class RankPrimal(object):
+    """Primal Problem of Multitask Ranking"""
+
+    def __init__(self, X, Y, C1, C2, C3, cliques, data_helper, loss, verbose=0):
+        assert isspmatrix_csc(Y)
+        assert C1 > 0
+        assert C2 > 0
+        assert C3 > 0
+        assert X.shape[0] == Y.shape[0]
+        assert loss in ['exponential', 'squared_hinge'], "'loss' should be either 'exponential' or 'squared_hinge'"
+        self.X = X
+        self.Y = Y
+        self.M, self.D = self.X.shape
+        self.N = self.Y.shape[1]
+        self.C1 = C1
+        self.C2 = C2
+        self.C3 = C3
+        self.cliques = cliques
+        self.U = len(self.cliques)
+        self.u2pl = self.cliques
+        self.pl2u = np.zeros(self.N, dtype=np.int32)
+        for u in range(self.U):
+            clq = self.cliques[u]
+            self.pl2u[clq] = u
+        self.data_helper = data_helper
+        self.loss = loss
+        self.verbose = verbose
+
+        self.jac = None
+        self.js_rows = None
+        self.js_cols = None
+
+    def objective(self, w):
         """
-            Making predictions (score is a real number)
+            The callback for calculating the objective
         """
-        assert self.trained is True, 'Cannot make prediction before training'
-        U, D = self.U, self.D
-        assert D == X_test.shape[1]
-        preds = []
+        t0 = time.time()
+        N, D, U, C1, C2, C3 = self.N, self.D, self.U, self.C1, self.C2, self.C3
+        assert w.shape == ((U + N + 1) * D + N,)
+        mu = w[:D]
+        V = w[D:(U + 1) * D].reshape(U, D)
+        W = w[(U + 1) * D:(U + N + 1) * D].reshape(N, D)
+        xi = w[(U + N + 1) * D:]
+        assert xi.shape == (N,)
+        Ys, Q, Pindices = self.data_helper.get_data()
+        assert U == len(Ys)
+        assert Q.shape == (N,)
+
+        J = 0.
+        J += np.sum([np.dot(V[u, :], V[u, :]) for u in range(U)]) * 0.5 * C1 / U
+        J += np.abs(W).sum() * C2 / N
+        J += np.dot(mu, mu) * 0.5 * C3
+
+        def risk_exponential(u):
+            clq = self.cliques[u]
+            Nu = len(clq)
+            Yu = Ys[u]
+            Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
+            T1 = np.dot(self.X, Wt.T) - xi[clq].reshape(1, Nu)  # M by Nu
+            T1[Yu.row, Yu.col] = 0.  # mask entries (m, k) that y_m^k = 1
+            T2 = np.exp(T1)
+            T2[Yu.row, Yu.col] = 0.  # mask entries (m, k) that y_m^k = 1
+            T2 *= Q[clq]
+            return T2.sum()
+
+        def risk_squared_hinge(u):
+            clq = self.cliques[u]
+            Nu = len(clq)
+            Yu = Ys[u]
+            Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
+            T1 = np.dot(self.X, Wt.T) + (1. - xi[clq]).reshape(1, Nu)  # M by Nu
+            T1[Yu.row, Yu.col] = 0.   # mask entries (m, k) that y_m^k = 1
+            T1[T1 < 0] = 0.
+            T2 = np.square(T1)
+            T2 *= Q[clq]
+            return T2.sum()
+
+        for u in range(U):
+            if self.loss == 'exponential':
+                J += risk_exponential(u)
+            else:
+                J += risk_squared_hinge(u)
+
+        if np.isnan(J) or np.isinf(J):
+            raise ValueError('objective(): objective is NaN or inf!\n')
+
+        if self.verbose > 1:
+            print('Eval f: %.1f seconds used.' % (time.time() - t0))
+
+        return J
+
+    def gradient(self, w):
+        """
+            The callback for calculating the gradient
+        """
+        t0 = time.time()
+        N, D, U, C1, C2, C3 = self.N, self.D, self.U, self.C1, self.C2, self.C3
+        assert w.shape == ((U + N + 1) * D + N,)
+        mu = w[:D]
+        V = w[D:(U + 1) * D].reshape(U, D)
+        W = w[(U + 1) * D:(U + N + 1) * D].reshape(N, D)
+        xi = w[(U + N + 1) * D:]
+        assert xi.shape == (N,)
+        Ys, Q, Pindices = self.data_helper.get_data()
+        assert U == len(Ys)
+        assert Q.shape == (N,)
+        assert N == len(Pindices)
+
+        def grad_exponential(u):
+            clq = self.cliques[u]
+            Nu = len(clq)
+            Yu = Ys[u]
+            Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
+            T1 = np.dot(self.X, Wt.T) - xi[clq].reshape(1, Nu)  # M by Nu
+            T1[Yu.row, Yu.col] = 0.  # mask entries (m, k) that y_m^k = 1
+            T2 = np.exp(T1)
+            T2[Yu.row, Yu.col] = 0.  # mask entries (m, k) that y_m^k = 1
+            T2 *= Q[clq]  # M by Nu
+            T3 = np.dot(T2.T, self.X)  # Nu by D
+            vec = T3.sum(axis=0)
+            dV = vec
+            dW = T3
+            dmu = vec
+            dxi = -T2.sum(axis=0)
+            return dV, dW, dmu, dxi
+
+        def grad_squred_hinge(u):
+            clq = self.cliques[u]
+            Nu = len(clq)
+            Yu = Ys[u]
+            Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
+            T1 = np.dot(self.X, Wt.T) + (1. - xi[clq]).reshape(1, Nu)  # M by Nu
+            T1[Yu.row, Yu.col] = 0.   # mask entries (m, k) that y_m^k = 1
+            T1[T1 < 0] = 0.
+            T1 *= Q[clq]
+            T2 = 2 * np.dot(T1.T, self.X)  # Nu by D
+            vec = T2.sum(axis=0)
+            dV = vec
+            dW = T2
+            dmu = vec
+            dxi = -2. * T1.sum(axis=0)
+            return dV, dW, dmu, dxi
+
+        dV = V * C1 / U
+        dW = np.sign(W) * C2 / N
+        dmu = C3 * mu
+        dxi = np.zeros_like(xi)
         for u in range(U):
             clq = self.cliques[u]
-            Wt = self.W[clq, :] + (self.V[u, :] + self.mu).reshape(1, D)
-            preds.append(np.dot(X_test, Wt.T))
-        return np.hstack(preds)
+            if self.loss == 'exponential':
+                grads = grad_exponential(u)
+            else:
+                grads = grad_squred_hinge(u)
+            dV[u, :] += grads[0]
+            dW[clq, :] += grads[1]
+            dmu += grads[2]
+            dxi[clq] = grads[3]
+
+        if self.verbose > 1:
+            print('Eval g: %.1f seconds used.' % (time.time() - t0))
+
+        return np.r_[dmu, dV.ravel(), dW.ravel(), dxi]
+
+    def constraints(self, w):
+        """
+            The callback for calculating the (function value of) constraints
+        """
+        N, D, U = self.N, self.D, self.U
+        assert w.shape == ((U + N + 1) * D + N,)
+        mu = w[:D]
+        V = w[D:(U + 1) * D].reshape(U, D)
+        W = w[(U + 1) * D:(U + N + 1) * D].reshape(N, D)
+        xi = w[(U + N + 1) * D:]
+        assert xi.shape == (N,)
+        _, _, Pindices = self.data_helper.get_data()
+        assert len(Pindices) == N
+
+        cons_values = []
+        for k in range(N):
+            u = self.pl2u[k]
+            v = V[u, :]
+            wk = W[k, :]
+            indices = Pindices[k]
+            assert len(indices) > 0
+            values = self.X[indices, :].dot(v + wk + mu) - xi[k]
+            assert values.shape == (len(indices),)
+            cons_values.append(values)
+        return np.concatenate(cons_values, axis=-1)
+
+    def jacobianstructure(self):
+        """
+            The sparse structure (i.e., rows, cols) of the Jacobian matrix
+        """
+        assert self.js_rows is not None
+        assert self.js_cols is not None
+        return self.js_rows, self.js_cols
+
+    def jacobian(self, w):
+        """
+            The callback for calculating the Jacobian of constraints
+        """
+        assert self.jac is not None
+        return self.jac
+
+    def intermediate(self, alg_mod, iter_count, obj_value, inf_pr, inf_du, mu, d_norm,
+                     regularization_size, alpha_du, alpha_pr, ls_trials):
+        """
+            The intermediate callback
+        """
+        if self.verbose > 0:
+            print('Iter {:5d}: {:.9f}, {:s}'.format(iter_count, obj_value, time.strftime('%Y-%m-%d %H:%M:%S')))
+
+    def jacobian_sanity_check(self):
+        """
+            Check if compute_constraint_info() compute the correct jacobian and jacobianstructure
+            NOTE the follow results of coo_matrix:
+                mat = coo_matrix(data, (rows, cols))
+                assert np.all(mat.row == rows)  # NOT TRUE
+                assert np.all(mat.col == cols)  # NOT TRUE
+        """
+        if (self.jac is None) or (self.js_rows is None) or (self.js_cols is None):
+            self.compute_constraint_info()
+
+        U, N, D = self.U, self.N, self.D
+        _, _, Pindices = self.data_helper.get_data()
+        assert len(Pindices) == N
+        jac = []
+        for k in range(N):
+            u = self.pl2u[k]
+            for m in Pindices[k]:
+                dV = np.zeros((U, D), dtype=np.float)
+                dV[u, :] = self.X[m, :]
+                dW = np.zeros((N, D), dtype=np.float)
+                dW[k, :] = self.X[m, :]
+                dmu = self.X[m, :]
+                dxi = np.zeros(N, dtype=np.float)
+                dxi[k] = -1
+                jac.append(np.r_[dmu, dV.ravel(), dW.ravel(), dxi])
+        jac_coo = coo_matrix(np.vstack(jac))
+
+        # self.jac = jac_coo.data
+        # self.js_rows = jac_coo.row
+        # self.js_cols = jac_coo.col
+
+        print('checking jacobianstructure ...')
+        assert np.all(jac_coo.row == self.js_rows)
+        assert np.all(jac_coo.col == self.js_cols)
+
+        print('checking jacobian ...')
+        assert np.all(jac_coo.data == self.jac)
+
+    def compute_constraint_info(self):
+        """
+            compute jacobian of constraints and its sparse structure (rows, cols of non-zero elements)
+        """
+        N, D, U = self.N, self.D, self.U
+        _, _, Pindices = self.data_helper.get_data()
+        assert len(Pindices) == N
+        rows, cols, jac = [], [], []
+        ix = 0
+        for k in range(N):
+            u = self.pl2u[k]
+            for m in Pindices[k]:
+                jac.append(np.tile(self.X[m, :].reshape(1, D), (1, 3)))
+                jac.append(np.array([-1.]).reshape(1, 1))
+                rows.append(np.full(3 * D + 1, ix, dtype=np.int32))
+                cols.append(np.arange(D, dtype=np.int32))
+                cols.append(np.arange((u + 1) * D, (u + 2) * D, dtype=np.int32))
+                cols.append(np.arange((U + 1 + k) * D, (U + 2 + k) * D, dtype=np.int32))
+                cols.append([(U + N + 1) * D + k])
+                ix += 1
+        self.jac = np.concatenate(jac, axis=-1)
+        self.js_rows = np.concatenate(rows, axis=-1)
+        self.js_cols = np.concatenate(cols, axis=-1)
