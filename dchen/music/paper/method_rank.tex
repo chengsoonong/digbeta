@@ -3,10 +3,14 @@
 We can formulate the playlist augmentation problem as bipartite ranking problems, 
 and we want to learn a scorer $f$ such that, for a given playlist, 
 songs in this playlist will be scored higher than those not in the given playlist,
-which is known as the (bottom push) Top-Push loss~\cite{li2014top}
+one loss function is to penalise the number of songs not in the given playlist 
+but has a higher score than the song with lowest score in playlist, 
+which is known as the bottom push loss,
 \begin{equation*}
 \LCal_\textsc{bp} = \llb \min_{m: y_m^i=0} f(u(i), i, m) \le f_(u(i), i, n) \rrb \ \forall n, y_n^i = 0.
 \end{equation*}
+which is similar to the Top-Push loss~\cite{li2014top} which focus on the song with highest score that not in the playlist 
+but scores higher than some of songs in playlist.
 
 The empirical risk is
 $$

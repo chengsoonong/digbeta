@@ -20,10 +20,17 @@ and $\phibm_{u,m}$ is a feature vector,
 which includes audio features, genre, popularity of song $m$,
 and the number of listening events from users except $u$.
 
+Another similar loss function is focusing on the song in playlist that has the minimum score,
+the unnormalised loss is the number of songs that in playlist while has a higher score, \ie
+$$
+\LCal_\textsc{pc}'(f, \DCal)
+= \frac{1}{p} \sum_{m: y_m^i = 1} e^{-p f(i, m)} + \sum_{n: y_n^i = 0} e^{f(i, n)}.
+$$
+
 The empirical risk is
 $$
 \RCal_\textsc{clf} 
-= \frac{1}{N} \sum_{i=1}^N \left( \frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-f(u(i), i,m)} 
+= \frac{1}{N} \sum_{i=1}^N \left( \frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-f(u(i),i,m)} 
   + \frac{1}{M_-^i p} \sum_{n: y_n^i = 0} e^{p f(u(i), i,n)} \right),
 $$
 
