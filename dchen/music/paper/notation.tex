@@ -9,16 +9,15 @@ We introduce notations in Table~\ref{tab:symbol_tpush}.
 \centering
 \begin{tabular}{llll}
 \toprule
-\multicolumn{3}{l}{\textbf{Symbol}} & \textbf{Quantity} \\ \midrule
+\multicolumn{3}{l}{\textbf{Notation}} & \textbf{Description} \\ \midrule
 $D$        &  $\in$  &  $\Z^+$            & The number of features for each song \\
 $M$        &  $\in$  &  $\Z^+$            & The number of songs, indexed by $m, n \in \{1,\dots,M\}$ \\
-$N$        &  $\in$  &  $\Z^+$            & The number of playlists, indexed by $k \in \{1,\dots,N\}$ \\
-$U$        &  $\in$  &  $\Z^+$            & The number of users, indexed by $i \in \{1,\dots,U\}$ \\
-$\bu_i$    &  $\in$  &  $\R^D$            & The weights of user $i$ \\
-$\bv_k$    &  $\in$  &  $\R^D$            & The weights of playlist $k$ \\
-$\mubm$    &  $\in$  &  $\R^D$            & The weights shared by all playlists \\
-$\w_{i,k}$ &  $\in$  &  $\R^D$            & The combined weights for user $i$ and playlist $k$, $\w_{i,k} = \bu_i + \bv_k + \mubm$ \\
-$\bu_{i(k)}$  &  $\in$  &  $\R^D$         & The weights of user that owns playlist $k$ \\
+$N$        &  $\in$  &  $\Z^+$            & The number of playlists, indexed by $i \in \{1,\dots,N\}$ \\
+$U$        &  $\in$  &  $\Z^+$            & The number of users, indexed by $j \in \{1,\dots,U\}$ \\
+$\bv_i$    &  $\in$  &  $\R^D$            & The weights of playlist $i$ \\
+$\bu_j$    &  $\in$  &  $\R^D$            & The weights of user $j$ \\
+$\widebar\bu$    &  $\in$  &  $\R^D$      & The weights shared by all playlists \\
+$\w_i    $ &  $\in$  &  $\R^D$            & The weights for playlist $i$ that owned by user $j=u(i)$, $\w_i = \bv_i + \bu_j + \widebar\bu$ \\
 $\Y$       &  $\in$  &  $\R^{M \times N}$ & The matrix of binary labels that indicating if a song is in a playlist \\
 $y_m^k$    &  $\in$  &  $\R^D$            & The positive binary label $y_m^k = 1$, \ie song $m$ in playlist $k$ \\
 $y_n^k$    &  $\in$  &  $\R^D$            & The negative binary label $y_n^k = 0$, \ie song $n$ not in playlist $k$ \\
