@@ -5,7 +5,7 @@ import time
 import numpy as np
 import pickle as pkl
 from sklearn.metrics import roc_auc_score
-from models import MTC
+from MTC import MTC
 
 
 if len(sys.argv) != 8:
@@ -31,7 +31,7 @@ fx = os.path.join(data_dir, 'X.pkl.gz')
 fytrain = os.path.join(data_dir, 'Y_train.pkl.gz')
 fytest = os.path.join(data_dir, 'Y_test.pkl.gz')
 fcliques_train = os.path.join(data_dir, 'cliques_train.pkl.gz')
-fprefix = 'trndev-plgen2-%g-%g-%g-%g' % (C1, C2, C3, p)
+fprefix = 'trndev-plgen2-clf-%g-%g-%g-%g' % (C1, C2, C3, p)
 
 fmodel = os.path.join(data_dir, '%s.pkl.gz' % fprefix)
 fnpy = os.path.join(data_dir, '%s.npy' % fprefix)
