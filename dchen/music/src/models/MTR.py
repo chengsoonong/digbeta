@@ -57,7 +57,6 @@ class MTR(object):
     def _init_vars(self):
         np.random.seed(0)
         N, U, D = self.N, self.U, self.D
-        # w0 = np.zeros((U + N + 1) * D + N)
         w0 = 1e-3 * np.random.randn((U + N + 1) * D + N)
         return w0
 
@@ -174,9 +173,9 @@ class RankPrimal(object):
         t0 = time.time()
         N, D, U, C1, C2, C3 = self.N, self.D, self.U, self.C1, self.C2, self.C3
         assert w.shape == ((U + N + 1) * D + N,)
-        mu = w[:D]
-        V = w[D:(U + 1) * D].reshape(U, D)
-        W = w[(U + 1) * D:(U + N + 1) * D].reshape(N, D)
+        V = w[:U * D].reshape(U, D)
+        W = w[U * D:(U + N) * D].reshape(N, D)
+        mu = w[(U + N) * D:(U + N + 1) * D]
         xi = w[(U + N + 1) * D:]
         assert xi.shape == (N,)
         Ys, Q, Pindices = self.data_helper.get_data()
@@ -184,9 +183,9 @@ class RankPrimal(object):
         assert Q.shape == (N,)
 
         J = 0.
-        J += np.sum([np.dot(V[u, :], V[u, :]) for u in range(U)]) * 0.5 * C1 / U
-        J += np.abs(W).sum() * C2 / N
-        J += np.dot(mu, mu) * 0.5 * C3
+        J += np.sum([np.dot(V[u, :], V[u, :]) for u in range(U)]) * C1 / 2
+        J += np.abs(W).sum() * C2
+        J += np.abs(mu).sum() * C3
 
         def risk_exponential(u):
             clq = self.cliques[u]
@@ -232,9 +231,9 @@ class RankPrimal(object):
         t0 = time.time()
         N, D, U, C1, C2, C3 = self.N, self.D, self.U, self.C1, self.C2, self.C3
         assert w.shape == ((U + N + 1) * D + N,)
-        mu = w[:D]
-        V = w[D:(U + 1) * D].reshape(U, D)
-        W = w[(U + 1) * D:(U + N + 1) * D].reshape(N, D)
+        V = w[:U * D].reshape(U, D)
+        W = w[U * D:(U + N) * D].reshape(N, D)
+        mu = w[(U + N) * D:(U + N + 1) * D]
         xi = w[(U + N + 1) * D:]
         assert xi.shape == (N,)
         Ys, Q, Pindices = self.data_helper.get_data()
@@ -276,9 +275,9 @@ class RankPrimal(object):
             dxi = -2. * T1.sum(axis=0) * Q[clq]
             return dV, dW, dmu, dxi
 
-        dV = V * C1 / U
-        dW = np.sign(W) * C2 / N
-        dmu = C3 * mu
+        dV = V * C1
+        dW = np.sign(W) * C2
+        dmu = np.sign(mu) * C3
         dxi = np.zeros_like(xi)
         for u in range(U):
             clq = self.cliques[u]
@@ -294,7 +293,7 @@ class RankPrimal(object):
         if self.verbose > 1:
             print('Eval g: %.1f seconds used.' % (time.time() - t0))
 
-        return np.r_[dmu, dV.ravel(), dW.ravel(), dxi]
+        return np.r_[dV.ravel(), dW.ravel(), dmu, dxi]
 
     def constraints(self, w):
         """

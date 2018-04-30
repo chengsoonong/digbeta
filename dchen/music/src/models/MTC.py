@@ -5,7 +5,7 @@ from scipy.sparse import isspmatrix_coo, isspmatrix_csc
 from lbfgs import LBFGS, LBFGSError  # pip install pylbfgs
 
 
-def risk_per_user(mu, v, Wu, X, Yu, Pu, Qu, p, N):
+def risk_per_user(v, Wu, mu, X, Yu, Pu, Qu, p, N):
     """
         Empirical risk of bottom version of p-classification loss
 
@@ -46,14 +46,14 @@ def risk_per_user(mu, v, Wu, X, Yu, Pu, Qu, p, N):
     risk = np.sum(T2 / p + T3) / N
     T4 = T3 - T2
     T5 = np.dot(T4.T, X) / N
-    dW = T5
     dv = np.sum(T5, axis=0)
+    dW = T5
     dmu = dv
 
     if np.isnan(risk) or np.isinf(risk):
         sys.stderr.write('risk_pclassification(): risk is NaN or inf!\n')
         sys.exit(0)
-    return risk, dmu, dv, dW
+    return risk, dv, dW, dmu
 
 
 class DataHelper:
@@ -88,38 +88,37 @@ class DataHelper:
         return self.Ys, self.Ps, self.Qs
 
 
-def objective(w, dw, X, Y, C1, C2, C3, p, cliques, data_helper, verbose=0, fnpy=None):
+def objective(w, dw, X, Y, C1, p, cliques, data_helper, verbose=0, fnpy=None):
     t0 = time.time()
     assert C1 > 0
-    assert C2 > 0
-    assert C3 > 0
     assert p > 0
     M, D = X.shape
     N = Y.shape[1]
     U = len(cliques)
     assert w.shape == ((U + N + 1) * D,)
-    mu = w[:D]
-    V = w[D:(U + 1) * D].reshape(U, D)
-    W = w[(U + 1) * D:].reshape(N, D)
+    V = w[:U * D].reshape(U, D)
+    W = w[U * D:(U + N) * D].reshape(N, D)
+    mu = w[(U + N) * D:]
+    assert mu.shape == (D,)
 
     Ys, Ps, Qs = data_helper.get_data()
     assert U == len(Ys) == len(Ps) == len(Qs)
 
-    dV = V * C1 / U
+    dV = V * C1
     dW = np.zeros(W.shape)
-    dmu = C3 * mu
-    J = mu.dot(mu) * 0.5 * C3
+    dmu = np.zeros(D)
+    J = 0.
     for u in range(U):
         clq = cliques[u]
         v = V[u, :]
-        J += v.dot(v) * 0.5 * C1 / U
-        res = risk_per_user(mu, v, W[clq, :], X, Ys[u], Ps[u], Qs[u], p, N)
+        J += v.dot(v) * C1 / 2
+        res = risk_per_user(v, W[clq, :], mu, X, Ys[u], Ps[u], Qs[u], p, N)
         J += res[0]
-        dmu += res[1]
-        dV[u, :] += res[2]
-        dW[clq, :] = res[3]
+        dV[u, :] += res[1]
+        dW[clq, :] = res[2]
+        dmu += res[3]
 
-    dw[:] = np.r_[dmu.ravel(), dV.ravel(), dW.ravel()]  # in-place assignment
+    dw[:] = np.r_[dV.ravel(), dW.ravel(), dmu.ravel()]  # in-place assignment
 
     if verbose > 0:
         print('Eval f, g: %.1f seconds used.' % (time.time() - t0))
@@ -155,10 +154,10 @@ def progress(x, g, f_x, xnorm, gnorm, step, k, ls, *args):
 class MTC():
     """Multitask classification"""
 
-    def __init__(self, X_train, Y_train, C1, C2, C3, p, user_playlist_indices):
+    def __init__(self, X_train, Y_train, C1, C2, p, user_playlist_indices):
         if not isspmatrix_csc(Y_train):
             raise ValueError('ERROR: %s\n' % 'Y_train should be a parse csc_matrix.')
-        if not np.all(np.array([C1, C2, C3]) > 0):
+        if not np.all(np.array([C1, C2]) > 0):
             raise ValueError('ERROR: %s\n' % 'Regularisation parameters should be positive.')
         if p <= 0:
             raise ValueError('ERROR: %s\n' % 'parameter "p" should be positive.')
@@ -169,7 +168,6 @@ class MTC():
         assert self.M == self.Y.shape[0]
         self.C1 = C1
         self.C2 = C2
-        self.C3 = C3
         self.p = p
 
         self.cliques = user_playlist_indices
@@ -188,16 +186,20 @@ class MTC():
             t0 = time.time()
 
         if verbose > 0:
-            print('\nC: %g, %g, %g, p: %g' % (self.C1, self.C2, self.C3, self.p))
+            print('\nC: %g, %g, p: %g' % (self.C1, self.C2, self.p))
 
+        num_vars = (U + N + 1) * D
         if w0 is None:
+            np.random.seed(0)
             if fnpy is not None:
                 try:
                     w0 = np.load(fnpy, allow_pickle=False)
                     print('Restore from %s' % fnpy)
                 except (IOError, ValueError):
-                    w0 = np.zeros((U + N + 1) * D)
-        if w0.shape != ((U + N + 1) * D,):
+                    w0 = 0.001 * np.random.randn(num_vars)
+            else:
+                w0 = 0.001 * np.random.randn(num_vars)
+        if w0.shape != (num_vars,):
             raise ValueError('ERROR: incorrect dimention for initial weights.')
 
         try:
@@ -205,15 +207,16 @@ class MTC():
             # LBFGS().minimize(f, x0, progress=progress, args=args)
             optim = LBFGS()
             optim.linesearch = 'wolfe'
-            optim.orthantwise_c = self.C2 / N
-            optim.orthantwise_start = (U + 1) * D  # start index to compute L1 regularisation (included)
+            optim.orthantwise_c = self.C2
+            optim.orthantwise_start = U * D  # start index to compute L1 regularisation (included)
             optim.orthantwise_end = w0.shape[0]    # end   index to compute L1 regularisation (not included)
             res = optim.minimize(objective, w0, progress,
-                                 args=(self.X, self.Y, self.C1, self.C2, self.C3, self.p, self.cliques,
+                                 args=(self.X, self.Y, self.C1, self.p, self.cliques,
                                        self.data_helper, verbose, fnpy))
-            self.mu = res[:D]
-            self.V = res[D:(U + 1) * D].reshape(U, D)
-            self.W = res[(U + 1) * D:].reshape(N, D)
+            self.V = res[:U * D].reshape(U, D)
+            self.W = res[U * D:(U + N) * D].reshape(N, D)
+            self.mu = res[(U + N) * D:]
+            assert self.mu.shape == (D,)
             self.trained = True
         except (LBFGSError, MemoryError) as err:
             self.trained = False
