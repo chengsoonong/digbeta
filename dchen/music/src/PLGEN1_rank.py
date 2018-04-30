@@ -5,7 +5,7 @@ import time
 import numpy as np
 import pickle as pkl
 from sklearn.metrics import roc_auc_score
-from models import MTR
+from MTR import MTR
 
 
 if len(sys.argv) != 7:
@@ -31,9 +31,10 @@ fytrain = os.path.join(data_dir, 'Y_train.pkl.gz')
 fytest = os.path.join(data_dir, 'Y_test.pkl.gz')
 fcliques_train = os.path.join(data_dir, 'cliques_train.pkl.gz')
 fcliques_all = os.path.join(data_dir, 'cliques_all.pkl.gz')
-fprefix = 'trndev-plgen1-qp-%g-%g-%g' % (C1, C2, C3)
+fprefix = 'trndev-plgen1-rank-%g-%g-%g' % (C1, C2, C3)
 
 fmodel = os.path.join(data_dir, '%s.pkl.gz' % fprefix)
+fnpy = os.path.join(data_dir, '%s.npy' % fprefix)
 
 X = pkl.load(gzip.open(fx, 'rb'))
 X = np.hstack([np.ones((X.shape[0], 1)), X])
@@ -43,6 +44,7 @@ cliques_train = pkl.load(gzip.open(fcliques_train, 'rb'))
 cliques_all = pkl.load(gzip.open(fcliques_all, 'rb'))
 
 print('C: %g, %g, %g' % (C1, C2, C3))
+print('U: %d, N: %d, D: %d' % (len(cliques_train), Y_train.shape[1], X.shape[1]))
 print(X.shape, Y_train.shape)
 print(time.strftime('%Y-%m-%d %H:%M:%S'))
 
@@ -52,7 +54,7 @@ if os.path.exists(fmodel):
 else:
     print('training ...')
     clf = MTR(X, Y_train, C1=C1, C2=C2, C3=C3, cliques=cliques_train)
-    clf.fit(verbose=2)
+    clf.fit(verbose=2, fnpy=fnpy)
 
 if clf.trained is True:
     pkl.dump(clf, gzip.open(fmodel, 'wb'))
