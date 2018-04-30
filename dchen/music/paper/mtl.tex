@@ -1,0 +1,71 @@
+\section{Multitask learning for music recommendation}
+
+In this work, we treat a playlist as a set of songs by discarding the order of songs.
+Suppose we have a dataset $\DCal$ with $N$ playlists from $U$ users, songs in every playlist are from a music collection 
+with $M$ songs, and each song in the collection is at least in one playlist.
+
+The task of recommending a set of songs (to form a playlist) for a given user is illustrated in Figure~\ref{fig:pla},
+where rows represent songs (no specific order) and columns represent playlists (no specific order).
+Further, columns with white colour represent playlists in training set, 
+and columns with grey colour represent playlists that should be augmented (\ie test set).
+If entry $(m, i)$ is \texttt{1} (or \texttt{0}), 
+it means song $m$ can (or not) be found in playlist $i$,
+and a question mark \texttt{?} means that we do not know whether song $m$ is in playlist $i$.
+As a remark, columns represent playlists in test set contain only \texttt{?} entries.
+
+\input{fig_gen}
+
+
+\paragraph{Song scoring}
+%
+We aim to learn a function $f(i, m)$ that scores the affinity between playlist $i$ and song $m$.
+Suppose function $f(i, m)$ has a linear form, \ie
+$$
+f(i, m) = \w_i^\top \x_m,
+$$
+where vector $\w_i$ represents playlist $i$ and $\x_m$ is a feature vector for song $m$.
+
+We assume that playlist of a user can help the prediction of songs in another playlist of the same user,
+further, playlists of one user can also help predict songs in playlist of another user.
+In other words, we jointly learn from multiple tasks where each task is to predict a set of songs in a playlist.
+We therefore decompose the representation of a playlist into three components, formally,
+$$
+\w_i = \bv_i + \bu_j + \widebar\bu,
+$$
+where $\bv_i$ is a specific for playlist $i$, $\bu_j$ is the component that for user $j=u(i)$ that owns playlist $i$,
+and $\widebar\bu$ is a shared representation for all users.
+
+
+\paragraph{Multitask learning objective}
+%
+The learning task is to minimise the empirical risk of scoring function $f(\dot)$ on $\DCal$ over model parameters $\Theta$,
+which represents all parameters in $\bv_i, \bu_j, \widebar\bu, \, i=1,\dots,N, \, j=1,\dots,U$.
+Formally,
+$$
+\min_{\Theta} \, \RCal(f, \DCal).
+$$
+
+Another assumption we make in this work is playlists of the \emph{same} user have \emph{similar} representations,
+\ie we want the difference between the representations of playlist $i$ and $i'$ to be small,
+we can formalise the assumption by requiring $\|\w_i - \w_{i'}\|_2^2$ be a small number. 
+Note that
+$$
+\|\w_i - \w_{i'}\|_2^2 = \|\bv_i + \bu_j + \widebar\bu - (\bv_{i'} + \bu_j + \widebar\bu) \|_2^2 = \|\bv_i - \bv_{i'}\|_2^2,
+$$
+one way to make this quantity small is requiring $\bv$ be a sparse vector by adding a L1 regularisation term 
+to our learning objective, \ie
+$$
+\min_{\Theta} \, \RCal(f, \DCal) + \lambda \sum_{i=1}^N \|\w_i\|_1.
+$$
+
+The last assumption we make is that representations of different users are different, 
+but they nonetheless share a small number of features in their representations.
+This assumption can be formalised similarly by imposing an additional L1 regularisation term $\|\widebar\bu|_1$.
+
+In summary, our multitask learning objective is
+$$
+\min_{\Theta} \, \RCal(f, \DCal) 
+   + \lambda_1 \sum_{j=1}^U \|\bu_j\|_2^2 + \lambda_2 \sum_{i=1}^N \|\w_i\|_1 + \lambda_3 \|\widebar\bu\|_1,
+$$
+where we add an L2 regularisation term to penalise large values in user representation,
+and $\lambda_1, \lambda_2, \lambda_3 \in \R_+$ are regularisation constants.
