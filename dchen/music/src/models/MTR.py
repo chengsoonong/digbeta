@@ -55,28 +55,13 @@ class MTR(object):
         self.trained = False
 
     def _init_vars(self):
+        np.random.seed(0)
         N, U, D = self.N, self.U, self.D
-        w0 = np.zeros((U + N + 1) * D + N)
-        # w0 = 1e-3 * np.random.randn((U + N + 1) * D + N)
+        # w0 = np.zeros((U + N + 1) * D + N)
+        w0 = 1e-3 * np.random.randn((U + N + 1) * D + N)
         return w0
 
-        mu = 1e-3 * np.random.randn(D)
-        V = 1e-3 * np.random.randn(U, D)
-        W = 1e-3 * np.random.randn(N, D)
-        xi = np.zeros(N)
-        Ys, _, _ = self.data_helper.get_data()
-        assert U == len(Ys)
-        for u in range(U):
-            clq = self.cliques[u]
-            Yu = Ys[u]
-            Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
-            T1 = np.dot(self.X, Wt.T)
-            T2 = np.full(T1.shape, np.inf)  # mask entry (n,k) if y_n^k = 0
-            T2[Yu.row, Yu.col] = T1[Yu.row, Yu.col]
-            xi[clq] = T1.min(axis=0)
-        return np.r_[mu, V.ravel(), W.ravel(), xi]
-
-    def fit(self, loss='exponential', verbose=0, w0=None):
+    def fit(self, loss='exponential', w0=None, verbose=0, fnpy=None):
         t0 = time.time()
         if loss not in ['exponential', 'squared_hinge']:
             raise ValueError("'loss' should be either 'exponential' or 'squared_hinge'")
@@ -87,8 +72,16 @@ class MTR(object):
         num_vars = (U + N + 1) * D + N
         num_cons = int(self.Y.sum())
         if w0 is None:
-            w0 = self._init_vars()
-        assert w0.shape == (num_vars,)
+            if fnpy is not None:
+                try:
+                    w0 = np.load(fnpy, allow_pickle=False)
+                    print('Restore from %s' % fnpy)
+                except (IOError, ValueError):
+                    w0 = self._init_vars()
+            else:
+                w0 = self._init_vars()
+        if w0.shape != (num_vars,):
+            raise ValueError('ERROR: incorrect dimention for initial weights.')
 
         # solve using IPOPT
         problem = RankPrimal(X=self.X, Y=self.Y, C1=self.C1, C2=self.C2, C3=self.C3, cliques=self.cliques,
@@ -111,29 +104,31 @@ class MTR(object):
 
         # ROOT_URL = www.coin-or.org/Ipopt/documentation
         # set solver options: $ROOT_URL/node40.html
-        nlp.addOption(b'max_iter', int(1e5))
+        # nlp.addOption(b'max_iter', int(1e5))
         # nlp.addOption(b'mu_strategy', b'adaptive')
         # nlp.addOption(b'tol', 1e-7)
         # nlp.addOption(b'acceptable_tol', 1e-5)
         # nlp.addOption(b'acceptable_constr_viol_tol', 1e-6)
 
         # linear solver for the augmented linear system: $ROOT_URL/node51.html, www.hsl.rl.ac.uk/ipopt/
-        nlp.addOption(b'linear_solver', b'ma27')  # default
+        # nlp.addOption(b'linear_solver', b'ma27')  # default
         # nlp.addOption(b'linear_solver', b'ma57')  # small/medium problem
-        # nlp.addOption(b'linear_solver', b'ma86')  # large problem
+        nlp.addOption(b'linear_solver', b'ma86')  # large problem
 
         # gradient checking for objective and constraints: $ROOT_URL/node30.html
         # nlp.addOption(b'derivative_test', b'first-order')
-        # nlp.addOption(b'print_level', 6)
+        # nlp.addOption(b'derivative_test_print_all', b'yes')
+        nlp.addOption(b'print_level', 1)
 
         w, info = nlp.solve(w0)
-        # print(info['status'], info['status_msg'])
-        print('\n[IPOPT] %s\n' % info['status_msg'].decode('utf-8'))
+        print(info['status'], info['status_msg'])
+        # print('\n[IPOPT] %s\n' % info['status_msg'].decode('utf-8'))
 
         self.mu = w[:D]
         self.V = w[D:(U + 1) * D].reshape(U, D)
         self.W = w[(U + 1) * D:(U + N + 1) * D].reshape(N, D)
         self.xi = w[(U + N + 1) * D:]
+        self.pl2u = problem.pl2u
         self.trained = True
 
         if verbose > 0:
@@ -199,10 +194,9 @@ class RankPrimal(object):
             Yu = Ys[u]
             Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
             T1 = np.dot(self.X, Wt.T) - xi[clq].reshape(1, Nu)  # M by Nu
-            T1[Yu.row, Yu.col] = 0.  # mask entries (m, k) that y_m^k = 1
+            T1[Yu.row, Yu.col] = -np.inf  # mask entries (m, k) that y_m^k = 1
             T2 = np.exp(T1)
-            T2[Yu.row, Yu.col] = 0.  # mask entries (m, k) that y_m^k = 1
-            T2 *= Q[clq]
+            T2 *= Q[clq].reshape(1, Nu)
             return T2.sum()
 
         def risk_squared_hinge(u):
@@ -214,7 +208,7 @@ class RankPrimal(object):
             T1[Yu.row, Yu.col] = 0.   # mask entries (m, k) that y_m^k = 1
             T1[T1 < 0] = 0.
             T2 = np.square(T1)
-            T2 *= Q[clq]
+            T2 *= Q[clq].reshape(1, Nu)
             return T2.sum()
 
         for u in range(U):
@@ -254,16 +248,15 @@ class RankPrimal(object):
             Yu = Ys[u]
             Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
             T1 = np.dot(self.X, Wt.T) - xi[clq].reshape(1, Nu)  # M by Nu
-            T1[Yu.row, Yu.col] = 0.  # mask entries (m, k) that y_m^k = 1
+            T1[Yu.row, Yu.col] = -np.inf  # mask entries (m, k) that y_m^k = 1
             T2 = np.exp(T1)
-            T2[Yu.row, Yu.col] = 0.  # mask entries (m, k) that y_m^k = 1
-            T2 *= Q[clq]  # M by Nu
             T3 = np.dot(T2.T, self.X)  # Nu by D
+            T3 *= Q[clq].reshape(Nu, 1)
             vec = T3.sum(axis=0)
             dV = vec
             dW = T3
             dmu = vec
-            dxi = -T2.sum(axis=0)
+            dxi = -T2.sum(axis=0) * Q[clq]
             return dV, dW, dmu, dxi
 
         def grad_squred_hinge(u):
@@ -274,13 +267,13 @@ class RankPrimal(object):
             T1 = np.dot(self.X, Wt.T) + (1. - xi[clq]).reshape(1, Nu)  # M by Nu
             T1[Yu.row, Yu.col] = 0.   # mask entries (m, k) that y_m^k = 1
             T1[T1 < 0] = 0.
-            T1 *= Q[clq]
             T2 = 2 * np.dot(T1.T, self.X)  # Nu by D
+            T2 *= Q[clq].reshape(Nu, 1)
             vec = T2.sum(axis=0)
             dV = vec
             dW = T2
             dmu = vec
-            dxi = -2. * T1.sum(axis=0)
+            dxi = -2. * T1.sum(axis=0) * Q[clq]
             return dV, dW, dmu, dxi
 
         dV = V * C1 / U
