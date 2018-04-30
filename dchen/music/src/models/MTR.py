@@ -57,7 +57,7 @@ class MTR(object):
     def _init_vars(self):
         np.random.seed(0)
         N, U, D = self.N, self.U, self.D
-        w0 = 1e-3 * np.random.randn((U + N + 1) * D + N)
+        w0 = 0.0001 * np.random.randn((U + N + 1) * D + N)
         return w0
 
     def fit(self, loss='exponential', w0=None, verbose=0, fnpy=None):
