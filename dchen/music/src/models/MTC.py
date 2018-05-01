@@ -196,9 +196,9 @@ class MTC():
                     w0 = np.load(fnpy, allow_pickle=False)
                     print('Restore from %s' % fnpy)
                 except (IOError, ValueError):
-                    w0 = 1e-5 * np.random.randn(num_vars)
+                    w0 = 1e-3 * np.random.randn(num_vars)
             else:
-                w0 = 1e-5 * np.random.randn(num_vars)
+                w0 = 1e-3 * np.random.randn(num_vars)
         if w0.shape != (num_vars,):
             raise ValueError('ERROR: incorrect dimention for initial weights.')
 

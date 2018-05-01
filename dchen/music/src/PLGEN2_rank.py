@@ -33,7 +33,6 @@ fcliques_train = os.path.join(data_dir, 'cliques_train.pkl.gz')
 fprefix = 'trndev-plgen2-rank-%g-%g-%g' % (C1, C2, C3)
 
 fmodel = os.path.join(data_dir, '%s.pkl.gz' % fprefix)
-fnpy = os.path.join(data_dir, '%s.npy' % fprefix)
 
 X = pkl.load(gzip.open(fx, 'rb'))
 X = np.hstack([np.ones((X.shape[0], 1)), X])
@@ -51,7 +50,7 @@ if os.path.exists(fmodel):
 else:
     print('training ...')
     clf = MTR(X, Y_train, C1=C1, C2=C2, C3=C3, cliques=cliques_train)
-    clf.fit(verbose=2, fnpy=fnpy)
+    clf.fit(verbose=2)
 
 if clf.trained is True:
     pkl.dump(clf, gzip.open(fmodel, 'wb'))

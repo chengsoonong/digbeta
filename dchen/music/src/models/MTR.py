@@ -57,10 +57,10 @@ class MTR(object):
     def _init_vars(self):
         np.random.seed(0)
         N, U, D = self.N, self.U, self.D
-        w0 = 1e-5 * np.random.randn((U + N + 1) * D + N)
+        w0 = 1e-4 * np.random.randn((U + N + 1) * D + N)
         return w0
 
-    def fit(self, loss='exponential', w0=None, verbose=0, fnpy=None):
+    def fit(self, loss='exponential', w0=None, verbose=0):
         t0 = time.time()
         if loss not in ['exponential', 'squared_hinge']:
             raise ValueError("'loss' should be either 'exponential' or 'squared_hinge'")
@@ -71,14 +71,7 @@ class MTR(object):
         num_vars = (U + N + 1) * D + N
         num_cons = int(self.Y.sum())
         if w0 is None:
-            if fnpy is not None:
-                try:
-                    w0 = np.load(fnpy, allow_pickle=False)
-                    print('Restore from %s' % fnpy)
-                except (IOError, ValueError):
-                    w0 = self._init_vars()
-            else:
-                w0 = self._init_vars()
+            w0 = self._init_vars()
         if w0.shape != (num_vars,):
             raise ValueError('ERROR: incorrect dimention for initial weights.')
 
@@ -103,7 +96,7 @@ class MTR(object):
 
         # ROOT_URL = www.coin-or.org/Ipopt/documentation
         # set solver options: $ROOT_URL/node40.html
-        # nlp.addOption(b'max_iter', int(1e5))
+        nlp.addOption(b'max_iter', int(1e3))
         # nlp.addOption(b'mu_strategy', b'adaptive')
         # nlp.addOption(b'tol', 1e-7)
         # nlp.addOption(b'acceptable_tol', 1e-5)
@@ -120,8 +113,8 @@ class MTR(object):
         nlp.addOption(b'print_level', 1)
 
         w, info = nlp.solve(w0)
-        print(info['status'], info['status_msg'])
-        # print('\n[IPOPT] %s\n' % info['status_msg'].decode('utf-8'))
+        # print(info['status'], info['status_msg'])
+        print('\n[IPOPT] %s\n' % info['status_msg'].decode('utf-8'))
 
         self.mu = w[:D]
         self.V = w[D:(U + 1) * D].reshape(U, D)
@@ -129,6 +122,8 @@ class MTR(object):
         self.xi = w[(U + N + 1) * D:]
         self.pl2u = problem.pl2u
         self.trained = True
+        self.status = info['status']
+        self.status_msg = info['status_msg']
 
         if verbose > 0:
             print('Training finished in %.1f seconds' % (time.time() - t0))
