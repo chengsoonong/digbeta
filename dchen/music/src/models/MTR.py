@@ -57,7 +57,7 @@ class MTR(object):
     def _init_vars(self):
         np.random.seed(0)
         N, U, D = self.N, self.U, self.D
-        w0 = 0.0001 * np.random.randn((U + N + 1) * D + N)
+        w0 = 1e-5 * np.random.randn((U + N + 1) * D + N)
         return w0
 
     def fit(self, loss='exponential', w0=None, verbose=0, fnpy=None):
@@ -192,10 +192,10 @@ class RankPrimal(object):
             Nu = len(clq)
             Yu = Ys[u]
             Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
-            T1 = np.dot(self.X, Wt.T) - xi[clq].reshape(1, Nu)  # M by Nu
+            T1 = np.dot(self.X, Wt.T)  # M by Nu
             T1[Yu.row, Yu.col] = -np.inf  # mask entries (m, k) that y_m^k = 1
             T2 = np.exp(T1)
-            T2 *= Q[clq].reshape(1, Nu)
+            T2 *= (np.exp(-xi[clq]) * Q[clq]).reshape(1, Nu)
             return T2.sum()
 
         def risk_squared_hinge(u):
@@ -246,16 +246,17 @@ class RankPrimal(object):
             Nu = len(clq)
             Yu = Ys[u]
             Wt = W[clq, :] + (V[u, :] + mu).reshape(1, D)
-            T1 = np.dot(self.X, Wt.T) - xi[clq].reshape(1, Nu)  # M by Nu
+            T1 = np.dot(self.X, Wt.T)  # M by Nu
             T1[Yu.row, Yu.col] = -np.inf  # mask entries (m, k) that y_m^k = 1
             T2 = np.exp(T1)
             T3 = np.dot(T2.T, self.X)  # Nu by D
-            T3 *= Q[clq].reshape(Nu, 1)
+            xivec = np.exp(-xi[clq]) * Q[clq]
+            T3 *= xivec.reshape(Nu, 1)
             vec = T3.sum(axis=0)
             dV = vec
             dW = T3
             dmu = vec
-            dxi = -T2.sum(axis=0) * Q[clq]
+            dxi = -T2.sum(axis=0) * xivec
             return dV, dW, dmu, dxi
 
         def grad_squred_hinge(u):
