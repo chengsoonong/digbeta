@@ -16,12 +16,15 @@ As a remark, columns represent playlists in test set contain only \texttt{?} ent
 \input{fig_gen}
 
 
-\paragraph{Song scoring}
+
+\subsection{Multitask learning objective}
+
+%\paragraph{Song scoring}
 %
 We aim to learn a function $f(i, m)$ that scores the affinity between playlist $i$ and song $m$.
 Suppose function $f(i, m)$ has a linear form, \ie
 $$
-f(i, m) = \w_i^\top \x_m,
+f(i, m) = \w_i^\top \x_m, \ i \in \{1,\dots,N\}, \, m \in \{1,\dots,M\},
 $$
 where vector $\w_i$ represents playlist $i$ and $\x_m$ is a feature vector for song $m$.
 
@@ -36,13 +39,13 @@ where $\bv_i$ is a specific for playlist $i$, $\bu_j$ is the component that for 
 and $\widebar\bu$ is a shared representation for all users.
 
 
-\paragraph{Multitask learning objective}
+%\paragraph{Multitask learning objective}
 %
-The learning task is to minimise the empirical risk of scoring function $f$ on dataset $\DCal$ over model parameters $\Theta$,
+The learning task is to minimise the empirical risk of scoring function $f$ on dataset $\DCal$ over model parameters $\uptheta$,
 which represents all parameters in $\bv_i, \bu_j, \widebar\bu, \, i=1,\dots,N, \, j=1,\dots,U$.
 Formally,
 $$
-\min_{\Theta} \, \RCal(f, \DCal).
+\min_{\uptheta} \, \RCal(f, \DCal).
 $$
 
 Another assumption we make in this work is playlists of the \emph{same} user have \emph{similar} representations,
@@ -55,7 +58,7 @@ $$
 one way to make this quantity small is requiring $\bv$ be a sparse vector by adding a L1 regularisation term 
 to our learning objective, \ie
 $$
-\min_{\Theta} \, \RCal(f, \DCal) + \lambda \sum_{i=1}^N \|\w_i\|_1.
+\min_{\uptheta} \, \RCal(f, \DCal) + \lambda \sum_{i=1}^N \|\w_i\|_1.
 $$
 
 The last assumption we make is that representations of different users are different, 
@@ -65,7 +68,7 @@ This assumption can be formalised similarly by imposing an additional L1 regular
 In summary, our multitask learning objective is
 \begin{equation}
 \label{eq:obj}
-\min_{\Theta} \, \RCal(f, \DCal) 
+\min_{\uptheta} \, \RCal(f, \DCal) 
    + \lambda_1 \sum_{j=1}^U \|\bu_j\|_2^2 + \lambda_2 \sum_{i=1}^N \|\w_i\|_1 + \lambda_3 \|\widebar\bu\|_1,
 \end{equation}
 where we add an L2 regularisation term to penalise large values in user representation,
