@@ -32,6 +32,9 @@ Suppose we use the exponential loss, the multitask learning objective~(\ref{eq:o
 where $R(\Theta) = \lambda_1 \sum_{j=1}^U \|\bu_j\|_2^2 + \lambda_2 \sum_{i=1}^N \|\w_i\|_1 + \lambda_3 \|\widebar\bu\|_1$ 
 is the multitask regularisation term.
 
+
+\subsection{Formulate a constrained optimisation problem}
+
 Directly solving problem (\ref{eq:expobj}) is challenging due to the \emph{min} operator.
 However, it is straightforward to show that (\ref{eq:expobj}) is equivalent to the following constrained optimisation problem:
 \begin{equation}
@@ -93,17 +96,20 @@ Let $\RCal_\textsc{clf}$ be the following classification risk:
 \end{equation*}
 we have a theorem
 \begin{theorem}
-$\min_{\Theta} \RCal_\textsc{clf}$ and $\min_{\Theta} \widetilde\RCal_\textsc{rank}$ share the same minimisers (assuming minimisers exist).
+\label{th:rank2clf}
+Let $\Theta^* \in \argmin_{\Theta} \RCal_\textsc{clf}$ (assuming minimisers exist), 
+then $\Theta^* \in \argmin_{\Theta} \widetilde\RCal_\textsc{rank}$.
 \end{theorem}
 
 \begin{proof}
-We following the proof technique in~\cite{}
+We following the proof technique in~\cite{}.
 First, we introduce a constant feature $1$ for $x_m, \, m \in \{1,\dots,M\}$ to serve as a bias, 
-and without loss of generality, let $x_m^0$ be the constant feature, \ie $x_m^0 = 1$, let
+and without loss of generality, let $x_m^0$ be the constant feature, \ie $x_m^0 = 1$, 
+$\forall i \in \{1,\dots,N\}$, let
 \begin{equation*}
 \begin{aligned}
 0 
-&= \frac{\partial \RCal_\textsc{clf}} {\partial w_i^0}
+&= \frac{\partial \RCal_\textsc{clf}} {\partial v_i^0}
 &= \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)} (-p) + \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)},
 \end{aligned}
 \end{equation*}
@@ -116,7 +122,7 @@ we have
 Further, let
 \begin{equation*}
 0 
-= \frac{\partial \RCal_\textsc{clf}} {\partial \w_i} 
+= \frac{\partial \RCal_\textsc{clf}} {\partial \bv_i} 
 = \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)} (-p \x_m) + \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n,
 \end{equation*}
 we have
@@ -126,10 +132,10 @@ we have
 \end{equation}
 
 We want to prove that
-$\frac{\partial \widetilde\RCal_\textsc{rank}} {\partial \w_i}$ equals to $0$, note that
+$\frac{\partial \widetilde\RCal_\textsc{rank}} {\partial \bv_i}$ equals to $0$, note that
 \begin{equation*}
 \begin{aligned}
-&\frac{\partial \widetilde\RCal_\textsc{rank}} {\partial \w_i} \\
+&\frac{\partial \widetilde\RCal_\textsc{rank}} {\partial \bv_i} \\
 &= \frac{1}{N M_-^i} \left[ \frac{1}{p} 
    \left( \sum_{m: y_m^i=1} e^{-p f(i, m)} \right)^{\frac{1}{p} - 1} \sum_{m: y_m^i=1} e^{-p f(i, m)} (-p) \x_m \sum_{n: y_n^i=0} e^{f(i, n)} \right. \\
 & \hspace{4em} \left.
@@ -148,6 +154,21 @@ $\frac{\partial \widetilde\RCal_\textsc{rank}} {\partial \w_i}$ equals to $0$, n
 \end{aligned}
 \end{equation*}
 
+We can similarly prove that 
+\begin{equation*}
+\begin{aligned}
+\frac{\partial \widetilde\RCal_\textsc{rank}}{\partial \bu_j} &= 0, \ \forall j \in \{1,\dots,U\} \\
+\frac{\partial \widetilde\RCal_\textsc{rank}}{\partial \widebar{\bu}} &= 0.
+\end{aligned}
+\end{equation*}
 
 \end{proof}
+
+By Theorem~\ref{th:rank2clf}, we have the following unconstrained optimisation problem
+which approximate the problem~(\ref{eq:expobj}),
+but can be optimised more efficiently.
+\begin{equation}
+\label{eq:expobj_clf}
+\min_{\Theta} \, R(\Theta) + \RCal_\textsc{clf}.
+\end{equation}
 
