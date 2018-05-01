@@ -38,7 +38,7 @@ and $\widebar\bu$ is a shared representation for all users.
 
 \paragraph{Multitask learning objective}
 %
-The learning task is to minimise the empirical risk of scoring function $f(\dot)$ on $\DCal$ over model parameters $\Theta$,
+The learning task is to minimise the empirical risk of scoring function $f$ on dataset $\DCal$ over model parameters $\Theta$,
 which represents all parameters in $\bv_i, \bu_j, \widebar\bu, \, i=1,\dots,N, \, j=1,\dots,U$.
 Formally,
 $$
@@ -63,9 +63,10 @@ but they nonetheless share a small number of features in their representations.
 This assumption can be formalised similarly by imposing an additional L1 regularisation term $\|\widebar\bu|_1$.
 
 In summary, our multitask learning objective is
-$$
+\begin{equation}
+\label{eq:obj}
 \min_{\Theta} \, \RCal(f, \DCal) 
    + \lambda_1 \sum_{j=1}^U \|\bu_j\|_2^2 + \lambda_2 \sum_{i=1}^N \|\w_i\|_1 + \lambda_3 \|\widebar\bu\|_1,
-$$
+\end{equation}
 where we add an L2 regularisation term to penalise large values in user representation,
 and $\lambda_1, \lambda_2, \lambda_3 \in \R_+$ are regularisation constants.
