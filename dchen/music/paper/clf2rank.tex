@@ -1,0 +1,94 @@
+\section{Proof of classification objective minimises ranking objective}
+
+The empirical risk $\RCal_\textsc{rank}$ can be approximated (with the exponential surrogate) as follows:
+\begin{equation*}
+\begin{aligned}
+\RCal_\textsc{rank} 
+&= \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \exp \left( -\min_{m: y_m^i = 1} f(i, m) \right) \sum_{n: y_n^i = 0} \exp(f(i, n)) \\
+&\approx \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \exp \left( \frac{1}{p} \log\sum_{m: y_m^i = 1} e^{-p f(i, m)} \right)
+         \sum_{n: y_n^i = 0} e^{f(i, n)} \\
+&= \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \exp \left( \log \left( \sum_{m: y_m^i = 1} e^{-p f(i, m)} \right)^\frac{1}{p} \right) 
+   \sum_{n: y_n^i = 0} e^{f(i, n)} \\
+&= \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \left( \sum_{m: y_m^i = 1} e^{-p f(i, m)} \right)^\frac{1}{p} \sum_{n: y_n^i = 0} e^{f(i, n)} \\
+&= \widetilde\RCal_\textsc{rank}.
+\end{aligned}
+\end{equation*}
+
+Let $\RCal_\textsc{clf}$ be the following classification risk:
+\begin{equation*}
+\RCal_\textsc{clf} 
+= \frac{1}{N} \sum_{i=1}^N \left( 
+  \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)} 
+  + \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)} \right),
+\end{equation*}
+we have a theorem
+\begin{theorem}
+\label{th:rank2clf}
+Let $\uptheta^* \in \argmin_{\uptheta} \RCal_\textsc{clf}$ (assuming minimisers exist), 
+then $\uptheta^* \in \argmin_{\uptheta} \widetilde\RCal_\textsc{rank}$.
+\end{theorem}
+
+\begin{proof}
+We following the proof technique in~\cite{}.
+First, we introduce a constant feature $1$ for $x_m, \, m \in \{1,\dots,M\}$ to serve as a bias, 
+and without loss of generality, let $x_m^0$ be the constant feature, \ie $x_m^0 = 1$, 
+$\forall i \in \{1,\dots,N\}$, let
+\begin{equation*}
+\begin{aligned}
+0 
+&= \frac{\partial \RCal_\textsc{clf}} {\partial v_i^0}
+&= \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)} (-p) + \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)},
+\end{aligned}
+\end{equation*}
+we have
+\begin{equation}
+\label{eq:eq1}
+\frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)} = \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)}.
+\end{equation}
+
+Further, let
+\begin{equation*}
+0 
+= \frac{\partial \RCal_\textsc{clf}} {\partial \bv_i} 
+= \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)} (-p \x_m) + \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n,
+\end{equation*}
+we have
+\begin{equation}
+\label{eq:eq2}
+\frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)} \x_m = \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n.
+\end{equation}
+
+We want to prove that
+$\frac{\partial \widetilde\RCal_\textsc{rank}} {\partial \bv_i}$ equals to $0$, note that
+\begin{equation*}
+\begin{aligned}
+&\frac{\partial \widetilde\RCal_\textsc{rank}} {\partial \bv_i} \\
+&= \frac{1}{N M_-^i} \left[ \frac{1}{p} 
+   \left( \sum_{m: y_m^i=1} e^{-p f(i, m)} \right)^{\frac{1}{p} - 1} \sum_{m: y_m^i=1} e^{-p f(i, m)} (-p) \x_m \sum_{n: y_n^i=0} e^{f(i, n)} \right. \\
+& \hspace{4em} \left.
+   + \left( \sum_{m: y_m^i = 1} e^{-p f(i, m)} \right)^\frac{1}{p} \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n \right] \\
+&= \frac{-1}{N M_-^i} \left( \sum_{m: y_m^i=1} e^{-p f(i, m)} \right)^{\frac{1}{p} - 1} 
+   \left[ \sum_{m: y_m^i=1} e^{-p f(i, m)} \x_m \sum_{n: y_n^i=0} e^{f(i, n)} \right. \\
+& \hspace{4em} \left.
+   - \sum_{m: y_m^i = 1} e^{-p f(i, m)} \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n \right] \\
+&= \frac{-1}{N M_-^i} \left( \sum_{m: y_m^i=1} e^{-p f(i, m)} \right)^{\frac{1}{p} - 1} 
+   \left[ \sum_{m: y_m^i=1} e^{-p f(i, m)} \x_m \frac{M_-^i}{M_+^i} \sum_{m: y_m^i=1} e^{-p f(i, m)} \right. \\
+& \hspace{4em} \left.
+   - \sum_{m: y_m^i = 1} e^{-p f(i, m)} \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n \right] \ \text{(by Eq.~\ref{eq:eq1})} \\
+&= \frac{-1}{N M_-^i} \left( \sum_{m: y_m^i=1} e^{-p f(i, m)} \right)^\frac{1}{p} 
+   \left[ \frac{M_-^i}{M_+^i} \sum_{m: y_m^i=1} e^{-p f(i, m)} \x_m - \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n \right] \\
+&= 0. \ \text{(by Eq.~\ref{eq:eq2})}
+\end{aligned}
+\end{equation*}
+
+We can similarly prove that 
+\begin{equation*}
+\begin{aligned}
+\frac{\partial \widetilde\RCal_\textsc{rank}}{\partial \bu_j} &= 0, \ \forall j \in \{1,\dots,U\} \\
+\frac{\partial \widetilde\RCal_\textsc{rank}}{\partial \widebar{\bu}} &= 0.
+\end{aligned}
+\end{equation*}
+
+\end{proof}
+
+
