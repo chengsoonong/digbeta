@@ -33,6 +33,7 @@ where $R(\Theta) = \lambda_1 \sum_{j=1}^U \|\bu_j\|_2^2 + \lambda_2 \sum_{i=1}^N
 is the multitask regularisation term.
 
 
+
 \subsection{Formulate a constrained optimisation problem}
 
 Directly solving problem (\ref{eq:expobj}) is challenging due to the \emph{min} operator.
@@ -56,6 +57,7 @@ Asymptotically, it is of order $O(\widebar{L} N)$ where $\widebar{L}$ is the ave
 Although $\widebar{L}$ is dataset dependent, but typically it is less than $100$, 
 while the total number of playlists $N$ can be very large in production systems (\eg $1$ billion in Spotify),
 which imposes further challenge to optimise problem~(\ref{eq:expobj_cons}.
+
 
 
 \subsection{From ranking to classification}
@@ -172,3 +174,24 @@ but can be optimised more efficiently.
 \min_{\Theta} \, R(\Theta) + \RCal_\textsc{clf}.
 \end{equation}
 
+
+
+\subsection{Discussion}
+
+In this section, we want to discuss the advantages and limitations of the 
+two approaches that solve problem~(\ref{eq:expobj}), 
+as well as a few practical strategies for the proposed approaches.
+
+The constrained optimisation problem~(\ref{eq:expobj_cons}) can be solved using interior-point method,
+although the large number of constraints requires a large amount of computation resources.
+Cutting-plane~\cite{} techniques can be employed to deal with this challenge, 
+but we found it does not work extremely well in practice.
+However, this approach allows us to use different type surrogate loss beside the exponential loss,
+such as the hinge loss or squared hinge loss, which may provide a few other desired properties. % detailing this
+% solvers: IPOPT, CVX etc.
+
+It is obvious that solving the unconstrained optimisation problem~(\ref{eq:expobj_clf})
+is generally easier than solving problem (\ref{eq:expobj_cons}) which has a large number of constraints.
+The Orthant-Wise Limited-memory Quasi-Newton (OWL-QN)~\cite{} L-BFGS variant can be employed to
+efficiently deal with the L1 term in (\ref{eq:expobj_clf}) without huge memory burdens.
+% solver: pylbfgs
