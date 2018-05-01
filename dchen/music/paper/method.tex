@@ -1,0 +1,153 @@
+\section{Learning to recommend the most probable songs}
+
+In this section, we describe a ranking based approach that learns to rank songs in playlist higher 
+than those not in it, which hopefully ranks the most probable songs higher than those unlikely when making a recommendation.
+Formally, given playlist $i$, we would like
+\begin{equation*}
+\begin{aligned}
+\min_{m: y_m^i = 1} f(i, m) \ge f(i, n), \ \forall n \in \{1,\dots,M\} \ \text{and} \ y_n^i = 0,
+\end{aligned}
+\end{equation*}
+where $y_m^i = 1$ denotes that song $m$ is in playlist $i$,
+and $y_n^i = 0$ represents song $n$ does not appear in playlist $i$.
+
+To achieve the goal, we can minimise the number of songs that not appeared in a given playlist
+but have a higher score than the lowest ranked song in playlist, \ie the (normalised) empirical risk is
+\begin{equation}
+\label{eq:bp}
+\RCal_\textsc{rank} = \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \sum_{n: y_n^i = 0} \llb \min_{m: y_m^i = 1} f(i, m) \le f(i, n) \rrb,
+\end{equation}
+where $M_-^i$ denotes the number of songs that are not in playlist $i$,
+and $\llb \cdot \rrb$ is the indicator function that represents the 0-1 loss,
+
+To minimise $\RCal_\textsc{rank}$, we replace 0-1 loss with one of its convex surrogate,
+\eg the exponential loss $\ell(f, y) = e^{-fy}$, the logistic loss $\ell(f, y) = \log(1 + e^{-fy})$,
+or the squared hinge loss $\ell(f, y) = [\max(0, \, 1 - fy)]^2$ etc.
+
+Suppose we use the exponential loss, the multitask learning objective~(\ref{eq:obj}) becomes
+\begin{equation}
+\label{eq:expobj}
+\min_{\Theta} \ R(\Theta) + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \sum_{n: y_n^i = 0} \exp \left(f(i, n) - \min_{m: y_m^i = 1} f(i, m) \right),
+\end{equation}
+where $R(\Theta) = \lambda_1 \sum_{j=1}^U \|\bu_j\|_2^2 + \lambda_2 \sum_{i=1}^N \|\w_i\|_1 + \lambda_3 \|\widebar\bu\|_1$ 
+is the multitask regularisation term.
+
+Directly solving problem (\ref{eq:expobj}) is challenging due to the \emph{min} operator.
+However, it is straightforward to show that (\ref{eq:expobj}) is equivalent to the following constrained optimisation problem:
+\begin{equation}
+\label{eq:expobj_cons}
+\begin{aligned}
+\min_{\Theta} \ \, & R(\Theta) + \frac{1}{N} \sum_{i=1}^N \frac{e^{-\xi_i}}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)} \\
+s.t. \ \, & \xi_i \le f(i, m), \ \forall m \in \{1,\dots,M\} \ \text{and} \ y_m^i = 1.
+\end{aligned}
+\end{equation}
+
+One may observe that the objective of problem~(\ref{eq:expobj_cons}) is convex but not differentiable due to the L1 regularisation terms in $R(\Theta)$,
+nonetheless, we can make use of its sub-gradient.
+Another observation is the number of constraints in problem~(\ref{eq:expobj_cons}) is 
+$$
+\sum_{i=1}^N \sum_{m=1}^M \llb y_m^i = 1 \rrb,
+$$
+in other words, the number of constraints equals the total number of songs played in all playlists.
+Asymptotically, it is of order $O(\widebar{L} N)$ where $\widebar{L}$ is the average number of songs in playlists.
+Although $\widebar{L}$ is dataset dependent, but typically it is less than $100$, 
+while the total number of playlists $N$ can be very large in production systems (\eg $1$ billion in Spotify),
+which imposes further challenge to optimise problem~(\ref{eq:expobj_cons}.
+
+
+\subsection{From ranking to classification}
+
+Inspired by an equivalence relationship between the P-Norm Push loss and the P-Classification loss~\cite{},
+we seek an unconstrained optimisation problem that approximates the empirical loss $\RCal_\textsc{rank}$,
+by making use of a classification loss.
+
+First, note that the \emph{max} operator can be approximated by a smooth LogSumExp function~\cite{}:
+$$
+\max_i z_i \approx \frac{1}{p} \log \sum_i e^{p z_i},
+$$
+where $p > 0$ is a parameter that trades off the approximating precision, then
+$$
+\min_i z_i = -\max_i (-z_i) \approx -\frac{1}{p} \log \sum_i e^{-p z_i}.
+$$
+
+The empirical risk $\RCal_\textsc{rank}$ can be approximated (with the exponential surrogate) as follows:
+\begin{equation*}
+\begin{aligned}
+\RCal_\textsc{rank} 
+&= \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \exp \left( -\min_{m: y_m^i = 1} f(i, m) \right) \sum_{n: y_n^i = 0} \exp(f(i, n)) \\
+&\approx \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \exp \left( \frac{1}{p} \log\sum_{m: y_m^i = 1} e^{-p f(i, m)} \right)
+         \sum_{n: y_n^i = 0} e^{f(i, n)} \\
+&= \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \exp \left( \log \left( \sum_{m: y_m^i = 1} e^{-p f(i, m)} \right)^\frac{1}{p} \right) 
+   \sum_{n: y_n^i = 0} e^{f(i, n)} \\
+&= \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \left( \sum_{m: y_m^i = 1} e^{-p f(i, m)} \right)^\frac{1}{p} \sum_{n: y_n^i = 0} e^{f(i, n)} \\
+&= \widetilde\RCal_\textsc{rank}.
+\end{aligned}
+\end{equation*}
+
+Let $\RCal_\textsc{clf}$ be the following classification risk:
+\begin{equation*}
+\RCal_\textsc{clf} 
+= \frac{1}{N} \sum_{i=1}^N \left( 
+  \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)} 
+  + \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)} \right),
+\end{equation*}
+we have a theorem
+\begin{theorem}
+$\min_{\Theta} \RCal_\textsc{clf}$ and $\min_{\Theta} \widetilde\RCal_\textsc{rank}$ share the same minimisers (assuming minimisers exist).
+\end{theorem}
+
+\begin{proof}
+We following the proof technique in~\cite{}
+First, we introduce a constant feature $1$ for $x_m, \, m \in \{1,\dots,M\}$ to serve as a bias, 
+and without loss of generality, let $x_m^0$ be the constant feature, \ie $x_m^0 = 1$, let
+\begin{equation*}
+\begin{aligned}
+0 
+&= \frac{\partial \RCal_\textsc{clf}} {\partial w_i^0}
+&= \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)} (-p) + \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)},
+\end{aligned}
+\end{equation*}
+we have
+\begin{equation}
+\label{eq:eq1}
+\frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)} = \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)}.
+\end{equation}
+
+Further, let
+\begin{equation*}
+0 
+= \frac{\partial \RCal_\textsc{clf}} {\partial \w_i} 
+= \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)} (-p \x_m) + \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n,
+\end{equation*}
+we have
+\begin{equation}
+\label{eq:eq2}
+\frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)} \x_m = \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n.
+\end{equation}
+
+We want to prove that
+$\frac{\partial \widetilde\RCal_\textsc{rank}} {\partial \w_i}$ equals to $0$, note that
+\begin{equation*}
+\begin{aligned}
+&\frac{\partial \widetilde\RCal_\textsc{rank}} {\partial \w_i} \\
+&= \frac{1}{N M_-^i} \left[ \frac{1}{p} 
+   \left( \sum_{m: y_m^i=1} e^{-p f(i, m)} \right)^{\frac{1}{p} - 1} \sum_{m: y_m^i=1} e^{-p f(i, m)} (-p) \x_m \sum_{n: y_n^i=0} e^{f(i, n)} \right. \\
+& \hspace{4em} \left.
+   + \left( \sum_{m: y_m^i = 1} e^{-p f(i, m)} \right)^\frac{1}{p} \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n \right] \\
+&= \frac{-1}{N M_-^i} \left( \sum_{m: y_m^i=1} e^{-p f(i, m)} \right)^{\frac{1}{p} - 1} 
+   \left[ \sum_{m: y_m^i=1} e^{-p f(i, m)} \x_m \sum_{n: y_n^i=0} e^{f(i, n)} \right. \\
+& \hspace{4em} \left.
+   - \sum_{m: y_m^i = 1} e^{-p f(i, m)} \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n \right] \\
+&= \frac{-1}{N M_-^i} \left( \sum_{m: y_m^i=1} e^{-p f(i, m)} \right)^{\frac{1}{p} - 1} 
+   \left[ \sum_{m: y_m^i=1} e^{-p f(i, m)} \x_m \frac{M_-^i}{M_+^i} \sum_{m: y_m^i=1} e^{-p f(i, m)} \right. \\
+& \hspace{4em} \left.
+   - \sum_{m: y_m^i = 1} e^{-p f(i, m)} \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n \right] \ \text{(by Eq.~\ref{eq:eq1})} \\
+&= \frac{-1}{N M_-^i} \left( \sum_{m: y_m^i=1} e^{-p f(i, m)} \right)^\frac{1}{p} 
+   \left[ \frac{M_-^i}{M_+^i} \sum_{m: y_m^i=1} e^{-p f(i, m)} \x_m - \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n \right] \\
+&= 0. \ \text{(by Eq.~\ref{eq:eq2})}
+\end{aligned}
+\end{equation*}
+
+
+\end{proof}
+
