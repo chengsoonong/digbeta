@@ -1,8 +1,15 @@
 \section{Experiment}
 \label{sec:experiment}
 
+In this section, we describe empirical experiments that recommend a set of music using the proposed methods
+described in Section~\ref{sec:method}, and compare with a few well known approaches.
+
 \subsection{Music playlist dataset}
 We make use of publicly available playlist dataset: the AotM-2011~\cite{mcfee2012hypergraph} and 30Music~\cite{30music2015} playlist dataset. \\
+%
+{\bf Million Song Dataset} (MSD) is a collection of one million songs, information of each song such as the name, artist, release year are available,
+Further, the dataset provides acoustic features computed from a sample section of the audio file for each song. % more description
+We use MSD as the underline dataset where song features are computed.
 %
 {\bf AotM-2011 Dataset} is a collection of playlists shared by users\footnote{\url{http://www.artofthemix.org}} ranging from 1998 to 2011, 
 songs in the dataset had been matched to those in the Million Song Dataset (MSD)~\cite{msd2011}.
@@ -12,18 +19,6 @@ We filtered out playlists with less than 5 songs, which results in roughly 84K p
 We utilise the playlists data by first intersecting with the MSD, leveraging the Last.fm dataset~\cite{lastfmdataset} 
 which matched songs from Last.fm with those in MSD, then filtering out playlists with less than 5 songs, 
 which results in roughly 17K playlists over 45K songs from 8K users.
-
-We make use of the audio features of songs provided by MSD, 
-and genre data from the Top-MAGD genre dataset~\cite{schindler2012facilitating} and tagtraum genre annotations for MSD~\cite{schreiber2015improving},
-which results in 202 audio features and 15 one-hot encoding for genres,
-further, for the task of playlist augmentation, an additional feature we utilise is the popularity of songs,
-that is, the number of occurrence of the song (\ie a listening event of the particular song) in all playlists,
-including the partial playlists in test set, which will be described in Section~\ref{ssec:pla}.
-%
-%% details for compute song features.
-%% - temporal audio features: use 5-number (percentiles) summary: min, max, median, Q1 and Q3.
-%% - missing genre: imputed using the mean values of the genre
-%
 Table~\ref{tab:stats_pldata} summarises the two playlist dataset used in this work.
 %
 \begin{table}[!h]
@@ -44,7 +39,53 @@ AotM-2011 & 114,428 & 84,710      & 14,182  & 10.1 & 6.0 \\
 \end{table}
 
 
-\subsection{Evaluation}
+
+\subsection{Features}
+
+Song features computed from Million Song Dataset,
+We make use of the audio features of songs provided by MSD, 
+and genre data from the Top-MAGD genre dataset~\cite{schindler2012facilitating} and tagtraum genre annotations for MSD~\cite{schreiber2015improving},
+which results in 202 audio features and 15 one-hot encoding for genres,
+further, for the task of playlist augmentation, an additional feature we utilise is the popularity of songs,
+that is, the number of occurrence of the song (\ie a listening event of the particular song) in all playlists,
+including the partial playlists in test set, which will be described in Section~\ref{ssec:pla}.
+%
+%% details for compute song features.
+%% - temporal audio features: use 5-number (percentiles) summary: min, max, median, Q1 and Q3.
+%% - missing genre: imputed using the mean values of the genre
+%
+
+
+
+\subsection{Experimental setup}
+
+\paragraph{Dataset split}
+
+\paragraph{Baselines}
+Baselines for music recommendation given known user:
+\begin{itemize}
+\item Popularity based ranking: 
+each song is scored by its popularity (the number of occurrences in all playlists) in training set.
+% recommending the most popular songs (without repeat).
+%
+\item Same Artists - Greatest Hits (SAGH)~\cite{mcfee2012million}: 
+each song is scored by its popularity if the artist of the song has been appeared the given user's playlist in training set, 
+otherwise the score will be zero.
+%      recommending the most popular songs from artists of seed songs.
+\item Collocated Artists - Greatest Hits (CAGH)~\cite{bonnin2013evaluating}: 
+each song is scored by it popularity, but weighted by the frequency of the collocation between its artist and 
+those artists that appeared the given user's playlist in training set.
+%      recommending songs based on the frequency of the collocation of artists of seed songs.
+\end{itemize}
+
+Baselines for music recommendation given new user:
+besides popularity based ranking, we modify SAGH and CAGH to use the top 10 most popular artists
+(we use the number of songs of a artist that appeared in all playlists as a proxy of artist popularity)
+instead of artists that appeared in user's playlists in training set,
+which makes these two approaches also works for new users.
+
+
+\paragraph{Evaluation}
 We evaluate performance using metrics that are commonly used for music recommendation and playlist generation
 tasks~\cite{hariri2012context,bonnin2013evaluating,jannach2015beyond,ben2017groove,schedl2017}:
 \begin{itemize}
@@ -56,6 +97,9 @@ tasks~\cite{hariri2012context,bonnin2013evaluating,jannach2015beyond,ben2017groo
 \item Area under the ROC curve (AUC).
 \end{itemize}
 
+
+
+\subsection{Results}
 
 \subsection{Playlist generation}
 \label{ssec:pla}
@@ -80,11 +124,6 @@ We compare the following baselines for playlist augmentation:
 \item Logistic Regression: learning a logistic regression classifier independently for each playlist,
       seed songs are positive examples, while others are negative examples.
 %\item Matrix Factorisation: learning hidden representations of songs and playlists by factorising the indicator matrix.
-%\item Popularity based ranking: recommending the most popular songs (without repeat).
-%\item Same Artists - Greatest Hits (SAGH)~\cite{mcfee2012million}: 
-%      recommending the most popular songs from artists of seed songs.
-%\item Collocated Artists - Greatest Hits (CAGH)~\cite{bonnin2013evaluating}: 
-%      recommending songs based on the frequency of the collocation of artists of seed songs.
 \end{itemize}
 
 
