@@ -1,7 +1,9 @@
-\section{Learning to recommend the most probable songs}
+\subsection{Learning to recommend the most probable songs}
+\label{ssec:bploss}
 
 In this section, we describe a ranking based approach that learns to rank songs in playlist higher 
 than those not in it, which hopefully ranks the most probable songs higher than those unlikely when making a recommendation.
+This is known as the Bottom-Push loss~\cite{rudin2009p} in bipartite ranking literature.
 Formally, given playlist $i$, we would like
 \begin{equation*}
 \begin{aligned}
@@ -14,7 +16,7 @@ and $y_n^i = 0$ represents song $n$ does not appear in playlist $i$.
 To achieve the goal, we can minimise the number of songs that not appeared in a given playlist
 but have a higher score than the lowest ranked song in playlist, \ie the (normalised) empirical risk is
 \begin{equation}
-\label{eq:bp}
+\label{eq:bprisk}
 \RCal_\textsc{rank} = \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \sum_{n: y_n^i = 0} \llb \min_{m: y_m^i = 1} f(i, m) \le f(i, n) \rrb,
 \end{equation}
 where $M_-^i$ denotes the number of songs that are not in playlist $i$,
@@ -27,9 +29,9 @@ or the squared hinge loss $\ell(f, y) = [\max(0, \, 1 - fy)]^2$ etc.
 Suppose we use the exponential loss, the multitask learning objective~(\ref{eq:obj}) becomes
 \begin{equation}
 \label{eq:expobj}
-\min_{\Theta} \ R(\Theta) + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \sum_{n: y_n^i = 0} \exp \left(f(i, n) - \min_{m: y_m^i = 1} f(i, m) \right),
+\min_{\uptheta} \ R(\uptheta) + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \sum_{n: y_n^i = 0} \exp \left(f(i, n) - \min_{m: y_m^i = 1} f(i, m) \right),
 \end{equation}
-where $R(\Theta) = \lambda_1 \sum_{j=1}^U \|\bu_j\|_2^2 + \lambda_2 \sum_{i=1}^N \|\w_i\|_1 + \lambda_3 \|\widebar\bu\|_1$ 
+where $R(\uptheta) = \lambda_1 \sum_{j=1}^U \|\bu_j\|_2^2 + \lambda_2 \sum_{i=1}^N \|\w_i\|_1 + \lambda_3 \|\widebar\bu\|_1$ 
 is the multitask regularisation term.
 
 
@@ -41,12 +43,12 @@ However, it is straightforward to show that (\ref{eq:expobj}) is equivalent to t
 \begin{equation}
 \label{eq:expobj_cons}
 \begin{aligned}
-\min_{\Theta} \ \, & R(\Theta) + \frac{1}{N} \sum_{i=1}^N \frac{e^{-\xi_i}}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)} \\
+\min_{\uptheta} \ \, & R(\uptheta) + \frac{1}{N} \sum_{i=1}^N \frac{e^{-\xi_i}}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)} \\
 s.t. \ \, & \xi_i \le f(i, m), \ \forall m \in \{1,\dots,M\} \ \text{and} \ y_m^i = 1.
 \end{aligned}
 \end{equation}
 
-One may observe that the objective of problem~(\ref{eq:expobj_cons}) is convex but not differentiable due to the L1 regularisation terms in $R(\Theta)$,
+One may observe that the objective of problem~(\ref{eq:expobj_cons}) is convex but not differentiable due to the L1 regularisation terms in $R(\uptheta)$,
 nonetheless, we can make use of its sub-gradient.
 Another observation is the number of constraints in problem~(\ref{eq:expobj_cons}) is 
 $$
@@ -56,17 +58,28 @@ in other words, the number of constraints equals the total number of songs playe
 Asymptotically, it is of order $O(\widebar{L} N)$ where $\widebar{L}$ is the average number of songs in playlists.
 Although $\widebar{L}$ is dataset dependent, but typically it is less than $100$, 
 while the total number of playlists $N$ can be very large in production systems (\eg $1$ billion in Spotify),
-which imposes further challenge to optimise problem~(\ref{eq:expobj_cons}.
+which imposes further challenge to optimise problem~(\ref{eq:expobj_cons}).
 
 
 
 \subsection{From ranking to classification}
 
-Inspired by an equivalence relationship between the P-Norm Push loss and the P-Classification loss~\cite{},
-we seek an unconstrained optimisation problem that approximates the empirical loss $\RCal_\textsc{rank}$,
-by making use of a classification loss.
+It has been known that binary classification and bipartite ranking are
+closely related~\cite{ertekin2011equivalence,menon2016bipartite}.
+In particular, \citet{ertekin2011equivalence} have shown that the P-Norm Push bipartite ranking loss~\cite{rudin2009p}
+is equivalent with the P-Classification loss~\cite{ertekin2011equivalence} when using the exponential surrogate.
+Further, the P-Norm Push loss is an approximation of the Infinite-Push loss~\cite{agarwal2011infinite},
+or equivalently, the Top-Push loss~\cite{li2014top}, which focuses on the highest ranked negative example instead of
+of the lowest ranked positive example as in Bottom-Push loss described in Section~\ref{ssec:bploss}.
 
-First, note that the \emph{max} operator can be approximated by a smooth LogSumExp function~\cite{}:
+Inspired by these connections, we seek a classification loss that is equivalent to a bipartite ranking loss (under a few assumptions), 
+which further approximates the Bottom-Push loss we use in~(\ref{eq:bprisk}).
+This will make it possible to formulate an unconstrained optimisation problem that approximates the empirical loss $\RCal_\textsc{rank}$.
+
+Here, we show how the Bottom-Push loss can be approximated,
+and propose a classification loss that is equivalent to the approximation (under a few assumptions).
+
+First, note that the \emph{max} operator can be approximated by the smooth log-sum-exp function~\cite[p. 72]{boyd2004convex},
 $$
 \max_i z_i \approx \frac{1}{p} \log \sum_i e^{p z_i},
 $$
@@ -79,13 +92,8 @@ The empirical risk $\RCal_\textsc{rank}$ can be approximated (with the exponenti
 \begin{equation*}
 \begin{aligned}
 \RCal_\textsc{rank} 
-&= \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \exp \left( -\min_{m: y_m^i = 1} f(i, m) \right) \sum_{n: y_n^i = 0} \exp(f(i, n)) \\
-&\approx \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \exp \left( \frac{1}{p} \log\sum_{m: y_m^i = 1} e^{-p f(i, m)} \right)
-         \sum_{n: y_n^i = 0} e^{f(i, n)} \\
-&= \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \exp \left( \log \left( \sum_{m: y_m^i = 1} e^{-p f(i, m)} \right)^\frac{1}{p} \right) 
-   \sum_{n: y_n^i = 0} e^{f(i, n)} \\
-&= \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \left( \sum_{m: y_m^i = 1} e^{-p f(i, m)} \right)^\frac{1}{p} \sum_{n: y_n^i = 0} e^{f(i, n)} \\
-&= \widetilde\RCal_\textsc{rank}.
+\approx \widetilde\RCal_\textsc{rank}
+= \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \left( \sum_{m: y_m^i = 1} e^{-p f(i, m)} \right)^\frac{1}{p} \sum_{n: y_n^i = 0} e^{f(i, n)}.
 \end{aligned}
 \end{equation*}
 
@@ -99,80 +107,27 @@ Let $\RCal_\textsc{clf}$ be the following classification risk:
 we have a theorem
 \begin{theorem}
 \label{th:rank2clf}
-Let $\Theta^* \in \argmin_{\Theta} \RCal_\textsc{clf}$ (assuming minimisers exist), 
-then $\Theta^* \in \argmin_{\Theta} \widetilde\RCal_\textsc{rank}$.
+Let $\uptheta^* \in \argmin_{\uptheta} \RCal_\textsc{clf}$ (assuming minimisers exist), 
+then $\uptheta^* \in \argmin_{\uptheta} \widetilde\RCal_\textsc{rank}$.
 \end{theorem}
 
 \begin{proof}
-We following the proof technique in~\cite{}.
-First, we introduce a constant feature $1$ for $x_m, \, m \in \{1,\dots,M\}$ to serve as a bias, 
-and without loss of generality, let $x_m^0$ be the constant feature, \ie $x_m^0 = 1$, 
-$\forall i \in \{1,\dots,N\}$, let
-\begin{equation*}
-\begin{aligned}
-0 
-&= \frac{\partial \RCal_\textsc{clf}} {\partial v_i^0}
-&= \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)} (-p) + \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)},
-\end{aligned}
-\end{equation*}
-we have
-\begin{equation}
-\label{eq:eq1}
-\frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)} = \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)}.
-\end{equation}
-
-Further, let
-\begin{equation*}
-0 
-= \frac{\partial \RCal_\textsc{clf}} {\partial \bv_i} 
-= \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)} (-p \x_m) + \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n,
-\end{equation*}
-we have
-\begin{equation}
-\label{eq:eq2}
-\frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)} \x_m = \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n.
-\end{equation}
-
-We want to prove that
-$\frac{\partial \widetilde\RCal_\textsc{rank}} {\partial \bv_i}$ equals to $0$, note that
-\begin{equation*}
-\begin{aligned}
-&\frac{\partial \widetilde\RCal_\textsc{rank}} {\partial \bv_i} \\
-&= \frac{1}{N M_-^i} \left[ \frac{1}{p} 
-   \left( \sum_{m: y_m^i=1} e^{-p f(i, m)} \right)^{\frac{1}{p} - 1} \sum_{m: y_m^i=1} e^{-p f(i, m)} (-p) \x_m \sum_{n: y_n^i=0} e^{f(i, n)} \right. \\
-& \hspace{4em} \left.
-   + \left( \sum_{m: y_m^i = 1} e^{-p f(i, m)} \right)^\frac{1}{p} \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n \right] \\
-&= \frac{-1}{N M_-^i} \left( \sum_{m: y_m^i=1} e^{-p f(i, m)} \right)^{\frac{1}{p} - 1} 
-   \left[ \sum_{m: y_m^i=1} e^{-p f(i, m)} \x_m \sum_{n: y_n^i=0} e^{f(i, n)} \right. \\
-& \hspace{4em} \left.
-   - \sum_{m: y_m^i = 1} e^{-p f(i, m)} \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n \right] \\
-&= \frac{-1}{N M_-^i} \left( \sum_{m: y_m^i=1} e^{-p f(i, m)} \right)^{\frac{1}{p} - 1} 
-   \left[ \sum_{m: y_m^i=1} e^{-p f(i, m)} \x_m \frac{M_-^i}{M_+^i} \sum_{m: y_m^i=1} e^{-p f(i, m)} \right. \\
-& \hspace{4em} \left.
-   - \sum_{m: y_m^i = 1} e^{-p f(i, m)} \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n \right] \ \text{(by Eq.~\ref{eq:eq1})} \\
-&= \frac{-1}{N M_-^i} \left( \sum_{m: y_m^i=1} e^{-p f(i, m)} \right)^\frac{1}{p} 
-   \left[ \frac{M_-^i}{M_+^i} \sum_{m: y_m^i=1} e^{-p f(i, m)} \x_m - \sum_{n: y_n^i = 0} e^{f(i, n)} \x_n \right] \\
-&= 0. \ \text{(by Eq.~\ref{eq:eq2})}
-\end{aligned}
-\end{equation*}
-
-We can similarly prove that 
-\begin{equation*}
-\begin{aligned}
-\frac{\partial \widetilde\RCal_\textsc{rank}}{\partial \bu_j} &= 0, \ \forall j \in \{1,\dots,U\} \\
-\frac{\partial \widetilde\RCal_\textsc{rank}}{\partial \widebar{\bu}} &= 0.
-\end{aligned}
-\end{equation*}
-
+We following the proof technique in~\cite{ertekin2011equivalence}
+by first introducing a constant feature $1$ for each song,
+without loss of generality, let $x_m^0$ be the constant feature, \ie $x_m^0 = 1$.
+Then we can show that 
+$\frac{\partial \, \RCal_\textsc{clf}} {\partial \, \uptheta} = 0$ implies
+$\frac{\partial \, \widetilde\RCal_\textsc{rank}} {\partial \, \uptheta} = 0$.
+The complete proof is described in Appendix.
 \end{proof}
 
-By Theorem~\ref{th:rank2clf}, we have the following unconstrained optimisation problem
+By Theorem~\ref{th:rank2clf}, we have the following problem
 which approximate the problem~(\ref{eq:expobj}),
-but can be optimised more efficiently.
 \begin{equation}
 \label{eq:expobj_clf}
-\min_{\Theta} \, R(\Theta) + \RCal_\textsc{clf}.
+\min_{\uptheta} \, R(\uptheta) + \RCal_\textsc{clf}.
 \end{equation}
+This unconstrained optimisation problem can be optimised more efficiently.
 
 
 
@@ -184,7 +139,7 @@ as well as a few practical strategies for the proposed approaches.
 
 The constrained optimisation problem~(\ref{eq:expobj_cons}) can be solved using interior-point method,
 although the large number of constraints requires a large amount of computation resources.
-Cutting-plane~\cite{} techniques can be employed to deal with this challenge, 
+Cutting-plane~\cite{avriel2003nonlinear} techniques can be employed to deal with this challenge, 
 but we found it does not work extremely well in practice.
 However, this approach allows us to use different type surrogate loss beside the exponential loss,
 such as the hinge loss or squared hinge loss, which may provide a few other desired properties. % detailing this
@@ -192,6 +147,6 @@ such as the hinge loss or squared hinge loss, which may provide a few other desi
 
 It is obvious that solving the unconstrained optimisation problem~(\ref{eq:expobj_clf})
 is generally easier than solving problem (\ref{eq:expobj_cons}) which has a large number of constraints.
-The Orthant-Wise Limited-memory Quasi-Newton (OWL-QN)~\cite{} L-BFGS variant can be employed to
+The Orthant-Wise Limited-memory Quasi-Newton (OWL-QN)~\cite{andrew2007scalable} L-BFGS variant can be employed to
 efficiently deal with the L1 term in (\ref{eq:expobj_clf}) without huge memory burdens.
 % solver: pylbfgs
