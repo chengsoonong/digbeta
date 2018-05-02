@@ -72,5 +72,19 @@ topic models for sequential pattern mining and the well-known matrix factorisati
 latent representations of songs, artists and users~\cite{mcfee2012hypergraph,chen2012playlist,ben2017groove}.
 
 
-{\bf A diverse set of information}, such as 
-has been used for music recommendation.
+{\bf A diverse set of information} has been used for music recommendation,
+such as song metadata (\eg song title, artist name, era, genre, albums etc.)~\cite{hariri2012context,platt2002learning},
+content data (\eg lyrics, low level audio features etc.)~\cite{mcfee2011natural,mcfee2012hypergraph,jannach2015beyond,ben2017groove},
+artists information (\eg artist popularity, collocation of artists etc.)~\cite{bonnin2013evaluating,ben2017groove},
+user listening history and social interactions (\eg social tags) as well as usage statistics (\eg song popularity, 
+song co-occurrence etc.)~\cite{mcfee2012hypergraph,hariri2012context,bonnin2013evaluating,jannach2015beyond,ben2017groove}.
+There are a few work that make use of latent representations of song, user and artist which are learned from playlists, 
+user-song and user-artist interactions~\cite{chen2012playlist,ben2017groove}.
+
+The sequential order of songs in playlist has not been well understood~\cite{schedl2017},
+some work suggest that song order and song-to-song transitions are important 
+for playlist quality~\cite{mcfee2012hypergraph,kamehkhosh2018automated},
+while other work have shown that the ensemble of songs in playlist do matters, 
+but the song order seems to be negligible~\cite{tintarev2017sequences,vall2017importance}.
+In this work, we treat a playlist as a set of songs by discarding the sequential order,
+and leave the investigation of using song order to assist playlist generation as future work.
