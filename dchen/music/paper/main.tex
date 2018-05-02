@@ -143,9 +143,15 @@
 \acmConference[RecSys'18]{ACM Conference on Recommender Systems}{October 2-7, 2018}{Vancouver, Canada}
 \acmYear{2018}
 \copyrightyear{2018}
-
 %\acmArticle{4}
 %\acmPrice{15.00}
+
+% Remove the non-mandatory "ACM Reference format."
+\fancyhead{}
+\settopmatter{printacmref=false, printfolios=false}
+
+\allowdisplaybreaks
+
 
 \begin{document}
 %\title{Music recommendation and playlist augmentation using multitask classification and ranking}
@@ -165,8 +171,7 @@
 % Please copy and paste the code instead of the example below.
 %
 
-%\keywords{}
-
+\keywords{Music playlist, Multitask learning, Recommender system}
 
 \begin{abstract}
 \input{abstract}
@@ -177,6 +182,7 @@
 %\input{todo}
 
 \input{intro}
+\input{related}
 \input{mtl}
 \input{method}
 %\input{method_clf}
@@ -184,9 +190,9 @@
 %\input{method_rank}
 %\input{method_prac}
 \input{experiment}
-\input{related}
 \input{conclusion}
 
+\newpage
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{ref}
 

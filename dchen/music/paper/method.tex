@@ -20,7 +20,7 @@ but have a higher score than the lowest ranked song in playlist, \ie the (normal
 \RCal_\textsc{rank} = \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \sum_{n: y_n^i = 0} \llb \min_{m: y_m^i = 1} f(i, m) \le f(i, n) \rrb,
 \end{equation}
 where $M_-^i$ denotes the number of songs that are not in playlist $i$,
-and $\llb \cdot \rrb$ is the indicator function that represents the 0-1 loss,
+and $\llb \cdot \rrb$ is the indicator function that represents the 0-1 loss.
 
 To minimise $\RCal_\textsc{rank}$, we replace 0-1 loss with one of its convex surrogate,
 \eg the exponential loss $\ell(f, y) = e^{-fy}$, the logistic loss $\ell(f, y) = \log(1 + e^{-fy})$,
@@ -117,7 +117,9 @@ by first introducing a constant feature $1$ for each song,
 without loss of generality, let $x_m^0$ be the constant feature, \ie $x_m^0 = 1$.
 Then we can show that 
 $\frac{\partial \, \RCal_\textsc{clf}} {\partial \, \uptheta} = 0$ implies
-$\frac{\partial \, \widetilde\RCal_\textsc{rank}} {\partial \, \uptheta} = 0$.
+$\frac{\partial \, \widetilde\RCal_\textsc{rank}} {\partial \, \uptheta} = 0$,
+which means minimisers of $\RCal_\textsc{clf}$ also minimise $\widetilde\RCal_\textsc{rank}$.
+
 The complete proof is described in Appendix.
 \end{proof}
 

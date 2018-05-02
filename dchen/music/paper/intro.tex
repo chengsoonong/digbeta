@@ -2,20 +2,43 @@
 \label{sec:intro}
 Online music streaming services (\eg Spotify, Pandora, Apple Music, Google Play Music, Amazon Music etc.) 
 are playing an increasingly important role in the digital music industry.
-A key ingredient is the ability to automatically continue playlists 
-to create an uninterrupted listening experience and help user explore a large collection of music.
+A key ingredient of these services is the ability to automatically recommend songs for playlist
+to help user explore a large collection of music and which also creates an uninterrupted listening experience.
 
 % one paragraph about recommender system
-
+Conventional recommender systems for books or movies~\citep{Sarwar:2001,Netflix},
+which typically learns a score function via matrix factorisation~\citep{Koren:2009},
+and recommend the item that achieves the highest score.
+%
 % explain what is different about recommending playlist
+In contrast, when recommending musics for playlist, 
+it is expected to recommend a subset from a large collection of music
+instead of only one top ranked song.
+In addition to the intractability of enumerating all possible subsets of a large collection,
+it is highly likely that more than one subsets of songs meet users' requirements,
+\eg a user generally has more than one playlist when using a music streaming service.
 
-% brief description of both recommendation tasks
-We are motivated by the problem of automatically generate music playlists for given a user,
-whom can either be known/familiar by the system, which the system can make use of the user's previous playlists (listening history?)
-to hopefully make high quality recommendation, or can be new user, which means the system has to make use of playlists of other users
-to make a decent default recommendation.
+We are motivated by the problem of automatically recommending music to form a playlist for a given user.
+If the user is new to the system, we would like to make a decent default recommendation by learning from 
+all available playlists of existing users.
+On the other hand, if the user already has a few playlists in the system, it is expected the recommender 
+system can also learn from this information and hopefully make high quality recommendations.
 
-There is a rich collection of works that related to the task of recommending music for playlist.
+In this paper, we propose a novel approach which ranks songs that could end up being in playlist for the 
+given user higher than those unlikely, by using playlists of all users to optimise a multitask learning 
+objective with respect a number of constraints.
+Inspired by an equivalence relationship between bipartite ranking and binary classification,
+we propose a classification loss which approximately minimises the multitask objective without 
+any constraints.
+Experiments on two real playlist datasets show that our proposed approaches work effectively,
+and the classification based approach in particular significantly improves the learning efficiency 
+while maintaining the same of high performance as the ranking approach.
 
-%This task is also known as Automatic Playlist Continuation~\cite{schedl2017,recsysch2018}.
-
+Our paper is organised as follows:
+Section 2 discusses previous work that are most relevant to our work.
+Section 3 describes motivations of the multitask learning objective, and propose a ranking based approach 
+that optimises the objective by solving a constrained optimisation problem.
+We further describe a classification loss which enables us to approximately optimise the objective by
+solving an unconstrained optimisation problem.
+Section 4 details our experiment on two real playlist datasets.
+Lastly, we summarises the paper in section 5 and describe future works.

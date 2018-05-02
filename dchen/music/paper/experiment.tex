@@ -5,16 +5,17 @@ In this section, we describe empirical experiments that recommend a set of music
 described in Section~\ref{sec:method}, and compare with a few well known approaches.
 
 \subsection{Music playlist dataset}
-We make use of publicly available playlist dataset: the AotM-2011~\cite{mcfee2012hypergraph} and 30Music~\cite{30music2015} playlist dataset. \\
-%
+We make use of two publicly available playlist dataset: the AotM-2011~\cite{mcfee2012hypergraph} and 30Music~\cite{30music2015} playlist dataset.
+Song features are extracted from the Million Song Dataset~\cite{msd2011}.
+
 {\bf Million Song Dataset} (MSD) is a collection of one million songs, information of each song such as the name, artist, release year are available,
 Further, the dataset provides acoustic features computed from a sample section of the audio file for each song. % more description
 We use MSD as the underline dataset where song features are computed.
-%
+
 {\bf AotM-2011 Dataset} is a collection of playlists shared by users\footnote{\url{http://www.artofthemix.org}} ranging from 1998 to 2011, 
-songs in the dataset had been matched to those in the Million Song Dataset (MSD)~\cite{msd2011}.
-We filtered out playlists with less than 5 songs, which results in roughly 84K playlists over 114K songs from 14K users. \\
-%
+songs in the dataset had been matched to those in the Million Song Dataset (MSD).
+We filtered out playlists with less than 5 songs, which results in roughly 84K playlists over 114K songs from 14K users.
+
 {\bf 30Music Dataset} is a collection of listening events and playlists retrieved from Last.fm\footnote{\url{https://www.last.fm}}.
 We utilise the playlists data by first intersecting with the MSD, leveraging the Last.fm dataset~\cite{lastfmdataset} 
 which matched songs from Last.fm with those in MSD, then filtering out playlists with less than 5 songs, 
