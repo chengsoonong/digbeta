@@ -1,19 +1,23 @@
 \section{Conclusion}
+We investigated the problem of recommending songs to form playlist for a given user.
+A multitask learning objective was proposed that aims to provide a decent default recommendation 
+if the given user is new to system, and make better recommendations if the given user already has 
+a few playlists accessible to the system.
+We learned the multitask objective from playlists of existing users by using a ranking approach 
+which ranks songs in playlists higher than those are not.
+Parameters of the multitask objective are optimised by solving either a constrained optimisation problem 
+or an unconstrained optimisation problem which approximates the objective but results in more efficient training.
+Empirical experiments on two real playlist datasets show the proposed approaches work effectively.
 
-More features such as lyrics, user metadata, etc. can be used.
-
-More data sources, music sharing information on social media.
-
-Investigate the order of songs in playlists. (sequential information).
-
-Powerful nonlinear models.
-
-Problem type: music recommendation to continue playlists.
-
-Data sparsity
-
-Number of parameters in proposed methods are large
-
-Evaluation is challenging.
-We believe that promising automatic evaluation methods that accepted by the (majority of) community need to be 
-developed before significant progress being made.
+We are aware of a few limitations of the proposed approaches, which we leave as future work.
+Specifically, additional data sources (\eg music information shared on social media) or song and 
+user features (\eg lyrics, user profile), as well as the sequential order of songs could provide 
+additional information that could help make better recommendations.
+Further, non-linear models such as deep neural networks have shown strong performance in a wide arrange of tasks,
+and the linear model with sparse parameters in this work could potentially be more compact with few parameters 
+if non-linear objective is employed.
+Finally, as a remark, we want to mention the challenge the community faced when evaluating recommended results.
+While metrics in information retrieval are commonly used, recommender system is more like a generative process
+than a information retrieval task. Fortunately, this challenge has been noticed and been attacked in many 
+ways~\cite{schedl2017}, we believe that promising automatic evaluation methods that accepted by the (majority of) 
+community is one premise of significant progress in music recommendation.
