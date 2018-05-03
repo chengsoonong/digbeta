@@ -20,6 +20,7 @@ We filtered out playlists with less than 5 songs, which results in roughly 84K p
 We utilise the playlists data by first intersecting with the MSD, leveraging the Last.fm dataset~\cite{lastfmdataset} 
 which matched songs from Last.fm with those in MSD, then filtering out playlists with less than 5 songs, 
 which results in roughly 17K playlists over 45K songs from 8K users.
+
 Table~\ref{tab:stats_pldata} summarises the two playlist dataset used in this work.
 %
 \begin{table}[!h]
@@ -39,6 +40,25 @@ AotM-2011 & 114,428 & 84,710  & 14,182  & 10.1 & 6.0 \\
 }
 \end{table}
 
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\linewidth]{fig/hist_pluser.pdf}
+\caption{Histogram of the number of playlists per user.}
+\label{fig:hist_pluser}
+\end{figure}
+
+\begin{figure}[!h]
+\centering
+\includegraphics[width=\linewidth]{fig/hist_pluser.pdf}
+\caption{Histogram of song popularity.}
+\label{fig:hist_songpop}
+\end{figure}
+
+We can see from Figure~\ref{fig:hist_pluser} and Figure~\ref{fig:hist_songpop} that both the number 
+of playlists per user and song popularity (\ie the number of occurrences of a song in training set) 
+follow a long-tail distribution, which impose further challenge to the learning task as the amount 
+of data for learning is limited for users (or songs) at the tail.
 
 
 \subsection{Experimental setup}
@@ -105,7 +125,7 @@ and tagtraum genre annotations for MSD~\cite{schreiber2015improving} via one-hot
 If the genre data of a song is not available, we use a mean imputation with genre counts of other songs in training set.
 
 To encode artist information, we learned a word2vec\footnote{https://github.com/dav/word2vec} model using sequences of artist names in each playlist,
-and finally, song popularity (\ie the number of occurrences of a song in training set) is included as a feature.
+and finally, song popularity is included as a feature.
 
 
 {\bf Baselines}.
@@ -151,31 +171,71 @@ is cast as a sequential classification problem~\cite{ben2017groove}.
 
 
 
-\subsection{Results}
+\subsection{Results and discussion}
+We first compare the performance of music recommendation to form playlist for existing users.
 
-\input{tab_plgen1}
+Table~\ref{tab:perf1} and Figure~\ref{fig:hr1} show that simply ranking songs by popularity can achieve decent performance,
+it outperforms SAGH in terms of both AUC and Hit-Rate (when the number of recommendations are greater than 350) on 30Music,
+and performance better in term of AUC on AotM-2011 dataset.
+This is in line with discoveries in~\cite{bonnin2013evaluating,jannach2015beyond,bonnin2015automated} that show ranking based on
+popularity is a strong baseline.
+Further, we note that methods that make use of both song popularity and artist information (beside SAGH on 30Music),
+outperform popularity based rank on both datasets, which shows artist information is helpful for music recommendation,
+this has also been reported in~\cite{bonnin2013evaluating,bonnin2015automated}.
+Lastly, our proposed methods, both the ranking and classification approaches, consistently outperforms all baselines
+on both datasets and in terms of all metrics, which shows the proposed multitask learning objective works effectively
+in the setting of music recommendation for existing users.
+
+\begin{table}[!h]
+\centering
+\caption{Performance of recommendation for existing users}
+\label{tab:perf1}
+\resizebox{\columnwidth}{!}{
+\input{tab1}
+}
+\end{table}
+
 
 \begin{figure}[!h]
 \centering
-%\includegraphics[width=\linewidth]{fig/hitrate-plgen1.pdf}
-\caption{Hit rates given known users.}
+\includegraphics[width=\linewidth]{fig/hitrate1.pdf}
+\caption{Hit rates of recommendation for existing users.}
+\label{fig:hr1}
 \end{figure}
 
-\input{tab_plgen2}
+
+Performance in the setting of recommending music for new users, however, is quite different from recommendation for existing users.
+
+We can see from Table~\ref{tab:perf2} and Figure~\ref{fig:hr2} that popularity based ranking is one of the best performing methods,
+outperforming two baselines that make use of both popularity and artist information (\ie Top10 SAGH and Top10 CAGH).
+Our proposed methods perform comparably to popularity rank, which might suggest that they degenerate to simply to popularity to rank songs.
+Further, it is interesting to observe that, although both Top10 SAGH and Top10 CAGH make use of song popularity and artist information,
+the later performs significantly better than the former in terms of AUC and Hit-Rate.
+This shows how to make use of artist information can result in significantly different results,
+and collocation of artists could be more helpful than simply filtering out song using artists,
+with regards to music recommendation.
+
+Another observation is that performance (in terms of Hit-Rate) of all methods improve as the number of recommendations increase,
+and the rate of improvement decrease as more songs are recommended.
+In particular, the improvement of (Top10) SAGH tends to saturate much earlier than other methods 
+(except for recommendation for existing users on AotM-2011 dataset),
+which might imply that, as more songs are recommended, the artists in users' listening history
+(or most popular artists) become less informative,
+and other factors such as song popularity regains its dominance in music prediction.
+
+\begin{table}[!h]
+\centering
+\caption{Performance of recommendation for new users}
+\label{tab:perf2}
+\resizebox{\columnwidth}{!}{
+\input{tab2}
+}
+\end{table}
+
 
 \begin{figure}[!h]
 \centering
-%\includegraphics[width=\linewidth]{fig/hitrate-plgen2.pdf}
-\caption{Hit rates given new users.}
+\includegraphics[width=\linewidth]{fig/hitrate2.pdf}
+\caption{Hit rates of recommendation for new users.}
+\label{fig:hr2}
 \end{figure}
-
-
-\subsection{Discussion}
-
-Data sparsity
-
-Number of parameters in proposed methods are large
-
-Evaluation is challenging.
-We believe that promising automatic evaluation methods that accepted by the (majority of) community need to be 
-developed before significant progress being made.
