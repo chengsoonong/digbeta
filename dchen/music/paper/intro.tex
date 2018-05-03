@@ -23,6 +23,14 @@ If the user is new to the system, we would like to make a decent default recomme
 all available playlists of existing users.
 On the other hand, if the user already has a few playlists in the system, it is expected the recommender 
 system can also learn from this information and hopefully make high quality recommendations.
+The challenge of these tasks lies in two folds:
+(i) Sparsity of data. While the total number of playlists hosted by music streaming services seems to be very big,
+however, playlists for each user is still limited, this is exacerbated by the long-tail distribution that
+most users only have few number of playlists, while a few users have a very big number of playlists.
+Similarly, a small number of popular songs appeared in a large number of playlists, and the most majority of songs
+only appear in a few playlists~\cite{bonnin2013evaluating}.
+(ii) Data noise. There could be noise in metadata~\cite{bonnin2015automated} or users might randomly choose songs 
+from their music collection when composing playlists~\cite{mcfee2012hypergraph}.
 
 In this paper, we propose a novel approach which ranks songs that could end up being in playlist for the 
 given user higher than those unlikely, by using playlists of all users to optimise a multitask learning 
