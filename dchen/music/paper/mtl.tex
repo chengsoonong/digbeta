@@ -1,4 +1,5 @@
 \section{Multitask learning for music recommendation}
+\label{sec:method}
 
 Suppose we have a dataset $\DCal$ with $N$ playlists from $U$ users, songs in every playlist are from a music collection 
 with $M$ songs, and each song in the collection is at least in one playlist.
@@ -72,3 +73,10 @@ In summary, our multitask learning objective is
 \end{equation}
 where we add an L2 regularisation term to penalise large values in user representation,
 and $\lambda_1, \lambda_2, \lambda_3 \in \R_+$ are regularisation constants.
+
+Once all parameters have been learned, we can make recommendation by first scoring each song in music collection
+$$
+\hat f(\x_m) = \hat \w^\top \x_m, \ m \in \{1,\dots,M\},
+$$
+where $\hat\w = \bu_j + \widebar\bu$ for the given user $j$, or $\hat\w = \widebar\bu$ for new users,
+then form a playlist by taking the top-K scored songs or sampling songs proportional to their scores. 
