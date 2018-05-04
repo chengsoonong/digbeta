@@ -1,21 +1,26 @@
 \section{Multitask learning for music recommendation}
 \label{sec:method}
 
-Suppose we have a dataset $\DCal$ with $N$ playlists from $U$ users, songs in every playlist are from a music collection 
+\cheng{Move this to paragraph, and figure, to Section 2. You need to discuss the problem we are solving before you can talk about related work.}
+
+Suppose we have a dataset $\DCal$ with $N$ playlists from $U$ users, songs in every playlist are from a music collection
 with $M$ songs, and each song in the collection is appeared in at least one playlist.
 
 The task of recommending a set of songs to form a playlist for a given user is illustrated in Figure~\ref{fig:pla},
 where rows represent songs (no specific order) and columns represent playlists (no specific order).
-Further, columns with white colour represent playlists in training set, 
+Further, columns with white colour represent playlists in training set,
 and columns with grey colour represent playlists in test set.
-If entry $(m, i)$ is \texttt{1} (or \texttt{0}), 
+If entry $(m, i)$ is \texttt{1} (or \texttt{0}),
 it means song $m$ can (or not) be found in playlist $i$,
 and a question mark \texttt{?} means we do not know whether song $m$ is in playlist $i$.
 As a remark, columns represent playlists in test set contain only \texttt{?} entries.
 
 \input{fig_gen}
+\cheng{Update Figure 1 to include meaning of rows and columns. Why do we bother with ?, since the whole test set is unknown? Indicate the effect of known and unknown users.}
 
+\cheng{In 2-3 sentences, define the problem we are attacking in this paper. Recommend a set, not a single item. User specific. All songs known. Consider cold start user.}
 
+\cheng{This should be followed by related work, where you need to describe for each group how we are different, or how we use some idea.}
 
 \subsection{Multitask learning objective}
 
@@ -35,7 +40,7 @@ We therefore decompose the representation of a playlist into three components, f
 $$
 \w_i = \bv_i + \bu_j + \widebar\bu,
 $$
-where $\bv_i$ is a parameter vector specific for playlist $i$, 
+where $\bv_i$ is a parameter vector specific for playlist $i$,
 $\bu_j$ is the component for user $j=u(i)$ that owns playlist $i$,
 and $\widebar\bu$ is a representation shared by all users.
 
@@ -52,12 +57,12 @@ Formally, we solve an optimisation problem
 where $R(\uptheta)$ is the regularisation term and $\RCal(f, \DCal)$ denotes the empirical risk.
 
 The second assumption we make in this work is playlists of the \emph{same} user have \emph{similar} representations,
-and the difference between playlists $i$ and $i'$ of the same user $j$ is reflected by the playlist component $\bv_i$ 
+and the difference between playlists $i$ and $i'$ of the same user $j$ is reflected by the playlist component $\bv_i$
 and $\bv_{i'}$, respectively.
 This assumption requires that parameters specific to playlist should be sparse,
 which can be achieved by imposing an L1 regularisation, \ie $\sum_{i=1}^N \| \bv_i \|_1$.
 
-The last assumption we make is that representations of different users are different, 
+The last assumption we make is that representations of different users are different,
 but they nonetheless share a small number of features in their representations.
 This assumption can be formalised similarly by imposing an additional L1 regularisation term $\| \widebar\bu \|_1$.
 
@@ -67,10 +72,11 @@ R(\uptheta) = \lambda_1 \sum_{j=1}^U \|\bu_j\|_2^2 + \lambda_2 \sum_{i=1}^N \|\b
 \end{equation*}
 where we add an L2 regularisation term to penalise large values in user representations,
 and $\lambda_1, \lambda_2, \lambda_3 \in \R_+$ are regularisation constants.
+\cheng{Number $R(\uptheta)$ and refer to it. You talk about the regularizer vaguely a few times.}
 
 Once all parameters have been learned, we can make recommendation by first scoring each song in music collection
 $$
 \hat f(\x_m) = \hat \w^\top \x_m, \ m \in \{1,\dots,M\},
 $$
 where $\hat\w = \bu_j + \widebar\bu$ for the existing user $j$, or $\hat\w = \widebar\bu$ for new users,
-then we can form a playlist by either taking the top-K scored songs or sampling songs proportional to their scores. 
+then we can form a playlist by either taking the top-K scored songs or sampling songs proportional to their scores.
