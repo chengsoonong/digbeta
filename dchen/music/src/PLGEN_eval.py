@@ -26,6 +26,7 @@ assert task in [3, 4]
 data_dir = os.path.join(work_dir, 'data/%s/setting%d' % (dataset, task))
 fperf = os.path.join(data_dir, fout)
 X = pkl.load(gzip.open(os.path.join(data_dir, 'X.pkl.gz'), 'rb'))
+X = np.hstack([np.ones((X.shape[0], 1)), X])
 Y_train = pkl.load(gzip.open(os.path.join(data_dir, 'Y_train.pkl.gz'), 'rb'))
 Y_test = pkl.load(gzip.open(os.path.join(data_dir, 'Y_test.pkl.gz'), 'rb'))
 cliques_train = pkl.load(gzip.open(os.path.join(data_dir, 'cliques_train.pkl.gz'), 'rb'))

@@ -96,7 +96,7 @@ class MTR(object):
 
         # ROOT_URL = www.coin-or.org/Ipopt/documentation
         # set solver options: $ROOT_URL/node40.html
-        nlp.addOption(b'max_iter', int(1e3))
+        # nlp.addOption(b'max_iter', int(1e3))
         # nlp.addOption(b'mu_strategy', b'adaptive')
         # nlp.addOption(b'tol', 1e-7)
         # nlp.addOption(b'acceptable_tol', 1e-5)
@@ -116,9 +116,9 @@ class MTR(object):
         # print(info['status'], info['status_msg'])
         print('\n[IPOPT] %s\n' % info['status_msg'].decode('utf-8'))
 
-        self.mu = w[:D]
-        self.V = w[D:(U + 1) * D].reshape(U, D)
-        self.W = w[(U + 1) * D:(U + N + 1) * D].reshape(N, D)
+        self.V = w[:U * D].reshape(U, D)
+        self.W = w[U * D:(U + N) * D].reshape(N, D)
+        self.mu = w[(U + N) * D:(U + N + 1) * D]
         self.xi = w[(U + N + 1) * D:]
         self.pl2u = problem.pl2u
         self.trained = True
@@ -297,9 +297,9 @@ class RankPrimal(object):
         """
         N, D, U = self.N, self.D, self.U
         assert w.shape == ((U + N + 1) * D + N,)
-        mu = w[:D]
-        V = w[D:(U + 1) * D].reshape(U, D)
-        W = w[(U + 1) * D:(U + N + 1) * D].reshape(N, D)
+        V = w[:U * D].reshape(U, D)
+        W = w[U * D:(U + N) * D].reshape(N, D)
+        mu = w[(U + N) * D:(U + N + 1) * D]
         xi = w[(U + N + 1) * D:]
         assert xi.shape == (N,)
         _, _, Pindices = self.data_helper.get_data()
