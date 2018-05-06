@@ -72,6 +72,31 @@ features of songs used to learn the multitask objective, as well as
 baseline approaches and evaluation metrics.
 
 {\bf Dataset split}.
+To empirically evaluate the performance of our proposed recommendation approaches,
+we hold 5K the latest released songs in 30Music dataset, which results in about 8K playlists with songs
+in both training and test set.
+We hold 10K the latest released songs in AotM-2011 dataset, which leads to about 19K playlists with songs
+in both training and test set.
+Playlists that all songs have been held are removed from both training and test set.
+
+Table~\ref{tab:stats_nsr} summarises the statistics of this training/test split.
+
+\begin{table}[!h]
+\centering
+\caption{Statistics of train/test data of new song recommendation}
+\label{tab:stats_nsr}
+\begin{tabular}{lrrcrr}
+\toprule
+\multirow{2}{*}{Dataset}  & \multicolumn{2}{c}{Songs} && \multicolumn{2}{c}{Playlists} \\ \cmidrule{2-3} \cmidrule{5-6}
+                          & Train & Test && Train & Test \\
+\midrule
+30Music   & 40,468  & 5,000  && 17,342  & 8,215 \\
+AotM-2011 & 104,428 & 10,000 && 84,646  & 19,504 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+
 To empirically evaluate the performance of our proposed recommendation approaches for existing users,
 we hold playlists from about 20\% users in both datasets for test,
 all other playlists are used for training.
@@ -131,22 +156,26 @@ If the genre data of a song is not available, we apply the mean imputation using
 To encode artist information as features,
 we trained a word2vec\footnote{https://github.com/dav/word2vec} model using sequences of artist names in playlists.
 
-Finally, we add a constant feature (with value $1$) for each song to account for bias, and song popularity is included as well.
+Finally, we add a constant feature (with value $1$) for each song to account for bias. % and song popularity is included as well.
 
 
 {\bf Baselines}.
 We compare the performance of our proposed approaches with a few baseline approaches
 that were known to work well on the task of recommending music to form playlists.
 
-Firstly, the {\it Popularity Rank} method, which scores each song using only its popularity in training set.
+Firstly, the {\it Popularity Ranking} method, which scores each song using only the popularity of the artist,
+which is approximated as the occurrences of songs in training playlists from that artist.
+% which scores each song using only its popularity in training set.
 %
-Another approach that based on song popularity and artist is the {\it Same Artists - Greatest Hits} (SAGH)~\cite{mcfee2012million} method,
-which scores each song by its popularity if the artist of the song has appeared in the given user's playlist in training set,
+Another approach that based on artist popularity {\it Same Artists - Greatest Hits} (SAGH)~\cite{mcfee2012million} method,
+which scores each song by its artist popularity if the artist of the song has appeared in the existing playlist,
 otherwise the song is scored zero.
 %
 The {\it Collocated Artists - Greatest Hits} (CAGH)~\cite{bonnin2013evaluating} method is a variant of SAGH
-that also scores each song using its popularity, but weighted by the frequency of the collocation between artist of the song
-and those artists that appeared in the given user's playlist in training set.
+that also scores each song using its artist popularity, but weighted by the frequency of the collocation between artist of the song
+and those artists that appeared in the given playlist.
+
+
 
 The {\it Popularity Rank} approach is readily available to be a baseline for the setting of recommending music for new users.
 %
