@@ -94,3 +94,18 @@ In this work, we treat a playlist as a set of songs by discarding the sequential
 and leave the investigation of using song order to assist playlist generation as future work.
 
 \cheng{In 2-3 sentences, re-define the problem we are attacking in this paper.}
+
+
+
+It has been known that binary classification and bipartite ranking are
+closely related~\cite{ertekin2011equivalence,menon2016bipartite}.
+In particular, \citet{ertekin2011equivalence} have shown that the P-Norm Push bipartite ranking loss~\cite{rudin2009p}
+is equivalent to the P-Classification loss~\cite{ertekin2011equivalence} when using the exponential surrogate.
+Further, the P-Norm Push loss is an approximation of the Infinite-Push loss~\cite{agarwal2011infinite},
+or equivalently, the Top-Push loss~\cite{li2014top}, which focuses on the highest ranked negative example instead of
+of the lowest ranked positive example as in~(\ref{eq:bprisk}).
+
+Inspired by these connections, we seek a classification loss that is equivalent to a bipartite ranking loss (under a few assumptions),
+which can approximate the risk with Bottom-Push loss in~(\ref{eq:bprisk}).
+This will make it possible to formulate an unconstrained objective that approximates the empirical loss $\RCal_\textsc{rank}$.
+

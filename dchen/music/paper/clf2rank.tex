@@ -28,6 +28,14 @@ then $\uptheta^* \in \argmin_{\uptheta} \widetilde\RCal_\textsc{rank}$.
 \end{theorem}
 
 \begin{proof}
+We following the proof technique in~\cite{ertekin2011equivalence}
+by first introducing a constant feature $1$ for each song,
+without loss of generality, let $x_m^0$ be the constant feature.
+Then we can show that
+$\frac{\partial \, \RCal_\textsc{clf}} {\partial \, \uptheta} = 0$ implies
+$\frac{\partial \, \widetilde\RCal_\textsc{rank}} {\partial \, \uptheta} = 0$,
+which means minimisers of $\RCal_\textsc{clf}$ also minimise $\widetilde\RCal_\textsc{rank}$.
+
 First, we introduce a constant feature $1$ for $x_m, \, m \in \{1,\dots,M\}$ to serve as a bias, 
 and without loss of generality, let $x_m^0$ be the constant feature, \ie $x_m^0 = 1$, 
 $\forall i \in \{1,\dots,N\}$, let
