@@ -6,77 +6,60 @@
 Suppose we have a dataset $\DCal$ with $N$ playlists from $U$ users, songs in every playlist are from a music collection
 with $M$ songs, and each song in the collection is appeared in at least one playlist.
 
-The task of recommending a set of songs to form a playlist for a given user is illustrated in Figure~\ref{fig:pla},
+The task of recommending a set of newly released songs to extend an existing playlist for a given user is illustrated in Figure~\ref{fig:pla},
 where rows represent songs (no specific order) and columns represent playlists (no specific order).
 Further, columns with white colour represent playlists in training set,
 and columns with grey colour represent playlists in test set.
-If entry $(m, i)$ is \texttt{1} (or \texttt{0}),
-it means song $m$ can (or not) be found in playlist $i$,
-and a question mark \texttt{?} means we do not know whether song $m$ is in playlist $i$.
-As a remark, columns represent playlists in test set contain only \texttt{?} entries.
+If entry $(m, n)$ is \texttt{1} (or \texttt{0}),
+it means song $m$ can (or not) be found in playlist $n$,
+and a question mark \texttt{?} means we do not know whether song $m$ is in playlist $n$.
+%As a remark, columns represent playlists in test set contain only \texttt{?} entries.
 
-\input{fig_gen}
+\input{fig_nsr}
+
 \cheng{Update Figure 1 to include meaning of rows and columns. Why do we bother with ?, since the whole test set is unknown? Indicate the effect of known and unknown users.}
 
 \cheng{In 2-3 sentences, define the problem we are attacking in this paper. Recommend a set, not a single item. User specific. All songs known. Consider cold start user.}
 
 \cheng{This should be followed by related work, where you need to describe for each group how we are different, or how we use some idea.}
 
-\subsection{Multitask learning objective}
+\subsection{Multitask learning regularisation}
 
 %\paragraph{Song scoring}
 %
-We aim to learn a function $f(i, m)$ that scores the affinity between playlist $i$ and song $m$.
-Suppose function $f(i, m)$ has a linear form
-$$
-f(i, m) = \w_i^\top \x_m, \ i \in \{1,\dots,N\}, \, m \in \{1,\dots,M\},
-$$
-where vector $\w_i$ represents parameters of playlist $i$ and $\x_m$ is a feature vector of song $m$.
+We aim to learn a function $f(m, n)$ that scores the affinity between song $m$ and playlist $n$.
+Suppose function $f(m, n)$ has a linear form
+\begin{equation}
+\label{eq:scorefunc}
+f(m, n) = \w_n^\top \x_m, \  m \in \{1,\dots,M\}, \, n \in \{1,\dots,N\},
+\end{equation}
+where vector $\w_n$ represents parameters of playlist $n$ and $\x_m$ is a feature vector of song $m$.
 
-We assume that existing playlists of a user can help predict songs in another playlist of the same user,
-further, playlists of one user can also help predict songs in playlist of another user.
-In other words, we jointly learn from multiple tasks where each task is to predict a set of songs in a playlist.
-We therefore decompose the representation of a playlist into three components, formally,
-$$
-\w_i = \bv_i + \bu_j + \widebar\bu,
-$$
-where $\bv_i$ is a parameter vector specific for playlist $i$,
-$\bu_j$ is the component for user $j=u(i)$ that owns playlist $i$,
-and $\widebar\bu$ is a representation shared by all users.
-
-
-%\paragraph{Multitask learning objective}
-%
-The learning task is to minimise the empirical risk of scoring function $f$ on dataset $\DCal$ over model parameters.
-Let $\uptheta$ which represents all parameters in $\bv_i, \bu_j, \widebar\bu, \, i=1,\dots,N, \, j=1,\dots,U$.
+The learning task is to minimise the empirical risk of scoring function $f$ on dataset $\DCal$ over parameters $\W$.
 Formally, we solve an optimisation problem
 \begin{equation}
 \label{eq:obj}
-\min_{\uptheta} \, R(\uptheta) + \RCal(f, \DCal),
+\min_{\W} \, \lambda_1 \sum_{n=1}^N \| w_n \|_2^2 + \RCal(f, \DCal),
 \end{equation}
-where $R(\uptheta)$ is the regularisation term and $\RCal(f, \DCal)$ denotes the empirical risk.
+where $\lambda_1 > 0$ is the regularisation constant and $\RCal(f, \DCal)$ denotes the empirical risk.
 
-The second assumption we make in this work is playlists of the \emph{same} user have \emph{similar} representations,
-and the difference between playlists $i$ and $i'$ of the same user $j$ is reflected by the playlist component $\bv_i$
-and $\bv_{i'}$, respectively.
-This assumption requires that parameters specific to playlist should be sparse,
-which can be achieved by imposing an L1 regularisation, \ie $\sum_{i=1}^N \| \bv_i \|_1$.
+We assume that playlists of the \emph{same} user have \emph{similar} representations,
+and the difference between playlists $n$ and $n'$ of the same user $u$ can be reflected by the difference 
+between their parameters, we thus introduce the following regularisation term 
+\begin{equation}
+\label{eq:mtreg}
+\sum_{u=1}^U \sum_{(n, n') \in P_u} \| \w_n - \w_{n'} \|_2^2,
+\end{equation}
+where $P_u$ is the set of playlist pairs from user $u$.
+We call (\ref{eq:mtreg}) a multitask regulariser, since it regularises the parameters of multiple playlists.
 
-The last assumption we make is that representations of different users are different,
-but they nonetheless share a small number of features in their representations.
-This assumption can be formalised similarly by imposing an additional L1 regularisation term $\| \widebar\bu \|_1$.
-
-In summary, the regularisation term in our multitask learning objective is
-\begin{equation*}
-R(\uptheta) = \lambda_1 \sum_{j=1}^U \|\bu_j\|_2^2 + \lambda_2 \sum_{i=1}^N \|\bv_i\|_1 + \lambda_3 \|\widebar\bu\|_1,
-\end{equation*}
-where we add an L2 regularisation term to penalise large values in user representations,
-and $\lambda_1, \lambda_2, \lambda_3 \in \R_+$ are regularisation constants.
-\cheng{Number $R(\uptheta)$ and refer to it. You talk about the regularizer vaguely a few times.}
+In summary, the regularisation term in our learning objective is
+\begin{equation}
+\label{eq:reg}
+R(\W) = \lambda_1 \sum_{n=1}^N \| \w_n \|_2^2 + \lambda_2 \sum_{u=1}^U \sum_{(n, n') \in P_u} \| \w_n - \w_{n'} \|_2^2,
+\end{equation}
+where $\lambda_1, \lambda_2 \in \R_+$ are regularisation constants.
 
 Once all parameters have been learned, we can make recommendation by first scoring each song in music collection
-$$
-\hat f(\x_m) = \hat \w^\top \x_m, \ m \in \{1,\dots,M\},
-$$
-where $\hat\w = \bu_j + \widebar\bu$ for the existing user $j$, or $\hat\w = \widebar\bu$ for new users,
-then we can form a playlist by either taking the top-K scored songs or sampling songs proportional to their scores.
+for a given playlist by our scoring function $f$, 
+then we can extend the given playlist by either taking the top-K scored songs or sampling songs proportional to their scores.

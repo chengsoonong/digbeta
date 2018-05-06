@@ -1,169 +1,180 @@
-\subsection{Learning to recommend the most probable songs}
+\subsection{Recommending the most probable songs}
 \label{ssec:bploss}
-
-\cheng{We are recommending a set. How does our loss ignore the ranking order within the positive set?}
 
 In this section, we describe a ranking based approach that learns to rank songs in playlist higher
 than those not in it, which hopefully ranks the most probable songs above those unlikely when making a recommendation.
 This is known as the Bottom-Push loss~\cite{rudin2009p} in bipartite ranking literature.
-Formally, for playlist $i$, we would like
+Formally, for playlist $n$, we would like
 \begin{equation*}
 \begin{aligned}
-\min_{m: y_m^i = 1} f(i, m) \ge f(i, n), \ \forall n \in \{1,\dots,M\} \ \text{and} \ y_n^i = 0,
+\min_{m: y_m^n = 1} f(m, n) \ge f(m', n), \ \forall m' \in \{1,\dots,M\} \ \text{and} \ y_{m'}^n = 0,
 \end{aligned}
 \end{equation*}
-where $y_m^i = 1$ denotes that song $m$ is in playlist $i$,
-and $y_n^i = 0$ represents song $n$ does not appear in playlist $i$.
+where $y_m^n = 1$ denotes that song $m$ is in playlist $n$,
+and $y_{m'}^n = 0$ represents song $m'$ does not appear in playlist $n$.
 
-\cheng{Write this again. Precisely define: $n, m, M, N$. It is very confusing that $m$ goes to $M$ but $i$ goes to $N$.}
-
-To achieve the goal, we can minimise the number of songs that is not appeared in the given playlist
+We can then minimise the number of songs that is not appeared in the given playlist
 but have a higher score than the lowest ranked song in playlist, \ie the (normalised) empirical risk is
 \begin{equation}
 \label{eq:bprisk}
-\RCal_\textsc{rank} = \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \sum_{n: y_n^i = 0} \llb \min_{m: y_m^i = 1} f(i, m) \le f(i, n) \rrb,
+\RCal_\textsc{rank} = \frac{1}{N} \sum_{n=1}^N \frac{1}{M_-^n} \sum_{m': y_{m'}^n = 0} \llb \min_{m: y_m^n = 1} f(m, n) \le f(m', n) \rrb,
 \end{equation}
-where $M_-^i$ denotes the number of songs that are not in playlist $i$,
+where $M_-^n$ denotes the number of songs that are not in playlist $n$,
 and $\llb \cdot \rrb$ is the indicator function that represents the 0-1 loss.
+It is easy to observe the order of songs in a specific playlist does not affect the empirical risk as long as they are ranked 
+above the lowest scored song with regards to that playlist.
 
-To minimise $\RCal_\textsc{rank}$, we replace 0-1 loss with one of its convex surrogate,
-\eg the exponential loss $\ell(f, y) = e^{-fy}$, the logistic loss $\ell(f, y) = \log(1 + e^{-fy})$,
-or the squared hinge loss $\ell(f, y) = [\max(0, \, 1 - fy)]^2$ etc.
+To learn parameters of playlists, we optimise the following regularised risk:
+$$
+\min_\W \ R(\W) + \RCal_\textsc{rank},
+$$
+where the regularisation term $R(\W)$ is defined in (\ref{eq:reg}).
+There are two challenges to optimise the above objective,
+namely, the non-differentiable 0-1 loss and the \emph{min} operator in $\RCal_\textsc{rank}$.
 
-Suppose we use the exponential loss, the multitask learning objective~(\ref{eq:obj}) can be optimised by
+To address these challenges, we first we replace the 0-1 loss with one of its convex surrogate $\ell(f, y)$,
+(\eg the exponential loss $\ell(f, y) = e^{-fy}$, the logistic loss $\ell(f, y) = \log(1 + e^{-fy})$,
+or the hinge loss $\ell(f, y) = \max(0, \, 1 - fy)$ etc.),
+which results in
 \begin{equation}
-\label{eq:expobj}
-\min_{\uptheta} \ R(\uptheta) + \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \sum_{n: y_n^i = 0} \exp \left(f(i, n) - \min_{m: y_m^i = 1} f(i, m) \right).
+\label{eq:obj}
+\min_\W \ R(\W) + \frac{1}{N} \sum_{n=1}^N \frac{1}{M_-^n} \sum_{m': y_{m'}^n = 0} \ell \left( \min_{m: y_m^n = 1} f(m, n) - f(m', n) \right).
 \end{equation}
 
+In this section, we propose two approaches to deal with the non-differentiable \emph{min} operator in surrogate loss $\ell(\cdot)$,
+for two specific surrogate loss functions.
+This first approach reformulate problem (\ref{eq:obj}) into a constrained optimisation problem,
+then by employing the hinge loss, we eventually get a quadratic program,
+for which highly optimised off-the-shelf solvers are widely available.
+
+The second approach approximates the \emph{min} operator in $\ell(\cdot)$, by utilising the exponential loss 
+and an equivalence relationship between bipartite ranking and binary classification, 
+we further transform it into an unconstrained optimisation problem with an objective that can be efficiently 
+optimised using \eg Quasi-Newton methods.
 
 
-\subsection{Formulate a constrained optimisation problem}
 
+\subsection{Quadratic programming formulation}
 
-\cheng{There are two min operators in equation 3. Specify more precisely.}
-
-Directly solving problem (\ref{eq:expobj}) is challenging due to the \emph{min} operator.
-However, it is straightforward to reformulate problem (\ref{eq:expobj}) into a constrained optimisation problem
-by introducing slack variables $\xi_i, \, i \in \{1,\dots,N\}$,
+Suppose we use the hinge loss $\ell(f, y) = \max(0, 1 - fy)$, it follows that problem (\ref{eq:obj}) is
 \begin{equation}
-\label{eq:expobj_cons}
+\label{eq:hingeobj}
+\resizebox{.92\linewidth}{!}{$\displaystyle
+\min_\W \ R(\W) + \frac{1}{N} \sum_{n=1}^N \frac{1}{M_-^n} \sum_{m': y_{m'}^n = 0} \!\!\!
+          \max \left( 0, \, 1 - \!\! \min_{m: y_m^n = 1} f(m, n) + f(m', n) \right).
+$}
+\end{equation}
+This problem can be reformulated as a constrained optimisation problem by introducing slack variables, \ie
+\begin{equation}
+\label{eq:hingeobj_cons}
 \begin{aligned}
-\min_{\uptheta} \ \, & R(\uptheta) + \frac{1}{N} \sum_{i=1}^N \frac{e^{-\xi_i}}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)} \\
-s.t. \ \, & \xi_i \le f(i, m), \ \forall m \in \{1,\dots,M\} \ \text{and} \ y_m^i = 1.
+\min_\W \quad & R(\W) + \frac{1}{N} \sum_{n=1}^N \frac{1}{M_-^n} \sum_{m': y_{m'}^n = 0} \delta_{m'}^n \\
+s.t. \quad 
+& \xi_n \le f(m, n), \ n \in \{1,\dots,N\}, \, m \in \{1,\dots,M\} \ \mathrm{and} \ y_m^n = 1 \\
+& \delta_{m'}^n \ge 1 - \xi_n + f(m', n), \ m' \in \{1,\dots,M\} \ \mathrm{and} \ y_{m'}^n = 0 \\
+& \delta_{m'}^n \ge 0,
 \end{aligned}
 \end{equation}
 
-One may observe that the objective of problem~(\ref{eq:expobj_cons}) is convex but not differentiable due to the L1 regularisation terms in $R(\uptheta)$,
-nonetheless, its sub-gradient can still be used.
-Another observation is the number of constraints in problem~(\ref{eq:expobj_cons}) is
-$$
-\sum_{i=1}^N \sum_{m=1}^M \llb y_m^i = 1 \rrb,
-$$
-in other words, the number of constraints equals the total number of songs played in all playlists.
-Asymptotically, it is of order $O(\widebar{L} N)$ where $\widebar{L}$ is the average number of songs in playlists.
-Although $\widebar{L}$ is dataset dependent, and is typically less than $100$,
-the total number of playlists $N$ can be very large in production systems (\eg Spotify hosts more than $2$ billion playlists~\cite{recsysch2018}),
-which imposes further challenge to optimise problem~(\ref{eq:expobj_cons}).
+Inspired by the one-slack formulation of structured support vector machine~\cite{joachims2009cutting},
+we further reformulate problem (\ref{eq:hingeobj_cons}) as the following quadratic program,
+\begin{equation}
+\label{eq:hingeobj_qp}
+\begin{aligned}
+\min_\W \quad & \lambda_1 \sum_{n=1}^N \| \w_n \|_2^2 + \lambda_2 \sum_{u=1}^U \sum_{(n, n') \in P_u} \| \w_n - \w_{n'} \|_2^2 + \delta \\
+s.t. \quad 
+& \xi_n \le \w_n^\top \x_m, \ n \in \{1,\dots,N\}, \, m \in \{1,\dots,M\} \ \mathrm{and} \ y_m^n = 1 \\
+& \delta \ge 1 - \frac{1}{N} \sum_{n=1}^N \xi_n + \frac{1}{N} \sum_{n=1}^N \frac{1}{M_-^n} \sum_{m': y_{m'}^n = 0} \w_n^\top \x_{m'} \\
+& \delta \ge 0,
+\end{aligned}
+\end{equation}
+where we make use of definition of regularisation term $R(\W)$ and scoring function $f$ from (\ref{eq:reg}) and (\ref{eq:scorefunc}),
+respectively.
 
-\cheng{This still sounds hard. So what do we do next? Unclear why we suddenly talk about binary classification right after this.}
+The quadratic program (\ref{eq:hingeobj_qp}) can be solved efficiently using highly optimised commercial solvers
+(\eg CPLEX, Gurobi and MOSEK) or open source alternatives (\eg CVXOPT, IPOPT, OSQP and SCIP).
 
-% cutting plane here?
 
 
-\subsection{From ranking to classification}
+\subsection{Unconstrained optimisation with classification loss}
 
-It has been known that binary classification and bipartite ranking are
-closely related~\cite{ertekin2011equivalence,menon2016bipartite}.
-In particular, \citet{ertekin2011equivalence} have shown that the P-Norm Push bipartite ranking loss~\cite{rudin2009p}
-is equivalent to the P-Classification loss~\cite{ertekin2011equivalence} when using the exponential surrogate.
-Further, the P-Norm Push loss is an approximation of the Infinite-Push loss~\cite{agarwal2011infinite},
-or equivalently, the Top-Push loss~\cite{li2014top}, which focuses on the highest ranked negative example instead of
-of the lowest ranked positive example as in~(\ref{eq:bprisk}).
+We describe an alternative approach to solve problem (\ref{eq:obj}) by formulate it as an unconstrained optimisation problem,
+inspired by an equivalence relationship between the P-Norm Push bipartite ranking loss~\cite{rudin2009p} and the 
+P-Classification loss~\cite{ertekin2011equivalence} (when using the exponential surrogate).
 
-Inspired by these connections, we seek a classification loss that is equivalent to a bipartite ranking loss (under a few assumptions),
-which can approximate the risk with Bottom-Push loss in~(\ref{eq:bprisk}).
-This will make it possible to formulate an unconstrained objective that approximates the empirical loss $\RCal_\textsc{rank}$.
-
-We first show how the risk with Bottom-Push loss can be approximated,
-then propose a classification loss that is equivalent to the approximation (under a few assumptions).
-
-Note that the \emph{max} operator can be approximated by the smooth log-sum-exp function~\cite[p. 72]{boyd2004convex},
-$$
-\max_i z_i \approx \frac{1}{p} \log \sum_i e^{p z_i},
-$$
-where $p > 0$ is a parameter that trades off the approximation precision, and
+We introduce a variant of the P-Classification loss that approximate the Bottom-Push loss in (\ref{eq:bprisk}).
+Specifically, we can approximate the \emph{min} operator by utilising the well known Log-sum-exp approximation 
+of the \emph{max} operator:
 \begin{equation}
 \label{eq:minappox}
-\min_i z_i = -\max_i (-z_i) \approx -\frac{1}{p} \log \sum_i e^{-p z_i}.
+\min_i z_i = -\max_i (-z_i) \approx -\frac{1}{p} \log \sum_i e^{-p z_i},
+\end{equation}
+where $p > 0$ is a parameter that trades off the approximation precision.
+This approximation becomes precise when $p \to \infty$.
+
+Using the exponential surrogate and by Eq.~(\ref{eq:minappox}), the empirical risk $\RCal_\textsc{rank}$ in (\ref{eq:bprisk}) 
+can then be approximated by $\widetilde\RCal_\textsc{rank}$ as
+\begin{equation}
+\label{eq:rankapprox}
+\resizebox{.9\linewidth}{!}{$
+\begin{aligned}
+\widetilde\RCal_\textsc{rank}
+= \frac{1}{N} \sum_{n=1}^N \frac{1}{M_-^n} \left( \sum_{m: y_m^n = 1} \left( \sum_{m': y_{m'}^n = 0} 
+  e^{-(f(m, n) - f(m', n))} \right)^p \right)^\frac{1}{p}.
+\end{aligned}
+$}
 \end{equation}
 
-By Eq.~(\ref{eq:bprisk}) and (\ref{eq:minappox}), the empirical risk $\RCal_\textsc{rank}$ can be approximated
-(with the exponential surrogate) as follows:
-\begin{equation*}
-\begin{aligned}
-\RCal_\textsc{rank}
-\approx \widetilde\RCal_\textsc{rank}
-= \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \left( \sum_{m: y_m^i = 1} e^{-p f(i, m)} \right)^\frac{1}{p} \sum_{n: y_n^i = 0} e^{f(i, n)}.
-\end{aligned}
-\end{equation*}
-
-\cheng{Explain in words why one is ranking, and the other one classification.}
-
-Let $\RCal_\textsc{clf}$ be the following classification risk:
+One may note that $\widetilde\RCal_\textsc{rank}$ can be transformed to the standard P-Norm Push loss if we swap the
+positives ($m: y_m^n = 1$) with negatives ($m': y_{m'}^n = 0$). % define P-Norm Push first?
+Inspired by this observation, we swap the positives and negatives in the P-Classification loss (by taking care of signs),
+which results in the following variant of P-Classification loss:
 \begin{equation*}
 \RCal_\textsc{clf}
 = \frac{1}{N} \sum_{i=1}^N \left(
   \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)}
   + \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)} \right),
 \end{equation*}
-then we have the following theorem:
+and we have the equivalence theorem:
 \begin{theorem}
 \label{th:rank2clf}
-Let $\uptheta^* \in \argmin_{\uptheta} \RCal_\textsc{clf}$ (assuming minimisers exist),
-then $\uptheta^* \in \argmin_{\uptheta} \widetilde\RCal_\textsc{rank}$.
+Let $\W^* \in \argmin_{\W} \RCal_\textsc{clf}$ (assuming minimisers exist),
+then $\W^* \in \argmin_{\W} \widetilde\RCal_\textsc{rank}$.
 \end{theorem}
 
 \begin{proof}
-We following the proof technique in~\cite{ertekin2011equivalence}
-by first introducing a constant feature $1$ for each song,
-without loss of generality, let $x_m^0$ be the constant feature.
-Then we can show that
-$\frac{\partial \, \RCal_\textsc{clf}} {\partial \, \uptheta} = 0$ implies
-$\frac{\partial \, \widetilde\RCal_\textsc{rank}} {\partial \, \uptheta} = 0$,
-which means minimisers of $\RCal_\textsc{clf}$ also minimise $\widetilde\RCal_\textsc{rank}$.
-
-The complete proof is described in Appendix.
+This theorem can be proved by swapping the positives and negatives in the proof of 
+the equivalence between P-Norm Push loss and P-Classification loss~\cite{ertekin2011equivalence}.
+A complete proof from first principles is in Appendix.
 \end{proof}
 
-By Theorem~\ref{th:rank2clf}, we can approximate the constrained optimisation problem~\ref{eq:expobj_cons}
-by the following unconstrained convex optimisation problem:
-which approximate the objective of problem~(\ref{eq:expobj}),
+We therefore create an unconstrained optimisation problem using the classification risk:
 \begin{equation}
 \label{eq:expobj_clf}
-\min_{\uptheta} \, R(\uptheta) + \RCal_\textsc{clf},
+\min_\W \quad R(\W) + \RCal_\textsc{clf}.
 \end{equation}
-which in general can be optimised more efficiently.
 
-\cheng{New subsection: Describe the difference between existing and new user.}
+The objective of the unconstrained optimisation problem (\ref{eq:expobj_clf}) is convex and differentiable,
+thus can be readily optimised using Quasi-Newton methods \eg L-BFGS.
+
+As a remark, the optimal solutions of problem (\ref{eq:expobj_clf}) are not necessarily the optimal solutions 
+of problem $\min_\W \ R(\W) + \widetilde\RCal_\textsc{rank}$ due to the regularisation terms,
+however, when parameters $\W$ are small, which is the purpose of regularisation, the two objectives 
+can nonetheless approximate each other in acceptable level.
+
+
 
 \subsection{Discussion}
 
-In this section, we want to discuss the advantages and limitations of the
-two approaches that solve problem~(\ref{eq:expobj}),
-as well as a few practical strategies for the proposed approaches.
-
-The constrained optimisation problem~(\ref{eq:expobj_cons}) can be solved using interior-point method,
-although the large number of constraints requires a large amount of computation resources.
-Cutting-plane~\cite{avriel2003nonlinear} techniques can be employed to deal with this challenge,
-but we found it does not work extremely well in practice.
-However, this approach allows us to use other surrogate losses besides the exponential loss,
-such as squared hinge loss, which may provide a few other desired properties. % detailing this
-% solvers: IPOPT, CVX etc.
-
-To solve the unconstrained optimisation problem~(\ref{eq:expobj_clf}),
-the Orthant-Wise Limited-memory Quasi-Newton (OWL-QN)~\cite{andrew2007scalable} L-BFGS variant can be employed to
-efficiently deal with the L1 regularisation term without imposing huge memory burdens.
-% solver: pylbfgs
-
-\cheng{Justify why we need to compare two methods empirically: multitask classification, multitask ranking.}
+The two approaches to solve problem (\ref{eq:obj}) that we discuss in this section offer their own advantages and limitations.
+The quadratic programming (QP) formulation (\ref{eq:hingeobj_qp}) solves the optimisation problem exactly (using hinge loss as surrogate),
+but the number of constraints in the QP is big, precisely, it has $\sum_{n=1}^N \sum_{m=1}^M \llb y_m^n = 1 \rrb + 2$ constraints.
+Asymptotically, it is of order $O(\bar{L} N)$ where $\bar{L}$ is the average number of songs in playlists. 
+Although $\bar{L}$ is dataset dependent, and is typically less than 100, the total number of playlists $N$ can be very large 
+in production systems (e.g. Spotify hosts more than $2$ billion playlists~\cite{recsysch2018}), 
+which is a big challenge even for the state-of-the-art QP solvers.
+While cutting-plane~\cite{avriel2003nonlinear} techniques may be employed to alleviate this challenge,
+but the minimum number of constraints is still in the order of $O(N)$, and we also found these techniques do not work extremely well in practice.
+On the other hand, the unconstrained optimisation formulation (\ref{eq:expobj_clf}) can solved efficiently in general, 
+but it is nevertheless an approximation of the original problem (\ref{eq:obj}), and it further restrict us from using other surrogates
+except the exponential one, which can sometimes suffer from numerical overflows/underflows.
