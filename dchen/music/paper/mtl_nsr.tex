@@ -1,0 +1,65 @@
+\section{Multitask learning for music recommendation}
+\label{sec:method}
+
+\cheng{Move this to paragraph, and figure, to Section 2. You need to discuss the problem we are solving before you can talk about related work.}
+
+Suppose we have a dataset $\DCal$ with $N$ playlists from $U$ users, songs in every playlist are from a music collection
+with $M$ songs, and each song in the collection is appeared in at least one playlist.
+
+The task of recommending a set of newly released songs to extend an existing playlist for a given user is illustrated in Figure~\ref{fig:pla},
+where rows represent songs (no specific order) and columns represent playlists (no specific order).
+Further, columns with white colour represent playlists in training set,
+and columns with grey colour represent playlists in test set.
+If entry $(m, n)$ is \texttt{1} (or \texttt{0}),
+it means song $m$ can (or not) be found in playlist $n$,
+and a question mark \texttt{?} means we do not know whether song $m$ is in playlist $n$.
+%As a remark, columns represent playlists in test set contain only \texttt{?} entries.
+
+\input{fig_nsr}
+
+\cheng{Update Figure 1 to include meaning of rows and columns. Why do we bother with ?, since the whole test set is unknown? Indicate the effect of known and unknown users.}
+
+\cheng{In 2-3 sentences, define the problem we are attacking in this paper. Recommend a set, not a single item. User specific. All songs known. Consider cold start user.}
+
+\cheng{This should be followed by related work, where you need to describe for each group how we are different, or how we use some idea.}
+
+\subsection{Multitask learning regularisation}
+
+%\paragraph{Song scoring}
+%
+We aim to learn a function $f(m, n)$ that scores the affinity between song $m$ and playlist $n$.
+Suppose function $f(m, n)$ has a linear form
+\begin{equation}
+\label{eq:scorefunc}
+f(m, n) = \w_n^\top \x_m, \  m \in \{1,\dots,M\}, \, n \in \{1,\dots,N\},
+\end{equation}
+where vector $\w_n$ represents parameters of playlist $n$ and $\x_m$ is a feature vector of song $m$.
+
+The learning task is to minimise the empirical risk of scoring function $f$ on dataset $\DCal$ over parameters $\W$.
+Formally, we solve an optimisation problem
+\begin{equation}
+\label{eq:obj}
+\min_{\W} \, \lambda_1 \sum_{n=1}^N \| w_n \|_2^2 + \RCal(f, \DCal),
+\end{equation}
+where $\lambda_1 > 0$ is the regularisation constant and $\RCal(f, \DCal)$ denotes the empirical risk.
+
+We assume that playlists of the \emph{same} user have \emph{similar} representations,
+and the difference between playlists $n$ and $n'$ of the same user $u$ can be reflected by the difference 
+between their parameters, we thus introduce the following regularisation term 
+\begin{equation}
+\label{eq:mtreg}
+\sum_{u=1}^U \sum_{(n, n') \in P_u} \| \w_n - \w_{n'} \|_2^2,
+\end{equation}
+where $P_u$ is the set of playlist pairs from user $u$.
+We call (\ref{eq:mtreg}) a multitask regulariser, since it regularises the parameters of multiple playlists.
+
+In summary, the regularisation term in our learning objective is
+\begin{equation}
+\label{eq:reg}
+R(\W) = \lambda_1 \sum_{n=1}^N \| \w_n \|_2^2 + \lambda_2 \sum_{u=1}^U \sum_{(n, n') \in P_u} \| \w_n - \w_{n'} \|_2^2,
+\end{equation}
+where $\lambda_1, \lambda_2 \in \R_+$ are regularisation constants.
+
+Once all parameters have been learned, we can make recommendation by first scoring each song in music collection
+for a given playlist by our scoring function $f$, 
+then we can extend the given playlist by either taking the top-K scored songs or sampling songs proportional to their scores.

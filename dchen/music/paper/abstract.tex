@@ -1,10 +1,15 @@
-Playlists are a core feature of music streaming services.
-We investigate the problem of recommending a set of songs for a user.
-A multitask learning objective is proposed to make a useful recommendation for a new user.
-Playlists of the user will be used to achieve better recommendation for an existing user.
-To learn the parameters, we require that songs could end up being in playlist are ranked above those unlikely.
-We further improve the learning efficiency of the ranking approach by transforming its
-constrained convex objective into an unconstrained one,
-by utilising an equivalence relationship between bipartite ranking and binary classification.
-Empirical results on two real music playlist datasets show the effectiveness of the proposed approach.
-%and its classification counterpart can be trained more efficiently while maintaining the same level of high performance.
+%Playlists are a core feature of music streaming services.
+We investigate the problem of music recommendation in cold-start circumstance.
+In particular, we investigate three settings with different cold items:
+(i) cold songs, where we recommend newly released songs to extend existing playlists;
+(ii) cold playlists, where we recommend a set of songs to form a playlist without additional context except the user;
+(iii) cold users, where we recommend a set of songs to form a playlist for a new user, without any other context.
+We propose a multitask learning method which is flexible enough to deal with all three settings.
+By learning from user curated playlists, the multitask learning method encourages songs in playlist 
+ranked higher than those are not by minimising the Bottom-Push bipartite ranking loss.
+We formulate a constrained convex optimisation problem to learn the multitask objective,
+then address the difficulty of a large number of constraints by approximating the Bottom-Push loss
+with a classification loss inspired by an equivalence relationship between bipartite ranking and binary classification.
+Empirical results on two real music playlist datasets show the proposed approach has good performance for recommending music 
+in cold-start settings.
+%in three cold-start settings.

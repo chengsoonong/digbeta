@@ -1,0 +1,180 @@
+\subsection{Recommending the most probable songs}
+\label{ssec:bploss}
+
+In this section, we describe a ranking based approach that learns to rank songs in playlist higher
+than those not in it, which hopefully ranks the most probable songs above those unlikely when making a recommendation.
+This is known as the Bottom-Push loss~\cite{rudin2009p} in bipartite ranking literature.
+Formally, for playlist $n$, we would like
+\begin{equation*}
+\begin{aligned}
+\min_{m: y_m^n = 1} f(m, n) \ge f(m', n), \ \forall m' \in \{1,\dots,M\} \ \text{and} \ y_{m'}^n = 0,
+\end{aligned}
+\end{equation*}
+where $y_m^n = 1$ denotes that song $m$ is in playlist $n$,
+and $y_{m'}^n = 0$ represents song $m'$ does not appear in playlist $n$.
+
+We can then minimise the number of songs that is not appeared in the given playlist
+but have a higher score than the lowest ranked song in playlist, \ie the (normalised) empirical risk is
+\begin{equation}
+\label{eq:bprisk}
+\RCal_\textsc{rank} = \frac{1}{N} \sum_{n=1}^N \frac{1}{M_-^n} \sum_{m': y_{m'}^n = 0} \llb \min_{m: y_m^n = 1} f(m, n) \le f(m', n) \rrb,
+\end{equation}
+where $M_-^n$ denotes the number of songs that are not in playlist $n$,
+and $\llb \cdot \rrb$ is the indicator function that represents the 0-1 loss.
+It is easy to observe the order of songs in a specific playlist does not affect the empirical risk as long as they are ranked 
+above the lowest scored song with regards to that playlist.
+
+To learn parameters of playlists, we optimise the following regularised risk:
+$$
+\min_\W \ R(\W) + \RCal_\textsc{rank},
+$$
+where the regularisation term $R(\W)$ is defined in (\ref{eq:reg}).
+There are two challenges to optimise the above objective,
+namely, the non-differentiable 0-1 loss and the \emph{min} operator in $\RCal_\textsc{rank}$.
+
+To address these challenges, we first we replace the 0-1 loss with one of its convex surrogate $\ell(f, y)$,
+(\eg the exponential loss $\ell(f, y) = e^{-fy}$, the logistic loss $\ell(f, y) = \log(1 + e^{-fy})$,
+or the hinge loss $\ell(f, y) = \max(0, \, 1 - fy)$ etc.),
+which results in
+\begin{equation}
+\label{eq:obj}
+\min_\W \ R(\W) + \frac{1}{N} \sum_{n=1}^N \frac{1}{M_-^n} \sum_{m': y_{m'}^n = 0} \ell \left( \min_{m: y_m^n = 1} f(m, n) - f(m', n) \right).
+\end{equation}
+
+In this section, we propose two approaches to deal with the non-differentiable \emph{min} operator in surrogate loss $\ell(\cdot)$,
+for two specific surrogate loss functions.
+This first approach reformulate problem (\ref{eq:obj}) into a constrained optimisation problem,
+then by employing the hinge loss, we eventually get a quadratic program,
+for which highly optimised off-the-shelf solvers are widely available.
+
+The second approach approximates the \emph{min} operator in $\ell(\cdot)$, by utilising the exponential loss 
+and an equivalence relationship between bipartite ranking and binary classification, 
+we further transform it into an unconstrained optimisation problem with an objective that can be efficiently 
+optimised using \eg Quasi-Newton methods.
+
+
+
+\subsection{Quadratic programming formulation}
+
+Suppose we use the hinge loss $\ell(f, y) = \max(0, 1 - fy)$, it follows that problem (\ref{eq:obj}) is
+\begin{equation}
+\label{eq:hingeobj}
+\resizebox{.92\linewidth}{!}{$\displaystyle
+\min_\W \ R(\W) + \frac{1}{N} \sum_{n=1}^N \frac{1}{M_-^n} \sum_{m': y_{m'}^n = 0} \!\!\!
+          \max \left( 0, \, 1 - \!\! \min_{m: y_m^n = 1} f(m, n) + f(m', n) \right).
+$}
+\end{equation}
+This problem can be reformulated as a constrained optimisation problem by introducing slack variables, \ie
+\begin{equation}
+\label{eq:hingeobj_cons}
+\begin{aligned}
+\min_\W \quad & R(\W) + \frac{1}{N} \sum_{n=1}^N \frac{1}{M_-^n} \sum_{m': y_{m'}^n = 0} \delta_{m'}^n \\
+s.t. \quad 
+& \xi_n \le f(m, n), \ n \in \{1,\dots,N\}, \, m \in \{1,\dots,M\} \ \mathrm{and} \ y_m^n = 1 \\
+& \delta_{m'}^n \ge 1 - \xi_n + f(m', n), \ m' \in \{1,\dots,M\} \ \mathrm{and} \ y_{m'}^n = 0 \\
+& \delta_{m'}^n \ge 0,
+\end{aligned}
+\end{equation}
+
+Inspired by the one-slack formulation of structured support vector machine~\cite{joachims2009cutting},
+we further reformulate problem (\ref{eq:hingeobj_cons}) as the following quadratic program,
+\begin{equation}
+\label{eq:hingeobj_qp}
+\begin{aligned}
+\min_\W \quad & \lambda_1 \sum_{n=1}^N \| \w_n \|_2^2 + \lambda_2 \sum_{u=1}^U \sum_{(n, n') \in P_u} \| \w_n - \w_{n'} \|_2^2 + \delta \\
+s.t. \quad 
+& \xi_n \le \w_n^\top \x_m, \ n \in \{1,\dots,N\}, \, m \in \{1,\dots,M\} \ \mathrm{and} \ y_m^n = 1 \\
+& \delta \ge 1 - \frac{1}{N} \sum_{n=1}^N \xi_n + \frac{1}{N} \sum_{n=1}^N \frac{1}{M_-^n} \sum_{m': y_{m'}^n = 0} \w_n^\top \x_{m'} \\
+& \delta \ge 0,
+\end{aligned}
+\end{equation}
+where we make use of definition of regularisation term $R(\W)$ and scoring function $f$ from (\ref{eq:reg}) and (\ref{eq:scorefunc}),
+respectively.
+
+The quadratic program (\ref{eq:hingeobj_qp}) can be solved efficiently using highly optimised commercial solvers
+(\eg CPLEX, Gurobi and MOSEK) or open source alternatives (\eg CVXOPT, IPOPT, OSQP and SCIP).
+
+
+
+\subsection{Unconstrained optimisation with classification loss}
+
+We describe an alternative approach to solve problem (\ref{eq:obj}) by formulate it as an unconstrained optimisation problem,
+inspired by an equivalence relationship between the P-Norm Push bipartite ranking loss~\cite{rudin2009p} and the 
+P-Classification loss~\cite{ertekin2011equivalence} (when using the exponential surrogate).
+
+We introduce a variant of the P-Classification loss that approximate the Bottom-Push loss in (\ref{eq:bprisk}).
+Specifically, we can approximate the \emph{min} operator by utilising the well known Log-sum-exp approximation 
+of the \emph{max} operator:
+\begin{equation}
+\label{eq:minappox}
+\min_i z_i = -\max_i (-z_i) \approx -\frac{1}{p} \log \sum_i e^{-p z_i},
+\end{equation}
+where $p > 0$ is a parameter that trades off the approximation precision.
+This approximation becomes precise when $p \to \infty$.
+
+Using the exponential surrogate and by Eq.~(\ref{eq:minappox}), the empirical risk $\RCal_\textsc{rank}$ in (\ref{eq:bprisk}) 
+can then be approximated by $\widetilde\RCal_\textsc{rank}$ as
+\begin{equation}
+\label{eq:rankapprox}
+\resizebox{.9\linewidth}{!}{$
+\begin{aligned}
+\widetilde\RCal_\textsc{rank}
+= \frac{1}{N} \sum_{n=1}^N \frac{1}{M_-^n} \left( \sum_{m: y_m^n = 1} \left( \sum_{m': y_{m'}^n = 0} 
+  e^{-(f(m, n) - f(m', n))} \right)^p \right)^\frac{1}{p}.
+\end{aligned}
+$}
+\end{equation}
+
+One may note that $\widetilde\RCal_\textsc{rank}$ can be transformed to the standard P-Norm Push loss if we swap the
+positives ($m: y_m^n = 1$) with negatives ($m': y_{m'}^n = 0$). % define P-Norm Push first?
+Inspired by this observation, we swap the positives and negatives in the P-Classification loss (by taking care of signs),
+which results in the following variant of P-Classification loss:
+\begin{equation*}
+\RCal_\textsc{clf}
+= \frac{1}{N} \sum_{i=1}^N \left(
+  \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)}
+  + \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)} \right),
+\end{equation*}
+and we have the equivalence theorem:
+\begin{theorem}
+\label{th:rank2clf}
+Let $\W^* \in \argmin_{\W} \RCal_\textsc{clf}$ (assuming minimisers exist),
+then $\W^* \in \argmin_{\W} \widetilde\RCal_\textsc{rank}$.
+\end{theorem}
+
+\begin{proof}
+This theorem can be proved by swapping the positives and negatives in the proof of 
+the equivalence between P-Norm Push loss and P-Classification loss~\cite{ertekin2011equivalence}.
+A complete proof from first principles is in Appendix.
+\end{proof}
+
+We therefore create an unconstrained optimisation problem using the classification risk:
+\begin{equation}
+\label{eq:expobj_clf}
+\min_\W \quad R(\W) + \RCal_\textsc{clf}.
+\end{equation}
+
+The objective of the unconstrained optimisation problem (\ref{eq:expobj_clf}) is convex and differentiable,
+thus can be readily optimised using Quasi-Newton methods \eg L-BFGS.
+
+As a remark, the optimal solutions of problem (\ref{eq:expobj_clf}) are not necessarily the optimal solutions 
+of problem $\min_\W \ R(\W) + \widetilde\RCal_\textsc{rank}$ due to the regularisation terms,
+however, when parameters $\W$ are small, which is the purpose of regularisation, the two objectives 
+can nonetheless approximate each other in acceptable level.
+
+
+
+\subsection{Discussion}
+
+The two approaches to solve problem (\ref{eq:obj}) that we discuss in this section offer their own advantages and limitations.
+The quadratic programming (QP) formulation (\ref{eq:hingeobj_qp}) solves the optimisation problem exactly (using hinge loss as surrogate),
+but the number of constraints in the QP is big, precisely, it has $\sum_{n=1}^N \sum_{m=1}^M \llb y_m^n = 1 \rrb + 2$ constraints.
+Asymptotically, it is of order $O(\bar{L} N)$ where $\bar{L}$ is the average number of songs in playlists. 
+Although $\bar{L}$ is dataset dependent, and is typically less than 100, the total number of playlists $N$ can be very large 
+in production systems (e.g. Spotify hosts more than $2$ billion playlists~\cite{recsysch2018}), 
+which is a big challenge even for the state-of-the-art QP solvers.
+While cutting-plane~\cite{avriel2003nonlinear} techniques may be employed to alleviate this challenge,
+but the minimum number of constraints is still in the order of $O(N)$, and we also found these techniques do not work extremely well in practice.
+On the other hand, the unconstrained optimisation formulation (\ref{eq:expobj_clf}) can solved efficiently in general, 
+but it is nevertheless an approximation of the original problem (\ref{eq:obj}), and it further restrict us from using other surrogates
+except the exponential one, which can sometimes suffer from numerical overflows/underflows.
