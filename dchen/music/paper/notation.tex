@@ -11,19 +11,20 @@ We introduce notations in Table~\ref{tab:symbol_tpush}.
 \toprule
 \multicolumn{3}{l}{\textbf{Notation}} & \textbf{Description} \\ \midrule
 $D$        &  $\in$  &  $\Z^+$            & The number of features for each song \\
-$M$        &  $\in$  &  $\Z^+$            & The number of songs, indexed by $m, n \in \{1,\dots,M\}$ \\
-$N$        &  $\in$  &  $\Z^+$            & The number of playlists, indexed by $i \in \{1,\dots,N\}$ \\
-$U$        &  $\in$  &  $\Z^+$            & The number of users, indexed by $j \in \{1,\dots,U\}$ \\
-$\bv_i$    &  $\in$  &  $\R^D$            & The weights of playlist $i$ \\
-$\bu_j$    &  $\in$  &  $\R^D$            & The weights of user $j$ \\
-$\widebar\bu$    &  $\in$  &  $\R^D$      & The weights shared by all playlists \\
-$\w_i    $ &  $\in$  &  $\R^D$            & The weights for playlist $i$ that owned by user $j=u(i)$, $\w_i = \bv_i + \bu_j + \widebar\bu$ \\
+$M$        &  $\in$  &  $\Z^+$            & The number of songs, indexed by $m, m' \in \{1,\dots,M\}$ \\
+$N$        &  $\in$  &  $\Z^+$            & The number of playlists, grouped by users \\
+$U$        &  $\in$  &  $\Z^+$            & The number of users, indexed by $i \in \{1,\dots,U\}$ \\
+$P_i$      &         &                    & The set of playlists from user $i$, indexed by $j \in P_i$ \\
+$\bu_i$    &  $\in$  &  $\R^D$            & The weights of user $i$ \\
+$\bv_j$    &  $\in$  &  $\R^D$            & The weights of playlist $j$ \\
+$\widebar\bu$    &  $\in$  &  $\R^D$      & The weights shared by all users \\
+$\w_j    $ &  $\in$  &  $\R^D$            & The weights for playlist $j$, $\w_j = \bu_i + \bv_j + \widebar\bu$ \\
 $\Y$       &  $\in$  &  $\R^{M \times N}$ & The matrix of binary labels that indicating if a song is in a playlist \\
-$y_m^k$    &  $\in$  &  $\R^D$            & The positive binary label $y_m^k = 1$, \ie song $m$ in playlist $k$ \\
-$y_n^k$    &  $\in$  &  $\R^D$            & The negative binary label $y_n^k = 0$, \ie song $n$ not in playlist $k$ \\
+$y_m^j$    &  $\in$  &  $\R^D$            & The positive binary label $y_m^j = 1$, \ie song $m$ in playlist $j$ \\
+$y_{m'}^j$ &  $\in$  &  $\R^D$            & The negative binary label $y_{m'}^j = 0$, \ie song $m'$ not in playlist $j$ \\
 $\X$       &  $\in$  &  $\R^{M \times D}$ & The matrix of features of all songs \\
 $\x_m$     &  $\in$  &  $\R^D$            & The feature vector of song $m$ \\
-$\x_n$     &  $\in$  &  $\R^D$            & The feature vector of song $n$ \\
+$\x_{m'}$  &  $\in$  &  $\R^D$            & The feature vector of song $m'$ \\
 \bottomrule
 \end{tabular}
 \end{table}
