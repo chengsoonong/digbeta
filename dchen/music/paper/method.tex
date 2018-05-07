@@ -71,8 +71,10 @@ Formally, we minimise the number of songs not in playlist but ranked above the l
 \ie the (normalised) empirical risk is
 \begin{equation}
 \label{eq:bprisk}
+\resizebox{.9\linewidth}{!}{$\displaystyle
 \RCal_\textsc{rank}(\uptheta) = \frac{1}{N} \sum_{i=1}^U \sum_{j \in P_u} \frac{1}{M_-^j} \sum_{m': y_{m'}^j = 0} 
 \llb \min_{m: y_m^j = 1} f(m, j) \le f(m', j) \rrb,
+$}
 \end{equation}
 where $M_-^j$ denotes the number of songs that are not in playlist $j$,
 and $\llb \cdot \rrb$ is the indicator function that represents the 0-1 loss.
@@ -123,21 +125,22 @@ s.t. \ \, & \xi_j \le f(j, m), \ \forall m \in \{1,\dots,M\} \ \text{and} \ y_m^
 \end{equation}
 
 One may observe that the objective of problem~(\ref{eq:expobj_cons}) is convex but not differentiable due to 
-the L1 regularisation terms in $R(\uptheta)$, nonetheless, its sub-gradient can still be used.
+the L1 regularisation terms in $R(\uptheta)$, nonetheless, we can its sub-gradient.
 Another observation is the number of constraints in problem~(\ref{eq:expobj_cons}) is
-$$
-\sum_{i=1}^N \sum_{m=1}^M \llb y_m^i = 1 \rrb,
-$$
+$
+\sum_{i=1}^U \sum_{j \in P_i} \sum_{m=1}^M \llb y_m^j = 1 \rrb,
+$
 in other words, the number of constraints equals the total number of songs played in all playlists.
 Asymptotically, it is of order $O(\widebar{L} N)$ where $\widebar{L}$ is the average number of songs in playlists.
 Although $\widebar{L}$ is dataset dependent, and is typically less than $100$,
 the total number of playlists $N$ can be very large in production systems (\eg Spotify hosts more than $2$ billion playlists~\cite{recsysch2018}),
-which imposes significant challenge to optimise problem~(\ref{eq:expobj_cons}).
+which imposes significant challenge when optimising problem~(\ref{eq:expobj_cons}).
 
 We want to mention two techniques that can be employed to alleviate this issue,
 namely, the cutting-plane~\cite{avriel2003nonlinear} method and the sub-gradient method.
-However, we have found that both approaches converge extremely slow in this problem, and in particular, the cutting plane method is required 
-to deal with a constrained optimisation problem with $N$ constraints, which is still challenging when $N$ is large.
+However, we have found both approaches converge extremely slow in practice for this problem, 
+in particular, the cutting plane method is required to deal with constrained optimisation problems 
+with at least $N$ constraints, which is still challenging when $N$ is large.
 %but the minimum number of constraints is still in the order of $O(N)$, and we also found these techniques do not work extremely well in practice.
 
 We address this issue by formulating an unconstrained optimisation problem which approximates the objective in problem~(\ref{eq:expobj_cons}),
@@ -148,7 +151,8 @@ we describe this approach in the following section.
 
 
 
-\subsection{From ranking to classification}
+%\subsection{From ranking to classification}
+\subsection{Unconstrained optimisation with classification loss}
 
 It has been known that binary classification and bipartite ranking are
 closely related~\cite{ertekin2011equivalence,menon2016bipartite}.
@@ -163,7 +167,7 @@ then propose a classification loss that is equivalent to this bipartite ranking 
 The reason not to directly optimise the bipartite ranking loss is due to computation cost,
 and classification loss can be optimised more efficiently in general~\cite{ertekin2011equivalence}.
 
-Note that we can approximate the \emph{min} operator by utilising the well known Log-sum-exp approximation 
+We can approximate the \emph{min} operator by utilising the well known Log-sum-exp approximation 
 of the \emph{max} operator~\cite[p. 72]{boyd2004convex},
 \begin{equation}
 \label{eq:minappox}
@@ -173,83 +177,82 @@ where $p > 0$ is a parameter that trades off the approximation precision.
 This approximation becomes precise when $p \to \infty$.
 
 By Eq.~(\ref{eq:bprisk}) and (\ref{eq:minappox}), the empirical risk $\RCal_\textsc{rank}$ can be approximated
-(with the exponential surrogate) as follows:
+(with the exponential surrogate) by $\widetilde\RCal_\textsc{rank}$ defined as
 \begin{equation}
 \label{eq:rankapprox}
 \resizebox{.9\linewidth}{!}{$
 \begin{aligned}
-\widetilde\RCal_\textsc{rank}
-= \frac{1}{N} \sum_{n=1}^N \frac{1}{M_-^n} \left( \sum_{m: y_m^n = 1} \left( \sum_{m': y_{m'}^n = 0} 
-  e^{-(f(m, n) - f(m', n))} \right)^p \right)^\frac{1}{p}.
+\widetilde\RCal_\textsc{rank}(\uptheta)
+= \frac{1}{N} \sum_{1=1}^U \sum_{j \in P_i} \frac{1}{M_-^j} \left( \sum_{m: y_m^j = 1} \left( \sum_{m': y_{m'}^j = 0} 
+  e^{-(f(m, j) - f(m', j))} \right)^p \right)^\frac{1}{p}.
 \end{aligned}
 $}
 \end{equation}
 
 
-\begin{equation*}
-\begin{aligned}
-\RCal_\textsc{rank}
-\approx \widetilde\RCal_\textsc{rank}
-= \frac{1}{N} \sum_{i=1}^N \frac{1}{M_-^i} \left( \sum_{m: y_m^i = 1} e^{-p f(i, m)} \right)^\frac{1}{p} \sum_{n: y_n^i = 0} e^{f(i, n)}.
-\end{aligned}
-\end{equation*}
+One may note that $\widetilde\RCal_\textsc{rank}$ can be transformed into the standard P-Norm Push loss swapping the
+positives ($m: y_m^j = 1$) and negatives ($m': y_{m'}^j = 0$). % define P-Norm Push first?
+Inspired by this observation, we swap the positives and negatives in the P-Classification loss (by taking care of signs),
+which results in the following classification risk:
+\begin{equation}
+\label{eq:clfrisk}
+\resizebox{.9\linewidth}{!}{$\displaystyle
+\RCal_\textsc{clf}(\uptheta)
+= \frac{1}{N} \sum_{i=1}^U \sum_{j \in P_i} \left(
+  \frac{1}{p M_+^j} \sum_{m: y_m^j = 1} e^{-p f(m, j)}
+  + \frac{1}{M_-^j} \sum_{m': y_{m'}^j = 0} e^{f(m', j)} \right).
+$}
+\end{equation}
 
-\cheng{Explain in words why one is ranking, and the other one classification.}
-
-Let $\RCal_\textsc{clf}$ be the following classification risk:
-\begin{equation*}
-\RCal_\textsc{clf}
-= \frac{1}{N} \sum_{i=1}^N \left(
-  \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(i, m)}
-  + \frac{1}{M_-^i} \sum_{n: y_n^i = 0} e^{f(i, n)} \right),
-\end{equation*}
-then we have the following theorem:
-\begin{theorem}
-\label{th:rank2clf}
-Let $\uptheta^* \in \argmin_{\uptheta} \RCal_\textsc{clf}$ (assuming minimisers exist),
-then $\uptheta^* \in \argmin_{\uptheta} \widetilde\RCal_\textsc{rank}$.
-\end{theorem}
+We have the following lemma:
+\begin{lemma}
+\label{lm:rank2clf}
+Let $\W^* \in \argmin_{\W} \RCal_\textsc{clf}$ (assuming minimisers exist),
+then $\W^* \in \argmin_{\W} \widetilde\RCal_\textsc{rank}$.
+\end{lemma}
 
 \begin{proof}
-We following the proof technique in~\cite{ertekin2011equivalence}
-by first introducing a constant feature $1$ for each song,
-without loss of generality, let $x_m^0$ be the constant feature.
-Then we can show that
-$\frac{\partial \, \RCal_\textsc{clf}} {\partial \, \uptheta} = 0$ implies
-$\frac{\partial \, \widetilde\RCal_\textsc{rank}} {\partial \, \uptheta} = 0$,
-which means minimisers of $\RCal_\textsc{clf}$ also minimise $\widetilde\RCal_\textsc{rank}$.
-
-The complete proof is described in Appendix.
+This theorem can be proved by swapping the positives and negatives in the proof of 
+the equivalence between P-Norm Push loss and P-Classification loss~\cite{ertekin2011equivalence}.
+A complete proof from first principles is described in Appendix.
 \end{proof}
 
-By Theorem~\ref{th:rank2clf}, we can approximate the constrained optimisation problem~\ref{eq:expobj_cons}
-by the following unconstrained convex optimisation problem:
-which approximate the objective of problem~(\ref{eq:expobj}),
+We can therefore create an unconstrained optimisation problem using the classification risk $\RCal_\textsc{clf}$:
 \begin{equation}
 \label{eq:expobj_clf}
-\min_{\uptheta} \, R(\uptheta) + \RCal_\textsc{clf},
+\min_\uptheta \quad R(\uptheta) + \RCal_\textsc{clf}(\uptheta).
 \end{equation}
-which in general can be optimised more efficiently.
 
-\cheng{New subsection: Describe the difference between existing and new user.}
+The objective in problem~(\ref{eq:expobj_clf}) is convex but not differentiable due to the L1 regularisation terms in $R(\uptheta)$,
+but it can be efficiently solved using the Orthant-Wise Limited-memory Quasi-Newton (OWL-QN)~\cite{andrew2007scalable} L-BFGS variant.
 
-\subsection{Discussion}
+As a remark, the optimal solutions of problem (\ref{eq:expobj_clf}) are not necessarily the optimal solutions 
+of problem $\min_\uptheta \ R(\uptheta) + \widetilde\RCal_\textsc{rank}(\uptheta)$ due to the regularisation terms,
+however, when parameters $\uptheta$ are small (which is generally the case when using regularisation), the two objectives 
+can nonetheless approximate each other in acceptable level.
 
-In this section, we want to discuss the advantages and limitations of the
-two approaches that solve problem~(\ref{eq:expobj}),
-as well as a few practical strategies for the proposed approaches.
 
-The constrained optimisation problem~(\ref{eq:expobj_cons}) can be solved using interior-point method,
-although the large number of constraints requires a large amount of computation resources.
-Cutting-plane~\cite{avriel2003nonlinear} techniques can be employed to deal with this challenge,
-but we found it does not work extremely well in practice.
-However, this approach allows us to use other surrogate losses besides the exponential loss,
-such as squared hinge loss, which may provide a few other desired properties. % detailing this
+%\cheng{Explain in words why one is ranking, and the other one classification.}
+
+%\cheng{New subsection: Describe the difference between existing and new user.}
+
+%\subsection{Discussion}
+
+%In this section, we want to discuss the advantages and limitations of the
+%two approaches that solve problem~(\ref{eq:expobj}),
+%as well as a few practical strategies for the proposed approaches.
+%
+%The constrained optimisation problem~(\ref{eq:expobj_cons}) can be solved using interior-point method,
+%although the large number of constraints requires a large amount of computation resources.
+%Cutting-plane~\cite{avriel2003nonlinear} techniques can be employed to deal with this challenge,
+%but we found it does not work extremely well in practice.
+%However, this approach allows us to use other surrogate losses besides the exponential loss,
+%such as squared hinge loss, which may provide a few other desired properties. % detailing this
 % solvers: IPOPT, CVX etc.
 
-To solve the unconstrained optimisation problem~(\ref{eq:expobj_clf}),
-the Orthant-Wise Limited-memory Quasi-Newton (OWL-QN)~\cite{andrew2007scalable} L-BFGS variant can be employed to
-efficiently deal with the L1 regularisation term without imposing huge memory burdens.
+%To solve the unconstrained optimisation problem~(\ref{eq:expobj_clf}),
+%the Orthant-Wise Limited-memory Quasi-Newton (OWL-QN)~\cite{andrew2007scalable} L-BFGS variant can be employed to
+%efficiently deal with the L1 regularisation term without imposing huge memory burdens.
 % solver: pylbfgs
 
-\cheng{Justify why we need to compare two methods empirically: multitask classification, multitask ranking.}
+%\cheng{Justify why we need to compare two methods empirically: multitask classification, multitask ranking.}
