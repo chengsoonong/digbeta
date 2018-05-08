@@ -1,4 +1,4 @@
-\section{Experiment}
+\section{Experiments}
 \label{sec:experiment}
 
 In this section, we describe experiments that empirically evaluate the proposed method and a number of 
@@ -6,9 +6,9 @@ well known baseline approaches in the three cold-start settings described in Sec
 
 
 \subsection{Dataset}
-We make use of two publicly available playlist dataset: the 30Music~\cite{30music2015} and AotM-2011~\cite{mcfee2012hypergraph} playlist dataset.
+We make use of two publicly available playlist datasets: the 30Music~\cite{30music2015} and AotM-2011~\cite{mcfee2012hypergraph} playlist dataset.
 The Million Song Dataset~\cite{msd2011} serves as an underlying dataset where all songs in playlists are intersected with,
-it also provides a few song features which we will detail later.
+and it also provides a few song features which we will detail later.
 
 
 \begin{table}[!b]
@@ -43,25 +43,26 @@ AotM-2011 & 114,428 & 84,710  & 14,182  & 10.1 & 6.0 \\
     \end{minipage}
 \end{figure*}
 
-{\bf Million Song Dataset} (MSD) is a collection of one million songs, information of each song such as the name, artist, year of release are available.
+{\bf Million Song Dataset} (MSD) is a collection of one million songs, in which information of each song such as the name, 
+artist, year of release are available.
 It also provides acoustic features computed from a sample section of audio file of each song. % more description
 
 {\bf 30Music Dataset} is a collection of listening events and playlists retrieved from Last.fm\footnote{\url{https://www.last.fm}}.
 We utilise the playlists data by first intersecting with the MSD, leveraging the Last.fm dataset~\cite{lastfmdataset}
-which matched songs from Last.fm with those in MSD, then filtering out playlists with less than 5 songs,
-which results in roughly 17K playlists over 45K songs from 8K users.
+which matched songs from Last.fm with those in MSD, then filtering out playlists with less than 5 songs.
+This results in roughly 17K playlists over 45K songs from 8K users.
 
 {\bf AotM-2011 Dataset} is a collection of playlists shared by users\footnote{\url{http://www.artofthemix.org}} ranging from 1998 to 2011,
-songs in the dataset had been matched to those in the Million Song Dataset (MSD).
+where songs in the dataset have been matched to those in the Million Song Dataset (MSD).
 We filtered out playlists with less than 5 songs, which results in roughly 84K playlists over 114K songs from 14K users.
 
-Table~\ref{tab:stats_pldata} summarises the two playlist dataset used in this work.
+Table~\ref{tab:stats_pldata} summarises the two playlist datasets used in this work.
 The histograms of the number of playlists per user as well as song popularity 
-(\ie we use the number of occurrences of a song in all playlists as a proxy of its popularity)
-of the two dataset are shown in Figure~\ref{fig:hist_pluser} and Figure~\ref{fig:hist_songpop},
+(\ie the number of occurrences of a song in all playlists)
+of the two datasets are shown in Figure~\ref{fig:hist_pluser} and Figure~\ref{fig:hist_songpop},
 respectively.
 We can see from Figure~\ref{fig:hist_pluser} and \ref{fig:hist_songpop} that both the number
-of playlists per user and song popularity follow a long-tail distribution, which impose further challenge to the learning task as the amount
+of playlists per user and song popularity follow a long-tail distribution, which imposes further challenge to the learning task as the amount
 of data for learning is limited for users (or songs) at the tail.
 
 
@@ -72,23 +73,23 @@ of data for learning is limited for users (or songs) at the tail.
 \subsection{Experimental setup}
 
 We describe how playlist data are split into training and test set for all three cold-start settings,
-features of songs used to learn the multitask objective, as well as baseline approaches and evaluation metrics.
+the features of songs used to learn the multitask objective, as well as baseline approaches and evaluation metrics.
 
 {\bf Dataset split}.
 To empirically evaluate the performance of recommending new songs to extend existing playlists (setting (i)),
 we hold 5K of the latest released songs in 30Music dataset, which results in about 8K playlists with songs
 in both training and test set.
-We hold 10K of the latest released songs in AotM-2011 dataset, which leads to about 19K playlists with songs
+In the larger AotM-2011 dataset, we hold 10K of the latest released songs, which leads to about 19K playlists with songs
 in both training and test set.
-Playlists that all songs have been held are removed from both training and test set.
+Playlists where all songs have been held are removed from both training and test set.
 Table~\ref{tab:stats0} summarises the statistics of this training/test split.
 
 For the task of recommending songs to form playlists for existing users (setting (ii)),
 %To empirically evaluate the performance of our proposed recommendation approaches for existing users,
-we hold playlists from about 20\% users in both datasets for test, all other playlists are used for training.
-To make sure each song in test set also appeared in training set,
-and all users in test set also have a few playlists in training set.
-The test set are sampled from users that have at least one playlist where each song has also been
+we hold playlists from about 20\% users in both datasets for test, and all other playlists are used for training.
+To make sure each song in the test set also appears in the training set,
+and all users in test set also have a few playlists in training set,
+playlists in the test set are sampled from users that have at least one playlist where each song has also been
 included in four other playlists among the whole dataset,
 which results in a test set with about 2.1K playlists from 1.6K users in 30Music dataset,
 and a test set with about 9.2K playlists from 2.7K users in AotM-2011 dataset.
@@ -97,22 +98,22 @@ The statistics of this training/test split are shown in Table~\ref{tab:stats1}.
 To evaluate the last cold-start setting (iii), \ie recommending songs to form playlist for new users,
 %To evaluate the performance of music recommendation approaches for new users,
 we sampled 30\% of all users and hold all their playlists as test set in both datasets.
-Similarly, to make sure songs in test set also exist in training set,
-a user is not sampled when holding all of her playlists breaks this requirement.
+Similarly, to make sure songs in test set also exist in the training set,
+a user will not be included in the test set if holding all of her playlists breaks this requirement.
 This results in a test set with about 3.4K playlists from 2.4K users in 30Music dataset,
 and a test set with about 8.2K playlists from 4.2K users in AotM-2011 dataset.
 Table~\ref{tab:stats2} describes the statistics of this training/test split.
 
 
 {\bf Features}.
-Song features used in experiment including metadata, audio data, genre and artist information, and song/artist popularity.
+Song features used in the experiments including metadata, audio data, genre and artist information, and song/artist popularity.
 %
 The metadata of songs (\eg duration, year of release) and audio features (\eg loudness, mode, tempo) are provided by MSD.
 We use genre data from the Top-MAGD genre dataset~\cite{schindler2012facilitating}
 and tagtraum genre annotations for MSD~\cite{schreiber2015improving} via one-hot encoding.
 If the genre data of a song is not available, we apply the mean imputation using genre counts of other songs in training set.
 To encode artist information as features,
-we trained a word2vec\footnote{https://github.com/dav/word2vec} model using sequences of artist names in playlists.
+we trained a word2vec\footnote{https://github.com/dav/word2vec} model using sequences of artist identifiers in playlists.
 
 In the task of recommending new songs to extend existing playlists (setting (i)), where song popularity is not available,
 we use artist popularity (we use the number of occurrences of all songs from a artist in training playlists as a proxy of her popularity).
@@ -123,20 +124,20 @@ Finally, we add a constant feature (with value $1$) for each song to account for
 We compare the performance of our proposed approach (referred as {\it Multitask Classification}) 
 with a number of baseline methods for the task of recommending music to form playlists:
 \begin{itemize}
-\item The {\it Popularity Ranking} method scores each song using only its popularity in training set, 
-      when song popularity is not available (setting (i)), we use artist popularity.
+\item The {\it Popularity Ranking} method scores each song using only its popularity in training set.
+      When song popularity is not available (setting (i)), we use artist popularity.
 \item The {\it Same Artists - Greatest Hits} (SAGH)~\cite{mcfee2012million} method scores scores each song
-      by its popularity if the artist of the song has appeared in the given user's playlist in training set,
+      by its popularity if the artist of the song has appeared in the given user's playlist in training set;
       otherwise the song is scored zero.
       Similarly, we replace song popularity with artist popularity in the task of recommending new songs (setting (i)).
 \item The {\it Collocated Artists - Greatest Hits} (CAGH)~\cite{bonnin2013evaluating} method is a variant of SAGH.
-      It scores each song using its popularity, but weighted by the frequency of the collocation between artist of the song
+      It scores each song using its popularity, but weighted by the frequency of the collocation between the artist of the song
       and those artists that appeared in the given user's playlist in training set.
       In the task of recommending new songs (setting (i)), we again replace the song popularity in this method with artist popularity.
       When recommending songs for new users (setting (iii)), we use the top 10 most popular artists instead of artists in the user's
       listening history as required by this method.
 \item The {\it Logistic Regression} baseline is specific for the task of recommending new songs (setting (i)), where we independenly train
-      an logistic regression classifier for each playlist, which is used to classify each new song whether we should add it to this playlist.
+      an logistic regression classifier for each playlist, which is used to classify whether we should add each new song to this playlist.
       This method is also known as binary relevance in multi-label classification.
 \end{itemize}
 
@@ -150,7 +151,7 @@ Hit-Rate@K~\cite{hariri2012context} and Area under the ROC curve (AUC)~\cite{man
 %It is one of several metrics used to evaluate performance on playlist continuation tasks
 %in the ACM RecSys Challenge 2018\footnote{https://recsys-challenge.spotify.com/rules}.
 %
-Hit-Rate@K (or Hit Ratio) is the number of correctly recommended songs among top-$K$ recommendation over $L$,
+Hit-Rate@K (or Hit Ratio) is the number of correctly recommended songs among the top-$K$ recommendations over $L$,
 where $K$ is the number of recommendations, and $L$ is the number of songs in the ground truth playlist.
 It has been employed to evaluate several playlist generation and next song recommendation
 methods~\cite{hariri2012context,bonnin2013evaluating,bonnin2015automated,jannach2015beyond}.
@@ -158,7 +159,7 @@ This metric is also known as Recall@K~\cite{schedl2017}.
 %
 The area under the ROC curve (AUC) is widely used in measuring performance of classifiers,
 it has also been used for evaluating performance of playlist generation method when the task
-is cast as a (sequence of) classification problem~\cite{ben2017groove}.
+is cast as a (sequence of) classification problems~\cite{ben2017groove}.
 
 
 \subsection{Results and discussion}
