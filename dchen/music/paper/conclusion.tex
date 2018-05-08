@@ -1,25 +1,38 @@
 \section{Conclusion}
-We investigated the problem of recommending songs to form playlist for a given user.
-A multitask learning objective was proposed that aims to provide a decent default recommendation 
-if the given user is new to the system.
-It makes better recommendations if the given user already has a few playlists accessible to the system.
-We optimise the multitask objective from playlists of existing users by ranking songs in playlists above those are not
-via solving either a constrained optimisation problem or an unconstrained one which approximates the objective but 
-results in more efficient training.
-Empirical experiments on two real playlist datasets show the proposed approaches work effectively.
 
 
+We propose a flexible multitask learning method to deal with all
+three settings. The method learns from user-curated playlists, and
+encourages songs in the playlist to be ranked higher than those
+are not by minimising a bipartite ranking loss. We formulate the
+objective as a constrained convex optimisation problem, and show
+how this may be approximated by an unconstrained objective in-
+spired by an equivalence relationship between bipartite ranking and
+binary classification. Empirical results on two real music playlist
+datasets show the proposed approach has good performance for
+playlist recommendation in cold-start settings.
 
 
+We investigate the problem of recommending playlists to users in cold-start settings.
+In the cold songs setting, we recommend newly released songs to extend existing playlists;
+in the cold playlists setting, we recommend a set of songs to form a new playlist for an existing user;
+and in the cold users setting, we recommend a set of songs to form a new playlist for a new user.
+We deal with all three settings using a multitask learning method which encourages songs in playlist 
+to be ranked higher than those are not by minimising a bipartite ranking loss. 
+We formulate the objective as a constrained convex optimisation problem, and further approximates it 
+by an unconstrained objective inspired by an equivalence relationship between bipartite ranking and
+binary classification. 
+Empirical results on two real music playlist datasets show the proposed approach 
+has good performance for playlist recommendation in cold-start settings.
 
-We are aware of a few limitations of the proposed approaches, which we leave as future work.
+We are aware of a few limitations of the proposed approach, which we leave as future work.
 Specifically, additional data sources (\eg music information shared on social media) or song/user 
 features (\eg lyrics, user profile), as well as the sequential order of songs which could provide 
 additional information to help make better recommendations.
 Further, non-linear models such as deep neural networks have shown strong performance in a wide arrange of tasks,
 and the linear model with sparse parameters in this work could potentially be more compact if non-linear objective were employed.
 
-Finally, as a remark, we want to mention the challenge of evaluating recommended results.
+Finally, as a remark, we want to mention the challenge of evaluating the recommended results.
 While metrics in information retrieval are commonly used, recommender system is more like a generative process
 than a information retrieval task. Fortunately, this challenge has been noticed and been attacked in many 
 ways~\cite{mcfee2011natural,mcfee2012hypergraph,schedl2017}, 
