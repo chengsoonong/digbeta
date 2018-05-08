@@ -1,20 +1,21 @@
 \section{Problem statement}
 \label{sec:problem}
 
-We formulate the problem of recommending music in three cold-start settings in the context of playlist:
+We formulate the problem of recommending music in three cold-start settings in the context of 
+playlist (\ie a sequence of songs):
 \begin{enumerate}[(a)]
-\item Recommending new songs to extend existing playlist;
+\item Recommending new songs to extend an existing playlist;
 \item Recommending a set of songs to form a playlist for an existing user;
 \item Recommending a set of songs for a new user to form a playlist.
 \end{enumerate}
 
-Given a dataset $\DCal$ with $N$ playlists from $U$ users, 
-and songs in every playlist are from a music collection with $M$ songs.
-Suppose each user has at least one playlist, and each song in the collection 
+Suppose we are given a dataset $\DCal$ with $N$ playlists from $U$ users, 
+where songs in every playlist are from a music collection with $M$ songs.
+We further assume each user has at least one playlist, and each song in the collection 
 is appeared in at least one playlist.
 
-Let $P_u$ denote the set of playlists from users $u$,
-we aim to learn a function $f(u, i, m)$ that measures the affinity between user $u$, 
+Let $P_u$ denote the set of playlists from users $u$.
+We aim to learn a function $f(u, i, m)$ that measures the affinity between user $u$, 
 playlist $i$ and song $m$. Suppose $f$ has a linear form
 \begin{equation}
 \label{eq:scorefunc}
@@ -24,7 +25,7 @@ where $u \in \{1,\dots,U\}, \ i \in P_u, \, m \in \{1,\dots,M\}$,
 vector $\w_i^u$ represents the parameters of playlist $i$ from user $u$,
 and $\x_m$ is a feature vector of song $m$.
 
-We address the three code-start settings using one approach, namely, we first score each song 
+We address the three cold-start settings using one approach, namely, we first score each song 
 according to the given information (\eg an existing playlist, an existing user or a new user),
 %then we can form a playlist by either taking the top-K scored songs or sampling songs proportional to their scores.
 then take the top scored songs as our recommendation.
