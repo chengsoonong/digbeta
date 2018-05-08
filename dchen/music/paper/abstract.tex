@@ -1,15 +1,27 @@
+% !TEX root=./main.tex
+
 %Playlists are a core feature of music streaming services.
-We investigate the problem of music recommendation in cold-start circumstance.
-In particular, we investigate three settings with different cold items:
-(a) cold songs, where we recommend newly released songs to extend existing playlists;
-(b) cold playlists, where we recommend a set of songs to form a playlist without additional context except the user;
-(c) cold users, where we recommend a set of songs to form a playlist for a new user, without any other context.
-We propose a multitask learning method which is flexible enough to deal with all three settings.
-By learning from user curated playlists, the multitask learning method encourages songs in playlist 
-ranked higher than those are not by minimising a bipartite ranking loss.
-We formulate a constrained convex optimisation problem to learn the multitask objective,
-then address the difficulty of a large number of constraints by approximating the bipartite ranking loss
-with a classification loss inspired by an equivalence relationship between bipartite ranking and binary classification.
-Empirical results on two real music playlist datasets show the proposed approach has good performance for recommending music 
+Playlist recommendation concerns producing a sequence of songs that a user might enjoy.
+We investigate this problem in three different cold-start scenarios:
+%Specifically, we investigate three settings with different cold items:
+(i) \emph{cold songs}, where we recommend newly released songs to extend existing playlists;
+(ii) \emph{cold playlists}, where we recommend a set of songs to form a new playlist for an existing user; %without additional context except the user;
+(iii) \emph{cold users}, where we recommend a set of songs to form a new playlist for a new user. %, without any other context.
+
+We propose a flexible multitask learning method to deal with all three settings.
+The method learns from user-curated playlists,
+%the %multitask learning
+%method
+and encourages songs in the playlist 
+to be ranked higher than those are not
+by minimising a %the Bottom-Push
+bipartite ranking loss.
+We formulate the objective as a constrained convex optimisation problem,
+and show how this may be approximated by an unconstrained objective
+%then address the difficulty of a large number of constraints by approximating the %Bottom-Push loss
+%bipartite ranking loss
+%with a classification loss
+inspired by an equivalence relationship between bipartite ranking and binary classification.
+Empirical results on two real music playlist datasets show the proposed approach has good performance for playlist recommendation
 in cold-start settings.
 %in three cold-start settings.

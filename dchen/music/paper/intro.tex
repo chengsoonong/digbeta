@@ -1,61 +1,70 @@
+% !TEX root=./main.tex
+
 \section{Introduction}
 \label{sec:intro}
-Online music streaming services (\eg Spotify, Pandora, Apple Music, Google Play Music, Amazon Music) 
+Online music streaming services (e.g., Spotify, Pandora, Apple Music) % Google Play Music, Amazon Music) 
 play an increasingly important role in the digital music industry.
 A key ingredient of these services is the ability to automatically recommend songs to help users explore large collections of music,
 as well as create an uninterrupted listening experience.
+Such recommendation is often in the form of a \emph{playlist}, which is simply an ordered sequence of songs.
 
 % one paragraph about recommender system
-Conventional recommender systems for books or movies~\citep{Sarwar:2001,Netflix},
+Conventional recommender systems for books or movies~\citep{Sarwar:2001,Netflix}
 typically learn a score function via matrix factorisation~\citep{Koren:2009},
 and recommend the item that achieves the highest score.
-This approach is not suited to deal with cold-start settings.
+This approach is not suited to deal with \emph{cold-start} settings,
+where there is no historical data for either users or items.
 %
 % explain what is different about recommending playlist
-In contrast, when recommending music for a playlist, 
-it is expected to recommend a subset of a large collection of music instead of only one top ranked song.
-In addition to the intractability of enumerating all possible subsets of a large collection,
-it is highly likely that more than one subsets of songs meet users' requirements,
-\eg a user generally has more than one playlist when using a music streaming service.
+Further, in playlist recommendation,
+one has to recommend a subset of a large collection of songs instead of only one top ranked song.
+Enumerating all possible such subsets is intractable;
+additionally,
+it is likely that more than one playlist is satisfactory, since
+users generally maintain more than one playlist when using a music streaming service.
 
-We investigate the problem of recommending a set of music for a given user.
+We investigate the problem of recommending a playlist of songs for a given user.
 If the user is new to the system, we would like to make a decent default recommendation by learning from 
 all available playlists of existing users.
 On the other hand, if the user already has a few playlists in the system, it is expected the recommender 
 system can also learn from this information and hopefully make better recommendations.
 %
-The challenge of this task is two fold:
-(i) Sparsity of data. While a large number of playlists are hosted by music streaming services,
+The challenge of this task is two-fold:
+\begin{enumerate}[(i)]
+	\item \emph{Sparsity}. While a large number of playlists are hosted by music streaming services,
 playlists for each user is still limited. This is exacerbated by the long-tail distribution that
 most users only have few number of playlists, while a small portion of users have a very large number of playlists.
 Similarly, a small number of popular songs appeared in a large number of playlists, and the most majority of songs
 only appear in a few playlists~\cite{bonnin2013evaluating}.
-(ii) Data noise. There could be noise in metadata~\cite{bonnin2015automated} or users might randomly choose songs 
+	\item \emph{Noise}. There could be noise in metadata~\cite{bonnin2015automated} or users might randomly choose songs 
 from their music collection when composing playlists~\cite{mcfee2012hypergraph},
 which makes it hard to learn the intent of a playlist.
+\end{enumerate}
 These challenges make it hard to make recommendations better than simply ranking songs according to its 
 popularity~\cite{mcfee2012million,bonnin2013evaluating,bonnin2015automated},
 
 
 In this paper, we propose a novel approach which ranks songs that could end up being in playlist for the 
-given user above those unlikely, compared to the Bayesian Personalised Ranking (BPR) approach which requires all
+given user above those unlikely.
+Compared to the Bayesian Personalised Ranking (BPR) approach which requires all
 songs in playlist ranks higher than songs are not~\cite{rendle2009bpr,mcfee2012million}, we focus on the lowest ranked
-song in playlist and penalise any song ranked higher but does not appear in playlist,
-this approach has been shown to work more efficiently when one cares about only the top ranked items~\cite{li2014top}.
+song in playlist and penalise any song ranked higher but does not appear in playlist.
+This approach has been shown to work more efficiently when one cares about only the top ranked items~\cite{li2014top}.
 
-To learn the parameters, we optimise a multitask objective with respect a number of constraints.
-We simplify the optimising problem by avoiding the large number of constraints using an equivalence relationship 
-between bipartite ranking and binary classification, which results in a classification loss that approximates the 
-multitask objective without any constraint.
+To learn the parameters, we optimise a multitask objective,
+which involves a constrained convex optimisation.
+We show how one can avoid dealing with the large number of constraints using an equivalence relationship 
+between bipartite ranking and binary classification.
+This results in an unconstrained classification loss that approximates the multitask objective.
 Experiments on two real playlist datasets show that our proposed approaches work effectively,
 and the classification approach in particular significantly improves the learning efficiency 
 while maintaining the same level of high performance as the ranking approach.
 
-Our paper is organised as follows:
+Our paper is organised as follows.
 Section 2 describes motivations of the multitask objective, and propose a ranking approach 
 that optimises the objective by solving a constrained optimisation problem.
 We then describe a classification loss which enables us to approximately optimise the objective by
 solving an unconstrained optimisation problem.
 Section 3 discusses previous work that are most relevant to our work.
 Section 4 details our experiment on two real playlist datasets.
-Lastly, we summarises the paper in section 5 and describe future work.
+Lastly, we summarises the paper in Section 5 and describe future work.
