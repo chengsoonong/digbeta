@@ -1,41 +1,40 @@
 \section{Problem statement}
 \label{sec:problem}
 
-\cheng{Move this to paragraph, and figure, to Section 2. You need to discuss the problem we are solving before you can talk about related work.}
+We formulate the problem of recommending music in three cold-start settings in the context of playlist:
+\begin{enumerate}[(a)]
+\item Recommending new songs to extend existing playlist;
+\item Recommending a set of songs to form a playlist for an existing user;
+\item Recommending a set of songs for a new user to form a playlist.
+\end{enumerate}
 
-Suppose we have a dataset $\DCal$ with $N$ playlists from $U$ users, songs in every playlist are from a music collection
-with $M$ songs, and each song in the collection is appeared in at least one playlist.
+Given a dataset $\DCal$ with $N$ playlists from $U$ users, 
+and songs in every playlist are from a music collection with $M$ songs.
+Suppose each user has at least one playlist, and each song in the collection 
+is appeared in at least one playlist.
 
-The task of recommending a set of songs to form a playlist for a given user is illustrated in Figure~\ref{fig:gen},
-where rows represent songs (no specific order) and columns represent playlists (no specific order).
-Further, columns with white colour represent playlists in training set,
-and columns with grey colour represent playlists in test set.
-If entry $(m, i)$ is \texttt{1} (or \texttt{0}),
-it means song $m$ can (or not) be found in playlist $i$,
-and a question mark \texttt{?} means we do not know whether song $m$ is in playlist $i$.
-As a remark, columns represent playlists in test set contain only \texttt{?} entries.
+Let $P_u$ denote the set of playlists from users $u$,
+we aim to learn a function $f(u, i, m)$ that measures the affinity between user $u$, 
+playlist $i$ and song $m$. Suppose $f$ has a linear form
+\begin{equation}
+\label{eq:scorefunc}
+f(u, i, m) = {\w_i^u}^\top \x_m,
+\end{equation}
+where $u \in \{1,\dots,U\}, \ i \in P_u, \, m \in \{1,\dots,M\}$,
+vector $\w_i^u$ represents the parameters of playlist $i$ from user $u$,
+and $\x_m$ is a feature vector of song $m$.
 
-%\begin{figure}[h]
-%\centering
-%\includegraphics[width=.5\linewidth]{fig/fig_gen.pdf}
-%\caption{Illustration of music recommendation setting.}
-%\label{fig:gen}
-%\end{figure}
+We address the three code-start settings using one approach, namely, we first score each song 
+according to the given information (\eg, an existing playlist, an existing user or a new user),
+%then we can form a playlist by either taking the top-K scored songs or sampling songs proportional to their scores.
+then take the top scored songs as our recommendation.
+Specifically, for the task of recommending newly released songs to extend an existing playlist $i$ from user $u$,
+we score each new song $m$ with respect to user $u$ and playlist $i$, as indicated by $\hat f(u, i, m)$.
+To recommend a set of songs for an existing user $u$,
+since there is no information about the desired playlist, we score each song $m$ with respect to only the user,
+as indicated by $\hat f(u, \cdot, m)$.
+Finally, we score each song $m$ by $\hat f(\cdot, \cdot, m)$ when recommending a set of songs 
+for a new user with no additional information.
 
-% playlists are organised by users. j \in P_i, i \in {1,...U}
-
-\cheng{Update Figure 1 to include meaning of rows and columns. Why do we bother with ?, since the whole test set is unknown? Indicate the effect of known and unknown users.}
-
-\cheng{In 2-3 sentences, define the problem we are attacking in this paper. Recommend a set, not a single item. User specific. All songs known. Consider cold start user.}
-
-\cheng{This should be followed by related work, where you need to describe for each group how we are different, or how we use some idea.}
-
-
-We aim to learn a function $f(m, n)$ that measure the affinity between song $m$ and playlist $n$,
-suppose $f(m, n)$ has a linear form
-$$
-f(m, n) = \w_n^\top \x_m, \ m \in \{1,\dots,M\}, \, n \in \{1,\dots,N\},
-$$
-where vector $\w_n$ represents the parameters of playlist $n$ and $\x_m$ is a feature vector of song $m$.
-
-
+It is challenging to learn an affinity function $f$ that can deal the three cold-start settings simultaneously.
+In this next section, we propose a multitask objective which provides a function as required here.
