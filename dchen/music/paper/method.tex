@@ -1,7 +1,7 @@
 \section{Multitask learning for music recommendation}
 \label{sec:method}
 
-In this section, we first describe a multitask objective that supports the cold-start recommendation tasks
+In this section, we first introduce a multitask objective that supports the cold-start recommendation tasks
 described in Section~(\ref{sec:problem}). We propose a ranking approach to optimise the multitask objective 
 by solving an convex constrained optimisation problem.
 We analyse the challenge to deal with a large number of constraints and then propose an classification approach
@@ -11,22 +11,33 @@ the multitask objective.
 
 \subsection{Multitask learning objective}
 
-We decompose the representation $\w_i^u$ of a playlist $i$ from user $u$ in (\ref{eq:scorefunc}) into three components, \ie
+Let $P_u$ denote the set of playlists from users $u$.
+We aim to learn a function $f(u, i, m)$ that measures the affinity between user $u$, 
+playlist $i$ and song $m$. Suppose $f$ has a linear form
+\begin{equation}
+\label{eq:scorefunc}
+f(u, i, m) = \w_{i,u}^\top \x_m,
+\end{equation}
+where $u \in \{1,\dots,U\}, \ i \in P_u, \, m \in \{1,\dots,M\}$,
+vector $\w_{i,u}$ represents the parameters of playlist $i$ from user $u$,
+and $\x_m$ is a feature vector of song $m$.
+
+We decompose the representation $\w_{i,u}$ of a playlist $i$ from user $u$ in (\ref{eq:scorefunc}) into three components, \ie
 $$
-\w_i^u = \bv_i + \bmu_u + \widebar\bmu,
+\w_{i.u} = \alphabm_i + \betabm_u + \bmu,
 $$
-where $\bv_i$ is a parameter vector specific for playlist $i$,
-$\bmu_u$ is the component for user $u$,
-and $\widebar\bmu$ is a representation shared by all users.
+where $\alphabm_i$ is a parameter vector specific for playlist $i$,
+$\betabm_u$ is the component for user $u$,
+and $\bmu$ is a representation shared by all users.
 
 The learning task is to minimise the empirical risk of affinity function $f$ on dataset $\DCal$ over all parameters.
-Let $\uptheta$ which represents all parameters in $\bv_i, \bmu_u, \widebar\bmu, \, u \in \{1,\dots,U\}, \, i \in P_u$.
+Let $\uptheta$ which represents all parameters in $\alphabm_i, \betabm_u, \bmu, \, u \in \{1,\dots,U\}, \, i \in P_u$.
 Formally, we solve an optimisation problem
 \begin{equation}
 \label{eq:obj}
-\min_{\uptheta} \, R(\uptheta) + \RCal(f, \DCal),
+\min_{\uptheta} \, \Omega(\uptheta) + R(f, \DCal),
 \end{equation}
-where $R(\uptheta)$ is the regularisation term and $\RCal(f, \DCal)$ denotes the empirical risk.
+where $\Omega(\uptheta)$ is the regularisation term and $R(f, \DCal)$ denotes the empirical risk.
 We call the objective in problem~(\ref{eq:obj}) a multitask learning objective,
 since jointly learn from multiple tasks where each task is to recommend a set of songs given either a user or a playlist.
 
@@ -34,37 +45,41 @@ We further assume that playlists of the \emph{same} user have \emph{similar} rep
 %and the difference between playlists $i$ and $i'$ of the same user $j$ is reflected by the playlist component $\bv_i$
 %and $\bv_{i'}$, respectively.
 %This assumption requires that parameters specific to playlist should be sparse,
-which can be achieved by imposing an L1 regularisation, \ie $\sum_{u=1}^U \sum_{i \in P_u} \| \bv_i \|_1$
+which can be achieved by imposing an L1 regularisation, \ie $\sum_{u=1}^U \sum_{i \in P_u} \| \alphabm_i \|_1$
 that encourages sparse representations.
 Lastly, although the representations of different users are different,
 we assume they nonetheless share a small number of features in their representations.
-This can be formalised similarly by imposing an additional L1 regularisation term $\| \widebar\bmu \|_1$.
+This can be formalised similarly by imposing an additional L1 regularisation term $\| \bmu \|_1$.
 
 The regularisation terms in our multitask learning objective can be summarised as
 \begin{equation}
 \label{eq:reg}
-R(\uptheta) = \lambda_1 \sum_{u=1}^U \sum_{i \in P_u} \|\bv_i\|_1 + \lambda_2 \sum_{u=1}^U \|\bmu_u\|_2^2 + \lambda_3 \|\widebar\bmu\|_1,
+\Omega(\uptheta) = \lambda_1 \sum_{u=1}^U \sum_{i \in P_u} \|\alphabm_i\|_1 + \lambda_2 \sum_{u=1}^U \|\betabm_u\|_2^2 + \lambda_3 \| \bmu \|_1,
 \end{equation}
 where we add an L2 regularisation term to penalise large values in user representations,
 and $\lambda_1, \lambda_2, \lambda_3 \in \R_+$ are regularisation constants.
 
-Once all parameters have been learned, in cold-start setting (a), 
-\ie the task of recommending new songs to extend an existing playlist $i$ from user $u$, 
+Once all parameters have been learned, 
+we can first score each song according to available information (\eg an existing playlist, an existing user or a new user),
+then form a playlist by either taking the top-K scored songs or sampling songs proportional to their scores.
+Specifically, in the cold-start setting (i), where we recommend new songs to extend an existing playlist $i$ from user $u$, 
 we can score a new song $m$ by
 $$
-\hat f(u, i, m) = (\bv_i + \bmu_u + \widebar\bmu)^\top \x_m.
+\hat f(u, i, m) = (\alphabm_i + \betabm_u + \bmu)^\top \x_m.
 $$
 
-Further, in cold-start setting (b), \ie recommending a set of songs for an existing user $u$ (to form a playlist), 
+Further, in cold-start setting (ii), \ie recommending a set of songs for an existing user $u$ (to form a playlist), 
 we score song $m$ by
 $$
-\hat f(u, \cdot, m) = (\bmu_u + \widebar\bmu)^\top \x_m.
+\hat f(u, \cdot, m) = (\betabm_u + \bmu)^\top \x_m.
 $$
 
-Finally, in the last cold-start setting (c), \ie recommending a set of songs for a new user, each song $m$ can be scored by
+Finally, in the last cold-start setting (iii) where we recommend a set of songs for a new user, each song $m$ can be scored by
 $$
-\hat f(\cdot, \cdot, m) = \widebar\bmu^\top \x_m.
+\hat f(\cdot, \cdot, m) = \bmu^\top \x_m.
 $$
+
+
 
 
 \subsection{Recommending the most probable songs}
@@ -87,7 +102,7 @@ Formally, we minimise the number of songs not in playlist but ranked above the l
 \begin{equation}
 \label{eq:bprisk}
 \resizebox{.9\linewidth}{!}{$\displaystyle
-\RCal_\textsc{rank}(\uptheta) = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} 
+R_\textsc{rank}(\uptheta) = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} 
 \llb \min_{m: y_m^i = 1} f(u, i, m) \le f(u, i, m') \rrb,
 $}
 \end{equation}
@@ -99,19 +114,19 @@ risk~(\ref{eq:bprisk}) as long as they are scored higher than the lowest scored 
 The optimisation problem~(\ref{eq:obj}) now become the following regularised risk minimisation:
 \begin{equation}
 \label{eq:obj_rank}
-\min_\uptheta \ R(\uptheta) + \RCal_\textsc{rank}(\uptheta).
+\min_\uptheta \ \Omega(\uptheta) + R_\textsc{rank}(\uptheta).
 \end{equation}
-%where the regularisation term $R(\uptheta)$ is defined in (\ref{eq:reg}).
+%where the regularisation term $\Omega(\uptheta)$ is defined in (\ref{eq:reg}).
 
 There are two challenges to optimise the above objective,
-namely, the non-differentiable 0-1 loss and the \emph{min} operator in $\RCal_\textsc{rank}(\uptheta)$.
+namely, the non-differentiable 0-1 loss and the \emph{min} operator in $R_\textsc{rank}(\uptheta)$.
 To address these challenges, we first replace the 0-1 loss with one of its convex surrogate $\ell(f, y)$,
 (\eg the exponential loss $\ell(f, y) = e^{-fy}$, the logistic loss $\ell(f, y) = \log(1 + e^{-fy})$,
 or the squared hinge loss $\ell(f, y) = [\max(0, \, 1 - fy)]^2$).
 %which results in
 %\begin{equation}
 %\label{eq:obj}
-%\min_\uptheta \ R(\uptheta) + \frac{1}{N} \sum_{i=1}^U \sum_{j \in P_i} \frac{1}{M_-^j} \sum_{m': y_{m'}^j = 0} 
+%\min_\uptheta \ \Omega(\uptheta) + \frac{1}{N} \sum_{i=1}^U \sum_{j \in P_i} \frac{1}{M_-^j} \sum_{m': y_{m'}^j = 0} 
 %                \ell \left( \min_{m: y_m^j = 1} f(m, j) - f(m', j) \right).
 %\end{equation}
 
@@ -119,12 +134,12 @@ or the squared hinge loss $\ell(f, y) = [\max(0, \, 1 - fy)]^2$).
 
 \subsection{Solving a constrained optimisation problem}
 
-Suppose we use the exponential loss to upper-bound the 0-1 loss in $\RCal_\textsc{rank}$,
+Suppose we use the exponential loss to upper-bound the 0-1 loss in $R_\textsc{rank}$,
 the multitask learning objective~(\ref{eq:obj_rank}) can be optimised by
 \begin{equation}
 \label{eq:expobj_rank}
 \resizebox{.9\linewidth}{!}{$\displaystyle
-\min_{\uptheta} \ R(\uptheta) + \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} 
+\min_{\uptheta} \ \Omega(\uptheta) + \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} 
                   \sum_{m': y_{m'}^i = 0} \exp \left(f(u, i, m') - \min_{m: y_m^i = 1} f(u, i, m) \right).
 $}
 \end{equation}
@@ -136,13 +151,13 @@ introducing slack variables $\xi_i, \, i \in P_u, \, u \in \{1,\dots,U\}$,
 \begin{equation}
 \label{eq:expobj_cons}
 \begin{aligned}
-\min_{\uptheta} \ \, & R(\uptheta) + \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(u, i, m') - \xi_i} \\
+\min_{\uptheta} \ \, & \Omega(\uptheta) + \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(u, i, m') - \xi_i} \\
 s.t. \ \, & \xi_i \le f(u, i, m), \ \forall m \in \{1,\dots,M\} \ \text{and} \ y_m^i = 1.
 \end{aligned}
 \end{equation}
 
 One may observe that the objective of problem~(\ref{eq:expobj_cons}) is convex but not differentiable due to 
-the L1 regularisation terms in $R(\uptheta)$, nonetheless, we can use its sub-gradient.
+the L1 regularisation terms in $\Omega(\uptheta)$, nonetheless, we can use its sub-gradient.
 Further, the number of constraints in problem~(\ref{eq:expobj_cons}) is
 $$
 \sum_{u=1}^U \sum_{i \in P_u} \sum_{m=1}^M \llb y_m^i = 1 \rrb,
@@ -194,13 +209,13 @@ of the \emph{max} operator~\cite[p. 72]{boyd2004convex},
 where $p > 0$ is a parameter that trades off the approximation precision.
 This approximation becomes precise when $p \to \infty$.
 
-By Eq.~(\ref{eq:bprisk}) and (\ref{eq:minappox}), the empirical risk $\RCal_\textsc{rank}$ can be approximated
-(with the exponential surrogate) by $\widetilde\RCal_\textsc{rank}$ defined as
+By Eq.~(\ref{eq:bprisk}) and (\ref{eq:minappox}), the empirical risk $R_\textsc{rank}$ can be approximated
+(with the exponential surrogate) by $\widetilde R_\textsc{rank}$ defined as
 \begin{equation}
 \label{eq:rankapprox}
 \resizebox{.9\linewidth}{!}{$
 \begin{aligned}
-\widetilde\RCal_\textsc{rank}(\uptheta)
+\widetilde R_\textsc{rank}(\uptheta)
 = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \left( \sum_{m: y_m^i = 1} \left( \sum_{m': y_{m'}^i = 0} 
   e^{-(f(u, i, m) - f(u, i, m'))} \right)^p \right)^\frac{1}{p}.
 \end{aligned}
@@ -208,14 +223,14 @@ $}
 \end{equation}
 
 
-One may note that $\widetilde\RCal_\textsc{rank}$ can be transformed into the standard P-Norm Push loss by swapping the
+One may note that $\widetilde R_\textsc{rank}$ can be transformed into the standard P-Norm Push loss by swapping the
 positives ($m: y_m^i = 1$) and negatives ($m': y_{m'}^i = 0$). % define P-Norm Push first?
 Inspired by this observation, we swap the positives and negatives in the P-Classification loss (by taking care of signs),
 which results in the following classification risk:
 \begin{equation}
 \label{eq:clfrisk}
 \resizebox{.9\linewidth}{!}{$\displaystyle
-\RCal_\textsc{clf}(\uptheta)
+R_\textsc{clf}(\uptheta)
 = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \left(
   \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(u, m, i)}
   + \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(u, m', i)} \right).
@@ -225,8 +240,8 @@ $}
 We have the following lemma:
 \begin{lemma}
 \label{lm:rank2clf}
-Let $\uptheta^* \in \argmin_{\uptheta} \RCal_\textsc{clf}$ (assuming minimisers exist),
-then $\uptheta^* \in \argmin_{\uptheta} \widetilde\RCal_\textsc{rank}$.
+Let $\uptheta^* \in \argmin_{\uptheta} R_\textsc{clf}$ (assuming minimisers exist),
+then $\uptheta^* \in \argmin_{\uptheta} \widetilde R_\textsc{rank}$.
 \end{lemma}
 
 \begin{proof}
@@ -235,18 +250,18 @@ the equivalence between P-Norm Push loss and P-Classification loss~\cite{ertekin
 A complete proof from first principles is described in Appendix.
 \end{proof}
 
-We can therefore create an unconstrained optimisation problem using the classification risk $\RCal_\textsc{clf}$:
+We can therefore create an unconstrained optimisation problem using the classification risk $R_\textsc{clf}$:
 \begin{equation}
 \label{eq:expobj_clf}
-\min_\uptheta \quad R(\uptheta) + \RCal_\textsc{clf}(\uptheta).
+\min_\uptheta \quad \Omega(\uptheta) + R_\textsc{clf}(\uptheta).
 \end{equation}
 
-The objective in problem~(\ref{eq:expobj_clf}) is convex but not differentiable due to the L1 regularisation terms in $R(\uptheta)$,
+The objective in problem~(\ref{eq:expobj_clf}) is convex but not differentiable due to the L1 regularisation terms in $\Omega(\uptheta)$,
 but it can be efficiently solved using the Orthant-Wise Limited-memory Quasi-Newton (OWL-QN)~\cite{andrew2007scalable} L-BFGS variant.
 
 We refer the approach that solves problem~(\ref{eq:expobj_clf}) as \emph{Multitask Classification} in experiment.
 As a remark, the optimal solutions of problem (\ref{eq:expobj_clf}) are not necessarily the optimal solutions 
-of problem $\min_\uptheta \ R(\uptheta) + \widetilde\RCal_\textsc{rank}(\uptheta)$ due to the regularisation terms,
+of problem $\min_\uptheta \ \Omega(\uptheta) + \widetilde R_\textsc{rank}(\uptheta)$ due to the regularisation terms,
 however, when parameters $\uptheta$ are small (which is generally the case when using regularisation), the two objectives 
 can nonetheless approximate each other in acceptable level.
 
