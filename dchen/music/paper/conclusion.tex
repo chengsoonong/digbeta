@@ -8,6 +8,10 @@ via solving either a constrained optimisation problem or an unconstrained one wh
 results in more efficient training.
 Empirical experiments on two real playlist datasets show the proposed approaches work effectively.
 
+
+
+
+
 We are aware of a few limitations of the proposed approaches, which we leave as future work.
 Specifically, additional data sources (\eg music information shared on social media) or song/user 
 features (\eg lyrics, user profile), as well as the sequential order of songs which could provide 
@@ -15,9 +19,32 @@ additional information to help make better recommendations.
 Further, non-linear models such as deep neural networks have shown strong performance in a wide arrange of tasks,
 and the linear model with sparse parameters in this work could potentially be more compact if non-linear objective were employed.
 
+\begin{table}[h]
+\centering
+\caption{Performance of cold-start setting (c)}
+\label{tab:perf2}
+\resizebox{\columnwidth}{!}{
+\input{tab2}
+}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\linewidth]{fig/hitrate2.pdf}
+\caption{Hit rates of cold-start setting (c).}
+\label{fig:hr2}
+\end{figure}
+
+
+
+
 Finally, as a remark, we want to mention the challenge of evaluating recommended results.
 While metrics in information retrieval are commonly used, recommender system is more like a generative process
 than a information retrieval task. Fortunately, this challenge has been noticed and been attacked in many 
 ways~\cite{mcfee2011natural,mcfee2012hypergraph,schedl2017}, 
 we believe that promising automatic evaluation methods that accepted by the (majority of) 
 community is one premise of significant progress in music recommendation.
+
+
+
+

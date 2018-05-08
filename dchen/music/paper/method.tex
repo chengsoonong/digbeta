@@ -48,19 +48,20 @@ R(\uptheta) = \lambda_1 \sum_{u=1}^U \sum_{i \in P_u} \|\bv_i\|_1 + \lambda_2 \s
 where we add an L2 regularisation term to penalise large values in user representations,
 and $\lambda_1, \lambda_2, \lambda_3 \in \R_+$ are regularisation constants.
 
-Once all parameters have been learned, in the task of recommending new songs to extend an existing playlist $i$ from user $u$, 
+Once all parameters have been learned, in cold-start setting (a), 
+\ie the task of recommending new songs to extend an existing playlist $i$ from user $u$, 
 we can score a new song $m$ by
 $$
 \hat f(u, i, m) = (\bv_i + \bmu_u + \widebar\bmu)^\top \x_m.
 $$
 
-Further, in the task of recommending a set of songs for an existing user $u$ (to form a playlist), 
+Further, in cold-start setting (b), \ie recommending a set of songs for an existing user $u$ (to form a playlist), 
 we score song $m$ by
 $$
 \hat f(u, \cdot, m) = (\bmu_u + \widebar\bmu)^\top \x_m.
 $$
 
-Finally, to recommend a set of songs for a new user, each song $m$ can be scored by
+Finally, in the last cold-start setting (c), \ie recommending a set of songs for a new user, each song $m$ can be scored by
 $$
 \hat f(\cdot, \cdot, m) = \widebar\bmu^\top \x_m.
 $$
@@ -82,7 +83,7 @@ The corresponding loss function of this approach is known as the Bottom-Push los
 %and $y_n^i = 0$ represents song $n$ does not appear in playlist $i$.
 Formally, we minimise the number of songs not in playlist but ranked above the lowest ranked song in playlist,
 %but have a higher score than the lowest ranked song in playlist, 
-\ie, the (normalised) empirical risk is
+\ie the (normalised) empirical risk is
 \begin{equation}
 \label{eq:bprisk}
 \resizebox{.9\linewidth}{!}{$\displaystyle
@@ -105,7 +106,7 @@ The optimisation problem~(\ref{eq:obj}) now become the following regularised ris
 There are two challenges to optimise the above objective,
 namely, the non-differentiable 0-1 loss and the \emph{min} operator in $\RCal_\textsc{rank}(\uptheta)$.
 To address these challenges, we first replace the 0-1 loss with one of its convex surrogate $\ell(f, y)$,
-(\eg, the exponential loss $\ell(f, y) = e^{-fy}$, the logistic loss $\ell(f, y) = \log(1 + e^{-fy})$,
+(\eg the exponential loss $\ell(f, y) = e^{-fy}$, the logistic loss $\ell(f, y) = \log(1 + e^{-fy})$,
 or the squared hinge loss $\ell(f, y) = [\max(0, \, 1 - fy)]^2$).
 %which results in
 %\begin{equation}
@@ -150,7 +151,7 @@ in other words, the number of constraints equals the total number of songs playe
 Asymptotically, it is of order $O(\widebar{L} N)$ where $\widebar{L}$ is the average number of songs in playlists.
 Although $\widebar{L}$ is dataset dependent, and is typically less than $100$,
 the total number of playlists $N$ can be very large in production systems 
-(\eg, Spotify hosts more than $2$ billion playlists~\cite{recsysch2018}),
+(\eg Spotify hosts more than $2$ billion playlists~\cite{recsysch2018}),
 which imposes significant challenge when optimising problem~(\ref{eq:expobj_cons}).
 
 We want to mention two techniques that can be employed to alleviate this issue:
