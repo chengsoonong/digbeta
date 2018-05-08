@@ -202,29 +202,6 @@ as $K$ increases, this effect is observed on both datasets.
 \end{figure}
 
 
-Table~\ref{tab:perf1} and Figure~\ref{fig:hr1} show the performance on the task of recommending a set of songs for
-an existing user (setting (ii)).
-First, we can see that methods based on song popularity and artist information achieve good performance,
-which is in line with discoveries in~\cite{bonnin2013evaluating,jannach2015beyond,bonnin2015automated} which 
-show ranking based on popularity is a strong baseline.
-Further, methods which make use of both song popularity and artist information,
-outperform {\it Popularity Ranking} (except SAGH on 30Music), which shows artist information is helpful for music recommendation,
-which is consistent with results reported in~\cite{bonnin2013evaluating,bonnin2015automated}.
-%
-%It is interesting to see that {\it Popularity Ranking}) perform worse than other methods in terms of HitRate@100,
-%but SAGH performs worse than other methods in terms of AUC,
-%which might suggest that SAGH achieves good recall but {\it Popularity Ranking} performs better on average.
-It is interesting to observe that SAGH is one of the best performer on AotM-2011 dataset (Figure~\ref{fig:hr1}), 
-while it performs the worst in terms of HitRate@K on 30Music dataset, when $K$ is greater than 300.
-%The performance of SAGH is also saturated much earlier than other methods.
-%
-%performance of all methods improves when $K$ increases, and {\it Multitask Classification}
-%achieves the best performance on both datasets.
-%However, while CAGH performs as good as {\it Multitask Classification} on 30Music,
-%it is SAGH that achieves the best performance among all methods that ranks song by popularity and artist information
-%on the AotM-2011 dataset, this might reflect the different characteristics between the two playlist dataset.
-
-
 \begin{table*}[!t]
     \centering
     \begin{minipage}{.5\textwidth}
@@ -261,6 +238,31 @@ while it performs the worst in terms of HitRate@K on 30Music dataset, when $K$ i
         \label{fig:hr2}
     \end{minipage}
 \end{figure*}
+
+
+
+Table~\ref{tab:perf1} and Figure~\ref{fig:hr1} show the performance on the task of recommending a set of songs for
+an existing user (setting (ii)).
+First, we can see that methods based on song popularity and artist information achieve good performance,
+which is in line with discoveries in~\cite{bonnin2013evaluating,jannach2015beyond,bonnin2015automated} which 
+show ranking based on popularity is a strong baseline.
+Further, methods which make use of both song popularity and artist information,
+outperform {\it Popularity Ranking} (except SAGH on 30Music), which shows artist information is helpful for music recommendation,
+which is consistent with results reported in~\cite{bonnin2013evaluating,bonnin2015automated}.
+%
+%It is interesting to see that {\it Popularity Ranking}) perform worse than other methods in terms of HitRate@100,
+%but SAGH performs worse than other methods in terms of AUC,
+%which might suggest that SAGH achieves good recall but {\it Popularity Ranking} performs better on average.
+It is interesting to observe that SAGH is one of the best performer on AotM-2011 dataset (Figure~\ref{fig:hr1}), 
+while it performs the worst in terms of HitRate@K on 30Music dataset, when $K$ is greater than 300.
+%The performance of SAGH is also saturated much earlier than other methods.
+%
+%performance of all methods improves when $K$ increases, and {\it Multitask Classification}
+%achieves the best performance on both datasets.
+%However, while CAGH performs as good as {\it Multitask Classification} on 30Music,
+%it is SAGH that achieves the best performance among all methods that ranks song by popularity and artist information
+%on the AotM-2011 dataset, this might reflect the different characteristics between the two playlist dataset.
+
 
 
 
