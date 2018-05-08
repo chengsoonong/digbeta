@@ -1,6 +1,6 @@
 \section{Introduction}
 \label{sec:intro}
-Online music streaming services (\eg, Spotify, Pandora, Apple Music, Google Play Music, Amazon Music) 
+Online music streaming services (\eg Spotify, Pandora, Apple Music, Google Play Music, Amazon Music) 
 play an increasingly important role in the digital music industry.
 A key ingredient of these services is the ability to automatically recommend songs to help users explore large collections of music,
 as well as create an uninterrupted listening experience.
@@ -9,7 +9,7 @@ as well as create an uninterrupted listening experience.
 Conventional recommender systems for books or movies~\citep{Sarwar:2001,Netflix},
 typically learn a score function via matrix factorisation~\citep{Koren:2009},
 and recommend the item that achieves the highest score.
-This approach is hard to deal with cold-start circumstance.
+This approach is not suited to deal with cold-start settings.
 %
 % explain what is different about recommending playlist
 In contrast, when recommending music for a playlist, 
@@ -24,7 +24,7 @@ all available playlists of existing users.
 On the other hand, if the user already has a few playlists in the system, it is expected the recommender 
 system can also learn from this information and hopefully make better recommendations.
 %
-The challenge of this task lies in two folds:
+The challenge of this task is two fold:
 (i) Sparsity of data. While a large number of playlists are hosted by music streaming services,
 playlists for each user is still limited. This is exacerbated by the long-tail distribution that
 most users only have few number of playlists, while a small portion of users have a very large number of playlists.
