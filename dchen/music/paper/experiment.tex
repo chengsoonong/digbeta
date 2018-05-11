@@ -62,7 +62,7 @@ The histograms of the number of playlists per user as well as song popularity
 of the two datasets are shown in Figure~\ref{fig:hist_pluser} and Figure~\ref{fig:hist_songpop},
 respectively.
 We can see from Figure~\ref{fig:hist_pluser} and \ref{fig:hist_songpop} that both the number
-of playlists per user and song popularity follow a long-tail distribution, which imposes further challenge to the learning task as the amount
+of playlists per user and song popularity follow a long-tailed distribution, which imposes further challenge to the learning task as the amount
 of data for learning is limited for users (or songs) at the tail.
 
 
@@ -72,41 +72,40 @@ of data for learning is limited for users (or songs) at the tail.
 
 \subsection{Experimental setup}
 
-We describe how playlist data are split into training and test set for all three cold-start settings,
+We describe how playlist data are split into training and test set for the three cold-start settings,
 the features of songs used to learn the multitask objective, as well as baseline approaches and evaluation metrics.
 
 {\bf Dataset split}.
-To empirically evaluate the performance of recommending new songs to extend existing playlists (setting (i)),
-we hold 5K of the latest released songs in 30Music dataset, which results in about 8K playlists with songs
+To empirically evaluate the performance of recommending new songs to extend existing playlists (\ie the \emph{cold songs} setting),
+we hold 5K of the latest released songs in 30Music dataset. This results in about 8K playlists with songs
 in both training and test set.
-In the larger AotM-2011 dataset, we hold 10K of the latest released songs, which leads to about 19K playlists with songs
-in both training and test set.
+In the AotM-2011 dataset with a larger number of songs, we hold 10K of the latest released songs.
+This leads to about 19K playlists with songs in both training and test set.
 Playlists where all songs have been held are removed from both training and test set.
 Table~\ref{tab:stats0} summarises the statistics of this training/test split.
 
-For the task of recommending songs to form playlists for existing users (setting (ii)),
+For the task of recommending songs to form new playlists for existing users (\ie the \emph{cold playlists} setting),
 %To empirically evaluate the performance of our proposed recommendation approaches for existing users,
 we hold playlists from about 20\% users in both datasets for test, and all other playlists are used for training.
-To make sure each song in the test set also appears in the training set,
-and all users in test set also have a few playlists in training set,
-playlists in the test set are sampled from users that have at least one playlist where each song has also been
-included in four other playlists among the whole dataset,
-which results in a test set with about 2.1K playlists from 1.6K users in 30Music dataset,
+The test set is formed by sampling playlists in which each song each song has been included in at least five playlists among the whole dataset,
+and we also make sure each song in the test set also appears in the training set,
+as well as all users in the test set also have a few playlists in the training set.
+This results in a test set with about 2.1K playlists from 1.6K users in 30Music dataset,
 and a test set with about 9.2K playlists from 2.7K users in AotM-2011 dataset.
 The statistics of this training/test split are shown in Table~\ref{tab:stats1}.
 
-To evaluate the last cold-start setting (iii), \ie recommending songs to form playlist for new users,
+To evaluate the task of recommending songs for new users to form playlists (\ie the \emph{cold users} setting),
 %To evaluate the performance of music recommendation approaches for new users,
 we sampled 30\% of all users and hold all their playlists as test set in both datasets.
-Similarly, to make sure songs in test set also exist in the training set,
-a user will not be included in the test set if holding all of her playlists breaks this requirement.
+Similarly, we require songs in the test set also exist in the training set,
+a user will thus not be included in the test set if holding all of her playlists breaks this requirement.
 This results in a test set with about 3.4K playlists from 2.4K users in 30Music dataset,
 and a test set with about 8.2K playlists from 4.2K users in AotM-2011 dataset.
 Table~\ref{tab:stats2} describes the statistics of this training/test split.
 
 
 {\bf Features}.
-Song features used in the experiments including metadata, audio data, genre and artist information, and song/artist popularity.
+Song features used in the experiments include metadata, audio data, genre and artist information, and song/artist popularity.
 %
 The metadata of songs (\eg duration, year of release) and audio features (\eg loudness, mode, tempo) are provided by MSD.
 We use genre data from the Top-MAGD genre dataset~\cite{schindler2012facilitating}
@@ -115,8 +114,10 @@ If the genre data of a song is not available, we apply the mean imputation using
 To encode artist information as features,
 we trained a word2vec\footnote{https://github.com/dav/word2vec} model using sequences of artist identifiers in playlists.
 
-In the task of recommending new songs to extend existing playlists (setting (i)), where song popularity is not available,
-we use artist popularity (we use the number of occurrences of all songs from a artist in training playlists as a proxy of her popularity).
+Song popularity is also a feature in the \emph{cold playlists} and \emph{cold users} settings, as we assume no popularity information 
+is available for new songs.
+%In the task of recommending new songs to extend existing playlists (setting (i)), where song popularity is not available,
+%we use artist popularity (we use the number of occurrences of all songs from a artist in training playlists as a proxy of her popularity).
 Finally, we add a constant feature (with value $1$) for each song to account for bias.
 
 
@@ -125,18 +126,18 @@ We compare the performance of our proposed approach (referred as {\it Multitask 
 with a number of baseline methods for the task of recommending music to form playlists:
 \begin{itemize}
 \item The {\it Popularity Ranking} method scores each song using only its popularity in training set.
-      When song popularity is not available (setting (i)), we use artist popularity.
+      In the \emph{cold songs} setting where song popularity is not available, we use artist popularity instead.
 \item The {\it Same Artists - Greatest Hits} (SAGH)~\cite{mcfee2012million} method scores scores each song
       by its popularity if the artist of the song has appeared in the given user's playlist in training set;
       otherwise the song is scored zero.
-      Similarly, we replace song popularity with artist popularity in the task of recommending new songs (setting (i)).
+      Similarly, we replace song popularity with artist popularity in the \emph{cold songs} setting.
 \item The {\it Collocated Artists - Greatest Hits} (CAGH)~\cite{bonnin2013evaluating} method is a variant of SAGH.
       It scores each song using its popularity, but weighted by the frequency of the collocation between the artist of the song
       and those artists that appeared in the given user's playlist in training set.
-      In the task of recommending new songs (setting (i)), we again replace the song popularity in this method with artist popularity.
-      When recommending songs for new users (setting (iii)), we use the top 10 most popular artists instead of artists in the user's
-      listening history as required by this method.
-\item The {\it Logistic Regression} baseline is specific for the task of recommending new songs (setting (i)), where we independenly train
+      In the \emph{cold songs} setting, we again replace song popularity with artist popularity,
+      and in the \emph{cold users} setting, we use the top 10 most popular artists instead of artists in the user's listening history 
+      as required by this method.
+\item The {\it Logistic Regression} baseline is specific for the \emph{cold songs} setting, where we independently train
       an logistic regression classifier for each playlist, which is used to classify whether we should add each new song to this playlist.
       This method is also known as binary relevance in multi-label classification.
 \end{itemize}
@@ -151,7 +152,7 @@ Hit-Rate@K~\cite{hariri2012context} and Area under the ROC curve (AUC)~\cite{man
 %It is one of several metrics used to evaluate performance on playlist continuation tasks
 %in the ACM RecSys Challenge 2018\footnote{https://recsys-challenge.spotify.com/rules}.
 %
-Hit-Rate@K (or Hit Ratio) is the number of correctly recommended songs among the top-$K$ recommendations over $L$,
+Hit-Rate@K (or Hit Ratio) is the number of correctly recommended songs amongst the top-$K$ recommendations over $L$,
 where $K$ is the number of recommendations, and $L$ is the number of songs in the ground truth playlist.
 It has been employed to evaluate several playlist generation and next song recommendation
 methods~\cite{hariri2012context,bonnin2013evaluating,bonnin2015automated,jannach2015beyond}.
@@ -164,30 +165,30 @@ is cast as a (sequence of) classification problems~\cite{ben2017groove}.
 
 \subsection{Results and discussion}
 
-We can see from Table~\ref{tab:perf0} that learning based methods (\ie {\bf Multitask classification}
-and {\it Logistic Regression} perform significantly better than other baselines, in the setting of
-recommending new songs for extending playlists (setting (i)).
-Which suggests learning from existing playlists helps the task of recommending new songs.
+We can see from Table~\ref{tab:perf0} that learning based methods (\ie {\it Multitask classification}
+and {\it Logistic Regression}) perform significantly better than other baselines in the \emph{cold songs} setting.
+%in the setting of recommending new songs for extending playlists (setting (i)).
+This suggests learning from existing playlists helps the task of recommending new songs.
 Among the (artist) popularity based approaches, 
 simply ranking songs by its artist popularity achieves decent performance,
-and take into account artist collocation information does not seem to improve the performance.
+and taking into account artist collocation information does not seem to improve the performance.
 Further, the SAGH method which considers only songs from the top 10 most popular artists,
 is the worst performer in terms of HitRate@100 and AUC.
 
 Figure~\ref{fig:hr0} shows the hit rates when the number of recommendations $K$ varies from 0 to 1000.
 We can see that the performance of all methods improves as the number of recommendations increase,
-and learning based methods are always performing better than ranking based artist informations.
+and learning based methods always perform better than ranking based on artist information.
 It is interesting that both {\it Multitask Classification} and {\it Logistic Regression} perform 
 almost the same when $K$ is small (100 on 30Music and 50 on AotM-2011 dataset), 
-and the former only performance better when $K$ is big than that.
-Another interesting observation is that SAGH and CAGH performs similar on AotM-2011 dataset when $K$
-is less 50, and both outperforms {\it Popularity Ranking}, however, SAGH suffer from slow improvement
-as $K$ increases, this effect is observed on both datasets.
+and the former only performs better when $K$ is bigger than that.
+Another interesting observation is that SAGH and CAGH perform similarly on AotM-2011 dataset when $K$
+is less 50, and both outperform {\it Popularity Ranking}. However, SAGH suffers from slow improvement
+as $K$ increases, and this effect is observed on both datasets.
 
 
 \begin{table}[h]
 \centering
-\caption{Performance in setting (i)}
+\caption{Performance in the \emph{cold songs} setting}
 \label{tab:perf0}
 \resizebox{\columnwidth}{!}{
 \input{tab0}
@@ -197,7 +198,7 @@ as $K$ increases, this effect is observed on both datasets.
 \begin{figure}[h]
 \centering
 \includegraphics[width=.975\linewidth]{fig/hitrate0.pdf}
-\caption{Hit rates in setting (i)}
+\caption{Hit rates in the \emph{cold songs} setting}
 \label{fig:hr0}
 \end{figure}
 
@@ -206,7 +207,7 @@ as $K$ increases, this effect is observed on both datasets.
     \centering
     \begin{minipage}{.5\textwidth}
         \centering
-        \caption{Performance in setting (ii)}
+        \caption{Performance in the \emph{cold playlists} setting}
         \label{tab:perf1}
         \resizebox{.95\textwidth}{!}{
         \input{tab1}
@@ -214,7 +215,7 @@ as $K$ increases, this effect is observed on both datasets.
     \end{minipage}%
     \begin{minipage}{0.5\textwidth}
         \centering
-        \caption{Performance in setting (iii)}
+        \caption{Performance in the \emph{cold users} setting}
         \label{tab:perf2}
         \resizebox{.95\textwidth}{!}{
         \input{tab2}
@@ -228,25 +229,25 @@ as $K$ increases, this effect is observed on both datasets.
     \begin{minipage}{.5\textwidth}
         \centering
         \includegraphics[width=.925\linewidth]{fig/hitrate1.pdf}
-        \caption{Hit rates in setting (ii)}
+        \caption{Hit rates in the \emph{cold playlists} setting}
         \label{fig:hr1}
     \end{minipage}%
     \begin{minipage}{0.5\textwidth}
         \centering
         \includegraphics[width=.925\linewidth]{fig/hitrate2.pdf}
-        \caption{Hit rates in setting (iii)}
+        \caption{Hit rates in the \emph{cold users} setting}
         \label{fig:hr2}
     \end{minipage}
 \end{figure*}
 
 
 
-Table~\ref{tab:perf1} and Figure~\ref{fig:hr1} show the performance on the task of recommending a set of songs for
-an existing user (setting (ii)).
+Table~\ref{tab:perf1} and Figure~\ref{fig:hr1} show the performance in the \emph{cold playlists} setting.
+%on the task of recommending a set of songs for an existing user (setting (ii)).
 First, we can see that methods based on song popularity and artist information achieve good performance,
 which is in line with discoveries in~\cite{bonnin2013evaluating,jannach2015beyond,bonnin2015automated} which 
 show ranking based on popularity is a strong baseline.
-Further, methods which make use of both song popularity and artist information,
+Further, methods which make use of both song popularity and artist information
 outperform {\it Popularity Ranking} (except SAGH on 30Music), which shows artist information is helpful for music recommendation,
 which is consistent with results reported in~\cite{bonnin2013evaluating,bonnin2015automated}.
 %
@@ -265,14 +266,14 @@ while it performs the worst in terms of HitRate@K on 30Music dataset, when $K$ i
 
 
 
-
-Finally, the performance in the setting of recommending music to form playlists for new users (setting (iii)),
-however, is quite different from the other two cold-start settings.
+Finally, the performance in the \emph{cold users} setting %of recommending music to form playlists for new users (setting (iii)),
+%however, 
+is quite different from the other two cold-start settings.
 %
 We can see from Table~\ref{tab:perf2} and Figure~\ref{fig:hr2} that {\it Popularity Ranking} is one of the best performing methods,
 outperforming both baselines that make use of song popularity and artist information (\ie SAGH and CAGH).
 The performance of {\it Multitask Classification} is almost identical to that of {\it Popularity Ranking} in terms of all metrics,
-which suggests {\it Multitask Classification} might degenerate to simply rank songs using its popularity.
+which suggests {\it Multitask Classification} might degenerate to simply rank songs using popularity.
 Another interesting observation is that, although both SAGH and CAGH make use of song popularity and artist information,
 the later performs significantly better than the former in terms of AUC and HitRate@K (when $K$ is greater than 100).
 This suggests the way to make use of artist information matters,
@@ -280,13 +281,11 @@ and collocation of artists could be more helpful for music recommendation than s
 that are not from popular artists.
 
 Last but not the least, our proposed method {\it Multitask Classification}, unlike any other method in consideration,
-has always been one of the best performer in all three cold-start settings on both datasets,
-Which suggests our propose approach can work effectively for the cold-start settings considered in this paper.
-As a remark, the performance of all methods in terms of HitRate@K improve as the number of recommendations increase,
+is always the (tied) best performer in all three cold-start settings on both datasets.
+This suggests our proposed approach can work effectively for the cold-start settings considered in this paper.
+As a remark, the performance of all methods in terms of HitRate@K improves as the number of recommendations increases,
 and the rate of improvement decreases as more songs are recommended.
-In particular, the performance of SAGH tends to saturate much earlier than other methods (except in setting (ii) on AotM-2011 dataset),
+In particular, the performance of SAGH tends to saturate much earlier than other methods 
+(except in the \emph{cold playlists} setting on AotM-2011 dataset),
 which might suggest that, as more songs are recommended, artists in users' listening history (or popular artists) become less informative,
-and other factors such as song popularity regains its dominance for the task of music recommendation.
-
-
-
+and other factors such as song popularity regain their dominance for the task of music recommendation.

@@ -32,9 +32,9 @@ system can also learn from this information and hopefully make better recommenda
 The challenge of this task is two-fold:
 \begin{enumerate}[(i)]
 	\item \emph{Sparsity}. While a large number of playlists are hosted by music streaming services,
-playlists for each user is still limited. This is exacerbated by the long-tail distribution that
-most users only have few number of playlists, while a small portion of users have a very large number of playlists.
-Similarly, a small number of popular songs appeared in a large number of playlists, and the most majority of songs
+playlists for each user is still limited. This is exacerbated by the long-tailed distribution that
+most users only have a few playlists, while a small portion of users have a very large number of playlists.
+Similarly, a small number of popular songs appeared in a large number of playlists, and the majority of songs
 only appear in a few playlists~\cite{bonnin2013evaluating}.
 	\item \emph{Noise}. There could be noise in metadata~\cite{bonnin2015automated} or users might randomly choose songs 
 from their music collection when composing playlists~\cite{mcfee2012hypergraph},
@@ -44,10 +44,10 @@ These challenges make it hard to make recommendations better than simply ranking
 popularity~\cite{mcfee2012million,bonnin2013evaluating,bonnin2015automated},
 
 
-In this paper, we propose a novel approach which ranks songs that could end up being in playlist for the 
-given user above those unlikely.
+In this paper, we propose a novel approach which ranks songs that could end up being in a playlist for the 
+given user above those unlikely to be chosen.
 Compared to the Bayesian Personalised Ranking (BPR) approach which requires all
-songs in playlist ranks higher than songs are not~\cite{rendle2009bpr,mcfee2012million}, we focus on the lowest ranked
+songs in playlist to rank higher than songs are not~\cite{rendle2009bpr,mcfee2012million}, we focus on the lowest ranked
 song in playlist and penalise any song ranked higher but does not appear in playlist.
 This approach has been shown to work more efficiently when one cares about only the top ranked items~\cite{li2014top}.
 
