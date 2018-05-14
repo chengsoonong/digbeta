@@ -24,7 +24,7 @@ and $\x_m$ is a feature vector of song $m$.
 
 We decompose the representation $\w_{i,u}$ of a playlist $i$ from user $u$ in (\ref{eq:scorefunc}) into three components, \ie
 $$
-\w_{i.u} = \alphabm_i + \betabm_u + \bmu,
+\w_{i,u} = \alphabm_i + \betabm_u + \bmu,
 $$
 where $\alphabm_i$ is a parameter vector specific for playlist $i$,
 $\betabm_u$ is the component for user $u$,
@@ -232,8 +232,8 @@ which results in the following classification risk:
 \resizebox{.9\linewidth}{!}{$\displaystyle
 R_\textsc{clf}(\uptheta)
 = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \left(
-  \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(u, m, i)}
-  + \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(u, m', i)} \right).
+  \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(u, i, m)}
+  + \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(u, i, m')} \right).
 $}
 \end{equation}
 
@@ -247,7 +247,7 @@ then $\uptheta^* \in \argmin_{\uptheta} \widetilde R_\textsc{rank}$.
 \begin{proof}
 This theorem can be proved by swapping the positives and negatives in the proof of 
 the equivalence between P-Norm Push loss and P-Classification loss~\cite{ertekin2011equivalence}.
-%A complete proof from first principles is described in Appendix.
+A complete proof from first principles is described in Appendix.
 \end{proof}
 
 We can therefore create an unconstrained optimisation problem using the classification risk $R_\textsc{clf}$:
