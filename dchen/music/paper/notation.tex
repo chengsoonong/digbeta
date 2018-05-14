@@ -1,9 +1,9 @@
 \section{Notations}
 
-We introduce notations in Table~\ref{tab:symbol_tpush}.
+We introduce notations in Table~\ref{tab:notation}.
 \begin{table}[!h]
-\caption{Glossary of commonly used symbols}
-\label{tab:symbol_tpush}
+\caption{Notations used in this paper}
+\label{tab:notation}
 \renewcommand{\arraystretch}{1.5} % tweak the space between rows
 \setlength{\tabcolsep}{1pt} % tweak the space between columns
 \centering
@@ -12,16 +12,16 @@ We introduce notations in Table~\ref{tab:symbol_tpush}.
 \multicolumn{3}{l}{\textbf{Notation}} & \textbf{Description} \\ \midrule
 $D$        &  $\in$  &  $\Z^+$            & The number of features for each song \\
 $M$        &  $\in$  &  $\Z^+$            & The number of songs, indexed by $m, m' \in \{1,\dots,M\}$ \\
-$N$        &  $\in$  &  $\Z^+$            & The number of playlists, grouped by users \\
-$U$        &  $\in$  &  $\Z^+$            & The number of users, indexed by $i \in \{1,\dots,U\}$ \\
-$P_i$      &         &                    & The set of playlists from user $i$, indexed by $j \in P_i$ \\
-$\bu_i$    &  $\in$  &  $\R^D$            & The weights of user $i$ \\
-$\bv_j$    &  $\in$  &  $\R^D$            & The weights of playlist $j$ \\
-$\widebar\bu$    &  $\in$  &  $\R^D$      & The weights shared by all users \\
-$\w_j    $ &  $\in$  &  $\R^D$            & The weights for playlist $j$, $\w_j = \bu_i + \bv_j + \widebar\bu$ \\
+$N$        &  $\in$  &  $\Z^+$            & The total number of playlists from all users \\
+$U$        &  $\in$  &  $\Z^+$            & The number of users, indexed by $u \in \{1,\dots,U\}$ \\
+$P_u$      &         &                    & The set of playlists from user $u$, indexed by $i \in P_u$ \\
+$\alphabm_i$  &  $\in$  &  $\R^D$         & The weights of playlist $i$ from user $u$, $i \in P_u$ \\
+$\betabm_u$   &  $\in$  &  $\R^D$         & The weights of user $u$ \\
+$\bmu$     &  $\in$  &  $\R^D$            & The weights shared by all users \\
+$\w_{i,u}$ &  $\in$  &  $\R^D$            & The weights of playlist $i$ from user $u$, $\w_{i,u} = \alphabm_i + \betabm_u + \bmu$ \\
 $\Y$       &  $\in$  &  $\R^{M \times N}$ & The matrix of binary labels that indicating if a song is in a playlist \\
-$y_m^j$    &  $\in$  &  $\R^D$            & The positive binary label $y_m^j = 1$, \ie song $m$ in playlist $j$ \\
-$y_{m'}^j$ &  $\in$  &  $\R^D$            & The negative binary label $y_{m'}^j = 0$, \ie song $m'$ not in playlist $j$ \\
+$y_m^i$    &  $\in$  &  $\R^D$            & The positive binary label $y_m^i = 1$, \ie song $m$ in playlist $i$ \\
+$y_{m'}^i$ &  $\in$  &  $\R^D$            & The negative binary label $y_{m'}^i = 0$, \ie song $m'$ not in playlist $i$ \\
 $\X$       &  $\in$  &  $\R^{M \times D}$ & The matrix of features of all songs \\
 $\x_m$     &  $\in$  &  $\R^D$            & The feature vector of song $m$ \\
 $\x_{m'}$  &  $\in$  &  $\R^D$            & The feature vector of song $m'$ \\
