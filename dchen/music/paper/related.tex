@@ -1,11 +1,12 @@
-\section{Related work}
-\label{sec:related}
+%\section{Related work}
+%\label{sec:related}
 
 %\cheng{Make this a subsection of the multitask learning section.}
 
-We summarise recent work most related to recommending music for playlist
+We first summarise recent work of recommending music to form playlists
 according the problem settings, the recommendation methods,
-as well as the information being utilised.
+as well as the information being utilised,
+and then music recommendation techniques in cold-start scenarios.
 
 %\cheng{Reduce related work subsection to 1 column}
 
@@ -102,15 +103,29 @@ and leave the investigation of using song order to assist playlist generation as
 
 
 
-It has been known that binary classification and bipartite ranking are
-closely related~\cite{ertekin2011equivalence,menon2016bipartite}.
-In particular, \citet{ertekin2011equivalence} have shown that the P-Norm Push bipartite ranking loss~\cite{rudin2009p}
-is equivalent to the P-Classification loss~\cite{ertekin2011equivalence} when using the exponential surrogate.
-Further, the P-Norm Push loss is an approximation of the Infinite-Push loss~\cite{agarwal2011infinite},
-or equivalently, the Top-Push loss~\cite{li2014top}, which focuses on the highest ranked negative example instead of
-of the lowest ranked positive example as in~(\ref{eq:bprisk}).
+%It has been known that binary classification and bipartite ranking are
+%closely related~\cite{ertekin2011equivalence,menon2016bipartite}.
+%In particular, \citet{ertekin2011equivalence} have shown that the P-Norm Push bipartite ranking loss~\cite{rudin2009p}
+%is equivalent to the P-Classification loss~\cite{ertekin2011equivalence} when using the exponential surrogate.
+%Further, the P-Norm Push loss is an approximation of the Infinite-Push loss~\cite{agarwal2011infinite},
+%or equivalently, the Top-Push loss~\cite{li2014top}, which focuses on the highest ranked negative example instead of
+%of the lowest ranked positive example as in~(\ref{eq:bprisk}).
+%
+%Inspired by these connections, we seek a classification loss that is equivalent to a bipartite ranking loss (under a few assumptions),
+%which can approximate the risk with Bottom-Push loss in~(\ref{eq:bprisk}).
+%This will make it possible to formulate an unconstrained objective that approximates the empirical loss $\RCal_\textsc{rank}$.
 
-Inspired by these connections, we seek a classification loss that is equivalent to a bipartite ranking loss (under a few assumptions),
-which can approximate the risk with Bottom-Push loss in~(\ref{eq:bprisk}).
-This will make it possible to formulate an unconstrained objective that approximates the empirical loss $\RCal_\textsc{rank}$.
 
+{\bf Cold-start music recommendation}.
+Content based recommendation approaches~\cite[Chapter~4]{aggarwal2016recommender}
+can be adopted to recommend {\it cold songs} (\ie new songs),
+typically by making use of content features of songs extracted either automatically~\cite{seyerlehner2010automatic,eghbal2015vectors}
+or manually by musical experts~\cite{john2006pandora}.
+Further, content features can also be combined with other approaches, such as those based on 
+collaborative filtering~\cite{yoshii2006hybrid,donaldson2007hybrid,shao2009music}.
+This is known as the hybrid recommendation approaches~\cite{burke2002hybrid}, 
+see~\cite[Chapter~6]{aggarwal2016recommender} for a general description besides music recommendation.
+The problem of recommending music for {\it cold users} (\ie new users) 
+has also been tackled by a number of approaches, such as transferring user preferences learned 
+from related domains~\cite{hu2010study,aizenberg2012build},
+or techniques that balance the exploration-exploitation trade-off~\cite{wang2014exploration,liebman2015dj}.
