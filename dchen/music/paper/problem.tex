@@ -1,8 +1,15 @@
 \section{Problem statement}
 \label{sec:problem}
 
-We formulate the problem of recommending music in three cold-start settings in the context of 
-playlist (\ie a sequence of songs):
+We first introduce three cold-start settings for playlist recommendation, 
+then summarise recent work most related to recommend music to form playlists,
+as well as music recommendation in cold-start scenarios.
+
+
+
+\subsection{Three cold-start settings}
+
+We investigate problems of recommending music to form playlists in three cold-start settings:
 \begin{enumerate}[(i)]
 \item \emph{cold songs}, where we recommend newly released songs to extend existing playlists;
 \item \emph{cold playlists}, where we recommend a set of songs to form a new playlist for an existing user;
@@ -25,6 +32,7 @@ Suppose we are given a dataset $\DCal$ with $N$ playlists from $U$ users,
 where songs in every playlist are from a music collection with $M$ songs.
 We further assume each user has at least one playlist, and each song in the collection 
 is appeared in at least one playlist.
+
 We illustrate the three cold-start settings in Figure~\ref{fig:settings},
 where rows represent songs and columns represent playlists.
 If entry $(m, n)$ is \texttt{1} (or \texttt{0}), it means song $m$ can (or not) be found in playlist $n$.
@@ -55,14 +63,6 @@ does not have any playlists in the system.
 \end{figure}
 
 
-%\begin{figure}[h]
-%\centering
-%\includegraphics[width=.45\linewidth]{fig/fig_gen.pdf}
-%\caption{Illustration of setting (ii) and (iii)}
-%\label{fig:hr0}
-%\end{figure}
 
-
-
-%It is challenging to learn an affinity function $f$ that can deal the three cold-start settings simultaneously.
-%In this next section, we propose a multitask objective which provides a function as required here.
+\subsection{Related work}
+\input{related}
