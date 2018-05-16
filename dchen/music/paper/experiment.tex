@@ -4,29 +4,6 @@
 In this section, we describe experiments that empirically evaluate the proposed method and a number of 
 well known baseline approaches in the three cold-start settings described in Section~\ref{sec:problem}.
 
-
-\subsection{Dataset}
-We make use of two publicly available playlist datasets: the 30Music~\cite{30music2015} and AotM-2011~\cite{mcfee2012hypergraph} playlist dataset.
-The Million Song Dataset~\cite{msd2011} serves as an underlying dataset where all songs in playlists are intersected with,
-and it also provides a few song features which we will detail later.
-
-
-\begin{table}[!b]
-\centering
-\caption{Music playlist dataset}
-\label{tab:stats_pldata}
-\resizebox{\linewidth}{!}{
-\begin{tabular}{lrcrcc}
-\toprule
-Dataset   & Songs & Playlists & Users & Songs/Playlist & Playlists/User \\
-\midrule
-30Music   & 45,468  & 17,457  & 8,070   & 16.3 & 2.2 \\
-AotM-2011 & 114,428 & 84,710  & 14,182  & 10.1 & 6.0 \\
-\bottomrule
-\end{tabular}
-}
-\end{table}
-
 \begin{figure*}[!t]
     \centering
     \begin{minipage}{.5\textwidth}
@@ -42,6 +19,14 @@ AotM-2011 & 114,428 & 84,710  & 14,182  & 10.1 & 6.0 \\
         \label{fig:hist_songpop}
     \end{minipage}
 \end{figure*}
+
+
+\subsection{Dataset}
+We make use of two publicly available playlist datasets: the 30Music~\cite{30music2015} and AotM-2011~\cite{mcfee2012hypergraph} playlist dataset.
+The Million Song Dataset~\cite{msd2011} serves as an underlying dataset where all songs in playlists are intersected with,
+and it also provides a few song features which we will detail later.
+
+
 
 {\bf Million Song Dataset} (MSD) is a collection of one million songs, in which information of each song such as the name, 
 artist, year of release are available.
@@ -66,8 +51,21 @@ of playlists per user and song popularity follow a long-tailed distribution, whi
 of data for learning is limited for users (or songs) at the tail.
 
 
-\input{tab_stats}
-
+\begin{table}[hbt]
+\centering
+\caption{Music playlist dataset}
+\label{tab:stats_pldata}
+\resizebox{\linewidth}{!}{
+\begin{tabular}{lrcrcc}
+\toprule
+Dataset   & Songs & Playlists & Users & Songs/Playlist & Playlists/User \\
+\midrule
+30Music   & 45,468  & 17,457  & 8,070   & 16.3 & 2.2 \\
+AotM-2011 & 114,428 & 84,710  & 14,182  & 10.1 & 6.0 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}
 
 
 \subsection{Experimental setup}
@@ -119,6 +117,9 @@ is available for new songs.
 %In the task of recommending new songs to extend existing playlists (setting (i)), where song popularity is not available,
 %we use artist popularity (we use the number of occurrences of all songs from a artist in training playlists as a proxy of her popularity).
 Finally, we add a constant feature (with value $1$) for each song to account for bias.
+
+
+\input{tab_stats}
 
 
 {\bf Baselines}.
@@ -186,7 +187,7 @@ is less 50, and both outperform {\it Popularity Ranking}. However, SAGH suffers 
 as $K$ increases, and this effect is observed on both datasets.
 
 
-\begin{table}[h]
+\begin{table}[b]
 \centering
 \caption{Performance in the \emph{cold songs} setting}
 \label{tab:perf0}
@@ -195,7 +196,7 @@ as $K$ increases, and this effect is observed on both datasets.
 }
 \end{table}
 
-\begin{figure}[h]
+\begin{figure}[b]
 \centering
 \includegraphics[width=.975\linewidth]{fig/hitrate0.pdf}
 \caption{Hit rates in the \emph{cold songs} setting}
