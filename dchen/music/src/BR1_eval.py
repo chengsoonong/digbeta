@@ -7,6 +7,7 @@ import numpy as np
 from scipy.sparse import issparse
 # from tools import calc_RPrecision_HitRate
 from tools import calc_metrics
+# from BinaryRelevance import BinaryRelevance
 
 TOPs = [5, 10, 20, 30, 50, 100, 200, 300, 500, 1000]
 
@@ -19,7 +20,8 @@ dataset = sys.argv[2]
 data_dir = os.path.join(work_dir, 'data/%s/setting1' % dataset)
 fsplit = os.path.join(data_dir, 'br1/br1.%s.split' % dataset)
 fperf = os.path.join(data_dir, 'perf-br1.pkl')
-X_test = pkl.load(gzip.open(os.path.join(data_dir, 'X_test.pkl.gz'), 'rb'))
+X = pkl.load(gzip.open(os.path.join(data_dir, 'X_test.pkl.gz'), 'rb'))
+X_test = np.hstack([np.ones((X.shape[0], 1)), X])
 Y_test = pkl.load(gzip.open(os.path.join(data_dir, 'Y_test.pkl.gz'), 'rb'))
 
 rps = []
@@ -50,8 +52,12 @@ with open(fsplit, 'r') as fd:
             aucs.append(auc)
 
 print('\n%d, %d' % (len(rps), Y_test.shape[1]))
-br1_perf = {dataset: {'Test': {'R-Precision': np.mean(rps), 'Hit-Rate': {top: np.mean(hitrates[top]) for top in TOPs},
-                               'AUC': np.mean(aucs)}}}
+br1_perf = {dataset: {'Test': {'R-Precision': np.mean(rps),
+                               'Hit-Rate': {top: np.mean(hitrates[top]) for top in TOPs},
+                               'AUC': np.mean(aucs)},
+                      'Test_All': {'R-Precision': rps,
+                                   'Hit-Rate': {top: hitrates[top] for top in TOPs},
+                                   'AUC': aucs}}}
 pkl.dump(br1_perf, open(fperf, 'wb'))
 print(len(rps), Y_test.shape[1])
-print(br1_perf)
+print(br1_perf[dataset]['Test'])
