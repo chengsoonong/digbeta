@@ -72,7 +72,11 @@ for j in range(Y_test.shape[1]):
     aucs.append(auc)
 
 print('\n%d, %d' % (len(rps), Y_test.shape[1]))
-perf = {dataset: {'Test': {'R-Precision': np.mean(rps), 'Hit-Rate': {top: np.mean(hitrates[top]) for top in TOPs},
-                           'AUC': np.mean(aucs)}}}
+perf = {dataset: {'Test': {'R-Precision': np.mean(rps),
+                           'Hit-Rate': {top: np.mean(hitrates[top]) for top in TOPs},
+                           'AUC': np.mean(aucs)},
+                  'Test_All': {'R-Precision': rps,
+                               'Hit-Rate': {top: hitrates[top] for top in TOPs},
+                               'AUC': aucs}}}
 pkl.dump(perf, open(fperf, 'wb'))
-print(perf)
+print(perf[dataset]['Test'])

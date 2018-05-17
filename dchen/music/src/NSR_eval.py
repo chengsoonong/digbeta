@@ -22,6 +22,7 @@ assert os.path.exists(fmodel)
 data_dir = os.path.join(work_dir, 'data/%s/setting1' % dataset)
 fperf = os.path.join(data_dir, 'perf-nsr.pkl')
 X_test = pkl.load(gzip.open(os.path.join(data_dir, 'X_test.pkl.gz'), 'rb'))
+X_test = np.hstack([np.ones((X_test.shape[0], 1)), X_test])
 Y_test = pkl.load(gzip.open(os.path.join(data_dir, 'Y_test.pkl.gz'), 'rb'))
 
 assert issparse(Y_test)
@@ -49,7 +50,11 @@ for j in range(Y_test.shape[1]):
     aucs.append(auc)
 
 print('\n%d, %d' % (len(rps), Y_test.shape[1]))
-nsr_perf = {dataset: {'Test': {'R-Precision': np.mean(rps), 'Hit-Rate': {top: np.mean(hitrates[top]) for top in TOPs},
-                               'AUC': np.mean(aucs)}}}
+nsr_perf = {dataset: {'Test': {'R-Precision': np.mean(rps),
+                               'Hit-Rate': {top: np.mean(hitrates[top]) for top in TOPs},
+                               'AUC': np.mean(aucs)},
+                      'Test_All': {'R-Precision': rps,
+                                   'Hit-Rate': {top: hitrates[top] for top in TOPs},
+                                   'AUC': aucs}}}
 pkl.dump(nsr_perf, open(fperf, 'wb'))
-print(nsr_perf)
+print(nsr_perf[dataset]['Test'])
