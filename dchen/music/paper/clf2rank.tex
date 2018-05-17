@@ -4,19 +4,19 @@ First, we can approximate the empirical risk $R_\textsc{rank}$ (with the exponen
 \begin{equation*}
 \begin{aligned}
 R_\textsc{rank}^\textsc{exp}(\uptheta)
-&= \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \exp \left( -\min_{m: y_m^i = 1} f(u, i, m) + f(u, i, m') \right) \\
-&= \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \exp \left( -\min_{m: y_m^i = 1} f(u, i, m) \right) 
-   \sum_{m': y_{m'}^i = 0} \exp \left( f(u, i, m') \right) \\
-&\approx \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \exp \left( \frac{1}{p} \log \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} \right)
-   \sum_{m': y_{m'}^i = 0} \exp \left( f(u, i, m') \right) \\
-&= \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \left( \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} \right)^\frac{1}{p} 
-   \sum_{m': y_{m'}^i = 0} e^{f(u, i, m')} \\
-&= \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \left( \left( \sum_{m': y_{m'}^i = 0} e^{f(u, i, m')} \right)^p 
-   \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} \right)^\frac{1}{p} \\
+&= \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \exp \left( -\min_{m: y_m^i = 1} f(m, i, u) + f(m', i, u) \right) \\
+&= \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \exp \left( -\min_{m: y_m^i = 1} f(m, i, u) \right) 
+   \sum_{m': y_{m'}^i = 0} \exp \left( f(m', i, u) \right) \\
+&\approx \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \exp \left( \frac{1}{p} \log \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} \right)
+   \sum_{m': y_{m'}^i = 0} \exp \left( f(m', i, u) \right) \\
+&= \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \left( \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} \right)^\frac{1}{p} 
+   \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)} \\
+&= \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \left( \left( \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)} \right)^p 
+   \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} \right)^\frac{1}{p} \\
 &= \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \left( 
-   \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} \left( \sum_{m': y_{m'}^i = 0} e^{f(u, i, m')} \right)^p \right)^\frac{1}{p} \\
+   \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} \left( \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)} \right)^p \right)^\frac{1}{p} \\
 &= \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \left( 
-   \sum_{m: y_m^i = 1} \left( \sum_{m': y_{m'}^i = 0} e^{- \left( f(u, i, m) - f(u, i, m') \right)} \right)^p \right)^\frac{1}{p} \\
+   \sum_{m: y_m^i = 1} \left( \sum_{m': y_{m'}^i = 0} e^{- \left( f(m, i, u) - f(m', i, u) \right)} \right)^p \right)^\frac{1}{p} \\
 &= \widetilde R_\textsc{rank}.
 \end{aligned}
 \end{equation*}
@@ -25,8 +25,8 @@ Let $R_\textsc{clf}$ be the following classification risk:
 \begin{equation*}
 R_\textsc{clf} 
 = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \left( 
-  \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} 
-  + \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(u, i, m')} \right),
+  \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} 
+  + \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)} \right),
 \end{equation*}
 
 Let $\uptheta^* \in \argmin_{\uptheta} R_\textsc{clf}$ (assuming minimisers exist),
@@ -47,16 +47,16 @@ Let
 0 
 &= \frac{\partial \, R_\textsc{clf}} {\partial \, \alpha_i^0}
 &= \frac{1}{N} \left( 
-   \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} (-p)
-   + \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(u, i, m')} \right),
+   \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} (-p)
+   + \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)} \right),
 \ \forall i \in P_u, \, u \in \{1,\dots,U\},
 \end{aligned}
 \end{equation*}
 we have
 \begin{equation}
 \label{eq:eq1}
-\frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} \Bigg|_{\uptheta = \uptheta^*}
-= \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(u, i, m')} \Bigg|_{\uptheta = \uptheta^*}, 
+\frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} \Bigg|_{\uptheta = \uptheta^*}
+= \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)} \Bigg|_{\uptheta = \uptheta^*}, 
 \ \forall i \in P_u, \, u \in \{1,\dots,U\},
 \end{equation}
 
@@ -65,15 +65,15 @@ Further, let
 \zero 
 = \frac{\partial \, R_\textsc{clf}} {\partial \, \alphabm_i} 
 = \frac{1}{N} \left( 
-   \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} (-p \x_m)
-   + \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(u, i, m')} \x_{m'} \right),
+   \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} (-p \x_m)
+   + \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)} \x_{m'} \right),
 \ \forall i \in P_u, \, u \in \{1,\dots,U\},
 \end{equation*}
 we have
 \begin{equation}
 \label{eq:eq2}
-\frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} \x_m \Bigg|_{\uptheta = \uptheta^*}
-= \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(u, i, m')} \x_{m'} \Bigg|_{\uptheta = \uptheta^*},
+\frac{1}{M_+^i} \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} \x_m \Bigg|_{\uptheta = \uptheta^*}
+= \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)} \x_{m'} \Bigg|_{\uptheta = \uptheta^*},
 \ \forall i \in P_u, \, u \in \{1,\dots,U\}.
 \end{equation}
 
@@ -83,45 +83,45 @@ Note that $\forall i \in P_u, \, u \in \{1,\dots,U\}$,
 \begin{aligned}
 &\frac{\partial \, \widetilde R_\textsc{rank}} {\partial \, \alphabm_i} \Bigg|_{\uptheta = \uptheta^*} \\
 &= \frac{1}{N M_-^i} \left[
-   \frac{1}{p} \left( \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} \right)^{\frac{1}{p} - 1} 
-   \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} (-p \x_m) 
-   \sum_{m': y_{m'}^i = 0} e^{f(u, i, m')} + 
-   \left( \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} \right)^\frac{1}{p}
-   \sum_{m': y_{m'}^i = 0} e^{f(u, i, m')} \x_{m'} \right] \\
+   \frac{1}{p} \left( \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} \right)^{\frac{1}{p} - 1} 
+   \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} (-p \x_m) 
+   \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)} + 
+   \left( \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} \right)^\frac{1}{p}
+   \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)} \x_{m'} \right] \\
 &= \frac{-1}{N M_-^i}
-   \left( \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} \right)^{\frac{1}{p} - 1} 
+   \left( \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} \right)^{\frac{1}{p} - 1} 
    \left[
-   \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} \x_m 
-   \sum_{m': y_{m'}^i = 0} e^{f(u, i, m')} -
-   \sum_{m: y_m^i = 1} e^{-p f(u, i, m)}
-   \sum_{m': y_{m'}^i = 0} e^{f(u, i, m')} \x_{m'} \right] \\
+   \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} \x_m 
+   \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)} -
+   \sum_{m: y_m^i = 1} e^{-p f(m, i, u)}
+   \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)} \x_{m'} \right] \\
 &= \frac{-1}{N M_-^i}
-   \left( \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} \right)^{\frac{1}{p} - 1} 
+   \left( \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} \right)^{\frac{1}{p} - 1} 
    \left[
-   \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} \x_m 
-   \frac{M_-^i}{M_+^i} \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} -
-   \sum_{m: y_m^i = 1} e^{-p f(u, i, m)}
-   \sum_{m': y_{m'}^i = 0} e^{f(u, i, m')} \x_{m'} \right] \ (\text{by Eq.~\ref{eq:eq1}}) \\
+   \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} \x_m 
+   \frac{M_-^i}{M_+^i} \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} -
+   \sum_{m: y_m^i = 1} e^{-p f(m, i, u)}
+   \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)} \x_{m'} \right] \ (\text{by Eq.~\ref{eq:eq1}}) \\
 &= \frac{-1}{N M_-^i}
-   \left( \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} \right)^\frac{1}{p}
+   \left( \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} \right)^\frac{1}{p}
    \left[
-   \sum_{m: y_m^i = 1} \frac{M_-^i}{M_+^i} e^{-p f(u, i, m)} \x_m -
-   \sum_{m': y_{m'}^i = 0} e^{f(u, i, m')} \x_{m'} \right] \\
+   \sum_{m: y_m^i = 1} \frac{M_-^i}{M_+^i} e^{-p f(m, i, u)} \x_m -
+   \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)} \x_{m'} \right] \\
 &= \zero \ (\text{by Eq.~\ref{eq:eq2}}).
 \end{aligned}
 \end{equation}
 
 Let 
 \begin{equation*}
-h(u, i) 
-= \frac{1}{N M_-^i} \left( \sum_{m: y_m^i = 1} e^{-p f(u, i, m)} \right)^\frac{1}{p} 
-  \sum_{m': y_{m'}^i = 0} e^{f(u, i, m')},
+h(i, u) 
+= \frac{1}{N M_-^i} \left( \sum_{m: y_m^i = 1} e^{-p f(m, i, u)} \right)^\frac{1}{p} 
+  \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)},
 \ \forall i \in P_u, \, u \in \{1,\dots,U\}.
 \end{equation*}
 then by Eq.~(\ref{eq:eq3}), we have
 \begin{equation}
 \label{eq:eq4}
-\frac{\partial \, h(u, i)}{\partial \, \alphabm_i} \Bigg|_{\uptheta = \uptheta^*} = \zero,
+\frac{\partial \, h(i, u)}{\partial \, \alphabm_i} \Bigg|_{\uptheta = \uptheta^*} = \zero,
 \ \forall i \in P_u, \, u \in \{1,\dots,U\}.
 \end{equation}
 
@@ -130,16 +130,16 @@ by Eq.~(\ref{eq:eq4})
 \begin{equation}
 \label{eq:eq5}
 \frac{\partial \, \widetilde R_\textsc{rank}} {\partial \, \betabm_u} \Bigg|_{\uptheta = \uptheta^*} 
-= \sum_{i \in P_u} \frac{\partial \, h(u, i)}{\partial \, \betabm_u}  \Bigg|_{\uptheta = \uptheta^*}
-= \sum_{i \in P_u} \frac{\partial \, h(u, i)}{\partial \, \alphabm_i} \Bigg|_{\uptheta = \uptheta^*}
+= \sum_{i \in P_u} \frac{\partial \, h(i, u)}{\partial \, \betabm_u}  \Bigg|_{\uptheta = \uptheta^*}
+= \sum_{i \in P_u} \frac{\partial \, h(i, u)}{\partial \, \alphabm_i} \Bigg|_{\uptheta = \uptheta^*}
 = \zero,
 \end{equation}
 and
 \begin{equation}
 \label{eq:eq6}
 \frac{\partial \, \widetilde R_\textsc{rank}} {\partial \, \bmu} \Bigg|_{\uptheta = \uptheta^*} 
-= \sum_{u=1}^U \sum_{i \in P_u} \frac{\partial \, h(u, i)}{\partial \, \bmu} \Bigg|_{\uptheta = \uptheta^*}
-= \sum_{u=1}^U \sum_{i \in P_u} \frac{\partial \, h(u, i)}{\partial \, \alphabm_i} \Bigg|_{\uptheta = \uptheta^*}
+= \sum_{u=1}^U \sum_{i \in P_u} \frac{\partial \, h(i, u)}{\partial \, \bmu} \Bigg|_{\uptheta = \uptheta^*}
+= \sum_{u=1}^U \sum_{i \in P_u} \frac{\partial \, h(i, u)}{\partial \, \alphabm_i} \Bigg|_{\uptheta = \uptheta^*}
 = \zero.
 \end{equation}
 
