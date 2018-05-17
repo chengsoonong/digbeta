@@ -9,7 +9,7 @@ as well as music recommendation in cold-start scenarios.
 
 \subsection{Three cold-start settings}
 
-We investigate problems of recommending music to form playlists in three cold-start settings:
+We investigate problems of recommending music to form playlists in the following three cold-start settings:
 \begin{enumerate}[(i)]
 \item \emph{cold songs}, where we recommend newly released songs to extend existing playlists;
 \item \emph{cold playlists}, where we recommend a set of songs to form a new playlist for an existing user;
@@ -36,13 +36,13 @@ is appeared in at least one playlist.
 We illustrate the three cold-start settings in Figure~\ref{fig:settings},
 where rows represent songs and columns represent playlists.
 If entry $(m, n)$ is \texttt{1} (or \texttt{0}), it means song $m$ can (or not) be found in playlist $n$.
-The shaded rows/columns with \texttt{?} marks represent the test set, where all entries are unknown.
-In the setting of \emph{cold songs}, we have a set of playlists (columns) form by existing songs (rows),
-and the task is to determine whether we should add each new song (row) for an existing playlist.
-In the setting of \emph{cold playlists}, we have a set of playlists (columns) from existing users,
+The shaded rows/columns with \texttt{?} mark represent the test set, where all entries are unknown.
+In the \emph{cold songs} setting, we have a set of playlists (columns) formed by existing songs (rows),
+and the task is to determine whether we should add each new song (row) to an existing playlist.
+In the \emph{cold playlists} setting, we have a set of playlists (columns) from existing users,
 and the task is to recommend a set of songs to form a new playlist (column) for an existing user.
 Lastly, in the \emph{cold users} setting, which is similar to the {\it cold playlists} setting except
-the target user that we will recommend a playlist (formed by a set of songs) is a new user, \ie the user
+the target user to whom we will recommend a playlist is a new user, \ie the user
 does not have any playlists in the system.
 
 \begin{figure}[t]
