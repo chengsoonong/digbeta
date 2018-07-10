@@ -1,0 +1,92 @@
+Reviewer 4 (chair)
+
+Expertise: Knowledgeable
+
+The Meta-Review
+This article deals with cold-start recommendation for music playlists. The reviewers highlight that the optimization method proposed is sound, but at the same time, they point several issues with the evaluation. 
+- Although the method proposed is interesting, it seems that the authors need to make more clear the differences with [5].
+- The evaluation section should be improved. It is difficult to evaluate the method proposed without an online experiment, but there seems to be too little effort in the evaluation section. 
+- Authors may consider additional data sources about user preferences and items features. Moreover it is necessary to take into account the sequential order of the songs in the playlist.
+
+Final Recommendation after Meta-Review
+Probably reject: I would argue for rejecting this paper.
+
+
+Reviewer 1 (PC)
+
+Review Rating
+Probably accept: I would argue for accepting this paper.
+
+Expertise: Knowledgeable
+
+Contribution
+An novel approach to producing playlists. An interesting optimization approach.
+
+Relevance to RecSys
+Playlist generation is a form of recommendation problem with many interesting considerations. I think this paper is highly relevant to RecSys. 
+
+Your Review
+Positives: 
+- An interesting problem with novel optimization.
+- Highly relevant to practitioners. Specifically, the real-world playlist algorithm in [5] have many similarities to the current paper but clearly these are two different algorithms. 
+- The optimization techniques applied in this paper are not well familiar in the RecSys world and they may be utilized in other recommendations models.
+
+Negatives: 
+- The similarities to [5] requires further discussion. Both approaches deal with personalized playlist by an additive model. The optimization approach seems entirely different and I would have like to see the motivation for choosing this approach rather than that of [5].
+-The idea of separate parameter vector for each playlist is very difficult. Some playlist may be very long-tail. I wonder if it would have been useful to constrain these parameters by some informative prior. 
+-The evaluation section should be improved. I realize it is very hard to evaluate a playlist algorithm without an online experiment, but this fact is not an excuse to the limited effort at the evaluation section. 
+
+
+Reviewer 2 (PC)
+
+Review Rating
+Probably accept: I would argue for accepting this paper.
+
+Expertise: Passing Knowledge
+
+Contribution
+The paper addresses the problem of recommending playlists to users. It describes an approach to do it in three settings: cold-start, cold songs and cold playlists setting. Moreover the playlist are generated for an existing and a new user. The proposed approach is based on multitask learning method. The results on two datasets of playlists show good performance for playlist recommendation in cold-start settings.
+
+Relevance to RecSys
+It is really relevant to recsys since it allows to recommend playlists.
+
+Your Review
+Positive:
+The proposed method is sound and results show that the research goal is achieved at least on the two used datasets. 
+Limitations:
+First of Authors may consider additional data sources about user preferences and items features. Moreover it is necessary to take into account the sequential order of the songs in the playlist. Would be effective to test with users.
+
+
+Reviewer 3 (PC)
+
+Review Rating
+Probably reject: I would argue for rejecting this paper.
+
+Expertise: Knowledgeable
+
+Contribution
+The authors tackle the problem of cold-start recommendation for music playlists. The main contribution is a method for multitask learning which can address a few different cold-start scenarios. The method works by minimising a bipartite ranking loss which ranks songs higher in the playlists than those songs not appearing.
+
+Relevance to RecSys
+This paper is very suitable for RecSys, touching on playlist recommendation and cold-start problems.
+
+Your Review
+The paper presents an approach to an interesting problem- cold-start playlist recommendation. The approach seems to hinge on the development of an unconstrained optimisation method to approximate a constrained optimisation method. The authors exploit the connection between bipartite ranking loss and classification as detailed in [Ertekin and Rudin, 2011]. The advantages of this approach are improved computational cost.
+
+This idea overall has some promise, but there are some issues. There is no attempt to quantify the efficiency gained by this approach, or the accuracy lost in the approximation.
+
+The baselines chosen to evaluate against (popularity, CAGH, SAGH, and logistic regression) are reasonable enough, but it would be better to evaluate against one of the other learning approaches outlined in the related work section.
+
+The metrics used in the evaluation Hit Rate and AUC are traditional IR metrics. Going beyond these simplistic measures is surely a problem for all work in playlist recommendation, but the paper doesn't engage with this issue. Also, the sequential nature of playlists is too important to leave to future work.
+
+The ideas in the paper are reasonably clear, but the presentation is not. I think the presentation could be improved by moving Section 4 (related work) to Section 3. The Related Work section itself could be improved, with greater focus on the kind of cold-start problems addressed in the paper, and also on the ranking loss/classification loss and unconstrained optimisation work which is the focus of 3.3 and 3.4.
+
+There are a number of parts of the paper which are poorly written so that I could not understand them at all. The paper requires substantially better proofreading overall. For example in Section 3.3:
+
+"In this section, we describe a ranking approach that learns to rank songs in playlist above those not in it, which aims to rank the most probable songs above those unlikely when making a recommendation."
+
+There are many examples of sentences like this, which obscure my understanding of the work.
+
+There are repeated parts too, eg in the conclusion:
+
+"We formulate the objective as a constrained convex optimisation problem, and show how this may be approximated by an unconstrained objective in- spired by an equivalence relationship between bipartite ranking and binary classification. Empirical results on two real music playlist datasets show the proposed approach has good performance for playlist recommendation in cold-start settings."
