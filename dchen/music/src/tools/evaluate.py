@@ -15,6 +15,69 @@ def calc_metrics(y_true, y_pred, tops=[]):
     return rp, hitrates, auc
 
 
+def pairwise_distance_hamming(X):
+    """
+    A vectorised approach to compute Hamming distance between all pairs of rows of matrix X.
+
+    Note that `p XOR q = ( p AND NOT q )  OR  ( NOT p AND q )` from
+    [here](https://math.stackexchange.com/questions/38473/is-xor-a-combination-of-and-and-not-operators),
+    let p, q \in \{0, 1\}^{N}, then
+
+    Hamming_distance(p, q)
+    = (1 / N) \sum_{i=1}^N p_i XOR q_i
+    = (1 / N) \sum_{i=1}^N ( p_i (1 - q_i) + (1 - p_i) q_i )
+    = (1 / N) ( \sum_{i=1}^N p_i (1 - q_i) + \sum_{i=1}^N (1 - p_i) q_i \right)
+    = (1 / N) ( p^T (1 - q) + (1 - p)^T q )
+    = (1 / N) ( \sum_{i=1}^N p_i + \sum_{i=1}^N q_i - 2 p^T q )
+
+    Sanity check:
+    ```
+    N, D = 1000, 200
+    aa = np.zeros(N * D, dtype=np.int)
+    idx = np.random.permutation(N * D)[:int(N * D * .3)]
+    aa[idx] = 1
+    aa = aa.reshape(N, D)
+    d1 = sklearn.metrics.pairwise.pairwise_distances(aa, metric='hamming', n_jobs=2)
+    d2 = (np.dot(aa, 1-aa.T) + np.dot(1-aa, aa.T)) / D
+    sum_vec = aa.sum(axis=1, keepdims=True)
+    d3 = (sum_vec + sum_vec.T - 2 * np.dot(aa, aa.T)) / D
+    diff = (d1 - d2).ravel();  print(np.dot(diff, diff))
+    diff2 = (d1 - d3).ravel(); print(np.dot(diff2, diff2))
+    ```
+    """
+    M, D = X.shape
+    # sum_vec = X.sum(axis=1, keepdims=True)
+    # dist = (sum_vec + sum_vec.T - 2 * np.dot(X, X.T)) / D
+    # support sparse matrix
+    sum_vec = X.sum(axis=1).reshape(M, 1)
+    dist = (sum_vec + sum_vec.T - 2 * X.dot(X.T)) / D
+    return dist
+
+
+def calc_Precision_Recall(y_true, y_pred, K=[]):
+    """
+        Compute Precision (Hit-Rate) and Recall given top-K recommendation.
+    """
+    tops = K
+    assert y_true.ndim == y_pred.ndim == 1
+    assert len(y_true) == len(y_pred)
+    assert y_true.dtype == np.bool
+    assert type(tops) == list
+    assert len(tops) > 0
+    sortix = np.argsort(-y_pred)
+    npos = y_true.sum()
+    assert npos > 0
+    # y_ = y_true[sortix]
+    pak = dict()
+    rak = dict()
+    for top in tops:
+        assert 0 < top <= len(y_true)
+        true_pos = np.sum(y_true[sortix[:top]])
+        pak[top] = true_pos / npos
+        rak[top] = true_pos / top
+    return (pak, rak)
+
+
 def calc_RPrecision_HitRate(y_true, y_pred, tops=[]):
     """
         Compute R-Precision and Hit-Rate at top-N.
