@@ -15,7 +15,24 @@ def calc_metrics(y_true, y_pred, tops=[]):
     return rp, hitrates, auc
 
 
-def pairwise_distance_hamming(X):
+def softmax(x):
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum(axis=0)
+
+
+def diversity(vec):
+    """
+    diversity(L) = ( \sum_{i \in L} \sum_{j \in L \setminus i} dist(i, j) ) / (|L| * (|L| - 1))
+    """
+    assert vec.ndim == 1
+    norm = len(vec) * (len(vec) - 1)
+    sim_mat = vec[..., np.newaxis] == vec[np.newaxis, ...]  # pairwise comparison
+    # dist_mat = 1 - sim_mat
+    # return (dist_mat.sum() - dist_mat.trace()) / norm  # note that dist_mat.trace() = 0
+    return (1 - sim_mat).sum() / norm
+
+
+def pairwise_distance_hamming(X, normalise=True):
     """
     A vectorised approach to compute Hamming distance between all pairs of rows of matrix X.
 
@@ -46,11 +63,14 @@ def pairwise_distance_hamming(X):
     ```
     """
     M, D = X.shape
+    # X = X.astype(np.int)
+    assert X.dtype == np.int
+    norm = D if normalise is True else 1
     # sum_vec = X.sum(axis=1, keepdims=True)
     # dist = (sum_vec + sum_vec.T - 2 * np.dot(X, X.T)) / D
     # support sparse matrix
     sum_vec = X.sum(axis=1).reshape(M, 1)
-    dist = (sum_vec + sum_vec.T - 2 * X.dot(X.T)) / D
+    dist = (sum_vec + sum_vec.T - 2 * X.dot(X.T)) / norm
     return dist
 
 
