@@ -129,8 +129,9 @@ with a number of baseline methods in the three cold-start settings:
 %for the task of recommending music to form playlists:
 \begin{itemize}
 \item The {\it Popularity Ranking} (PopRank) method scores a song using only its popularity in the training set.
-      In the \emph{cold songs} setting where song popularity is not available, we score a song using the popularity
-      of the corresponding artist.
+      In the \emph{cold songs} setting where song popularity is not available, 
+      %we score a song using the popularity of the corresponding artist.
+      a song is scored by the popularity of the corresponding artist.
 \item The {\it Same Artists - Greatest Hits} (SAGH)~\cite{mcfee2012million} method scores a song
       by its popularity if the artist of the song has appeared in the given user's playlists (in training set);
       otherwise the song is scored zero.
@@ -161,10 +162,12 @@ with a number of baseline methods in the three cold-start settings:
 
 
 \subsubsection{Evaluation}
-We evaluate the performance of all approaches using two metrics that have been adopted in playlist recommendation tasks:
+We evaluate the performance of all approaches using two accuracy metrics that have been adopted 
+in playlist recommendation tasks:
 HitRate@K~\cite{hariri2012context} and Area under the ROC curve (AUC)~\cite{manning2008introIR}.
-In addition to these accuracy related measures, we further adopt two beyond-accuracy measures, \ie
-\emph{novelty}~\cite{zhang2012auralist,schedl2017} and \emph{spread}~\cite{kluver2014evaluating},
+%In addition to these accuracy related metrics, 
+We further adopt two beyond-accuracy metrics, \ie
+Novelty~\cite{zhang2012auralist,schedl2017} and Spread~\cite{kluver2014evaluating},
 which are specifically tailored to recommender systems.
 %
 %R-Precision (RPREC) is the number of correctly recommended songs in the top-$n$ recommendation over $n$,
@@ -172,9 +175,9 @@ which are specifically tailored to recommender systems.
 %It is one of several metrics used to evaluate performance on playlist continuation tasks
 %in the ACM RecSys Challenge 2018\footnote{https://recsys-challenge.spotify.com/rules}.
 
-HitRate@K (or Hit Ratio) is the number of correctly recommended songs amongst the top-$K$ recommendations over
+HitRate@K (or Recall@K) is the number of correctly recommended songs amongst the top-$K$ recommendations over
 %where $K$ is the number of recommendations, and $L$ is 
-the number of songs in the ground truth playlist\footnote{This metric is also known as Recall@K~\cite{schedl2017}.}.
+the number of songs in the ground truth playlist. %\footnote{This metric is also known as Recall@K~\cite{schedl2017}.}.
 It has been employed to evaluate several playlist generation and next song recommendation
 methods~\cite{hariri2012context,bonnin2013evaluating,bonnin2015automated,jannach2015beyond}.
 
@@ -183,7 +186,7 @@ it has also been used for evaluating performance of playlist generation method w
 is cast as a (sequence of) classification problems~\cite{ben2017groove}.
 
 Useful recommendations need to include previously unknown items~\cite{herlocker2004evaluating,zhang2012auralist}, 
-and this ability can be measured by \emph{novelty},
+and this ability can be measured by Novelty,
 $$
 \text{Novelty@K} = \frac{1}{U} \sum_{u=1}^U \frac{1}{|P_u|} \sum_{m \in S_K} \frac{-\log_2 pop_m}{K},
 $$
@@ -191,16 +194,13 @@ where $S_K$ is the set of top-K recommendations and $pop_m$ is the popularity of
 Intuitively, the more popular a song is, an average user is more likely to be familiar with it,
 therefore less novel to this user.
 
-%The Spread@20 metric is designed to measure how well the recommender spreads its attention across many items.
-
-% spread is a metric of how well the recommender algorithm can spread its attention across a larger set of items,
-
-% it is defined as the entropy of the distribution of the items recommended to the users in the test set.
-
-% spread = -\sum_{m=1}^M P(m) \log P(m),
-% where P(m) denotes the probability of song $m$ being recommended,
-% which is computed from the scores of all possible songs using the softmax function.
-% moderate values are usually preferred.
+Spread is defined as the entropy of the distribution of all possible songs to recommend,
+$$
+\text{Spread} = -\sum_{m=1}^M P(m) \log P(m),
+$$
+where $P(m)$ denotes the probability of song $m$ being recommended,
+which is computed from the scores of all possible songs using the softmax function.
+Spread is used to measure the ability of an algorithm to spread its attention across all possible songs.
 
 
 \subsection{Results and discussion}
@@ -213,7 +213,7 @@ therefore less novel to this user.
 
 \subsubsection{Accuracy}
 
-We can see from Table~\ref{tab:perf0} that learning based methods (\ie {\it Multitask classification}
+We can see from Table~\ref{tab:acc1} that learning based methods (\ie {\it Multitask classification}
 and {\it Logistic Regression}) perform significantly better than other baselines in the \emph{cold songs} setting.
 %in the setting of recommending new songs for extending playlists (setting (i)).
 This suggests learning from playlists data helps the task of recommending new songs to extend existing playlist.
@@ -224,7 +224,7 @@ In particular, the SAGH method which considers only songs from artists in existi
 perform the worst in both datasets.
 %is the worst performer in terms of HitRate@100 and AUC.
 
-Figure~\ref{fig:hr0} shows the hit rates of all methods when the number of recommendations $K$ varies from 0 to 1000.
+Figure~\ref{fig:hr1} shows the hit rates of all methods when the number of recommendations $K$ varies from 5 to 1000.
 We can see that the performance of all methods improves as the number of recommendations increases,
 and learning based methods always perform better than ranking approaches based on artist information.
 It is interesting to observe that both {\it Multitask Classification} and {\it Logistic Regression} perform 
@@ -234,7 +234,7 @@ Another interesting observation is that SAGH and CAGH perform similarly on the A
 is less 50, and both outperform {\it Popularity Ranking}. However, SAGH suffers from slow improvement
 as $K$ increases, and this effect is observed on both datasets.
 
-Figure~\ref{fig:hr1} and Table~\ref{tab:perf1} show the performance of all methods in the \emph{cold playlists} setting.
+Figure~\ref{fig:hr3} and Table~\ref{tab:acc3} show the performance of all methods in the \emph{cold playlists} setting.
 %on the task of recommending a set of songs for an existing user (setting (ii)).
 First, we can see that methods based on song popularity and artist information achieve good performance.
 This is consistent with discoveries in~\cite{bonnin2013evaluating,jannach2015beyond,bonnin2015automated} which 
@@ -247,7 +247,7 @@ This is in line with results reported in~\cite{bonnin2013evaluating,bonnin2015au
 %It is interesting to see that {\it Popularity Ranking}) perform worse than other methods in terms of HitRate@100,
 %but SAGH performs worse than other methods in terms of AUC,
 %which might suggest that SAGH achieves good recall but {\it Popularity Ranking} performs better on average.
-It is interesting to observe that SAGH is one of the best performer on the AotM-2011 dataset (Figure~\ref{fig:hr1}), 
+It is interesting to observe that SAGH is one of the best performer on the AotM-2011 dataset (Figure~\ref{fig:hr3}), 
 while it performs the worst in terms of HitRate@K on the 30Music dataset when $K$ is greater than 300.
 %The performance of SAGH is also saturated much earlier than other methods.
 %
@@ -260,7 +260,7 @@ while it performs the worst in terms of HitRate@K on the 30Music dataset when $K
 
 The performance in the \emph{cold users} setting %of recommending music to form playlists for new users (setting (iii)),
 %however, 
-is quite different from the other two cold-start settings, as shown in Figure~\ref{fig:hr2} and Table~\ref{tab:perf2}.
+is quite different from the other two cold-start settings, as shown in Figure~\ref{fig:hr4} and Table~\ref{tab:acc4}.
 {\it Popularity Ranking} is one of the best performing methods,
 outperforming both baselines that make use of song popularity and artist information (\ie SAGH and CAGH).
 The performance of {\it Multitask Classification} is almost identical to that of {\it Popularity Ranking} in terms of both metrics,

@@ -1,4 +1,4 @@
-\section{Multitask learning for music recommendation}
+\section{Multitask learning for playlist recommendation}
 \label{sec:method}
 
 In this section, we introduce a multitask objective that supports the three cold-start settings
@@ -67,26 +67,34 @@ The regularisation terms in our multitask learning objective can thus be summari
 \label{eq:reg}
 \Omega(\upthetabm) = \lambda_1 \sum_{u=1}^U \sum_{i \in P_u} \|\alphabm_i\|_1 + \lambda_2 \sum_{u=1}^U \|\betabm_u\|_2^2 + \lambda_3 \| \bmu \|_1,
 \end{equation}
-where we add an L2 regularisation term to penalise large values in user representations,
-and constants $\lambda_1, \lambda_2, \lambda_3 \in \R_+$.
+% where we add an L2 regularisation term to penalise large values in user representations,
+% and constants $\lambda_1, \lambda_2, \lambda_3 \in \R_+$.
+where constants $\lambda_1, \lambda_2, \lambda_3 \in \R_+$,
+and the  L2 regularisation term is to penalise large values in user representations.
 
 Once all parameters have been learned, 
 we make a recommendation by first score each song according to available information (\eg an existing playlist, an existing user or a new user),
 then form a playlist by either taking the top-K scored songs or sampling songs proportional to their scores.
-Specifically, in the {\it cold songs} setting, where we recommend a set of new songs to extend an existing playlist $i$ from user $u$, 
-we score a new song $m$ by
+Specifically, in the {\it cold songs} setting, 
+% where we recommend a set of new songs to extend an existing playlist $i$ from user $u$, 
+% we score a new song $m$ by
+we extend an existing playlist $i$ from user $u$ by scoring a new song $m$ as
 $$
 \hat f(m, i, u) = (\alphabm_i + \betabm_u + \bmu)^\top \x_m.
 $$
 
-Furthermore, in the {\it cold playlists} setting, where we recommend a set of songs to form a new playlist for an existing user $u$, 
-we score song $m$ by
+Furthermore, in the {\it cold playlists} setting, 
+% where we recommend a set of songs to form a new playlist for an existing user $u$, 
+% we score song $m$ by
+we form a new playlist for an existing user $u$ by scoring song $m$ as
 $$
 \hat f(m, \cdot, u) = (\betabm_u + \bmu)^\top \x_m.
 $$
 
-Finally, in the {\it cold users} setting, where we recommend a set of songs to form a playlist for a new user,
-we score song $m$ by
+Finally, in the {\it cold users} setting, 
+% where we recommend a set of songs to form a playlist for a new user,
+% we score song $m$ by
+we form a playlist for a new user by scoring song $m$ as
 $$
 \hat f(m, \cdot, \cdot) = \bmu^\top \x_m.
 $$
