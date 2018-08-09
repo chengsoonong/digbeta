@@ -1,0 +1,63 @@
+\begin{table*}[!t]
+    \centering
+    \begin{minipage}{.333\textwidth}
+        \centering
+        \caption{Accuracy for \emph{cold songs}}
+        \label{tab:acc1}
+        \resizebox{.97\textwidth}{!}{
+        \setlength\tabcolsep{4pt}
+        \begin{tabular}{l*{4}{c}*{4}{c}}
+        \toprule
+        \multirow{2}{*}{Method}      & \multicolumn{2}{c}{30Music} && \multicolumn{2}{c}{AotM-2011} \\ \cmidrule{2-3} \cmidrule{5-6}
+                                     & HR@100 \% & AUC \% && HR@100 \% & AUC \% \\
+        \midrule
+        PopRank &         12.2 & 70.9 &&          8.7 & 76.5 \\
+        CAGH    &         10.0 & 68.0 &&         14.0 & 77.4 \\
+        SAGH    &          4.7 & 51.5 &&          7.8 & 53.6 \\
+        MF+MLP  &         27.9 & 81.4 &&         18.8 & 80.8 \\
+        MTC     &         {\bf 36.2} & {\bf 86.6} &&         {\bf 24.4} & {\bf 84.3} \\
+        \bottomrule
+        \end{tabular}
+        }
+    \end{minipage}%
+    \begin{minipage}{0.332\textwidth}
+        \centering
+        \caption{Accuracy for \emph{cold playlists}}
+        \label{tab:acc3}
+        \resizebox{.96\textwidth}{!}{
+        \setlength\tabcolsep{4pt}
+        \begin{tabular}{l*{4}{c}*{4}{c}}
+        \toprule
+        \multirow{2}{*}{Method}      & \multicolumn{2}{c}{30Music} && \multicolumn{2}{c}{AotM-2011} \\ \cmidrule{2-3} \cmidrule{5-6}
+                                     & HR@100 \% & AUC \% && HR@100 \% & AUC \% \\
+        \midrule
+        PopRank &         12.0 & 94.0 &&          5.8 & 93.8 \\
+        CAGH    &         20.1 & 94.8 &&          7.5 & 94.2 \\
+        SAGH    &         18.1 & 64.5 &&          9.2 & 79.8 \\
+        WMF     &         {\bf 20.9} & 79.5 &&          6.1 & 85.4 \\
+        MTC     &         20.8 & {\bf 95.9} &&          {\bf 9.9} & {\bf 95.4} \\
+        \bottomrule
+        \end{tabular}
+        }
+    \end{minipage}%
+    \begin{minipage}{.334\textwidth}
+        \centering
+        \caption{Accuracy for \emph{cold users}}
+        \label{tab:acc4}
+        \resizebox{\textwidth}{!}{
+        \setlength\tabcolsep{4pt}
+        \begin{tabular}{l*{4}{c}*{4}{c}}
+        \toprule
+        \multirow{2}{*}{Method}      & \multicolumn{2}{c}{30Music} && \multicolumn{2}{c}{AotM-2011} \\ \cmidrule{2-3} \cmidrule{5-6}
+                                     & HR@100 \% & AUC \% && HR@100 \% & AUC \% \\
+        \midrule
+        PopRank &         {\bf 11.0} & 88.3 &&          7.4 & {\bf 91.8} \\
+        CAGH    &         7.1 & 86.3 &&          4.9 & 88.1 \\
+        SAGH    &         7.3 & 54.5 &&          5.0 & 53.7 \\
+        WMF+kNN &         10.5 & 85.1 &&         {\small N/A} & {\small N/A} \\
+        MTC     &         {\bf 11.0} & {\bf 88.6} &&          {\bf 7.5} & {\bf 91.8} \\
+        \bottomrule
+        \end{tabular}
+        }
+    \end{minipage}
+\end{table*}
