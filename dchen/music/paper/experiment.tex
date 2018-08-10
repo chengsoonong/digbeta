@@ -56,12 +56,13 @@ as the amount of data is very limited for users (or songs) at the tail.
 \caption{Music playlist dataset}
 \label{tab:stats_pldata}
 \resizebox{\linewidth}{!}{
-\begin{tabular}{lrcrcc}
+\setlength\tabcolsep{3pt}
+\begin{tabular}{lrcrrccc}
 \toprule
-Dataset   & Songs & Playlists & Users & Songs/Playlist & Playlists/User \\
-\midrule
-30Music   & 45,468  & 17,457  & 8,070   & 16.3 & 2.2 \\
-AotM-2011 & 114,428 & 84,710  & 14,182  & 10.1 & 6.0 \\
+Dataset   & Songs   & Playlists & Users   & Artists & Songs/Playlist & Playlists/User & Songs/Artist \\
+\midrule                                                                                             
+30Music   & 45,468  & 17,457    & 8,070   & 9,981   & 16.3           & 2.2            & 28.6 \\
+AotM-2011 & 114,428 & 84,710    & 14,182  & 15,698  & 10.1           & 6.0            & 53.8 \\
 \bottomrule
 \end{tabular}
 }
@@ -103,8 +104,10 @@ Table~\ref{tab:stats2} describes the statistics of this training/test split.
 
 
 \subsubsection{Features}
-of songs used in the experiments include metadata, audio data, genre and artist information, as well as song and 
-artist popularity (\ie the number of occurrences of all songs from the artist in training set).
+% of songs used in the experiments include metadata, audio data, genre and artist information, as well as song and 
+Song metadata, audio data, genre and artist information, as well as song and 
+artist popularity (\ie the number of occurrences of all songs from the artist in training set)
+are encoded as features.
 %
 The metadata of songs (\eg duration, year of release) and audio features (\eg loudness, mode, tempo) are provided by the MSD.
 We use genre data from the Top-MAGD genre dataset~\cite{schindler2012facilitating}
@@ -124,7 +127,7 @@ Finally, we add a constant feature (with value $1$) for each song to account for
 
 
 \subsubsection{Baselines}
-We compare the performance of our proposed approach (referred as {\it Multitask Classification}) 
+We compare the performance of our proposed approach (\ie MTC) % (referred as {\it Multitask Classification}) 
 with a number of baseline methods in the three cold-start settings:
 %for the task of recommending music to form playlists:
 \begin{itemize}
@@ -156,8 +159,10 @@ with a number of baseline methods in the three cold-start settings:
       In the \emph{cold playlists} setting, we factorise the song-user play-count matrix using the weighted matrix factorisation (WMF) 
       algorithm~\cite{hu2008collaborative,van2013deep} to learn the latent representations of songs and users.
       Similarly, latent representations of songs and users are learned using WMF in the \emph{cold users} setting, however, the latent 
-      factor of a new user is approximated by the mean factors of the $k$ nearest neighbours in training set, 
-      and we refer this method as WMF+kNN.
+      factor of a new user is approximated by the mean factors of the $k$ nearest neighbours (in terms of cosine similarity of user 
+      attributes\footnote{User attributes include age, gender, country of the user, the number of playlists from her account, as well as 
+      her total play counts and subscription type, these attributes are only available in the 30Music dataset. We choose $k=100$.}) 
+      in training set, and we refer this method as WMF+kNN.
 \end{itemize}
 
 
@@ -169,6 +174,8 @@ HitRate@K~\cite{hariri2012context} and Area under the ROC curve (AUC)~\cite{mann
 We further adopt two beyond-accuracy metrics, \ie
 Novelty~\cite{zhang2012auralist,schedl2017} and Spread~\cite{kluver2014evaluating},
 which are specifically tailored to recommender systems.
+Unlike the accuracy metrics, where higher values indicate better performance,
+\emph{moderate} values of Novelty and Spread are usually preferable~\cite{kluver2014evaluating,schedl2017}.
 %
 %R-Precision (RPREC) is the number of correctly recommended songs in the top-$n$ recommendation over $n$,
 %where $n$ is the number of songs in the ground truth playlist.
@@ -285,11 +292,35 @@ and other factors such as song popularity regain the dominance for the task of p
 
 
 \subsubsection{Novelty and spread}
-
-While higher accuracy is usually preferred, 
-moderate values of novelty and spread are preferred~\cite{kluver2014evaluating,schedl2017}.
+% Unlike the accuracy metrics, where higher values indicate better performance,
+% moderate values of Novelty and Spread are usually preferable~\cite{kluver2014evaluating,schedl2017}.
+% While higher accuracy is usually preferred, 
+% moderate values of novelty and spread are preferred~\cite{kluver2014evaluating,schedl2017}.
 % moderate values are preferred.
+
+\input{fig_nov}
+
+From Figure~\ref{fig:nov1} we can see that PopRank achieves the lowest Novelty as expected from the definition of Novelty.
+The Novelty of SAGH increases dramatically when the number of recommendations is larger than 30 or 50, the reason could be the average 
+numbers of songs from an artist is around between 30 and 50 as shown in Table~\ref{tab:stats_pldata}, and SAGH simply recommends random
+songs from artists that are not appeared in users' listening history.
+All other methods achieve moderate Novelty and hence perform better for recommending new songs.
+Similar observations can be obtained from Figure~\ref{fig:nov3} for the cold playlists recommendation.
+However, there are two differences: (i) the Novelty of SAGH increases less dramatically due to the set of songs being considered are from
+all artists of users' previous playlists; (ii) the proposed method MTC achieves lower Novelty (in general) than CAGH and WMF, which indicates
+that MTC trends to prefer popular songs to form new playlists for existing users.
+It is interesting to see that, the MTC and PopRank perform identically in the cold users setting~(Figure~\ref{fig:nov4}),
+which provides more evidence that MTC degenerates to rank songs according to popularity.
+CAGH and the hybrid of matrix factorisation and nearest neighbour method generally perform better (in terms of Novelty) for recommending 
+playlists for new users.
 
 \input{tab_spread}
 
-\input{fig_nov}
+We can see from Table~\ref{tab:spread} that both PopRank and MTC can similarly spread the attention across all possible songs in all three
+cold-start settings. 
+In the cold songs setting, CAGH and SAGH focus on songs from artists in users' listening history and similar artists, which explains 
+the relative low spread values.
+However, in the cold playlists and cold users settings, SAGH improves its attention spreading due to the set of songs it focuses on 
+is significantly bigger (\ie songs from all artists in users' previous playlists and the top-10 most popular artists, respectively).
+Surprisingly, CAGH remains focuses on a relatively small set of songs in both settings.
+Lastly, the three variants of matrix factorisation method can generally spread the attention cross all possible songs comparably well.
