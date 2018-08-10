@@ -303,7 +303,7 @@ We can therefore create an unconstrained optimisation problem using the classifi
 The objective in problem~(\ref{eq:expobj_clf}) is convex but not differentiable due to the L1 regularisation terms in $\Omega(\upthetabm)$.
 However, it can be efficiently solved using the Orthant-Wise Limited-memory Quasi-Newton (OWL-QN)~\cite{andrew2007scalable} L-BFGS variant.
 
-We refer the approach that solves problem~(\ref{eq:expobj_clf}) as \emph{Multitask Classification} in experiment.
+We refer the approach that solves problem~(\ref{eq:expobj_clf}) as \emph{Multitask Classification} (MTC) in experiment.
 As a remark, the optimal solutions of problem (\ref{eq:expobj_clf}) are not necessarily the optimal solutions 
 of problem $\min_\upthetabm \ \Omega(\upthetabm) + \widetilde R_\textsc{rank}(\upthetabm)$ due to the regularisation terms.
 However, when parameters $\upthetabm$ are small (which is generally the case when using regularisation), the two objectives 
