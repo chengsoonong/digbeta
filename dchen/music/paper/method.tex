@@ -1,4 +1,5 @@
 \section{Multitask learning for playlist recommendation}
+%\section{Playlist recommendation via multitask learning}
 \label{sec:method}
 
 In this section, we introduce a multitask objective that supports the three cold-start settings
@@ -17,6 +18,11 @@ This enables the efficient optimisation of the multitask objective.
 
 
 \subsection{Multitask learning objective}
+
+Suppose we are given a dataset $\DCal$ with $N$ playlists from $U$ users, 
+where songs in every playlist are from a music collection with $M$ songs.
+We further assume each user has at least one playlist, and each song in the collection 
+is appeared in at least one playlist.
 
 Let $P_u$ denote the set of playlists from user $u$.
 We aim to learn a function $f(m, i, u)$ that measures the affinity between song $m$ and playlist $i$ from user $u$.
@@ -102,7 +108,8 @@ $$
 
 
 
-\subsection{Recommending the most probable songs}
+%\subsection{Recommending the most probable songs}
+\subsection{Penalising the improbable songs}
 \label{ssec:bploss}
 
 %In this section, we describe a ranking approach that learns to rank songs in playlist above
@@ -165,7 +172,7 @@ We deal with the \emph{min} operator in empirical risk $R_\textsc{rank}$ in the 
 
 
 
-\subsection{Solving a constrained optimisation problem}
+\subsection{Formulating a constrained optimisation problem}
 
 Suppose we use the exponential loss $\ell(f, y) = e^{-fy}$ to upper-bound the 0-1 loss in $R_\textsc{rank}$,
 %the multitask learning objective~(\ref{eq:obj_rank}) can be optimised by
@@ -203,7 +210,7 @@ in other words, the number of constraints equals the total number of songs playe
 Asymptotically, it is of order $O(\widebar{L} N)$ where $\widebar{L}$ is the average number of songs in playlists.
 Although $\widebar{L}$ is dataset dependent, and is typically less than $100$,
 the total number of playlists $N$ can be very large in production systems 
-(\eg Spotify hosts more than $2$ billion playlists~\cite{recsysch2018}),
+(\eg Spotify hosts more than $2$ billion playlists\footnote{https://newsroom.spotify.com/companyinfo})
 which imposes significant challenge when optimising problem~(\ref{eq:expobj_cons}).
 
 We want to mention two techniques that can be employed to alleviate this issue:
@@ -273,7 +280,7 @@ Inspired by this observation, we swap the positives and negatives in the P-Class
 which results in the following classification risk:
 \begin{equation}
 \label{eq:clfrisk}
-\resizebox{.9\linewidth}{!}{$\displaystyle
+\resizebox{.88\linewidth}{!}{$\displaystyle
 R_\textsc{clf}(\upthetabm)
 = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \left(
   \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(m, i, u)}
@@ -281,7 +288,7 @@ R_\textsc{clf}(\upthetabm)
 $}
 \end{equation}
 
-We have the following lemma:
+%We have the following lemma:
 \begin{lemma}
 \label{lm:rank2clf}
 Let $\upthetabm^* \in \argmin_{\upthetabm} R_\textsc{clf}$ (assuming minimisers exist),
@@ -289,9 +296,10 @@ then $\upthetabm^* \in \argmin_{\upthetabm} \widetilde R_\textsc{rank}$.
 \end{lemma}
 
 \begin{proof}
-This theorem can be proved by swapping the positives and negatives in the proof of 
+This lemma can be proved by swapping the positives and negatives in the proof of 
 the equivalence between P-Norm Push loss and P-Classification loss~\cite{ertekin2011equivalence}.
-A complete proof from first principles is described in Appendix.
+%A complete proof from first principles is described in Appendix.
+See Appendix for another proof from first principles.
 \end{proof}
 
 We can therefore create an unconstrained optimisation problem using the classification risk $R_\textsc{clf}$:

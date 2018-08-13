@@ -4,10 +4,10 @@
 \label{sec:intro}
 Online music streaming services (e.g., Spotify, Pandora, Apple Music) % Google Play Music, Amazon Music) 
 play an increasingly important role in the digital music industry.
-A key ingredient of these services is the ability to automatically recommend songs to help users explore large collections of music,
-as well as create an uninterrupted listening experience.
+A key ingredient of these services is the ability to automatically recommend songs to help users explore large collections of music.
+%as well as create an uninterrupted listening experience.
 Such recommendation is often in the form of a \emph{playlist}, which is simply an ordered sequence of songs.
-
+%
 % one paragraph about recommender system
 Conventional recommender systems for books or movies~\citep{Sarwar:2001,Netflix}
 typically learn a score function via matrix factorisation~\citep{Koren:2009},
@@ -29,34 +29,54 @@ users generally maintain more than one playlist when using a music streaming ser
 %On the other hand, if the user already has a few playlists in the system, it is expected the recommender 
 %system can also learn from this information and hopefully make better recommendations.
 
-We investigate the problem of recommending songs to form playlists (for a given user) in cold-start settings.
+We investigate the problem of recommending songs to form playlists (for a given user)
+in cold-start settings by learning from user-curated playlists.
+First, we study the problem of recommending a set of songs to form a playlist for a new user (\ie \emph{cold user}).
+We find it is challenging to improve recommendations beyond simply ranking songs according to their popularity,
+which is consistent with discoveries in~\cite{mcfee2012million,bonnin2013evaluating,bonnin2015automated}.
+% the reason is believed to be that a small number of popular songs appeared in a large number of playlists, 
+% and the majority of songs only appear in a few playlists~\cite{bonnin2013evaluating}.
+% This is consistent with discoveries in~\cite{bonnin2013evaluating,jannach2015beyond,bonnin2015automated}
 %
-The challenge of this task, besides those brought by cold-start settings, is two-fold:
-\begin{enumerate}[(i)]
-	\item \emph{Sparsity}. While a large number of playlists are hosted by music streaming services,
-playlists for each user is still limited. This is exacerbated by the long-tailed distribution that
-most users only have a few playlists, while a small portion of users have a very large number of playlists.
-Similarly, a small number of popular songs appeared in a large number of playlists, and the majority of songs
-only appear in a few playlists~\cite{bonnin2013evaluating}.
-	\item \emph{Noise}. There could be noise in metadata~\cite{bonnin2015automated} or users might randomly choose songs 
-from their music collection when composing playlists~\cite{mcfee2012hypergraph}.
-%which makes it hard to learn the intent of a playlist.
-\end{enumerate}
-These challenges make it hard to make recommendations better than simply ranking songs according to their 
-popularity~\cite{mcfee2012million,bonnin2013evaluating,bonnin2015automated},
+This motivates us to exploit the (implicit) user preference from her existing playlists,
+which leads to the \emph{cold playlists} setting,
+where a set of songs are recommended to form a new playlist for an existing user. %of a music service.
+We find that learning from a user's existing playlists %can significantly 
+improves the accuracy of recommendation.
+%
+%In addition, 
+We further investigate the value of seed songs for improving recommendation.
+This results in the \emph{cold songs} setting,
+where we recommend a set of newly released songs to extend users' existing playlists. %from users.
+%
+% The challenge of this task, besides those brought by cold-start settings, is two-fold:
+% \begin{enumerate}[(i)]
+%	\item \emph{Sparsity}. While a large number of playlists are hosted by music streaming services,
+% playlists for each user is still limited. This is exacerbated by the long-tailed distribution that
+% most users only have a few playlists, while a small portion of users have a very large number of playlists.
+% Similarly, a small number of popular songs appeared in a large number of playlists, and the majority of songs
+% only appear in a few playlists~\cite{bonnin2013evaluating}.
+%	\item \emph{Noise}. There could be noise in metadata~\cite{bonnin2015automated} or users might randomly choose songs 
+% from their music collection when composing playlists~\cite{mcfee2012hypergraph}.
+%% which makes it hard to learn the intent of a playlist.
+% \end{enumerate}
+%These challenges make it hard to make recommendations better than simply ranking songs according to their 
+% popularity~\cite{mcfee2012million,bonnin2013evaluating,bonnin2015automated},
 
-
-%In this paper, we propose a novel approach which ranks 
-In this paper, we propose a novel multitask learning method for playlist recommendation in cold-start settings.
-It aims to rank songs that could end up being in a playlist %for the given user 
+%%In this paper, we propose a novel approach which ranks 
+% In this paper, we propose a novel multitask learning method for playlist recommendation in cold-start settings.
+We propose a novel multitask learning method to %which can 
+deal with all three cold-start settings for playlist recommendation.
+It aims to rank songs that are likely to be in a playlist %that could end up being in a playlist %for the given user 
 above those unlikely to be chosen.
 Compared to the Bayesian Personalised Ranking (BPR) approach which requires all
 songs in playlist to rank higher than those are not~\cite{rendle2009bpr,mcfee2012million}, 
-we focus on the lowest ranked song in a playlist and penalise any song ranked higher but does not appear in the playlist.
-This approach has been shown to work more efficiently when one cares about only the top ranked items~\cite{li2014top}.
-
+this approach penalises songs that are not in playlist but ranked higher than the lowest ranked song in playlist,
+% we focus on the lowest ranked song in a playlist and penalise any song ranked higher but does not appear in the playlist.
+a similar approach has been shown to work more efficiently when one cares about only the top ranked items~\cite{li2014top}.
+%
 %To learn the parameters, 
-We optimise the multitask objective by solving 
+We optimise the multitask objective by formulating %solving 
 %which involves 
 a constrained convex optimisation problem.
 Inspired by an equivalence relationship between bipartite ranking and binary classification,
@@ -68,13 +88,14 @@ has good performance for playlist recommendation in cold-start settings.
 %and the classification approach in particular significantly improves the learning efficiency 
 %while maintaining the same level of high performance as the ranking approach.
 
-Our paper is organised as follows:
-Section 2 illustrates the three cold-start settings we investigate and summarises recent related work.
-Section 3 describes the multitask objective and approaches to optimise it.
-%a bipartite ranking loss which aims to ranks songs in a playlist higher than those are not.
-%We optimises the multitask objective by solving a constrained optimisation problem.
-%We then describe a classification loss which enables us to approximately optimise the objective by
-%solving an unconstrained optimisation problem.
-%Section 4 discusses previous work that are most relevant to our work.
-Section 4 details experiments of cold-start playlist recommendation. % on two real playlist datasets.
-Lastly, we summarises the paper and describes future work in Section 5.
+% Our paper is organised as follows:
+% Section 2 discusses previous study that are most relevant to our work.
+%%Section 2 illustrates the three cold-start settings we investigate and summarises recent related work.
+%Section 3 describes the multitask objective and approaches to optimise it.
+%%a bipartite ranking loss which aims to ranks songs in a playlist higher than those are not.
+%%We optimises the multitask objective by solving a constrained optimisation problem.
+%%We then describe a classification loss which enables us to approximately optimise the objective by
+%%solving an unconstrained optimisation problem.
+%%Section 4 discusses previous work that are most relevant to our work.
+% Section 4 details experiments of cold-start playlist recommendation. % on two real playlist datasets.
+% Lastly, we summarises the paper and describes future work in Section 5.

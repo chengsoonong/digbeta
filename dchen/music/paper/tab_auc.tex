@@ -1,0 +1,21 @@
+\begin{table}[t]
+\caption{AUC for cold-start recommendations}
+\label{tab:auc}
+\resizebox{\columnwidth}{!}{
+\setlength\tabcolsep{2pt}
+\begin{tabular}{lcccclcccclcccc}
+\toprule 
+\multicolumn{3}{c}{Cold Users} &&& \multicolumn{3}{c}{Cold Playlists} &&& \multicolumn{3}{c}{Cold Songs} \\ 
+\cmidrule{1-3} \cmidrule{6-8} \cmidrule{11-13}
+Method & 30Music & AotM-2011 &&& Method & 30Music & AotM-2011 &&& Method & 30Music & AotM-2011 \\ 
+\cmidrule{1-3} \cmidrule{6-8} \cmidrule{11-13}
+%\midrule
+PopRank &    88.3    & {\bf 91.8}   &&&  PopRank &  94.0      &    93.8    &&&  PopRank &   70.9     &     76.5  \\
+CAGH    &    86.3    &    88.1      &&&  CAGH    &  94.8      &    94.2    &&&  CAGH    &   68.0     &     77.4  \\
+SAGH    &    54.5    &    53.7      &&&  SAGH    &  64.5      &    79.8    &&&  SAGH    &   51.5     &     53.6  \\
+WMF+kNN &    85.1    & {\small N/A} &&&  WMF     &  79.5      &    85.4    &&&  MF+MLP  &   81.4     &     80.8  \\
+MTC     & {\bf 88.6} & {\bf 91.8}   &&&  MTC     & {\bf 95.9} & {\bf 95.4} &&&  MTC     & {\bf 86.6} & {\bf 84.3}\\
+\bottomrule
+\end{tabular}
+}
+\end{table}

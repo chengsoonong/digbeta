@@ -29,7 +29,7 @@
 @article{ertekin2011equivalence,
   author={Ertekin, {\c{S}}eyda and Rudin, Cynthia},
   title={On equivalence relationships between classification and ranking algorithms},
-  journal={Journal of Machine Learning Research},
+  journal={JMLR},
   volume={12},
   pages={2905--2929},
   year={2011},
@@ -38,7 +38,7 @@
 @article{rudin2009p,
   title={{The P-Norm Push}: A simple convex ranking algorithm that concentrates at the top of the list},
   author={Rudin, Cynthia},
-  journal={Journal of Machine Learning Research},
+  journal={JMLR},
   volume={10},
   pages={2233--2271},
   year={2009},
@@ -61,7 +61,7 @@
 @article{menon2016bipartite,
   title={Bipartite ranking: a risk-theoretic perspective},
   author={Menon, Aditya Krishna and Williamson, Robert C},
-  journal={Journal of Machine Learning Research},
+  journal={JMLR},
   volume={17},
   pages={1--102},
   year={2016},
@@ -113,7 +113,9 @@
 @inproceedings{30music2015,
   author={Turrin, Roberto and Quadrana, Massimo and Condorelli, Andrea and Pagano, Roberto and Cremonesi, Paolo},
   title={30Music Listening and Playlists Dataset},
-  booktitle={RecSys Posters},
+  //booktitle={RecSys Posters},
+  //booktitle={Proceedings of the Poster Track of the ACM Conference on Recommender Systems},
+  booktitle={Poster Track of RecSys},
   year={2015},
 }
 
@@ -174,7 +176,7 @@
          and Thirion, B. and Grisel, O. and Blondel, M. and Prettenhofer, P.
          and Weiss, R. and Dubourg, V. and Vanderplas, J. and Passos, A. and
          Cournapeau, D. and Brucher, M. and Perrot, M. and Duchesnay, E.},
- journal={Journal of Machine Learning Research},
+ journal={JMLR},
  volume={12},
  pages={2825--2830},
  year={2011},
@@ -262,7 +264,6 @@
   title={Automated generation of music playlists: Survey and experiments},
   author={Bonnin, Geoffray and Jannach, Dietmar},
   journal={ACM Computing Surveys},
-  volume={47},
   year={2015},
 }
 
@@ -284,9 +285,9 @@
 
 @book{boyd2004convex,
   author={Boyd, Stephen and Vandenberghe, Lieven},
-  title={Convex optimization},
+  title={{Convex Optimization}},
   year={2004},
-  publisher={Cambridge university press}
+  publisher={Cambridge University Press}
 }
 
 @book{avriel2003nonlinear,
@@ -298,7 +299,7 @@
 
 @inproceedings{andrew2007scalable,
   author={Andrew, Galen and Gao, Jianfeng},
-  title={Scalable training of L 1-regularized log-linear models},
+  title={Scalable training of {L1}-regularized log-linear models},
   booktitle={ICML},
   year={2007},
 }
@@ -340,19 +341,20 @@
 @inproceedings{tintarev2017sequences,
   title={Sequences of Diverse Song Recommendations: An exploratory study in a commercial system},
   author={Tintarev, Nava and Lofi, Christoph and Liem, Cynthia},
-  booktitle={Proceedings of the 25th Conference on User Modeling, Adaptation and Personalization},
+  booktitle={UMAP},
   year={2017},
 }
 
 @inproceedings{vall2017importance,
   title={The Importance of Song Context in Music Playlists},
   author={Vall, Andreu and Schedl, Markus and Widmer, Gerhard and Quadrana, Massimo and Cremonesi, Paolo},
-  booktitle={Proceedings of the Poster Track of the 11th ACM Conference on Recommender Systems},
+  //booktitle={Proceedings of the Poster Track of the ACM Conference on Recommender Systems},
+  booktitle={Poster Track of RecSys},
   year={2017}
 }
 
 @inproceedings{rendle2009bpr,
-  title={BPR: Bayesian personalized ranking from implicit feedback},
+  title={{BPR: Bayesian} personalized ranking from implicit feedback},
   author={Rendle, Steffen and Freudenthaler, Christoph and Gantner, Zeno and Schmidt-Thieme, Lars},
   booktitle={UAI},
   year={2009},
@@ -367,11 +369,11 @@
   year={2006}
 }
 
-@article{seyerlehner2010automatic,
-  title={Automatic music tag classification based on block-level},
+@inproceedings{seyerlehner2010automatic,
+  title={Automatic music tag classification based on blocklevel features},
   author={Seyerlehner, Klaus and Widmer, Gerhard and Schedl, Markus and Knees, Peter},
-  journal={Proceedings of Sound and Music Computing},
-  year={2010}
+  booktitle={SMC},
+  year={2010},
 }
 
 @inproceedings{eghbal2015vectors,
@@ -424,7 +426,7 @@
 @inproceedings{hu2010study,
   title={A study on user perception of personality-based recommender systems},
   author={Hu, Rong and Pu, Pearl},
-  booktitle={International Conference on User Modeling, Adaptation, and Personalization},
+  booktitle={UMAP},
   year={2010},
 }
 
@@ -438,30 +440,22 @@
 @article{wang2014exploration,
   title={Exploration in interactive personalized music recommendation: a reinforcement learning approach},
   author={Wang, Xinxi and Wang, Yi and Hsu, David and Wang, Ye},
-  journal={ACM Transactions on Multimedia Computing, Communications, and Applications},
-  volume={11},
+  journal={TOMM},
   year={2014},
 }
 
 @inproceedings{liebman2015dj,
   title={{DJ-MC}: A reinforcement-learning agent for music playlist recommendation},
   author={Liebman, Elad and Saar-Tsechansky, Maytal and Stone, Peter},
-  booktitle={Proceedings of the 2015 International Conference on Autonomous Agents and Multiagent Systems},
+  booktitle={AAMAS},
   year={2015},
 }
 
 @inproceedings{van2013deep,
   title={Deep content-based music recommendation},
-  author={Van den Oord, Aaron and Dieleman, Sander and Schrauwen, Benjamin},
+  author={Oord, A{\"a}ron van den and Dieleman, Sander and Schrauwen, Benjamin},
   booktitle={NIPS},
   year={2013}
-}
-
-@inproceedings{gantner2010learning,
-  title={Learning attribute-to-feature mappings for cold-start recommendations},
-  author={Gantner, Zeno and Drumond, Lucas and Freudenthaler, Christoph and Rendle, Steffen and Schmidt-Thieme, Lars},
-  booktitle={ICDM},
-  year={2010},
 }
 
 @inproceedings{hu2008collaborative,

@@ -1,55 +1,19 @@
 \section{Experiments}
 \label{sec:experiment}
 
+% order of description:
+% - cold playlists
+% - cold songs
+% - cold users
+
 In this section, we describe experiments that empirically evaluate the proposed method and a number of 
 well known baseline approaches in the three cold-start settings described in Section~\ref{sec:problem}.
-
-\begin{figure*}[!t]
-    \centering
-    \begin{minipage}{.5\textwidth}
-        \centering
-        \includegraphics[width=.95\linewidth]{fig/hist_pluser.pdf}
-        \caption{Histogram of the number of playlists per user}
-        \label{fig:hist_pluser}
-    \end{minipage}%
-    \begin{minipage}{0.5\textwidth}
-        \centering
-        \includegraphics[width=.95\linewidth]{fig/hist_songpop.pdf}
-        \caption{Histogram of song popularity}
-        \label{fig:hist_songpop}
-    \end{minipage}
-\end{figure*}
 
 
 \subsection{Dataset}
 We make use of two publicly available playlist datasets: the 30Music~\cite{30music2015} and AotM-2011~\cite{mcfee2012hypergraph} dataset.
 The Million Song Dataset~\cite{msd2011} serves as an underlying dataset where songs in all playlists are intersected.
 It also provides a few song features which will be described later in this section.
-
-
-
-{\bf Million Song Dataset} (MSD) is a collection of one million songs, where each song is described by its metadata 
-(\eg song title, artist name, year of release) and a number of precomputed audio features from the Echo Nest\footnote{\url{http://the.echonest.com}}.
-%It also provides acoustic features computed from a sample section of audio file of each song. % more description
-
-{\bf 30Music Dataset} is a collection of listening events and playlists retrieved from Last.fm\footnote{\url{https://www.last.fm}}.
-We first intersect the playlists data with songs in the MSD, leveraging the Last.fm dataset~\cite{lastfmdataset}
-which matched songs from Last.fm with those in the MSD, then filter out playlists with less than 5 songs.
-This results in about 17K playlists over 45K songs from 8K users.
-
-{\bf AotM-2011 Dataset} is a collection of playlists shared by Art of the Mix\footnote{\url{http://www.artofthemix.org}} 
-users during the period from 1998 to 2011. Songs in playlists have been matched to those in the MSD.
-We filtered out playlists with less than 5 songs, which results in roughly 84K playlists over 114K songs from 14K users.
-
-Table~\ref{tab:stats_pldata} summarises the two playlist datasets used in this work.
-The histograms of the number of playlists per user as well as song popularity 
-(\ie the number of occurrences of a song in all playlists)
-of the two datasets are shown in Figure~\ref{fig:hist_pluser} and Figure~\ref{fig:hist_songpop},
-respectively.
-We can see from Figure~\ref{fig:hist_pluser} and \ref{fig:hist_songpop} that both the number
-of playlists per user and song popularity follow a long-tailed distribution, which imposes further challenge to the learning task 
-as the amount of data is very limited for users (or songs) at the tail.
-
 
 \begin{table}[hbt]
 \centering
@@ -68,6 +32,27 @@ AotM-2011 & 114,428 & 84,710    & 14,182  & 15,698  & 10.1           & 6.0      
 }
 \end{table}
 
+
+{\bf Million Song Dataset} (MSD) is a collection of one million songs, where each song is described by its metadata 
+(\eg song title, artist name, year of release) and a number of precomputed audio features from the Echo Nest\footnote{http://the.echonest.com}.
+%It also provides acoustic features computed from a sample section of audio file of each song. % more description
+
+{\bf 30Music Dataset} is a collection of listening events and playlists retrieved from Last.fm\footnote{https://www.last.fm}.
+We first intersect the playlists data with songs in the MSD, 
+%leveraging the Last.fm dataset~\cite{lastfmdataset} which matched songs from Last.fm with those in the MSD, 
+then filter out playlists with less than 5 songs.
+This results in about 17K playlists over 45K songs from 8K users.
+
+{\bf AotM-2011 Dataset} is a collection of playlists shared by Art of the Mix\footnote{http://www.artofthemix.org} 
+users during the period from 1998 to 2011. Songs in playlists have been matched to those in the MSD.
+We filtered out playlists with less than 5 songs, which results in roughly 84K playlists over 114K songs from 14K users.
+%
+Table~\ref{tab:stats_pldata} summarises the %two 
+playlist datasets used in this work.
+
+
+
+\input{tab_stats}
 
 \subsection{Experimental setup}
 
@@ -123,8 +108,7 @@ thus song popularity is used as a feature only in the \emph{cold playlists} and 
 Finally, we add a constant feature (with value $1$) for each song to account for bias.
 
 
-\input{tab_stats}
-
+\input{fig_hr}
 
 \subsubsection{Baselines}
 We compare the performance of our proposed approach (\ie MTC) % (referred as {\it Multitask Classification}) 
@@ -155,7 +139,7 @@ with a number of baseline methods in the three cold-start settings:
       Recommendations are made as per our method described in Section~\ref{sec:method}.
       In the \emph{cold songs} setting, latent representations of songs/playlists are learnt by factorising the song-playlist matrix  
       To obtain the representations of new songs, we learn a two-layer neural network (multilayer perceptron, MLP) to map song 
-      content features to the corresponding latent representations~\cite{gantner2010learning,van2013deep}, and call this method MF+MLP. 
+      content features to the corresponding latent representations~\cite{Gantner:2010,van2013deep}, and call this method MF+MLP. 
       In the \emph{cold playlists} setting, we factorise the song-user play-count matrix using the weighted matrix factorisation (WMF) 
       algorithm~\cite{hu2008collaborative,van2013deep} to learn the latent representations of songs and users.
       Similarly, latent representations of songs and users are learned using WMF in the \emph{cold users} setting, however, the latent 
@@ -164,6 +148,8 @@ with a number of baseline methods in the three cold-start settings:
       her total play counts and subscription type, these attributes are only available in the 30Music dataset. We choose $k=100$.}) 
       in training set, and we refer this method as WMF+kNN.
 \end{itemize}
+
+
 
 
 \subsubsection{Evaluation}
@@ -215,8 +201,9 @@ Spread is used to measure the ability of an algorithm to spread its attention ac
 % we compare the performance of our proposed approach with several other baseline approaches.
 % we first analyse the accuracy related measures and look at measures that beyond accuracy.
 
-\input{tab_acc}
-\input{fig_hr}
+%\input{tab_acc}
+\input{tab_auc}
+\input{fig_nov}
 
 \subsubsection{Accuracy}
 
@@ -298,7 +285,7 @@ and other factors such as song popularity regain the dominance for the task of p
 % moderate values of novelty and spread are preferred~\cite{kluver2014evaluating,schedl2017}.
 % moderate values are preferred.
 
-\input{fig_nov}
+\input{tab_spread}
 
 From Figure~\ref{fig:nov1} we can see that PopRank achieves the lowest Novelty as expected from the definition of Novelty.
 The Novelty of SAGH increases dramatically when the number of recommendations is larger than 30 or 50, the reason could be the average 
@@ -313,8 +300,6 @@ It is interesting to see that, the MTC and PopRank perform identically in the co
 which provides more evidence that MTC degenerates to rank songs according to popularity.
 CAGH and the hybrid of matrix factorisation and nearest neighbour method generally perform better (in terms of Novelty) for recommending 
 playlists for new users.
-
-\input{tab_spread}
 
 We can see from Table~\ref{tab:spread} that both PopRank and MTC can similarly spread the attention across all possible songs in all three
 cold-start settings. 
