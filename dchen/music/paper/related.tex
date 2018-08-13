@@ -64,40 +64,54 @@ Further, content features can also be combined with other approaches, such as th
 collaborative filtering~\cite{yoshii2006hybrid,donaldson2007hybrid,shao2009music},
 which is known as the hybrid recommendation approaches~\cite{burke2002hybrid,aggarwal2016recommender}.
 %see~\cite[Chapter~6]{aggarwal2016recommender} for a general description. % besides music recommendation.
-The problem of recommending music for %{\it cold users} (\ie new users) 
-new users has been tackled by a number of approaches, including transferring user preferences learned 
+%
+%The problem of recommending music for %{\it cold users} (\ie new users) 
+%new users has been tackled by a number of approaches, including transferring user preferences learned 
+%from related domains~\cite{hu2010study,aizenberg2012build},
+%and techniques that balance the exploration-exploitation trade-off~\cite{wang2014exploration,liebman2015dj}.
+
+Another popular approach involves explicitly mapping user- or item- content features to the latent embeddings~\cite{Gantner:2010}.
+This approach can be adopted to recommend new songs, 
+\eg by learning a convolutional neural network to map audio features of new songs to 
+the corresponding latent embeddings~\cite{van2013deep},
+% has been adopted in music recommendation~\cite{van2013deep}
+which are further used to score songs with the latent embeddings of playlists (learned by matrix factorisation).
+The problem of recommending music for new users can also be tackled using a similar approach, \eg
+%Similar approaches can be employed to make recommendations for new users 
+by learning a mapping from user attributes to user embeddings.
+
+A slightly different approach to deal with music recommendation for new users is~\cite{ben2017groove},
+it learns hierarchical representations for genre, sub-genre and artist.
+An additive form with user and artist weights is adopted, which falls back to use only artist weights
+when recommending music to new users, if artist weights are unavailable, it further falls back to use 
+sub-genre (or genre) weights.
+However, the requirement of seed information (\eg artist, sub-genre or genre) restricts its applicability to
+the \emph{cold users} and \emph{cold playlists} settings, where no seed information is available.
+Further, as song usage information has been encoded as song features, this makes it unsuitable for recommending
+new songs where usage information is not available.
+%
+Other approaches to make recommendations for new users including transferring user preferences learned 
 from related domains~\cite{hu2010study,aizenberg2012build},
 and techniques that balance the exploration-exploitation trade-off~\cite{wang2014exploration,liebman2015dj}.
 
-
-Another popular approach involves explicitly mapping user- or item- content features to the latent embeddings~\cite{Gantner:2010}.
-This approach has been adopted in music recommendation~\cite{van2013deep},
-it learns a convolutional neural network to map audio features of new songs to the corresponding latent embeddings,
-which can be further used to score songs with the latent embeddings of playlists (learned by matrix factorisation)
-
-
-
 % combined: cold start playlist recommendation
 % We investigate three settings of cold-start problems in playlist recommendation
-The work that most related to ours is \citep{ben2017groove}, which learns hierarchical representations
-for genre, sub-genre and artist.
-It uses a similar additive form that composite of user weights and artist weights.
-To make cold start recommendation, it falls back to use only artist weights,
-if artist weights are unavailable, it further falls back to use sub-genre (or genre) weights.
-%However, this work requires additional context information when make cold start recommendations,
-This approach encodes song usage information as features which restricts its applicability for other settings
-of cold start settings considered in this work.
+%The work that most related to ours is \citep{ben2017groove}, which learns hierarchical representations
+%for genre, sub-genre and artist.
+%It uses a similar additive form that composite of user weights and artist weights.
+%To make cold start recommendation, it falls back to use only artist weights,
+%if artist weights are unavailable, it further falls back to use sub-genre (or genre) weights.
+%%However, this work requires additional context information when make cold start recommendations,
+%This approach encodes song usage information as features which restricts its applicability for other settings
+%of cold start settings considered in this work.
 
-Another work that can deal with cold start recommendation is \citep{van2013deep}.
-This approach can make cold start recommendation by mapping song audio features to song latent factors 
-with a convolutional neural network, which is further used to score new (cold) songs with 
-latent factors of playlists learned by matrix factorisation.
-Similar approaches has also been proposed in~\cite{Gantner:2010} which learns functions to map
-user/item attributes to the corresponding latent factors that learned by matrix factorisation.
-
+%Another work that can deal with cold start recommendation is \citep{van2013deep}.
+%This approach can make cold start recommendation by mapping song audio features to song latent factors 
+%with a convolutional neural network, which is further used to score new (cold) songs with 
+%latent factors of playlists learned by matrix factorisation.
+%Similar approaches has also been proposed in~\cite{Gantner:2010} which learns functions to map
+%user/item attributes to the corresponding latent factors that learned by matrix factorisation.
 
 % Groove radio paper: deal with cold user playlist recommendation given context
 % Deep content music recommendation: deal with cold song/user recommendation if there's content attributes for song/user
 % Similar to a general setting in ICDM'10 paper
-
-
