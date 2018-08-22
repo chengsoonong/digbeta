@@ -32,17 +32,19 @@ AotM-2011 & 114,428 & 84,710    & 14,182  & 15,698  & 10.1           & 6.0      
 }
 \end{table}
 
-
+\noindent
 {\bf Million Song Dataset} (MSD) is a collection of one million songs, where each song is described by its metadata 
 (\eg song title, artist name, year of release) and a number of precomputed audio features from the Echo Nest\footnote{http://the.echonest.com}.
 %It also provides acoustic features computed from a sample section of audio file of each song. % more description
 
+\noindent
 {\bf 30Music Dataset} is a collection of listening events and playlists retrieved from Last.fm\footnote{https://www.last.fm}.
 We first intersect the playlists data with songs in the MSD, 
 %leveraging the Last.fm dataset~\cite{lastfmdataset} which matched songs from Last.fm with those in the MSD, 
 then filter out playlists with less than 5 songs.
 This results in about 17K playlists over 45K songs from 8K users.
 
+\noindent
 {\bf AotM-2011 Dataset} is a collection of playlists shared by Art of the Mix\footnote{http://www.artofthemix.org} 
 users during the period from 1998 to 2011. Songs in playlists have been matched to those in the MSD.
 We filtered out playlists with less than 5 songs, which results in roughly 84K playlists over 114K songs from 14K users.
