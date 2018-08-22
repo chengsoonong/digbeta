@@ -31,9 +31,11 @@ This enables efficient optimisation of the multitask objective.
 
 \subsection{Multitask learning objective}
 
-Suppose we are given a dataset $\DCal$ with $N$ playlists from $U$ users, 
+%Suppose we are given 
+Given a dataset $\DCal$ with $N$ playlists from $U$ users, 
 where songs in every playlist are from a music collection with $M$ songs.
-We further assume each user has at least one playlist, and each song in the collection 
+%We further assume 
+Assume each user has at least one playlist, and each song in the collection 
 is appeared in at least one playlist.
 %
 Let $P_u$ denote the set of playlists from user $u$.
@@ -44,10 +46,16 @@ Suppose $f$ has a linear form
 \label{eq:scorefunc}
 f(m, i, u) = \w_{i,u}^\top \x_m,
 \end{equation}
-where $m \in \{1,\dots,M\}, \ i \in P_u, \ u \in \{1,\dots,U\}$,
-vector $\w_{i,u}$ represents the weights of playlist $i$ from user $u$,
-and vector $\x_m$ represents features of song $m$.
+where $m \in \{1,\dots,M\}, i \in P_u, u \in \{1,\dots,U\}$,
+$\x_m \in \R^D$ represents the $D$ features of song $m$,
+and $\w_{i,u} \in \R^D$ are the weights (or representation) of playlist $i$ from user $u$.
+%vector $\w_{i,u}$ represents the weights of playlist $i$ from user $u$,
 
+\footnote{
+Instead of learning a joint representation for each user and playlist (which requires $U N$ representations, 
+which imposes challenging to learn if there is not enough data for each user, and this is true for users in the tail of the long-tailed distribution), 
+we decompose it according to user and playlist ($U + N$ in total).
+}
 
 We further assume that playlists of the \emph{same} user have \emph{similar} representations,
 and although the representations of different users are generally different,
