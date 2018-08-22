@@ -3,7 +3,8 @@
 % only describe problem settings: playlist generation, next song recommendation, playlist continuation
 
 We summarise recent work most related to playlist recommendation and music recommendation in cold-start 
-scenarios.
+scenarios,
+as well as work on the connection between bipartite ranking and binary classification.
 
 %\subsubsection{Playlist recommendation}
 There is a rich collection of recent literature on playlist recommendation,
@@ -70,7 +71,8 @@ which is known as the hybrid recommendation approaches~\cite{burke2002hybrid,agg
 %from related domains~\cite{hu2010study,aizenberg2012build},
 %and techniques that balance the exploration-exploitation trade-off~\cite{wang2014exploration,liebman2015dj}.
 
-Another popular approach involves explicitly mapping user- or item- content features to the latent embeddings~\cite{Gantner:2010}.
+Another popular approach for cold-start recommendation involves explicitly mapping 
+user- or item- content features to latent embeddings~\cite{Gantner:2010}.
 This approach can be adopted to recommend new songs, 
 \eg by learning a convolutional neural network to map audio features of new songs to 
 the corresponding latent embeddings~\cite{van2013deep},
@@ -80,19 +82,42 @@ The problem of recommending music for new users can also be tackled using a simi
 %Similar approaches can be employed to make recommendations for new users 
 by learning a mapping from user attributes to user embeddings.
 
-A slightly different approach to deal with music recommendation for new users is~\cite{ben2017groove},
-it learns hierarchical representations for genre, sub-genre and artist.
-An additive form with user and artist weights is adopted, which falls back to use only artist weights
+A slightly different approach to deal with music recommendation for new users is learning hierarchical 
+representations for genre, sub-genre and artist.
+By adopting an additive form with user and artist weights, it can fall back to use only artist weights
 when recommending music to new users, if artist weights are unavailable, it further falls back to use 
-sub-genre (or genre) weights.
-However, the requirement of seed information (\eg artist, sub-genre or genre) restricts its applicability to
-the \emph{cold users} and \emph{cold playlists} settings, where no seed information is available.
-Further, as song usage information has been encoded as song features, this makes it unsuitable for recommending
-new songs where usage information is not available.
+sub-genre (or genre) weights~\cite{ben2017groove}.
+However, the requirement of seed information (\eg artist, genre or a seed song) restricts its applicability to
+the \emph{cold playlists} and \emph{cold users} settings, %where no seed information is available.
+further, encoding song usage information as features makes it unsuitable for recommending new songs.
+%Further, as song usage information has been encoded as song features, this makes it unsuitable for recommending
+%new songs where usage information is not available.
 %
-Other approaches to make recommendations for new users including transferring user preferences learned 
-from related domains~\cite{hu2010study,aizenberg2012build},
-and techniques that balance the exploration-exploitation trade-off~\cite{wang2014exploration,liebman2015dj}.
+There are other approaches to make recommendations for new users, such as transferring user preferences learned 
+from related domains~\cite{hu2010study,aizenberg2012build}, or balancing the exploration-exploitation 
+trade-off~\cite{wang2014exploration,liebman2015dj}.
+%Other approaches to make recommendations for new users including transferring user preferences learned 
+%from related domains~\cite{hu2010study,aizenberg2012build},
+%and techniques that balance the exploration-exploitation trade-off~\cite{wang2014exploration,liebman2015dj}.
+
+
+
+%It has been known 
+It is well known
+that bipartite ranking and binary classification are
+closely related~\cite{ertekin2011equivalence,menon2016bipartite}.
+In particular, \citet{ertekin2011equivalence} have shown that the P-Norm Push bipartite ranking loss~\cite{rudin2009p}
+is equivalent to the P-Classification loss~\cite{ertekin2011equivalence} when using the exponential surrogate.
+Further, the P-Norm Push loss is an approximation of the Infinite-Push loss~\cite{agarwal2011infinite},
+or equivalently, the Top-Push loss~\cite{li2014top}, which focuses on the highest ranked negative example instead of
+the lowest ranked positive example as in the Bottom-Push loss~\cite{rudin2009p} that we adopt in this work. %~(\ref{eq:bprisk}).
+%
+Compared to the Bayesian Personalised Ranking (BPR) approach which requires all
+positive items to be ranked higher than those unobserved ones~\cite{rendle2009bpr,mcfee2012million}, 
+the adopted approach penalises unobserved items that ranked higher than the lowest ranked positive item,
+which can be optimised more efficiently when one cares about only the top ranked items~\cite{rudin2009p,li2014top}.
+%a similar approach has been shown to work more efficiently when one cares about only the top ranked items~\cite{li2014top}.
+
 
 % combined: cold start playlist recommendation
 % We investigate three settings of cold-start problems in playlist recommendation
