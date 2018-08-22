@@ -53,6 +53,10 @@ for u in range(U):
     pl2u[clq] = u
 assert np.all(clf.pl2u == pl2u[:Y_train.shape[1]])
 
+if task == 4 and dataset == '30music':
+    train_user2index, test_user2index, cosine_similarities = pkl.load(gzip.open('%s/user_sim.pkl.gz' % data_dir, 'rb'))
+    k = 10
+
 rps = []
 hitrates = {top: [] for top in TOPs}
 aucs = []
@@ -74,7 +78,15 @@ for j in range(Y_test.shape[1]):
         wj = clf.V[u, :] + clf.mu
         y_pred = np.dot(X, wj).reshape(-1)
     else:
-        y_pred = np.dot(X, clf.mu).reshape(-1)
+        if dataset == '30music':
+            if u not in test_user2index:
+                continue
+            uix = test_user2index[u]
+            neighbour_ix = np.argpartition(cosine_similarities[uix, :].reshape(-1), -k)[-k:]  # indices of kNN
+            wj = clf.V[neighbour_ix, :].mean(axis=0).reshape(-1) + clf.mu
+            y_pred = np.dot(X, wj).reshape(-1) 
+        else:
+            y_pred = np.dot(X, clf.mu).reshape(-1)
 
     # rp, hr_dict = calc_RPrecision_HitRate(y_true, y_pred, tops=TOPs)
     rp, hr_dict, auc = calc_metrics(y_true, y_pred, tops=TOPs)
