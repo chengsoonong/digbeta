@@ -38,58 +38,68 @@ where songs in every playlist are from a music collection with $M$ songs.
 Assume each user has at least one playlist, and each song in the collection 
 is appeared in at least one playlist.
 %
-Let $P_u$ denote the set of playlists from user $u$.
-We aim to learn a function $f(m, i, u)$ that measures the affinity between song $m$ and playlist $i$ from user $u$.
+Let $P_u$ denote the set of playlists from user $u$,
+we aim to learn a function $f(m, u, i)$ that measures the affinity between song $m$ and playlist $i$ from user $u$.
 %playlist $i$ and song $m$. 
 Suppose $f$ has a linear form
 \begin{equation}
 \label{eq:scorefunc}
-f(m, i, u) = \w_{i,u}^\top \x_m,
+f(m, u, i) = \w_{u,i}^\top \x_m,
 \end{equation}
-where $m \in \{1,\dots,M\}, i \in P_u, u \in \{1,\dots,U\}$,
+where $m \in \{1,\dots,M\}, u \in \{1,\dots,U\}, i \in P_u$,
 $\x_m \in \R^D$ represents the $D$ features of song $m$,
-and $\w_{i,u} \in \R^D$ are the weights (or representation) of playlist $i$ from user $u$.
+and $\w_{u,i} \in \R^D$ are the weights (or representation) of playlist $i$ from user $u$.
 %vector $\w_{i,u}$ represents the weights of playlist $i$ from user $u$,
 
-\footnote{
-Instead of learning a joint representation for each user and playlist (which requires $U N$ representations, 
-which imposes challenging to learn if there is not enough data for each user, and this is true for users in the tail of the long-tailed distribution), 
-we decompose it according to user and playlist ($U + N$ in total).
-}
+
 
 We further assume that playlists of the \emph{same} user have \emph{similar} representations,
 and although the representations of different users are generally different,
-we assume they nonetheless share a small number of features in their representations.
+we assume they nonetheless share a small number of weights in their representations.
 % we decompose $\w_{i,u}$ into three components on the assumption that playlists of the \emph{same} user have \emph{similar} representations,
 Inspired by the decomposition of user weights and artist weights in~\cite{ben2017groove},
 %additive form of user weights and artist weights in~\cite{ben2017groove},
 %as well as the assumption that playlists of the \emph{same} user have \emph{similar} representations,
 %and all users share a small number of features in their representations,
 we decompose the weights of playlist $i$ from user $u$ %in (\ref{eq:scorefunc})
-into three components, 
+into three components
 %\ie
 $$
-\w_{i,u} = \alphabm_i + \betabm_u + \bmu,
+\w_{u, i} = \alphabm_u + \betabm_i + \bmu,
 $$
-where $\alphabm_i$ are weights specific for playlist $i$ (from user $u$),
-$\betabm_u$ are weights for user $u$,
+where $\alphabm_u$ are weights for user $u$,
+$\betabm_i$ are weights specific for playlist $i$, %(from user $u$),
 and $\bmu$ are the weights shared by all users.
+%
+\blue{
+This decomposition allow us to do multitask learning to benefit ...
+which helps to deal with cold start ...
+%
+it also has the advantage of learning $(U + N + 1) D$ parameters instead of $U N D$ parameters 
+if we choose to learn a joint representation for each playlist from every user.
+}
+
+%\footnote{
+%Instead of learning a joint representation for each user and playlist (which requires $U N$ representations, 
+%which imposes challenging to learn if there is not enough data for each user, and this is true for users in the tail of the long-tailed distribution), 
+%we decompose it according to user and playlist ($U + N$ in total).
+%}, 
 
 
-Let $\upthetabm$ represent all parameters in $\alphabm_i, \betabm_u, \bmu, \ i \in P_u, \ u \in \{1,\dots,U\}$.
+Let $\upthetabm$ denote all parameters in $\left\{ \{\alphabm_u\}_{u=1}^U, \{\betabm_i\}_{i=1}^N, \bmu \right\}$.
 The learning task is to minimise the empirical risk of affinity function $f$ on dataset $\DCal$ over $\upthetabm$,
 %Formally, 
-\ie we solve an optimisation problem
+\ie %we solve an optimisation problem
 \begin{equation}
 \label{eq:obj}
 \min_\upthetabm \, \Omega(\upthetabm) + R_\upthetabm(f, \DCal),
 \end{equation}
 where $\Omega(\upthetabm)$ is a regularisation term and $R_\upthetabm(f, \DCal)$ denotes the empirical risk.
 We call the objective in problem~(\ref{eq:obj}) the {\it multitask learning objective},
-as it jointly learns from multiple tasks where each task is to recommend a set of songs given a user or a playlist.
+as it jointly learns from multiple tasks where each one is to recommend a set of songs given a user or a playlist.
 
 
-To impose the assumptions we made, we apply L1 regularisation to encourage sparse representations of playlists from the same user
+To impose the assumptions we made, we apply L$_1$ regularisation to encourage sparse representations of playlists from the same user
 as well as sparse weights that shared by all users.
 %we regularise the weights of playlists from the same user as well as the weights shared by all users.
 %We assume that playlists of the \emph{same} user have \emph{similar} representations,
@@ -119,7 +129,7 @@ Specifically, in the {\it cold songs} setting,
 % we score a new song $m$ by
 we extend an existing playlist $i$ from user $u$ by scoring a new song $m$ as
 $$
-\hat f(m, i, u) = (\alphabm_i + \betabm_u + \bmu)^\top \x_m.
+\hat f(m, u, i) = (\alphabm_i + \betabm_u + \bmu)^\top \x_m.
 $$
 
 Furthermore, in the {\it cold playlists} setting, 
@@ -135,7 +145,7 @@ Finally, in the {\it cold users} setting,
 % we score song $m$ by
 we form a playlist for a new user by scoring song $m$ as
 $$
-\hat f(m, \cdot, \cdot) = (\bar\betabm + \bmu^\top \x_m.
+\hat f(m, \cdot, \cdot) = (\bar\betabm + \bmu)^\top \x_m.
 $$
 where $\bar\betabm = \frac{1}{K} \sum_{k=1}^K \betabm_{u_k}$ is the average weights of the $K$ nearest neighbours
 of the new users\footnote{We use cosine similarity to measure if two user is in the experiment}.
@@ -177,7 +187,7 @@ empirical risk is
 \label{eq:bprisk}
 \resizebox{.9\linewidth}{!}{$\displaystyle
 R_{\upthetabm}^{\textsc{rank}} = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} 
-\llb \min_{m: y_m^i = 1} f(m, i, u) \le f(m', i, u) \rrb,
+\llb \min_{m: y_m^i = 1} f(m, u, i) \le f(m', i, u) \rrb,
 $}
 \end{equation}
 where $M_-^i$ denotes the number of songs that are not in playlist $i$,
@@ -220,7 +230,7 @@ problem~(\ref{eq:obj_rank}) can be optimised by
 \label{eq:expobj_rank}
 \resizebox{.9\linewidth}{!}{$\displaystyle
 \min_{\upthetabm} \ \Omega(\upthetabm) + \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} 
-                  \sum_{m': y_{m'}^i = 0} \exp \left(f(m', i, u) - \min_{m: y_m^i = 1} f(m, i, u) \right).
+                  \sum_{m': y_{m'}^i = 0} \exp \left(f(m', i, u) - \min_{m: y_m^i = 1} f(m, u, i) \right).
 $}
 \end{equation}
 
@@ -238,7 +248,7 @@ reformulate problem (\ref{eq:expobj_rank}) into a constrained optimisation probl
 \min_{\upthetabm} \ \, & 
 \Omega(\upthetabm) + \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \exp \left( f(m', i, u) - \xi_i \right) \\
 s.t. \ \, & 
-\xi_i \le f(m, i, u), \ \forall m \in \{1,\dots,M\} \ \text{and} \ y_m^i = 1.
+\xi_i \le f(m, u, i), \ \forall m \in \{1,\dots,M\} \ \text{and} \ y_m^i = 1.
 \end{aligned}
 $}
 \end{equation}
@@ -313,7 +323,7 @@ approximated (with the exponential surrogate) by $\widetilde R_{\upthetabm}^{\te
 \begin{aligned}
 \widetilde R_{\upthetabm}^{\textsc{rank}}
 = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \left( \sum_{m: y_m^i = 1} \left( \sum_{m': y_{m'}^i = 0} 
-  e^{-(f(m, i, u) - f(m', i, u))} \right)^p \right)^\frac{1}{p}.
+  e^{-(f(m, u, i) - f(m', i, u))} \right)^p \right)^\frac{1}{p}.
 \end{aligned}
 $}
 \end{equation*}
@@ -328,7 +338,7 @@ which results in the following classification risk:
 \resizebox{\linewidth}{!}{$\displaystyle
 R_{\upthetabm}^{\textsc{clf}}
 = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \left(
-  \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(m, i, u)}
+  \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(m, u, i)}
   + \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)} \right).
 $}
 \end{equation*}
