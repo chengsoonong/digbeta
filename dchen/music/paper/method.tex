@@ -70,14 +70,20 @@ $$
 where $\alphabm_u$ are weights for user $u$,
 $\betabm_i$ are weights specific for playlist $i$, %(from user $u$),
 and $\bmu$ are the weights shared by all users.
-%
-\blue{
-This decomposition allow us to do multitask learning to benefit ...
-which helps to deal with cold start ...
-%
-it also has the advantage of learning $(U + N + 1) D$ parameters instead of $U N D$ parameters 
-if we choose to learn a joint representation for each playlist from every user.
-}
+% information propagation
+This decomposition allows us to learn the user weights (\ie $\alphabm_u$) using all her
+playlists and also exploit all training playlists when learning the shared weights (\ie $\bmu$).
+It also has the advantage of learning $(U + N + 1) D$ parameters instead of $U N D$ parameters 
+if we choose to learn a joint representation for each playlist from every user,
+which is challenging given the long-tailed distribution
+of the number of playlists from users
+\footnote{In other words, most users only have a few playlists, 
+while a small portion of users have a very large number of playlists.}~\cite{bonnin2013evaluating}.
+
+% This decomposition allow us to do multitask learning to benefit ...
+% which helps to deal with cold start ...
+% it also has the advantage of learning $(U + N + 1) D$ parameters instead of $U N D$ parameters 
+% if we choose to learn a joint representation for each playlist from every user.
 
 %\footnote{
 %Instead of learning a joint representation for each user and playlist (which requires $U N$ representations, 
@@ -99,8 +105,9 @@ We call the objective in problem~(\ref{eq:obj}) the {\it multitask learning obje
 as it jointly learns from multiple tasks where each one is to recommend a set of songs given a user or a playlist.
 
 
-To impose the assumptions we made, we apply L$_1$ regularisation to encourage sparse representations of playlists from the same user
-as well as sparse weights that shared by all users.
+To impose the assumptions we made, we apply L$_1$ regularisation to encourage sparse representations of playlists $\betabm_i$ %from the same user
+and the shared weights $\bmu$.
+%as well as sparse weights that shared by all users.
 %we regularise the weights of playlists from the same user as well as the weights shared by all users.
 %We assume that playlists of the \emph{same} user have \emph{similar} representations,
 %which can be achieved by imposing an L1 regularisation term (on playlist parameters)
@@ -111,50 +118,74 @@ as well as sparse weights that shared by all users.
 %L1 regularisation term $\| \bmu \|_1$.
 %
 %The regularisation terms in our multitask learning objective can thus be summarised as
-Formally, the regularisation terms in our multitask learning objective is
+Formally, the regularisation term in our multitask learning objective is
 \begin{equation}
 \label{eq:reg}
-\Omega(\upthetabm) = \lambda_1 \sum_{u=1}^U \sum_{i \in P_u} \|\alphabm_i\|_1 + \lambda_2 \sum_{u=1}^U \|\betabm_u\|_2^2 + \lambda_3 \| \bmu \|_1,
+\Omega(\upthetabm) = \lambda_1 \sum_{u=1}^U \|\alphabm_u\|_2^2 + \lambda_2 \sum_{u=1}^U \sum_{i \in P_u} \|\betabm_i\|_1 + \lambda_3 \| \bmu \|_1,
 \end{equation}
 % where we add an L2 regularisation term to penalise large values in user representations,
 % and constants $\lambda_1, \lambda_2, \lambda_3 \in \R_+$.
 where constants $\lambda_1, \lambda_2, \lambda_3 \in \R_+$,
-and the L2 regularisation term is to penalise large values in user representations.
+and the L$_2$regularisation term is to penalise large values in user representations.
 
 Once all parameters have been learned, 
-we make a recommendation by first score each song according to available information (\eg an existing playlist, an existing user or a new user),
-then form a playlist by either taking the top-K scored songs or sampling songs proportional to their scores.
-Specifically, in the {\it cold songs} setting, 
+we make a recommendation by first score each song according to available information (\eg an existing user or playlist),
+%(\eg an existing playlist, an existing user or a new user),
+then form a playlist by either taking the top-K scored songs or sampling songs with probabilities proportional to their scores.
+Specifically, to recommend a new playlist for an existing user (\ie the \emph{cold playlists} setting),
+%where the user information is available,
+we score song $m$ as 
+$$
+\hat f(m, u, \cdot) = (\alphabm_u + \bmu)^\top \x_m.
+$$
+Further, in the \emph{cold users} setting, where we recommend a new playlist for a new user,
+we can score song $m$ simply as
+$$
+\hat f(m, \cdot, \cdot) = \bmu^\top \x_m,
+$$
+or we can make use of information from similar users in training set if a few attributes 
+(\eg age, gender and country etc.) of the new user is available.
+In particular, we can approximate the representation of the new user using the mean representations similar existing users
+\footnote{For example, users whose attributes are similar to the new user in terms of cosine similarity.} 
+and score song $m$ as
+$$
+\hat f(m, \cdot, \cdot) = \left( \frac{1}{|\UCal|} \sum_{u \in \UCal} \alphabm_u + \bmu \right)^\top \x_m,
+$$
+where $\UCal$ is the set of (\eg 10) existing users most similar to the new user.
+Lastly, to extend an existing playlist $i$ from user $u$ (\ie the \emph{cold songs} setting),
+we can score song $m$ as
+$$
+\hat f(m, u, i) = (\alphabm_u + \betabm_i + \bmu)^\top \x_m.
+$$
+
+
+%Specifically, in the {\it cold songs} setting, 
 % where we recommend a set of new songs to extend an existing playlist $i$ from user $u$, 
 % we score a new song $m$ by
-we extend an existing playlist $i$ from user $u$ by scoring a new song $m$ as
-$$
-\hat f(m, u, i) = (\alphabm_i + \betabm_u + \bmu)^\top \x_m.
-$$
-
-Furthermore, in the {\it cold playlists} setting, 
+%we extend an existing playlist $i$ from user $u$ by scoring a new song $m$ as
+%$$
+%\hat f(m, u, i) = (\alphabm_i + \betabm_u + \bmu)^\top \x_m.
+%$$
+%Furthermore, in the {\it cold playlists} setting, 
 % where we recommend a set of songs to form a new playlist for an existing user $u$, 
 % we score song $m$ by
-we form a new playlist for an existing user $u$ by scoring song $m$ as
-$$
-\hat f(m, \cdot, u) = (\betabm_u + \bmu)^\top \x_m.
-$$
-
-Finally, in the {\it cold users} setting, 
+%we form a new playlist for an existing user $u$ by scoring song $m$ as
+%$$
+%\hat f(m, \cdot, u) = (\betabm_u + \bmu)^\top \x_m.
+%$$
+%Finally, in the {\it cold users} setting, 
 % where we recommend a set of songs to form a playlist for a new user,
 % we score song $m$ by
-we form a playlist for a new user by scoring song $m$ as
-$$
-\hat f(m, \cdot, \cdot) = (\bar\betabm + \bmu)^\top \x_m.
-$$
-where $\bar\betabm = \frac{1}{K} \sum_{k=1}^K \betabm_{u_k}$ is the average weights of the $K$ nearest neighbours
-of the new users\footnote{We use cosine similarity to measure if two user is in the experiment}.
-or 
-$$
-\hat f(m, \cdot, \cdot) = \bmu^\top \x_m.
-$$
-
-
+%we form a playlist for a new user by scoring song $m$ as
+%$$
+%\hat f(m, \cdot, \cdot) = (\bar\betabm + \bmu)^\top \x_m.
+%$$
+%where $\bar\betabm = \frac{1}{K} \sum_{k=1}^K \betabm_{u_k}$ is the average weights of the $K$ nearest neighbours
+%of the new users\footnote{We use cosine similarity to measure if two user is in the experiment}.
+%or 
+%$$
+%\hat f(m, \cdot, \cdot) = \bmu^\top \x_m.
+%$$
 
 
 %\subsection{Recommending the most probable songs}
@@ -254,11 +285,11 @@ $}
 \end{equation}
 
 One may observe that the objective of problem~(\ref{eq:expobj_cons}) is convex but not differentiable due to 
-the L1 regularisation terms in $\Omega(\upthetabm)$, nonetheless, we can use its sub-gradient.
+the L$_1$ regularisation terms in $\Omega(\upthetabm)$, nonetheless, we can use its sub-gradient.
 Further, the number of constraints in problem~(\ref{eq:expobj_cons}) is
-$$
+$
 \sum_{u=1}^U \sum_{i \in P_u} \sum_{m=1}^M \llb y_m^i = 1 \rrb,
-$$
+$
 in other words, the number of constraints equals the total number of songs played in all playlists.
 Asymptotically, it is of order $O(\widebar{L} N)$ where $\widebar{L}$ is the average number of songs in playlists.
 Although $\widebar{L}$ is dataset dependent, and is typically less than $100$,
@@ -310,7 +341,9 @@ we can approximate the \emph{min} function by utilising the well known Log-sum-e
 of the \emph{max} function~\cite[p. 72]{boyd2004convex},
 \begin{equation}
 \label{eq:minappox}
-\min_i z_i = -\max_i (-z_i) = -\lim_{p \to +\infty} \frac{1}{p} \log \sum_i e^{-p z_i}.
+\resizebox{.9\columnwidth}{!}{$
+\min_i z_i = -\max_i (-z_i) = -\lim_{p \to +\infty} \frac{1}{p} \log \sum_i \exp(-p z_i).
+$}
 \end{equation}
 %where $p > 0$ is a parameter that trades off the approximation precision.
 %This approximation becomes precise when $p \to \infty$.
@@ -323,7 +356,7 @@ approximated (with the exponential surrogate) by $\widetilde R_{\upthetabm}^{\te
 \begin{aligned}
 \widetilde R_{\upthetabm}^{\textsc{rank}}
 = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \left( \sum_{m: y_m^i = 1} \left( \sum_{m': y_{m'}^i = 0} 
-  e^{-(f(m, u, i) - f(m', i, u))} \right)^p \right)^\frac{1}{p}.
+  \exp(-(f(m, u, i) - f(m', i, u))) \right)^p \right)^\frac{1}{p}.
 \end{aligned}
 $}
 \end{equation*}
@@ -338,8 +371,8 @@ which results in the following classification risk:
 \resizebox{\linewidth}{!}{$\displaystyle
 R_{\upthetabm}^{\textsc{clf}}
 = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \left(
-  \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} e^{-p f(m, u, i)}
-  + \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} e^{f(m', i, u)} \right).
+  \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} \exp(-p f(m, u, i))
+  + \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \exp(f(m', i, u)) \right).
 $}
 \end{equation*}
 
@@ -363,7 +396,7 @@ We can therefore create an unconstrained optimisation problem using the classifi
 \min_\upthetabm \ \Omega(\upthetabm) + R_{\upthetabm}^{\textsc{clf}}.
 \end{equation}
 
-The objective in problem~(\ref{eq:expobj_clf}) is convex but not differentiable due to the L1 regularisation terms in $\Omega(\upthetabm)$.
+The objective in problem~(\ref{eq:expobj_clf}) is convex but not differentiable due to the L$_1$ regularisation terms in $\Omega(\upthetabm)$.
 However, it can be efficiently solved using the Orthant-Wise Limited-memory Quasi-Newton (OWL-QN)~\cite{andrew2007scalable} L-BFGS variant.
 
 We refer the approach that solves problem~(\ref{eq:expobj_clf}) as \emph{Multitask Classification} (MTC) in experiment.
