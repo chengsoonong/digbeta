@@ -5,11 +5,11 @@
 In this section, 
 %we introduce a multitask objective that supports the three cold-start settings described in Section~\ref{sec:problem}. 
 we describe a multitask learning method that works in all three cold-start settings introduced in previous sections.
-We optimise the multitask objective by minimising a bipartite ranking loss that encourages songs in a playlist
+We optimise the multitask learning objective by minimising a bipartite ranking loss that encourages songs in a playlist
 to be ranked higher than those are not, which involves a convex constrained optimisation problem.
 By exploiting an equivalence relationship between bipartite ranking and binary classification, 
 we can approximate an optimal solution of the constrained optimisation problem by minimising a classification loss without any constraints.
-This enables efficient optimisation of the multitask objective.
+This enables efficient optimisation of the multitask learning objective.
 
 
 %Inspired by an equivalence relationship between bipartite ranking and binary classification, 
@@ -53,9 +53,6 @@ and $\w_{u,i} \in \R^D$ are the weights (or representation) of playlist $i$ from
 
 
 
-We further assume that playlists of the \emph{same} user have \emph{similar} representations,
-and although the representations of different users are generally different,
-we assume they nonetheless share a small number of weights in their representations.
 % we decompose $\w_{i,u}$ into three components on the assumption that playlists of the \emph{same} user have \emph{similar} representations,
 Inspired by the decomposition of user weights and artist weights in~\cite{ben2017groove},
 %additive form of user weights and artist weights in~\cite{ben2017groove},
@@ -64,9 +61,10 @@ Inspired by the decomposition of user weights and artist weights in~\cite{ben201
 we decompose the weights of playlist $i$ from user $u$ %in (\ref{eq:scorefunc})
 into three components
 %\ie
-$$
+\begin{equation}
+\label{eq:decomp}
 \w_{u, i} = \alphabm_u + \betabm_i + \bmu,
-$$
+\end{equation}
 where $\alphabm_u$ are weights for user $u$,
 $\betabm_i$ are weights specific for playlist $i$, %(from user $u$),
 and $\bmu$ are the weights shared by all users.
@@ -105,7 +103,10 @@ We call the objective in problem~(\ref{eq:obj}) the {\it multitask learning obje
 as it jointly learns from multiple tasks where each one is to recommend a set of songs given a user or a playlist.
 
 
-To impose the assumptions we made, we apply L$_1$ regularisation to encourage sparse representations of playlists $\betabm_i$ %from the same user
+We further assume that playlists of the \emph{same} user have \emph{similar} representations,
+and although the representations of different users are generally different,
+we assume they nonetheless share a small number of weights in their representations.
+To impose these assumptions, we apply L$_1$ regularisation to encourage sparse representations of playlists $\betabm_i$ %from the same user
 and the shared weights $\bmu$.
 %as well as sparse weights that shared by all users.
 %we regularise the weights of playlists from the same user as well as the weights shared by all users.
@@ -128,30 +129,33 @@ Formally, the regularisation term in our multitask learning objective is
 where constants $\lambda_1, \lambda_2, \lambda_3 \in \R_+$,
 and the L$_2$regularisation term is to penalise large values in user representations.
 
+
 Once all parameters have been learned, 
 we make a recommendation by first score each song according to available information (\eg an existing user or playlist),
 %(\eg an existing playlist, an existing user or a new user),
-then form a playlist by either taking the top-K scored songs or sampling songs with probabilities proportional to their scores.
+then form or extend a playlist by either taking the top-K scored songs or sampling songs with probabilities proportional to their scores.
 Specifically, to recommend a new playlist for an existing user (\ie the \emph{cold playlists} setting),
 %where the user information is available,
 we score song $m$ as 
 $$
 \hat f(m, u, \cdot) = (\alphabm_u + \bmu)^\top \x_m.
 $$
+
 Further, in the \emph{cold users} setting, where we recommend a new playlist for a new user,
 we can score song $m$ simply as
 $$
 \hat f(m, \cdot, \cdot) = \bmu^\top \x_m,
 $$
 or we can make use of information from similar users in training set if a few attributes 
-(\eg age, gender and country etc.) of the new user is available.
-In particular, we can approximate the representation of the new user using the mean representations similar existing users
-\footnote{For example, users whose attributes are similar to the new user in terms of cosine similarity.} 
+(\eg age, gender and country) of the new user is available.
+In particular, we can approximate the representation of the new user using the mean representations of similar existing users
+\footnote{For example, users whose attribute vector is similar to that of the new user in terms of cosine similarity.} 
 and score song $m$ as
 $$
 \hat f(m, \cdot, \cdot) = \left( \frac{1}{|\UCal|} \sum_{u \in \UCal} \alphabm_u + \bmu \right)^\top \x_m,
 $$
-where $\UCal$ is the set of (\eg 10) existing users most similar to the new user.
+where $\UCal$ is the set of (\eg 10) existing users that are most similar to the new user.
+
 Lastly, to extend an existing playlist $i$ from user $u$ (\ie the \emph{cold songs} setting),
 we can score song $m$ as
 $$
@@ -207,26 +211,29 @@ $$
 %but have a higher score than the lowest ranked song in playlist, 
 %
 %Formally, we minimise the number of songs not in playlist but ranked above the lowest ranked song in playlist,
-We optimise the multitask objective by minimising a bipartite ranking loss 
-that encourages songs in a playlist ranked higher than those are not, 
-which aims to rank the most probable songs above those unlikely when making a recommendation.
-In particular, we minimise the number of songs not in the playlist but ranked above the lowest ranked song in the playlist
-\footnote{This is known as the Bottom-Push loss~\cite{rudin2009p} in bipartite ranking literature.},
+We optimise the multitask learning objective by minimising a bipartite ranking loss 
+that penalises songs not in a training playlist but ranked higher than those in it.
+%that encourages songs in a playlist to be ranked higher than those are not,
+This aims to rank probable songs above those unlikely when making a recommendation.
+%which aims to rank the most probable songs above those unlikely when making a recommendation.
+In particular, we minimise the number of songs not in a training playlist but ranked above the lowest ranked song in it, %the playlist
+\footnote{This is known as the Bottom-Push loss~\cite{rudin2009p} in the bipartite ranking literature.}
 \ie the %(normalised) 
 empirical risk is
 \begin{equation}
 \label{eq:bprisk}
-\resizebox{.9\linewidth}{!}{$\displaystyle
+\resizebox{.908\linewidth}{!}{$\displaystyle
 R_{\upthetabm}^{\textsc{rank}} = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} 
-\llb \min_{m: y_m^i = 1} f(m, u, i) \le f(m', i, u) \rrb,
+\llb \min_{m: y_m^i = 1} f(m, u, i) \le f(m', u, i) \rrb,
 $}
 \end{equation}
-where $M_-^i$ denotes the number of songs that are not in playlist $i$,
+where $M_-^i$ is the number of songs not in playlist $i$,
+%denotes the number of songs that are not in playlist $i$,
 binary variable $y_m^i$ denotes whether song $m$ appears in playlist $i$,
-and $\llb \cdot \rrb$ is the indicator function that represents the 0-1 loss.
-
-As a remark, it is obvious that the order of songs in a playlist does not affect the empirical 
-risk $R_\textsc{rank}$ as long as they are ranked higher than the lowest ranked song in the playlist.
+and $\llb \cdot \rrb$ is the indicator function that represents the 0/1 loss.
+%
+%As a remark, it is obvious that the order of songs in a playlist does not affect the empirical 
+%risk $R_\uptheta^\textsc{rank}$ as long as they are ranked higher than the lowest ranked song in the playlist.
 The optimisation problem~(\ref{eq:obj}) can now be instantiated as 
 % now become the following regularised risk minimisation:
 \begin{equation}
@@ -237,11 +244,13 @@ The optimisation problem~(\ref{eq:obj}) can now be instantiated as
 
 There are two challenges to %optimise the above objective,
 solve problem~(\ref{eq:obj_rank}),
-namely, the non-differentiable 0-1 loss and the \emph{min} operator in $R_\textsc{rank}$.
-To address the first challenge, we replace the 0-1 loss with one of its convex surrogate $\ell$
+namely, the non-differentiable 0/1 loss and the \emph{min} function in $R_{\upthetabm}^{\textsc{rank}}$.
+To address the first challenge, we upper-bound %replace 
+the 0/1 loss with one of its convex surrogate $\ell$
 (\eg the exponential loss $\ell(f, y) = e^{-fy}$, the logistic loss $\ell(f, y) = \log(1 + e^{-fy})$,
 or the squared hinge loss $\ell(f, y) = [\max(0, \, 1 - fy)]^2$).
-We deal with the \emph{min} operator in empirical risk $R_\textsc{rank}$ in the following sections.
+We will describe the method to deal with the \emph{min} function in empirical risk $R_{\upthetabm}^{\textsc{rank}}$ later in this section.
+%We deal with the \emph{min} operator in empirical risk $R_\upthetabm^\textsc{rank}$ in the following sections.
 
 %which results in
 %\begin{equation}
@@ -254,20 +263,21 @@ We deal with the \emph{min} operator in empirical risk $R_\textsc{rank}$ in the 
 
 \subsection{Formulating a constrained optimisation problem}
 
-Suppose we use the exponential loss $\ell(f, y) = e^{-fy}$ to upper-bound the 0-1 loss in $R_\textsc{rank}$,
+Suppose we use the exponential loss %$\ell(f, y) = e^{-fy}$ 
+to upper-bound the 0/1 loss in $R_{\upthetabm}^{\textsc{rank}}$,
 %the multitask learning objective~(\ref{eq:obj_rank}) can be optimised by
 problem~(\ref{eq:obj_rank}) can be optimised by
 \begin{equation}
 \label{eq:expobj_rank}
-\resizebox{.9\linewidth}{!}{$\displaystyle
+\resizebox{.908\linewidth}{!}{$\displaystyle
 \min_{\upthetabm} \ \Omega(\upthetabm) + \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} 
-                  \sum_{m': y_{m'}^i = 0} \exp \left(f(m', i, u) - \min_{m: y_m^i = 1} f(m, u, i) \right).
+                  \sum_{m': y_{m'}^i = 0} \exp \left(f(m', u, i) - \min_{m: y_m^i = 1} f(m, u, i) \right).
 $}
 \end{equation}
 
 %Directly solving problem (\ref{eq:expobj}) is challenging due to the \emph{min} operator.
 To deal with the challenge imposed by the \emph{min} operator in the exponential function, 
-we introduce slack variables $\xi_i$ to lower-bound the scores of songs in playlist $i, \, i \in P_u, \, u \in \{1,\dots,U\}$ 
+we introduce slack variables $\xi_i$ to lower-bound the scores of songs in playlist $i$ %, $\, i \in P_u, \, u \in \{1,\dots,U\}$ 
 and 
 %we 
 reformulate problem (\ref{eq:expobj_rank}) into a constrained optimisation problem %by 
@@ -277,35 +287,43 @@ reformulate problem (\ref{eq:expobj_rank}) into a constrained optimisation probl
 \resizebox{.9\linewidth}{!}{$\displaystyle
 \begin{aligned}
 \min_{\upthetabm} \ \, & 
-\Omega(\upthetabm) + \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \exp \left( f(m', i, u) - \xi_i \right) \\
+\Omega(\upthetabm) + \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \exp \left( f(m', u, i) - \xi_i \right) \\
 s.t. \ \, & 
-\xi_i \le f(m, u, i), \ \forall m \in \{1,\dots,M\} \ \text{and} \ y_m^i = 1.
+\xi_i \le f(m, u, i), \\
+& u \in \{1,\dots,U\}, \ i \in P_u, \ m \in \{1,\dots,M\} \ \text{and} \ y_m^i = 1.
 \end{aligned}
 $}
 \end{equation}
 
 One may observe that the objective of problem~(\ref{eq:expobj_cons}) is convex but not differentiable due to 
-the L$_1$ regularisation terms in $\Omega(\upthetabm)$, nonetheless, we can use its sub-gradient.
+the L$_1$ regularisation terms in $\Omega(\upthetabm)$.
+Nonetheless, we can use its sub-gradient.
 Further, the number of constraints in problem~(\ref{eq:expobj_cons}) is
 $
 \sum_{u=1}^U \sum_{i \in P_u} \sum_{m=1}^M \llb y_m^i = 1 \rrb,
 $
-in other words, the number of constraints equals the total number of songs played in all playlists.
+%in other words, %the number of constraints equals 
+\ie the total number of songs played in all playlists.
 Asymptotically, it is of order $O(\widebar{L} N)$ where $\widebar{L}$ is the average number of songs in playlists.
 Although $\widebar{L}$ is dataset dependent, and is typically less than $100$,
 the total number of playlists $N$ can be very large in production systems 
 (\eg Spotify hosts more than $2$ billion playlists\footnote{https://newsroom.spotify.com/companyinfo})
-which imposes significant challenge when optimising problem~(\ref{eq:expobj_cons}).
+which causes significant challenge in optimisation. 
+%which imposes significant challenge when optimising problem~(\ref{eq:expobj_cons}).
 
 We want to mention two techniques that can be employed to alleviate this issue:
 the cutting-plane~\cite{avriel2003nonlinear} method and the sub-gradient method.
 We have found both approaches converge extremely slowly for this problem in practice.
-In particular, the cutting plane method is required to deal with a constrained optimisation problem 
-with at least $N$ constraints in each iteration, which remains challenging when $N$ is large.
+In particular, the cutting plane method is required to solve %deal with 
+a constrained optimisation problem with at least $N$ constraints in each iteration, 
+which remains challenging when $N$ is large.
 %but the minimum number of constraints is still in the order of $O(N)$, and we also found these techniques do not work extremely well in practice.
 
-In this paper, we address this issue by formulating an unconstrained optimisation problem which approximates 
-the objective in problem~(\ref{eq:expobj_cons}), by leveraging an equivalence relationship between bipartite 
+In this paper, we address this issue by
+approximating an optimal solution of problem~(\ref{eq:expobj_rank}) by minimising an unconstrained objective inspired
+%formulating an unconstrained optimisation problem which approximates 
+%the objective in problem~(\ref{eq:expobj_cons}), by leveraging 
+by an equivalence relationship between bipartite 
 ranking and binary classification~\cite{ertekin2011equivalence}, we describe this method in the next section.
 
 %\cheng{This still sounds hard. So what do we do next? Unclear why we suddenly talk about binary classification right after this.}
@@ -339,29 +357,34 @@ since classification loss can be optimised more efficiently in general~\cite{ert
 In particular, 
 we can approximate the \emph{min} function by utilising the well known Log-sum-exp approximation 
 of the \emph{max} function~\cite[p. 72]{boyd2004convex},
-\begin{equation}
-\label{eq:minappox}
+\begin{equation*}
+%\label{eq:minappox}
 \resizebox{.9\columnwidth}{!}{$
-\min_i z_i = -\max_i (-z_i) = -\lim_{p \to +\infty} \frac{1}{p} \log \sum_i \exp(-p z_i).
+  \displaystyle \min_i z_i 
+= \displaystyle -\max_i (-z_i) 
+= \displaystyle -\lim_{p \to +\infty} \frac{1}{p} \log \sum_i \exp(-p z_i),
 $}
-\end{equation}
+\end{equation*}
 %where $p > 0$ is a parameter that trades off the approximation precision.
 %This approximation becomes precise when $p \to \infty$.
-
-By Eq.~(\ref{eq:bprisk}) and (\ref{eq:minappox}), the empirical risk $R_{\upthetabm}^{\textsc{rank}}$ can be 
-approximated (with the exponential surrogate) by $\widetilde R_{\upthetabm}^{\textsc{rank}}$ defined as
+%
+%By Eq.~(\ref{eq:bprisk}) and (\ref{eq:minappox}), the empirical risk $R_{\upthetabm}^{\textsc{rank}}$ can be 
+%approximated (with the exponential surrogate) 
+which allows us to approximate the empirical risk $R_{\upthetabm}^{\textsc{rank}}$ (with the exponential surrogate)
+by $\widetilde R_{\upthetabm}^{\textsc{rank}}$ defined as
 \begin{equation*}
 %\label{eq:rankapprox}
 \resizebox{\linewidth}{!}{$
 \begin{aligned}
 \widetilde R_{\upthetabm}^{\textsc{rank}}
 = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \left( \sum_{m: y_m^i = 1} \left( \sum_{m': y_{m'}^i = 0} 
-  \exp(-(f(m, u, i) - f(m', i, u))) \right)^p \right)^\frac{1}{p}.
+  \exp(-(f(m, u, i) - f(m', u, i))) \right)^p \right)^\frac{1}{p}.
 \end{aligned}
 $}
 \end{equation*}
 
 
+% we have used one may observed above ...
 One may note that $\widetilde R_{\upthetabm}^{\textsc{rank}}$ can be transformed into the standard P-Norm Push loss by swapping the
 positives ($m: y_m^i = 1$) and negatives ($m': y_{m'}^i = 0$). % define P-Norm Push first?
 Inspired by this observation, we swap the positives and negatives in the P-Classification loss (by taking care of signs),
@@ -372,7 +395,7 @@ which results in the following classification risk:
 R_{\upthetabm}^{\textsc{clf}}
 = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \left(
   \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} \exp(-p f(m, u, i))
-  + \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \exp(f(m', i, u)) \right).
+  + \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \exp(f(m', u, i)) \right).
 $}
 \end{equation*}
 
@@ -390,18 +413,22 @@ the equivalence between P-Norm Push loss and P-Classification loss~\cite{ertekin
 See Appendix for another proof from first principles.
 \end{proof}
 
-We can therefore create an unconstrained optimisation problem using the classification risk $R_\textsc{clf}$:
+We can therefore create an unconstrained optimisation problem %using the classification risk $R_\textsc{clf}$:
+with the classification risk $R_{\upthetabm}^{\textsc{clf}}$:
 \begin{equation}
 \label{eq:expobj_clf}
 \min_\upthetabm \ \Omega(\upthetabm) + R_{\upthetabm}^{\textsc{clf}}.
 \end{equation}
 
-The objective in problem~(\ref{eq:expobj_clf}) is convex but not differentiable due to the L$_1$ regularisation terms in $\Omega(\upthetabm)$.
-However, it can be efficiently solved using the Orthant-Wise Limited-memory Quasi-Newton (OWL-QN)~\cite{andrew2007scalable} L-BFGS variant.
+%The objective in problem~(\ref{eq:expobj_clf}) is convex but not differentiable due to the L$_1$ regularisation terms in $\Omega(\upthetabm)$.
+%However, it can be efficiently solved using the Orthant-Wise Limited-memory Quasi-Newton (OWL-QN)~\cite{andrew2007scalable} L-BFGS variant.
+The objective in problem~(\ref{eq:expobj_clf}) is convex and can be efficiently optimised using the 
+Orthant-Wise Limited-memory Quasi-Newton (OWL-QN)~\cite{andrew2007scalable} L-BFGS variant,
+which can address L$_1$ regularisation effectively.
 
-We refer the approach that solves problem~(\ref{eq:expobj_clf}) as \emph{Multitask Classification} (MTC) in experiment.
-As a remark, the optimal solutions of problem (\ref{eq:expobj_clf}) are not necessarily the optimal solutions 
-of problem $\min_\upthetabm \ \Omega(\upthetabm) + \widetilde R_{\upthetabm}^{\textsc{rank}}$ due to the regularisation terms.
+We refer the approach that solves problem~(\ref{eq:expobj_clf}) as \emph{Multitask Classification} (MTC). % in experiment.
+As a remark, optimal solutions of problem (\ref{eq:expobj_clf}) are not necessarily the optimal solutions 
+of problem $\min_\upthetabm \ \Omega(\upthetabm) + \widetilde R_{\upthetabm}^{\textsc{rank}}$ due to regularisation. %the regularisation terms.
 However, when parameters $\upthetabm$ are small (which is generally the case when using regularisation), the two objectives 
 can nonetheless approximate each other within an acceptable level.
 
