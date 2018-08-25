@@ -7,13 +7,17 @@
 % - cold users
 
 In this section, we describe experiments that empirically evaluate the proposed method and a number of 
-well known baseline approaches in the three cold-start settings described in Section~\ref{sec:problem}.
+well known baseline approaches in the three cold-start settings. %described in Section~\ref{sec:problem}.
 
 
 \subsection{Dataset}
 We make use of two publicly available playlist datasets: the 30Music~\cite{30music2015} and AotM-2011~\cite{mcfee2012hypergraph} dataset.
 The Million Song Dataset~\cite{msd2011} serves as an underlying dataset where songs in all playlists are intersected.
 It also provides a few song features which will be described later in this section.
+Million Song Dataset (MSD) is a collection of one million songs, where each song is described by its metadata 
+(\eg song title, artist name, year of release) and a number of precomputed audio features from the Echo Nest\footnote{http://the.echonest.com}.
+%It also provides acoustic features computed from a sample section of audio file of each song. % more description
+
 
 \begin{table}[hbt]
 \centering
@@ -33,11 +37,6 @@ AotM-2011 & 114,428 & 84,710    & 14,182  & 15,698  & 10.1           & 6.0      
 \end{table}
 
 \noindent
-{\bf Million Song Dataset} (MSD) is a collection of one million songs, where each song is described by its metadata 
-(\eg song title, artist name, year of release) and a number of precomputed audio features from the Echo Nest\footnote{http://the.echonest.com}.
-%It also provides acoustic features computed from a sample section of audio file of each song. % more description
-
-\noindent
 {\bf 30Music Dataset} is a collection of listening events and playlists retrieved from Last.fm\footnote{https://www.last.fm}.
 We first intersect the playlists data with songs in the MSD, 
 %leveraging the Last.fm dataset~\cite{lastfmdataset} which matched songs from Last.fm with those in the MSD, 
@@ -51,6 +50,25 @@ We filtered out playlists with less than 5 songs, which results in roughly 84K p
 %
 Table~\ref{tab:stats_pldata} summarises the %two 
 playlist datasets used in this work.
+
+\subsubsection{Features}
+% of songs used in the experiments include metadata, audio data, genre and artist information, as well as song and 
+Song metadata, audio data, genre and artist information, as well as song and 
+artist popularity (\ie the number of occurrences of all songs from the artist in training set)
+are encoded as features.
+%
+The metadata of songs (\eg duration, year of release) and audio features (\eg loudness, mode, tempo) are provided by the MSD.
+We use genre data from the Top-MAGD genre dataset~\cite{schindler2012facilitating}
+and tagtraum genre annotations for the MSD~\cite{schreiber2015improving} via one-hot encoding.
+If the genre data of a song is not available, we apply the mean imputation using genre counts of other songs in the training set.
+To encode artist information as features,
+we trained a word2vec\footnote{https://github.com/dav/word2vec} model using sequences of artist identifiers in playlists.
+
+We assume no popularity information is available for newly released songs,
+thus song popularity is used as a feature only in the \emph{cold playlists} and \emph{cold users} settings.
+%In the task of recommending new songs to extend existing playlists (setting (i)), where song popularity is not available,
+%we use artist popularity (we use the number of occurrences of all songs from a artist in training playlists as a proxy of her popularity).
+Finally, we add a constant feature (with value $1$) for each song to account for bias.
 
 
 
@@ -89,25 +107,6 @@ This results in a test set with about 3.4K playlists from 2.4K users in 30Music 
 and a test set with about 8.2K playlists from 4.2K users in AotM-2011 dataset.
 Table~\ref{tab:stats2} describes the statistics of this training/test split.
 
-
-\subsubsection{Features}
-% of songs used in the experiments include metadata, audio data, genre and artist information, as well as song and 
-Song metadata, audio data, genre and artist information, as well as song and 
-artist popularity (\ie the number of occurrences of all songs from the artist in training set)
-are encoded as features.
-%
-The metadata of songs (\eg duration, year of release) and audio features (\eg loudness, mode, tempo) are provided by the MSD.
-We use genre data from the Top-MAGD genre dataset~\cite{schindler2012facilitating}
-and tagtraum genre annotations for the MSD~\cite{schreiber2015improving} via one-hot encoding.
-If the genre data of a song is not available, we apply the mean imputation using genre counts of other songs in the training set.
-To encode artist information as features,
-we trained a word2vec\footnote{https://github.com/dav/word2vec} model using sequences of artist identifiers in playlists.
-
-We assume no popularity information is available for newly released songs,
-thus song popularity is used as a feature only in the \emph{cold playlists} and \emph{cold users} settings.
-%In the task of recommending new songs to extend existing playlists (setting (i)), where song popularity is not available,
-%we use artist popularity (we use the number of occurrences of all songs from a artist in training playlists as a proxy of her popularity).
-Finally, we add a constant feature (with value $1$) for each song to account for bias.
 
 
 \input{fig_hr}
@@ -209,7 +208,7 @@ Spread is used to measure the ability of an algorithm to spread its attention ac
 
 \subsubsection{Accuracy}
 
-We can see from Table~\ref{tab:acc1} that learning based methods (\ie {\it Multitask classification}
+We can see from Table~\ref{tab:auc} that learning based methods (\ie {\it Multitask classification}
 and {\it Logistic Regression}) perform significantly better than other baselines in the \emph{cold songs} setting.
 %in the setting of recommending new songs for extending playlists (setting (i)).
 This suggests learning from playlists data helps the task of recommending new songs to extend existing playlist.
@@ -230,7 +229,7 @@ Another interesting observation is that SAGH and CAGH perform similarly on the A
 is less 50, and both outperform {\it Popularity Ranking}. However, SAGH suffers from slow improvement
 as $K$ increases, and this effect is observed on both datasets.
 
-Figure~\ref{fig:hr3} and Table~\ref{tab:acc3} show the performance of all methods in the \emph{cold playlists} setting.
+Figure~\ref{fig:hr3} and Table~\ref{tab:auc} show the performance of all methods in the \emph{cold playlists} setting.
 %on the task of recommending a set of songs for an existing user (setting (ii)).
 First, we can see that methods based on song popularity and artist information achieve good performance.
 This is consistent with discoveries in~\cite{bonnin2013evaluating,jannach2015beyond,bonnin2015automated} which 
@@ -256,7 +255,7 @@ while it performs the worst in terms of HitRate@K on the 30Music dataset when $K
 
 The performance in the \emph{cold users} setting %of recommending music to form playlists for new users (setting (iii)),
 %however, 
-is quite different from the other two cold-start settings, as shown in Figure~\ref{fig:hr4} and Table~\ref{tab:acc4}.
+is quite different from the other two cold-start settings, as shown in Figure~\ref{fig:hr4} and Table~\ref{tab:auc}.
 {\it Popularity Ranking} is one of the best performing methods,
 outperforming both baselines that make use of song popularity and artist information (\ie SAGH and CAGH).
 The performance of {\it Multitask Classification} is almost identical to that of {\it Popularity Ranking} in terms of both metrics,
