@@ -36,6 +36,8 @@ AotM-2011 & 114,428 & 84,710    & 14,182  & 15,698  & 10.1           & 6.0      
 }
 \end{table}
 
+\input{tab_stats}
+
 \noindent
 {\bf 30Music Dataset} is a collection of listening events and playlists retrieved from Last.fm\footnote{https://www.last.fm}.
 We first intersect the playlists data with songs in the MSD, 
@@ -50,6 +52,7 @@ We filtered out playlists with less than 5 songs, which results in roughly 84K p
 %
 Table~\ref{tab:stats_pldata} summarises the %two 
 playlist datasets used in this work.
+
 
 \subsubsection{Features}
 % of songs used in the experiments include metadata, audio data, genre and artist information, as well as song and 
@@ -72,7 +75,6 @@ Finally, we add a constant feature (with value $1$) for each song to account for
 
 
 
-\input{tab_stats}
 
 \subsection{Experimental setup}
 
@@ -109,7 +111,8 @@ Table~\ref{tab:stats2} describes the statistics of this training/test split.
 
 
 
-\input{fig_hr}
+%\input{fig_hr}
+
 
 \subsubsection{Baselines}
 We compare the performance of our proposed approach (\ie MTC) % (referred as {\it Multitask Classification}) 
@@ -151,6 +154,11 @@ with a number of baseline methods in the three cold-start settings:
 \end{itemize}
 
 
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\columnwidth]{fig/hr1.png}
+    \caption{Hit rates for \emph{cold songs} setting}
+\end{figure}
 
 
 \subsubsection{Evaluation}
@@ -197,6 +205,7 @@ which is computed from the scores of all possible songs using the softmax functi
 Spread is used to measure the ability of an algorithm to spread its attention across all possible songs.
 
 
+
 \subsection{Results and discussion}
 
 % we compare the performance of our proposed approach with several other baseline approaches.
@@ -204,7 +213,7 @@ Spread is used to measure the ability of an algorithm to spread its attention ac
 
 %\input{tab_acc}
 \input{tab_auc}
-\input{fig_nov}
+%\input{fig_nov}
 
 \subsubsection{Accuracy}
 
@@ -285,6 +294,12 @@ and other factors such as song popularity regain the dominance for the task of p
 % While higher accuracy is usually preferred, 
 % moderate values of novelty and spread are preferred~\cite{kluver2014evaluating,schedl2017}.
 % moderate values are preferred.
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\columnwidth]{fig/nov1.png}
+    \caption{Novelty for \emph{cold songs} setting}
+\end{figure}
 
 \input{tab_spread}
 
