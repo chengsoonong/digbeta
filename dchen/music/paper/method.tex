@@ -385,31 +385,32 @@ R_{\upthetabm}^{\textsc{rank}}(f, \DCal) = \frac{1}{N} \sum_{u=1}^U \sum_{i \in 
 %\end{equation}
 %where the regularisation term $\Omega(\upthetabm)$ is defined in (\ref{eq:reg}).
 
-There are two challenges to %optimise the above objective,
-solve problem~(\ref{eq:obj_rank}),
-namely, the non-differentiable 0/1 loss and the \emph{min} function in $R_{\upthetabm}^{\textsc{rank}}$.
+There are two challenges %to %optimise the above objective,
+%solve problem~(\ref{eq:obj_rank}),
+when optimising the multitask learning objective in problem~(\ref{eq:obj}) 
+with the empirical risk $R_{\uptheta}^{\textsc{rank}}$,
+namely, the non-differentiable 0/1 loss and the \emph{min} function in %$R_{\upthetabm}^{\textsc{rank}}$.
+$\Delta_f(u, i)$.
 To address the first challenge, we upper-bound %replace 
 the 0/1 loss with one of its convex surrogate $\ell$
-(\eg the exponential loss $\ell(f, y) = e^{-fy}$, the logistic loss $\ell(f, y) = \log(1 + e^{-fy})$,
-or the squared hinge loss $\ell(f, y) = [\max(0, \, 1 - fy)]^2$).
-We will describe the method to deal with the \emph{min} function in empirical risk $R_{\upthetabm}^{\textsc{rank}}$ later in this section.
+(\eg the exponential loss $\ell(f, y) = e^{-fy}$). % the logistic loss $\ell(f, y) = \log(1 + e^{-fy})$,
+%or the squared hinge loss $\ell(f, y) = [\max(0, \, 1 - fy)]^2$).
+%We will describe the method to deal with the \emph{min} function in empirical risk $R_{\upthetabm}^{\textsc{rank}}$ later in this section.
 %We deal with the \emph{min} operator in empirical risk $R_\upthetabm^\textsc{rank}$ in the following sections.
-
+%
 %which results in
 %\begin{equation}
 %\label{eq:obj}
 %\min_\upthetabm \ \Omega(\upthetabm) + \frac{1}{N} \sum_{i=1}^U \sum_{j \in P_i} \frac{1}{M_-^j} \sum_{m': y_{m'}^j = 0} 
 %                \ell \left( \min_{m: y_m^j = 1} f(m, j) - f(m', j) \right).
 %\end{equation}
-
-
-
+%
 %\subsection{Formulating a constrained optimisation problem}
 %\subsection{Constrained optimisation with bipartite ranking loss}
-
+%
 Suppose we use the exponential loss %$\ell(f, y) = e^{-fy}$ 
 to upper-bound the 0/1 loss in $R_{\upthetabm}^{\textsc{rank}}$,
-%the multitask learning objective~(\ref{eq:obj_rank}) can be optimised by
+the multitask learning objective~(\ref{eq:obj_rank}) can be optimised by
 problem~(\ref{eq:obj_rank}) can be optimised by
 \begin{equation}
 \label{eq:expobj_rank}
@@ -418,7 +419,7 @@ problem~(\ref{eq:obj_rank}) can be optimised by
                   \sum_{m': y_{m'}^i = 0} \exp \left(f(m', u, i) - \min_{m: y_m^i = 1} f(m, u, i) \right).
 $}
 \end{equation}
-
+%
 %Directly solving problem (\ref{eq:expobj}) is challenging due to the \emph{min} operator.
 To deal with the challenge imposed by the \emph{min} operator in the exponential function, 
 we introduce slack variables $\xi_i$ to lower-bound the scores of songs in playlist $i$ %, $\, i \in P_u, \, u \in \{1,\dots,U\}$ 
