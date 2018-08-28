@@ -12,10 +12,12 @@
 %- constrained optimisation formulation
 %- unconstrained optimisation of classification loss
 
+We first describe the three cold-start settings considered in the paper,
 %In this section, 
 %we introduce a multitask objective that supports the three cold-start settings described in Section~\ref{sec:problem}. 
 %we describe a multitask learning method that works in all three cold-start settings introduced in previous sections.
-We consider %the problem of 
+%We consider %the problem of 
+then formulate
 playlist recommendation as a multitask learning problem, 
 where each task involves recommending a set of songs given a user or playlist.
 We propose to optimise a bipartite ranking loss that encourages songs in a playlist
@@ -52,27 +54,61 @@ we efficiently approximate an optimal solution by minimising an unconstrained cl
 %the multitask objective.
 
 
+\subsection{Cold playlists, cold users and cold songs}
 
-\subsection{Multitask learning problem}
+% list three setting of cold start recommendation
+% describe Fig 1
+%We are interested in recommending playlists in three cold-start scenarios,
+%as shown in Figure~\ref{fig:setting}
+%Figure~\ref{fig:setting} shows the three cold-start scenarios that we investigate in this paper.
+Figure~\ref{fig:setting} shows the three cold-start scenarios for playlist recommendation 
+that we study in this paper:
+\begin{enumerate}[(a)]
+%\item Cold playlists, where we recommend a set of songs to form a new personalised playlist for an existing user;
+%      by learning from her existing playlists;
+%\item Cold playlists, where we recommend new personalised playlists for existing users;
+%\item Cold playlists, where we recommend a set of songs to form a new personalised playlist for each existing user;
+\item Cold playlists, where we recommend songs to form new personalised playlists for each existing user;
+%
+%\item Cold users, where we recommend a set of songs to form a playlist for a new user;
+%\item Cold users, where we recommend new playlists for new users;
+%\item Cold users, where we recommend a set of songs to form a playlist for each new user;
+\item Cold users, where we recommend songs to form new playlists for each new user;
+%
+\item Cold songs, where we recommend newly released songs to extend users' existing playlists.
+\end{enumerate}
+In the \emph{cold playlists} setting, a target user (\ie the one for whom we recommend playlists)
+maintains a number of playlists that can be exploited by the learning algorithm.
+In the \emph{cold users} setting, however, we may only know a few simple attributes of a new user
+(\eg age, gender, country) or nothing except her user identifier. 
+The learning algorithm can only make use of playlists from existing users.
+Finally, in the \emph{cold songs} setting, the learning algorithm have access to 
+content features (\eg artist, genre, audio data) 
+of newly released songs as well as all playlists from existing users.
+
+%\subsection{Multitask learning problem}
+\subsection{Multitask learning objective}
 
 %Suppose we are given 
 Given a dataset $\DCal$ with $N$ playlists from $U$ users, 
 where songs in every playlist are from a music collection with $M$ songs.
 %We further assume 
 Assume each user has at least one playlist, and each song in the collection 
-is appeared in at least one playlist.
+appears in at least one playlist.
 %
-Let $P_u$ denote the set of playlists from user $u$,
-we aim to learn a function $f(m, u, i)$ that measures the affinity between song $m$ and playlist $i$ from user $u$.
+Let $P_u$ denote the (indices of) playlists from user $u \in \{1,\dots,U\}$.
+We aim to learn a function $f(m, u, i)$ that measures the affinity between 
+song $m \in \{1,\dots,M\}$ and playlist $i \in P_u$ from user $u$.
 %playlist $i$ and song $m$. 
-Suppose $f$ has a linear form
+Suppose $f$ has a linear form, \ie
 \begin{equation}
 \label{eq:scorefunc}
 f(m, u, i) = \w_{u,i}^\top \x_m,
 \end{equation}
-where $m \in \{1,\dots,M\}, u \in \{1,\dots,U\}, i \in P_u$,
+where %$m \in \{1,\dots,M\}, u \in \{1,\dots,U\}, i \in P_u$,
 $\x_m \in \R^D$ represents the $D$ features of song $m$,
-and $\w_{u,i} \in \R^D$ are the weights (or representation) of playlist $i$ from user $u$.
+and $\w_{u,i} \in \R^D$ are the weights %(or representation) 
+of playlist $i$ from user $u$.
 %vector $\w_{i,u}$ represents the weights of playlist $i$ from user $u$,
 
 
@@ -82,7 +118,7 @@ Inspired by the decomposition of user weights and artist weights in~\cite{ben201
 %additive form of user weights and artist weights in~\cite{ben2017groove},
 %as well as the assumption that playlists of the \emph{same} user have \emph{similar} representations,
 %and all users share a small number of features in their representations,
-we decompose the weights of playlist $i$ from user $u$ %in (\ref{eq:scorefunc})
+we decompose $\w_{u,i}$ %the weights of playlist $i$ from user $u$ %in (\ref{eq:scorefunc})
 into three components
 %\ie
 \begin{equation}
@@ -93,12 +129,21 @@ where $\alphabm_u$ are weights for user $u$,
 $\betabm_i$ are weights specific for playlist $i$, %(from user $u$),
 and $\bmu$ are the weights shared by all users.
 % information propagation
-This decomposition allows us to learn the user weights (\ie $\alphabm_u$) using all her
-playlists and also exploit all training playlists when learning the shared weights (\ie $\bmu$).
-It also has the advantage of learning $(U + N + 1) D$ parameters instead of $U N D$ parameters 
-if we choose to learn a joint representation for each playlist from every user,
+This decomposition allows us to learn the user weights $\alphabm_u$ using all her
+playlists, and exploit all training playlists when learning the shared weights $\bmu$.
+It also has the advantage of requiring fewer parameters (\ie $(U + N + 1) D$) 
+compared to an alternative approach that learns a joint weight vector for each $(u, i)$ pair
+(\ie $U N D$ parameters),
+%It also has the advantage of learning only $(U + N + 1)D$ parameters,
+%compared with $U N D$ parameters required in an alternative approach 
+%that learns a joint representation for each $(u, i)$ pair,
+%
+%It also has the advantage of learning $(U + N + 1) D$ instead of $U N D$ parameters 
+%if learning a joint representation for each $(u, i)$ pair is to be learned.
+%if we choose to learn a joint representation for each playlist from every user,
 which is challenging given the long-tailed distribution
-of the number of playlists from users
+of the number of playlists per user
+%of the number of playlists from users
 \footnote{In other words, most users only have a few playlists, 
 while a small portion of users have a very large number of playlists.}~\cite{bonnin2013evaluating}.
 
@@ -154,7 +199,8 @@ where constants $\lambda_1, \lambda_2, \lambda_3 \in \R_+$,
 and the L$_2$regularisation term is to penalise large values in user representations.
 
 
-\subsection{Cold playlists, cold users and cold songs}
+\subsection{Cold-start playlist recommendation}
+
 Once all parameters have been learned, 
 we make a recommendation by first score each song according to available information (\eg an existing user or playlist),
 %(\eg an existing playlist, an existing user or a new user),
@@ -219,8 +265,9 @@ $$
 
 %\subsection{Recommending the most probable songs}
 %\subsection{Penalising improbable songs with bipartite ranking loss}
-\subsection{Encouraging probable songs with bipartite ranking loss}
-\label{ssec:bploss}
+%\subsection{Encouraging probable songs with bipartite ranking loss}
+%\label{ssec:bploss}
+\subsection{Constrained optimisation with ranking loss}
 
 %In this section, we describe a ranking approach that learns to rank songs in playlist above
 %those not in it, which aims to rank the most probable songs above those unlikely when making a recommendation.
@@ -287,7 +334,8 @@ We will describe the method to deal with the \emph{min} function in empirical ri
 
 
 
-\subsection{Formulating a constrained optimisation problem}
+%\subsection{Formulating a constrained optimisation problem}
+%\subsection{Constrained optimisation with bipartite ranking loss}
 
 Suppose we use the exponential loss %$\ell(f, y) = e^{-fy}$ 
 to upper-bound the 0/1 loss in $R_{\upthetabm}^{\textsc{rank}}$,
