@@ -1,13 +1,10 @@
-\section{Multitask learning for playlist recommendation}
+%\section{Multitask learning for cold-start playlist recommendation}
+%\section{Multitask learning for playlist recommendation}
+\section{Recommending playlist via multitask learning}
 %\section{Playlist recommendation via multitask learning}
 \label{sec:method}
 
 \input{fig_setting}
-
-%In this section, 
-%we introduce a multitask objective that supports the three cold-start settings described in Section~\ref{sec:problem}. 
-%we describe a multitask learning method that works in all three cold-start settings introduced in previous sections.
-We consider the problem of playlist recommendation as multitask learning problem ...
 
 %- multitask learning problem
 %- solutions for three cold-start settings
@@ -15,12 +12,29 @@ We consider the problem of playlist recommendation as multitask learning problem
 %- constrained optimisation formulation
 %- unconstrained optimisation of classification loss
 
-We optimise the multitask learning objective by minimising a bipartite ranking loss that encourages songs in a playlist
-to be ranked higher than those are not, which involves a convex constrained optimisation problem.
-By exploiting an equivalence relationship between bipartite ranking and binary classification, 
-we can approximate an optimal solution of the constrained optimisation problem by minimising a classification loss without any constraints.
-This enables efficient optimisation of the multitask learning objective.
+%In this section, 
+%we introduce a multitask objective that supports the three cold-start settings described in Section~\ref{sec:problem}. 
+%we describe a multitask learning method that works in all three cold-start settings introduced in previous sections.
+We consider %the problem of 
+playlist recommendation as a multitask learning problem, 
+where each task involves recommending a set of songs given a user or playlist.
+We propose to optimise a bipartite ranking loss that encourages songs in a playlist
+to be ranked higher than those are not.
+%
+This results in a convex %constrained 
+optimisation problem with an enormous number of constraints.
+By exploiting an equivalence between bipartite ranking and binary classification,
+we efficiently approximate an optimal solution by minimising an unconstrained classification loss.
 
+%We exploit an equivalence between bipartite ranking and binary classification to 
+%avoid dealing with an enormous number of constraints 
+%We formulate a convex constrained optimisation problem for this multitask learning 
+
+%We optimise the multitask learning objective by minimising a bipartite ranking loss that encourages songs in a playlist
+%to be ranked higher than those are not, which involves a convex constrained optimisation problem.
+%By exploiting an equivalence relationship between bipartite ranking and binary classification, 
+%we can approximate an optimal solution of the constrained optimisation problem by minimising a classification loss without any constraints.
+%This enables efficient optimisation of the multitask learning objective.
 
 %Inspired by an equivalence relationship between bipartite ranking and binary classification, 
 %we show that an optimal solution of this problem can be approximated by minimising a classification loss without any constraints,
@@ -39,7 +53,7 @@ This enables efficient optimisation of the multitask learning objective.
 
 
 
-\subsection{Multitask learning objective}
+\subsection{Multitask learning problem}
 
 %Suppose we are given 
 Given a dataset $\DCal$ with $N$ playlists from $U$ users, 
@@ -140,6 +154,7 @@ where constants $\lambda_1, \lambda_2, \lambda_3 \in \R_+$,
 and the L$_2$regularisation term is to penalise large values in user representations.
 
 
+\subsection{Cold playlists, cold users and cold songs}
 Once all parameters have been learned, 
 we make a recommendation by first score each song according to available information (\eg an existing user or playlist),
 %(\eg an existing playlist, an existing user or a new user),
@@ -203,7 +218,8 @@ $$
 
 
 %\subsection{Recommending the most probable songs}
-\subsection{Penalising the improbable songs}
+%\subsection{Penalising improbable songs with bipartite ranking loss}
+\subsection{Encouraging probable songs with bipartite ranking loss}
 \label{ssec:bploss}
 
 %In this section, we describe a ranking approach that learns to rank songs in playlist above
