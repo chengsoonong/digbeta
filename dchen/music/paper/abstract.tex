@@ -6,9 +6,14 @@ Playlist recommendation involves producing a set of songs that a user might enjo
 We investigate this problem in three %different 
 cold-start scenarios:
 %Specifically, we investigate three settings with different cold items:
-(i) \emph{cold playlists}, where we recommend a set of songs to form a new playlist for an existing user; %without additional context except the user;
-(ii) \emph{cold users}, where we recommend a set of songs to form a new playlist for a new user; %, without any other context.
-(iii) \emph{cold songs}, where we recommend newly released songs to extend existing playlists.
+(i) \emph{cold playlists}, 
+%where we recommend a set of songs to form a new playlist for an existing user; 
+%without additional context except the user;
+where we recommend songs to form new personalised playlists for an existing user;
+(ii) \emph{cold users},
+%where we recommend a set of songs to form a new playlist for a new user; %, without any other context.
+where we recommend songs to form new playlists for a new user;
+(iii) \emph{cold songs}, where we recommend newly released songs to extend users' existing playlists.
 %
 We propose a flexible multitask learning method to deal with all three settings.
 The method learns from user-curated playlists,
