@@ -306,12 +306,37 @@ r_m^{(c)} = (\alphabm_u + \betabm_i + \bmu)^\top \x_m.
 %$$
 
 
+We now specify the empirical risk $R_{\uptheta}(f, D)$ %in problem~(\ref{eq:obj})
+and develop methods to optimise the multitask learning objective.
+
 %\subsection{Recommending the most probable songs}
 %\subsection{Penalising improbable songs with bipartite ranking loss}
 %\subsection{Encouraging probable songs with bipartite ranking loss}
 %\label{ssec:bploss}
 \subsection{Constrained optimisation with ranking loss}
 
+We aim to rank songs that are likely in a playlist above those unlikely when making a recommendation.
+To achieve this, we optimise the multitask learning objective by minimising a bipartite ranking loss,
+in particular, we minimises the number of songs not in a training playlist but ranked above the lowest 
+ranked song in it.\footnote{This is known as the Bottom-Push loss~\cite{rudin2009p} in the bipartite ranking literature.}
+The loss of function $f$ for playlist $i$ from user $u$ is defined as
+\begin{equation}
+\label{eq:loss}
+\resizebox{.9\columnwidth}{!}{$
+\Delta_f(u, i) 
+= \displaystyle \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \llb \min_{m: y_m^i = 1} f(m, u, i) \le f(m', u, i) \rrb,
+$}
+\end{equation}
+where $M_-^i$ is the number of songs not in playlist $i$,
+binary variable $y_m^i$ denotes whether song $m$ appears in playlist $i$,
+and $\llb \cdot \rrb$ is the indicator function that represents the 0/1 loss.
+
+The empirical risk when employing the bipartite ranking loss~(\ref{eq:loss}) is
+\vspace{-1em}
+\begin{equation}
+\label{eq:risk_rank}
+R_{\upthetabm}^{\textsc{rank}}(f, \DCal) = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \Delta_f(u, i).
+\end{equation}
 %In this section, we describe a ranking approach that learns to rank songs in playlist above
 %those not in it, which aims to rank the most probable songs above those unlikely when making a recommendation.
 %The corresponding loss function of this approach is known as the Bottom-Push loss~\cite{rudin2009p} in bipartite ranking literature.
@@ -327,35 +352,37 @@ r_m^{(c)} = (\alphabm_u + \betabm_i + \bmu)^\top \x_m.
 %but have a higher score than the lowest ranked song in playlist, 
 %
 %Formally, we minimise the number of songs not in playlist but ranked above the lowest ranked song in playlist,
-We optimise the multitask learning objective by minimising a bipartite ranking loss 
-that penalises songs not in a training playlist but ranked higher than those in it.
+
+%We optimise the multitask learning objective by minimising a bipartite ranking loss 
+%that penalises songs not in a training playlist but ranked higher than those in it.
 %that encourages songs in a playlist to be ranked higher than those are not,
-This aims to rank probable songs above those unlikely when making a recommendation.
+%This aims to rank probable songs above those unlikely when making a recommendation.
 %which aims to rank the most probable songs above those unlikely when making a recommendation.
-In particular, we minimise the number of songs not in a training playlist but ranked above the lowest ranked song in it, %the playlist
-\footnote{This is known as the Bottom-Push loss~\cite{rudin2009p} in the bipartite ranking literature.}
-\ie the %(normalised) 
-empirical risk is
-\begin{equation}
-\label{eq:bprisk}
-\resizebox{.908\linewidth}{!}{$\displaystyle
-R_{\upthetabm}^{\textsc{rank}} = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} 
-\llb \min_{m: y_m^i = 1} f(m, u, i) \le f(m', u, i) \rrb,
-$}
-\end{equation}
-where $M_-^i$ is the number of songs not in playlist $i$,
+%In particular, we minimise the number of songs not in a training playlist but ranked above the lowest ranked song in it, %the playlist
+%\footnote{This is known as the Bottom-Push loss~\cite{rudin2009p} in the bipartite ranking literature.}
+%\ie the %(normalised) 
+%empirical risk is
+%\begin{equation}
+%\label{eq:bprisk}
+%\resizebox{.908\linewidth}{!}{$\displaystyle
+%R_{\upthetabm}^{\textsc{rank}} = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} 
+%\llb \min_{m: y_m^i = 1} f(m, u, i) \le f(m', u, i) \rrb,
+%$}
+%\end{equation}
+%where $M_-^i$ is the number of songs not in playlist $i$,
 %denotes the number of songs that are not in playlist $i$,
-binary variable $y_m^i$ denotes whether song $m$ appears in playlist $i$,
-and $\llb \cdot \rrb$ is the indicator function that represents the 0/1 loss.
+%binary variable $y_m^i$ denotes whether song $m$ appears in playlist $i$,
+%and $\llb \cdot \rrb$ is the indicator function that represents the 0/1 loss.
 %
 %As a remark, it is obvious that the order of songs in a playlist does not affect the empirical 
 %risk $R_\uptheta^\textsc{rank}$ as long as they are ranked higher than the lowest ranked song in the playlist.
-The optimisation problem~(\ref{eq:obj}) can now be instantiated as 
+
+%The optimisation problem~(\ref{eq:obj}) can now be instantiated as 
 % now become the following regularised risk minimisation:
-\begin{equation}
-\label{eq:obj_rank}
-\min_\upthetabm \ \Omega(\upthetabm) + R_{\upthetabm}^{\textsc{rank}}.
-\end{equation}
+%\begin{equation}
+%\label{eq:obj_rank}
+%\min_\upthetabm \ \Omega(\upthetabm) + R_{\upthetabm}^{\textsc{rank}}.
+%\end{equation}
 %where the regularisation term $\Omega(\upthetabm)$ is defined in (\ref{eq:reg}).
 
 There are two challenges to %optimise the above objective,
