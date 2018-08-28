@@ -100,7 +100,8 @@ Let $P_u$ denote the (indices of) playlists from user $u \in \{1,\dots,U\}$.
 We aim to learn a function $f(m, u, i)$ that measures the affinity between 
 song $m \in \{1,\dots,M\}$ and playlist $i \in P_u$ from user $u$.
 %playlist $i$ and song $m$. 
-Suppose $f$ has a linear form, \ie
+%Suppose $f$ has a linear form, \ie
+Suppose for song $m$, function $f$ has linear form,
 \begin{equation}
 \label{eq:scorefunc}
 f(m, u, i) = \w_{u,i}^\top \x_m,
@@ -142,10 +143,10 @@ compared to an alternative approach that learns a joint weight vector for each $
 %if learning a joint representation for each $(u, i)$ pair is to be learned.
 %if we choose to learn a joint representation for each playlist from every user,
 which is challenging given the long-tailed distribution
-of the number of playlists per user
+of the number of playlists per user~\cite{bonnin2013evaluating}.
 %of the number of playlists from users
-\footnote{In other words, most users only have a few playlists, 
-while a small portion of users have a very large number of playlists.}~\cite{bonnin2013evaluating}.
+%\footnote{In other words, most users only have a few playlists, 
+%while a small portion of users have a very large number of playlists.}
 
 % This decomposition allow us to do multitask learning to benefit ...
 % which helps to deal with cold start ...
@@ -167,15 +168,21 @@ The learning task is to minimise the empirical risk of affinity function $f$ on 
 \label{eq:obj}
 \min_\upthetabm \, \Omega(\upthetabm) + R_\upthetabm(f, \DCal),
 \end{equation}
-where $\Omega(\upthetabm)$ is a regularisation term and $R_\upthetabm(f, \DCal)$ denotes the empirical risk.
+where $\Omega(\upthetabm)$ is a regularisation term and $R_\upthetabm(f, \DCal)$ denotes the empirical risk
+of $f$ on $\DCal$.
 We call the objective in problem~(\ref{eq:obj}) the {\it multitask learning objective},
-as it jointly learns from multiple tasks where each one is to recommend a set of songs given a user or a playlist.
+since it jointly learns from multiple tasks where each one involves recommending a set of songs 
+given a user or playlist.
 
 
-We further assume that playlists of the \emph{same} user have \emph{similar} representations,
-and although the representations of different users are generally different,
-we assume they nonetheless share a small number of weights in their representations.
-To impose these assumptions, we apply L$_1$ regularisation to encourage sparse representations of playlists $\betabm_i$ %from the same user
+We further assume that playlists from the \emph{same} user have \emph{similar} weights %representations,
+and the shared weights $\bmu$ are sparse %that shared by all users are sparse 
+(\ie users only share a small portion of their weights).
+%and although the weights %representations 
+%of different users are generally different,
+%we assume they nonetheless share a small number of weights in their representations.
+To impose these assumptions, we apply L$_1$ regularisation to encourage sparsity %sparse representations 
+of playlists weights $\betabm_i$ %from the same user
 and the shared weights $\bmu$.
 %as well as sparse weights that shared by all users.
 %we regularise the weights of playlists from the same user as well as the weights shared by all users.
@@ -188,50 +195,86 @@ and the shared weights $\bmu$.
 %L1 regularisation term $\| \bmu \|_1$.
 %
 %The regularisation terms in our multitask learning objective can thus be summarised as
-Formally, the regularisation term in our multitask learning objective is
+%Formally, 
+The regularisation term in our multitask learning objective is
 \begin{equation}
 \label{eq:reg}
-\Omega(\upthetabm) = \lambda_1 \sum_{u=1}^U \|\alphabm_u\|_2^2 + \lambda_2 \sum_{u=1}^U \sum_{i \in P_u} \|\betabm_i\|_1 + \lambda_3 \| \bmu \|_1,
+\Omega(\upthetabm) 
+= \lambda_1 \sum_{u=1}^U \|\alphabm_u\|_2^2 
+%  + \lambda_2 \sum_{u=1}^U \sum_{i \in P_u} \|\betabm_i\|_1 
+  + \lambda_2 \sum_{i=1}^N \|\betabm_i\|_1 
+  + \lambda_3 \| \bmu \|_1,
 \end{equation}
 % where we add an L2 regularisation term to penalise large values in user representations,
 % and constants $\lambda_1, \lambda_2, \lambda_3 \in \R_+$.
 where constants $\lambda_1, \lambda_2, \lambda_3 \in \R_+$,
-and the L$_2$regularisation term is to penalise large values in user representations.
+and the L$_2$ regularisation term is to penalise large values in user weights. %representations.
+We specify the empirical risk $R_{\uptheta}(f, \DCal)$ later.
 
 
 \subsection{Cold-start playlist recommendation}
 
-Once all parameters have been learned, 
-we make a recommendation by first score each song according to available information (\eg an existing user or playlist),
+%Once all parameters have been learned, 
+Once parameters $\uptheta$ have been learned, 
+we make a recommendation by first scoring each song according to available information (\eg an existing user or playlist),
 %(\eg an existing playlist, an existing user or a new user),
 then form or extend a playlist by either taking the top-K scored songs or sampling songs with probabilities proportional to their scores.
-Specifically, to recommend a new playlist for an existing user (\ie the \emph{cold playlists} setting),
+%
+Specifically, %to recommend a new playlist for an existing user (\ie the \emph{cold playlists} setting),
+in the \emph{cold playlists} setting where the target user $u$ is known,
 %where the user information is available,
 we score song $m$ as 
-$$
-\hat f(m, u, \cdot) = (\alphabm_u + \bmu)^\top \x_m.
-$$
+\begin{equation}
+\label{eq:cp}
+r_m^{(a)} = (\alphabm_u + \bmu)^\top \x_m.
+%r_{m,u}^{(a)} = (\alphabm_u + \bmu)^\top \x_m.
+%\hat f(m, u, \cdot) = (\alphabm_u + \bmu)^\top \x_m.
+\end{equation}
 
-Further, in the \emph{cold users} setting, where we recommend a new playlist for a new user,
-we can score song $m$ simply as
-$$
-\hat f(m, \cdot, \cdot) = \bmu^\top \x_m,
-$$
-or we can make use of information from similar users in training set if a few attributes 
-(\eg age, gender and country) of the new user is available.
-In particular, we can approximate the representation of the new user using the mean representations of similar existing users
-\footnote{For example, users whose attribute vector is similar to that of the new user in terms of cosine similarity.} 
+Further, in the \emph{cold users} setting where a few simple attributes of the new user are available,
+we approximate the weights of the new user using the average weights of similar existing users
+(\eg users whose attribute vector is similar to that of the new user in terms of cosine similarity)
 and score song $m$ as
-$$
-\hat f(m, \cdot, \cdot) = \left( \frac{1}{|\UCal|} \sum_{u \in \UCal} \alphabm_u + \bmu \right)^\top \x_m,
-$$
+\vspace{-1.5em}
+\begin{equation}
+\label{eq:cu}
+r_m^{(b)} = \left( \frac{1}{|\UCal|} \sum_{u \in \UCal} \alphabm_u + \bmu \right)^\top \x_m,
+%\hat f(m, \cdot, \cdot) = \left( \frac{1}{|\UCal|} \sum_{u \in \UCal} \alphabm_u + \bmu \right)^\top \x_m,
+\end{equation}
 where $\UCal$ is the set of (\eg 10) existing users that are most similar to the new user.
+On the other hand, if we know nothing about the new user except her identifier,
+we can simply score song $m$ using the shared weights, \ie
+\begin{equation}
+\label{eq:cu2}
+r_m^{(b)} = \bmu^\top \x_m.
+%\hat f(m, \cdot, \cdot) = \bmu^\top \x_m,
+\end{equation}
 
-Lastly, to extend an existing playlist $i$ from user $u$ (\ie the \emph{cold songs} setting),
-we can score song $m$ as
-$$
-\hat f(m, u, i) = (\alphabm_u + \betabm_i + \bmu)^\top \x_m.
-$$
+%where we recommend a new playlist for a new user,
+%$$
+%\hat f(m, \cdot, \cdot) = \bmu^\top \x_m,
+%$$
+%or we can make use of information from similar users in training set if a few attributes 
+%(\eg age, gender and country) of the new user is available.
+%In particular, we can approximate the representation of the new user using the mean representations of similar existing users
+%\footnote{For example, users whose attribute vector is similar to that of the new user in terms of cosine similarity.} 
+%and score song $m$ as
+%$$
+%\hat f(m, \cdot, \cdot) = \left( \frac{1}{|\UCal|} \sum_{u \in \UCal} \alphabm_u + \bmu \right)^\top \x_m,
+%$$
+%where $\UCal$ is the set of (\eg 10) existing users that are most similar to the new user.
+
+Lastly, %to extend an existing playlist $i$ from user $u$ (\ie the \emph{cold songs} setting),
+in the \emph{cold songs} setting where we are given a specific playlist $i$ from user $u$,
+we therefore can score song $m$ using both user weights and playlists weights, \ie
+\begin{equation}
+\label{eq:cs}
+r_m^{(c)} = (\alphabm_u + \betabm_i + \bmu)^\top \x_m.
+\end{equation}
+%we can score song $m$ as
+%$$
+%\hat f(m, u, i) = (\alphabm_u + \betabm_i + \bmu)^\top \x_m.
+%$$
 
 
 %Specifically, in the {\it cold songs} setting, 
