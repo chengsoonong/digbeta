@@ -87,9 +87,11 @@ representations for genre, sub-genre and artist.
 By adopting an additive form with user and artist weights, it can fall back to use only artist weights
 when recommending music to new users, if artist weights are unavailable, it further falls back to use 
 sub-genre (or genre) weights~\cite{ben2017groove}.
-However, the requirement of seed information (\eg artist, genre or a seed song) restricts its applicability to
+However, the requirement of seed information (\eg artist, genre or a seed song) restricts its direct applicability to
 the \emph{cold playlists} and \emph{cold users} settings, %where no seed information is available.
-further, encoding song usage information as features makes it unsuitable for recommending new songs.
+further, encoding song usage information as features makes it unsuitable 
+%to straight recommend new songs.
+for recommending new songs directly.
 %Further, as song usage information has been encoded as song features, this makes it unsuitable for recommending
 %new songs where usage information is not available.
 %
