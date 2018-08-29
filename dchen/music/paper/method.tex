@@ -249,6 +249,7 @@ r_m^{(b)} = \left( \frac{1}{|\UCal|} \sum_{u \in \UCal} \alphabm_u + \bmu \right
 where $\UCal$ is the set of (\eg 10) existing users that are most similar to the new user.
 On the other hand, if we know nothing about the new user except her identifier,
 we can simply score song $m$ using the shared weights, \ie
+\vspace{-.3em}
 \begin{equation}
 \label{eq:cu2}
 r_m^{(b)} = \bmu^\top \x_m.
@@ -272,6 +273,7 @@ r_m^{(b)} = \bmu^\top \x_m.
 Lastly, %to extend an existing playlist $i$ from user $u$ (\ie the \emph{cold songs} setting),
 in the \emph{cold songs} setting where we are given a specific playlist $i$ from user $u$,
 we therefore can score song $m$ using both user weights and playlists weights, \ie
+\vspace{-.3em}
 \begin{equation}
 \label{eq:cs}
 r_m^{(c)} = (\alphabm_u + \betabm_i + \bmu)^\top \x_m.
@@ -318,6 +320,9 @@ and develop methods to optimise the multitask learning objective.
 %\subsection{Penalising improbable songs with bipartite ranking loss}
 %\subsection{Encouraging probable songs with bipartite ranking loss}
 %\label{ssec:bploss}
+
+\vspace{-.3em}
+
 \subsection{Constrained optimisation with ranking loss}
 
 We aim to rank songs that are likely in a playlist above those unlikely when making a recommendation.
@@ -469,7 +474,8 @@ $
 $
 constraints,
 %in other words, %the number of constraints equals 
-\ie \red{the total number of songs played in all playlists.}
+%\ie \red{the total number of songs played in all playlists.}
+\ie the accumulated playcount of all songs.
 Asymptotically, it is of order {\small $O(\widebar{L} N)$} where {\small $\widebar{L}$} 
 is the average playlist length (\ie the number of songs in a playlist) in training set,
 which is typically less than $100$.
@@ -537,7 +543,7 @@ by $\widetilde R_{\upthetabm}^{\textsc{rank}}$ defined as
 \end{aligned}
 $}
 \end{equation}
-where $p \in \R_+$ and
+where hyper-parameter $p \in \R_+$ and
 $$
 \resizebox{.88\columnwidth}{!}{$
 \displaystyle
@@ -670,14 +676,14 @@ since classification loss can be optimised more efficiently in general~\cite{ert
 %However, it can be efficiently solved using the Orthant-Wise Limited-memory Quasi-Newton (OWL-QN)~\cite{andrew2007scalable} L-BFGS variant.
 %The objective in problem~(\ref{eq:expobj_clf}) is convex and can be efficiently optimised using the 
 Problem~(\ref{eq:expobj_clf}) can be efficiently optimised using the
-Orthant-Wise Limited-memory Quasi-Newton (OWL-QN)~\cite{andrew2007scalable} L-BFGS variant,
-which can address L$_1$ regularisation effectively.
+Orthant-Wise Limited-memory Quasi-Newton (OWL-QN) algorithm~\cite{andrew2007scalable},
+an L-BFGS variant that can address L$_1$ regularisation effectively.
 
 We refer the approach that solves problem~(\ref{eq:expobj_clf}) as \emph{Multitask Classification} (MTC). % in experiment.
 As a remark, optimal solutions of problem (\ref{eq:expobj_clf}) are not necessarily the optimal solutions 
 of problem $\min_\upthetabm \ \Omega(\upthetabm) + \widetilde R_{\upthetabm}^{\textsc{rank}}$ due to regularisation. %the regularisation terms.
 However, when parameters $\upthetabm$ are small (which is generally the case when using regularisation), the two objectives 
-can nonetheless approximate each other within an acceptable level.
+can nonetheless approximate each other well. %within an acceptable level.
 
 
 %\cheng{Explain in words why one is ranking, and the other one classification.}
