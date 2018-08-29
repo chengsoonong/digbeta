@@ -1,27 +1,41 @@
 \section{Conclusion and future work}
 
-We investigate the problem of recommending playlists to users in cold-start settings.
-In the {\it cold songs} setting, we recommend newly released songs to extend existing playlists;
-in the {\it cold playlists} setting, we recommend a set of songs to form a new playlist for an existing user;
-and in the {\it cold users} setting, we recommend a set of songs to form a playlist for a new user.
-We deal with all three cold-start settings using a multitask learning method which encourages songs in playlist 
-to be ranked higher than those are not by minimising a bipartite ranking loss. 
-We formulate the multitask objective as a constrained convex optimisation problem, and further approximates it 
-by an unconstrained objective inspired by an equivalence relationship between bipartite ranking and binary classification. 
-Empirical results on two real music playlist datasets show the proposed approach 
-has good performance for playlist recommendation in cold-start settings.
-
+We study the problem of recommending playlists to users in three cold-start settings:
+cold playlists, cold users and cold songs.
+We propose a multitask learning method that learns user- and playlist-specific weights 
+as well as shared weights from user-curated playlists,
+which allows us to form new personalised playlists for an existing user, %in the cold playlists setting,
+produce playlists for a new user, %in the cold users setting, 
+and extend users' playlists with newly released songs. %in the cold songs setting.
+We optimise the parameters of the multitask learning method by minimising a bipartite ranking loss
+that encourages songs in a playlist to be ranked higher than those are not,
+and an equivalence between bipartite ranking and binary classification further enables the efficient 
+approximation of optimal parameters.
+Empirical evaluations on two real playlist datasets demonstrate the effectiveness of the proposed
+method in recommending playlists in cold-start settings.
+%
+%We investigate the problem of recommending playlists to users in cold-start settings.
+%In the {\it cold songs} setting, we recommend newly released songs to extend existing playlists;
+%in the {\it cold playlists} setting, we recommend a set of songs to form a new playlist for an existing user;
+%and in the {\it cold users} setting, we recommend a set of songs to form a playlist for a new user.
+%We deal with all three cold-start settings using a multitask learning method which encourages songs in playlist 
+%to be ranked higher than those are not by minimising a bipartite ranking loss. 
+%We formulate the multitask objective as a constrained convex optimisation problem, and further approximates it 
+%by an unconstrained objective inspired by an equivalence relationship between bipartite ranking and binary classification. 
+%Empirical results on two real music playlist datasets show the proposed approach 
+%has good performance for playlist recommendation in cold-start settings.
+%
 %We are aware of the limitations of our proposed approach, 
 % Our proposed approach has a few limitations,
 % which we leave as future work.
 % In particular, 
 For future work, we would like to explore 
-auxiliary data sources (\eg music information shared on social media) and additional song/user 
-features (\eg lyrics, user profile), % as well as the sequential order of songs in playlist %which could 
+auxiliary data sources (\eg music information shared on social media) and additional features for songs and users 
+(\eg lyrics, user profiles), % as well as the sequential order of songs in playlist %which could 
 %provide additional information to 
 which could potentially help make better recommendations.
-Further, non-linear models such as deep neural networks have been shown to work extremely well in a wide arrange of tasks,
-and the linear model with sparse parameters in this work is likely to be more compact if non-linear objective were adopted.
+Further, non-linear models such as deep neural networks have been shown to work extremely well in a wide range of tasks,
+and the linear model with sparse parameters in this work would likely be more compact if non-linear objective were adopted.
 
 % Finally, as a remark, we want to mention the challenge of evaluating the recommended results.
 % While metrics in information retrieval are commonly employed, recommender system is more like a generative process
