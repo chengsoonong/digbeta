@@ -11,9 +11,9 @@ There is a rich collection of recent literature on playlist recommendation,
 %\cite{platt2002learning,mcfee2011natural,mcfee2012hypergraph,chen2012playlist,ben2017groove,
 %hariri2012context,bonnin2013evaluating,jannach2015beyond,
 %schedl2017,recsysch2018},
-which can be summarised in two typical settings: 
+which can be summarised into two typical settings: 
 playlist generation and next song recommendation. % and playlist continuation.
-Playlist generation is to generate a complete playlist given some 
+Playlist generation is to produce a complete playlist given some 
 seed. %~\cite{platt2002learning,mcfee2011natural,mcfee2012hypergraph,chen2012playlist,ben2017groove},
 For example, the AutoDJ system~\cite{platt2002learning} generates playlists given one or more seed songs,
 Groove Radio can produce a personalised playlist for the specified user given a seed artist~\cite{ben2017groove},
@@ -28,8 +28,8 @@ Next song recommendation %~\cite{hariri2012context,bonnin2013evaluating,jannach2
 is to predict the next song a user might play after observing some context.
 For example, the most recent sequence of songs with which a user has interacted was used to
 %the most recent sequence of songs a user interacted with the system was used to
-infer the contextual information. %which 
-This was further adopted to rank the next possible song
+infer the contextual information,
+which was further adopted to rank the next possible song
 with regards to a topic-based sequential patterns learned from users' playlists~\cite{hariri2012context}.
 Context can also be the artists appeared in user's listening history,
 %The artists appeared in user's listening history can be used as context,
@@ -85,11 +85,11 @@ by learning a mapping from user attributes to user embeddings.
 A slightly different approach to deal with music recommendation for new users is learning hierarchical 
 representations for genre, sub-genre and artist.
 By adopting an additive form with user and artist weights, it can fall back to use only artist weights
-when recommending music to new users, if artist weights are unavailable, it further falls back to use 
-sub-genre (or genre) weights~\cite{ben2017groove}.
+when recommending music to new users; if artist weights are not available (\eg a new artist), this approach 
+further falls back to use the weights of sub-genre or genre~\cite{ben2017groove}.
 However, the requirement of seed information (\eg artist, genre or a seed song) restricts its direct applicability to
-the \emph{cold playlists} and \emph{cold users} settings, %where no seed information is available.
-further, encoding song usage information as features makes it unsuitable 
+the \emph{cold playlists} and \emph{cold users} settings. %where no seed information is available.
+Further, encoding song usage information as features makes it unsuitable 
 %to straight recommend new songs.
 for recommending new songs directly.
 %Further, as song usage information has been encoded as song features, this makes it unsuitable for recommending
@@ -110,16 +110,21 @@ for recommending new songs directly.
 It is well known
 that bipartite ranking and binary classification are
 closely related~\cite{ertekin2011equivalence,menon2016bipartite}.
-In particular, \citet{ertekin2011equivalence} have shown that the P-Norm Push bipartite ranking loss~\cite{rudin2009p}
-is equivalent to the P-Classification loss~\cite{ertekin2011equivalence} when using the exponential surrogate.
+In particular, \citet{ertekin2011equivalence} have shown that the P-Norm Push %bipartite ranking 
+loss~\cite{rudin2009p}
+is equivalent to the P-Classification loss when %using the exponential surrogate
+the exponential surrogate of 0/1 loss is employed.
 Further, the P-Norm Push loss is an approximation of the Infinite-Push loss~\cite{agarwal2011infinite},
 or equivalently, the Top-Push loss~\cite{li2014top}, which focuses on the highest ranked negative example instead of
-the lowest ranked positive example as in the Bottom-Push loss~\cite{rudin2009p} that we adopt in this work. %~(\ref{eq:bprisk}).
+the lowest ranked positive example in the Bottom-Push loss adopted in this work.
+%as in the Bottom-Push loss~\cite{rudin2009p} that we adopt in this work. %~(\ref{eq:bprisk}).
 %
-Compared to the Bayesian Personalised Ranking (BPR) approach which requires all
-positive items to be ranked higher than those unobserved ones~\cite{rendle2009bpr,mcfee2012million}, 
-the adopted approach penalises unobserved items that ranked higher than the lowest ranked positive item,
-which can be optimised more efficiently when one cares about only the top ranked items~\cite{rudin2009p,li2014top}.
+Compared to the Bayesian Personalised Ranking (BPR) approach~\cite{rendle2009bpr,mcfee2012million} that requires all
+positive items to be ranked higher than those unobserved ones, 
+the adopted approach only penalises unobserved items that ranked higher than the lowest ranked positive item,
+which can be optimised more efficiently 
+when only the top ranked items are of interest~\cite{li2014top}.
+%when one cares about the top ranked items~\cite{rudin2009p,li2014top}.
 %a similar approach has been shown to work more efficiently when one cares about only the top ranked items~\cite{li2014top}.
 
 
