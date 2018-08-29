@@ -77,31 +77,31 @@ We describe how playlists in the two datasets are split into training and test s
 and the features of songs used to learn the multitask objective, as well as baseline approaches and evaluation metrics.
 
 \subsubsection{Dataset split}
-To empirically evaluate the performance of recommending new songs to extend existing playlists (\ie the \emph{cold songs} setting),
-we hold 5K of the latest released songs in the 30Music dataset. 
-This results in about 8K playlists with songs in both the training and test set.
-In the AotM-2011 dataset where more songs are available, we hold 10K of the latest released songs.
-This leads to about 19K playlists with songs in both the training and test set.
-We remove playlists where all songs have been held for test. %are removed from both the training and test set.
-Table~\ref{tab:stats0} summarises the statistics of this training/test split.
-
 For the task of recommending songs to form new playlists for existing users (\ie the \emph{cold playlists} setting),
 %To empirically evaluate the performance of our proposed recommendation approaches for existing users,
 we hold playlists from about 20\% users in both datasets for test, and all other playlists are used for training.
 The test set is formed by sampling playlists where each song has been included in at least five playlists among the whole dataset.
 We also make sure each song in the test set also appears in the training set,
 and all users in the test set also have a number of playlists in the training set.
-This results in a test set with about 2.1K playlists from 1.6K users in 30Music dataset,
-and a test set with about 9.2K playlists from 2.7K users in AotM-2011 dataset.
+%This results in a test set with about 2.1K playlists from 1.6K users in 30Music dataset,
+%and a test set with about 9.2K playlists from 2.7K users in AotM-2011 dataset.
 The statistics of this training/test split are shown in Table~\ref{tab:stats1}.
+
+To empirically evaluate the performance of recommending new songs to extend existing playlists (\ie the \emph{cold songs} setting),
+we hold 5K of the latest released songs in the 30Music dataset. 
+%This results in about 8K playlists with songs in both the training and test set.
+In the AotM-2011 dataset where more songs are available, we hold 10K of the latest released songs.
+%This leads to about 19K playlists with songs in both the training and test set.
+We remove playlists where all songs have been held for test. %are removed from both the training and test set.
+Table~\ref{tab:stats0} summarises the statistics of this training/test split.
 
 To evaluate the task of recommending songs for new users to form playlists (\ie the \emph{cold users} setting),
 %To evaluate the performance of music recommendation approaches for new users,
 we sampled 30\% of all users and hold all their playlists in both datasets.
 Similarly, we require songs in the test set also exist in the training set,
 a user will thus not be included in the test set if holding all of her playlists breaks this requirement.
-This results in a test set with about 3.4K playlists from 2.4K users in 30Music dataset,
-and a test set with about 8.2K playlists from 4.2K users in AotM-2011 dataset.
+%This results in a test set with about 3.4K playlists from 2.4K users in 30Music dataset,
+%and a test set with about 8.2K playlists from 4.2K users in AotM-2011 dataset.
 Table~\ref{tab:stats2} describes the statistics of this training/test split.
 
 
