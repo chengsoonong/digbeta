@@ -119,7 +119,7 @@ with a number of baseline methods in the three cold-start settings:
       %we score a song using the popularity of the corresponding artist.
       a song is scored by the popularity of the corresponding artist.
 \item The {\it Same Artists - Greatest Hits} (SAGH)~\cite{mcfee2012million} method scores a song
-      by its popularity if the artist of the song has appeared in the given user's playlists (in training set);
+      by its popularity if the artist of the song appears in the given user's playlists (in training set);
       otherwise the song is scored zero.
       In the {\it cold songs} setting, this method considers only songs from artists appeared in the given playlist,
       and score them using the corresponding artist popularity.
@@ -301,7 +301,7 @@ and other factors such as song popularity regain the dominance for the task of p
 From Figure~\ref{fig:nov1} we can see that PopRank achieves the lowest Novelty as expected from the definition of Novelty.
 The Novelty of SAGH increases dramatically when the number of recommendations is larger than 30 or 50, the reason could be the average 
 numbers of songs from an artist is around between 30 and 50 as shown in Table~\ref{tab:stats_pldata}, and SAGH simply recommends random
-songs from artists that are not appeared in users' listening history.
+songs from artists that do not appear in users' listening history.
 All other methods achieve moderate Novelty and hence perform better for recommending new songs.
 Similar observations can be obtained from Figure~\ref{fig:nov3} for the cold playlists recommendation.
 However, there are two differences: (i) the Novelty of SAGH increases less dramatically due to the set of songs being considered are from
