@@ -32,9 +32,12 @@ infer the contextual information,
 which was further adopted to rank the next possible song
 with regards to a topic-based sequential patterns learned from users' playlists~\cite{hariri2012context}.
 Context can also be the artists appeared in user's listening history,
+which were employed to score the next song together with frequency of artist collocations
+as well as song popularity~\cite{mcfee2012million,bonnin2013evaluating}.
 %The artists appeared in user's listening history can be used as context,
-which, together with the popularity of songs or frequency of artists collocations,
-were employed to score the next song~\cite{mcfee2012million,bonnin2013evaluating}.
+%which, together with song popularities and %the popularity of songs or 
+%frequencies of artists collocations,
+%were employed to score the next song~\cite{mcfee2012million,bonnin2013evaluating}.
 It is straightforward to produce a complete playlist using next song recommendation techniques,
 \ie by picking the next song sequentially~\cite{bonnin2013evaluating,ben2017groove}.
 %It is obvious that next song recommendation techniques can also be used to generate a
@@ -123,7 +126,7 @@ Compared to the Bayesian Personalised Ranking (BPR) approach~\cite{rendle2009bpr
 positive items to be ranked higher than those unobserved ones, 
 the adopted approach only penalises unobserved items that ranked higher than the lowest ranked positive item,
 which can be optimised more efficiently 
-when only the top ranked items are of interest~\cite{li2014top}.
+when only the top ranked items are of interest~\cite{rudin2009p,li2014top}.
 %when one cares about the top ranked items~\cite{rudin2009p,li2014top}.
 %a similar approach has been shown to work more efficiently when one cares about only the top ranked items~\cite{li2014top}.
 
