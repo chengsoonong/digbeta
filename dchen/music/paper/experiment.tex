@@ -185,8 +185,8 @@ baseline approaches in each of the three cold-start settings:
       weighted matrix factorisation (WMF) algorithm~\cite{hu2008collaborative}, which learns the 
       latent factors of songs and users.
       In the \emph{cold users} setting, we first learn the latent factors of songs and users using WMF,
-      then approximate the latent factors of a new user by the average latent factors of the $k$
-      nearest neighbours\footnote{We choose $k=100$}
+      then approximate the latent factors of a new user by the average latent factors of the $k$ (\eg, 100)
+      nearest neighbours %\footnote{We choose $k=100$}
       (in terms of cosine similarity of user attributes, \eg age, gender and country) in training set.
       We call this method WMF+kNN.
       In the \emph{cold songs} setting, we factorise the song-playlist matrix to learn the latent factors of 
@@ -211,21 +211,15 @@ baseline approaches in each of the three cold-start settings:
 \end{itemize}
 
 
-\begin{figure}[!t]
-    \centering
-    \includegraphics[width=\columnwidth]{fig/hr3.pdf}
-    \caption{Hit rates of recommendation in \emph{cold playlists} setting}
-\end{figure}
-
-
 \subsubsection{Evaluation}
 
-We evaluate the performance of all approaches using two accuracy metrics that have been adopted 
+We evaluate %the performance of 
+all approaches using two accuracy metrics that have been adopted 
 in playlist recommendation tasks:
-HitRate@K~\cite{hariri2012context} and Area under the ROC curve (AUC)~\cite{manning2008introIR}.
+\emph{HitRate@K}~\cite{hariri2012context} and \emph{Area under the ROC curve} (AUC)~\cite{manning2008introIR}.
 %In addition to these accuracy related metrics, 
-We further adopt two beyond-accuracy metrics, \ie
-Novelty~\cite{zhang2012auralist,schedl2017} and Spread~\cite{kluver2014evaluating},
+We further adopt two beyond-accuracy metrics: %\ie
+\emph{Novelty}~\cite{zhang2012auralist,schedl2017} and \emph{Spread}~\cite{kluver2014evaluating},
 which are specifically tailored to recommender systems.
 Unlike the accuracy metrics, where higher values indicate better performance,
 \emph{moderate} values of Novelty and Spread are usually preferable~\cite{kluver2014evaluating,schedl2017}.
@@ -235,32 +229,42 @@ Unlike the accuracy metrics, where higher values indicate better performance,
 %It is one of several metrics used to evaluate performance on playlist continuation tasks
 %in the ACM RecSys Challenge 2018\footnote{https://recsys-challenge.spotify.com/rules}.
 
-HitRate@K (or Recall@K) is the number of correctly recommended songs amongst the top-$K$ recommendations over
+\emph{HitRate@K} (\ie Recall@K) 
+is the number of correctly recommended songs amongst the top-$K$ recommendations over
 %where $K$ is the number of recommendations, and $L$ is 
-the number of songs in the ground truth playlist. %\footnote{This metric is also known as Recall@K~\cite{schedl2017}.}.
-It has been employed to evaluate several playlist generation and next song recommendation
+the number of songs in the %ground truth playlist. %\footnote{This metric is also known as Recall@K~\cite{schedl2017}.}.
+observed playlist.
+It has been widely employed to evaluate %several 
+playlist generation and next song recommendation
 methods~\cite{hariri2012context,bonnin2013evaluating,bonnin2015automated,jannach2015beyond}.
+%
+%The area under the ROC curve (AUC) 
+AUC has been primarily used to measure the performance of classifiers,
+it has been applied to evaluate %performance of 
+playlist generation method when the task
+has been cast as a sequence of classification problems~\cite{ben2017groove}.
 
-The area under the ROC curve (AUC) is widely used in measuring performance of classifiers,
-it has also been used for evaluating performance of playlist generation method when the task
-is cast as a (sequence of) classification problems~\cite{ben2017groove}.
-
-Useful recommendations need to include previously unknown items~\cite{herlocker2004evaluating,zhang2012auralist}, 
-and this ability can be measured by Novelty,
+It is believed that
+useful recommendations need to include previously unknown items~\cite{herlocker2004evaluating,zhang2012auralist}.
+%and this 
+This ability can be measured by \emph{Novelty},
 $$
 \text{Novelty@K} = \frac{1}{U} \sum_{u=1}^U \frac{1}{|P_u|} \sum_{m \in S_K} \frac{-\log_2 pop_m}{K},
 $$
-where $S_K$ is the set of top-K recommendations and $pop_m$ is the popularity of song $m$.
-Intuitively, the more popular a song is, an average user is more likely to be familiar with it,
-therefore less novel to this user.
-
-Spread is defined as the entropy of the distribution of all possible songs to recommend,
+where $S_K$ is the set of top-$K$ recommendations and $pop_m$ is the popularity of song $m$.
+Intuitively, the more popular a song is, 
+%an average user 
+a user is more likely to be familiar with it,
+therefore less novel. %to the user.
+%
+%On the other hand,
+\emph{Spread}, however, is used to measure the ability of an algorithm to spread its attention across all possible songs.
+It is defined as the entropy of the distribution of all songs, %possible songs to recommend,
 $$
 \text{Spread} = -\sum_{m=1}^M P(m) \log P(m),
 $$
 where $P(m)$ denotes the probability of song $m$ being recommended,
 which is computed from the scores of all possible songs using the softmax function.
-Spread is used to measure the ability of an algorithm to spread its attention across all possible songs.
 
 
 
@@ -272,6 +276,13 @@ Spread is used to measure the ability of an algorithm to spread its attention ac
 %\input{tab_acc}
 \input{tab_auc}
 %\input{fig_nov}
+
+\begin{figure}[!t]
+    \centering
+    \includegraphics[width=\columnwidth]{fig/hr3.pdf}
+    \caption{Hit rates of recommendation in the \emph{cold playlists} setting,
+\emph{higher} values indicate better performance.}
+\end{figure}
 
 \subsubsection{Accuracy}
 
@@ -353,13 +364,15 @@ and other factors such as song popularity regain the dominance for the task of p
 % moderate values of novelty and spread are preferred~\cite{kluver2014evaluating,schedl2017}.
 % moderate values are preferred.
 
+\input{tab_spread}
+
 \begin{figure}[!t]
     \centering
     \includegraphics[width=\columnwidth]{fig/nov3.pdf}
-    \caption{Novelty of recommendation in \emph{cold playlists} setting}
+    \caption{Novelty of recommendation in the \emph{cold playlists} setting,
+\emph{moderate} values are preferable.}
 \end{figure}
 
-\input{tab_spread}
 
 From Figure~\ref{fig:nov1} we can see that PopRank achieves the lowest Novelty as expected from the definition of Novelty.
 The Novelty of SAGH increases dramatically when the number of recommendations is larger than 30 or 50, the reason could be the average 
