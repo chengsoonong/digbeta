@@ -1,16 +1,27 @@
 \section{Experiments}
 \label{sec:experiment}
 
-In this section, we describe experiments that empirically evaluate the proposed method and a number of 
-well known baseline approaches in the three cold-start settings. %described in Section~\ref{sec:problem}.
+We present empirical evaluations for cold-start playlist recommendation on two real playlist datasets,
+and compare the proposed multitask learning method with a number of well known baseline approaches.
+%In this section, we describe experiments that empirically evaluate the proposed method and a number of 
+%well known baseline approaches in the three cold-start settings. %described in Section~\ref{sec:problem}.
 
 
 \subsection{Dataset}
-We make use of two publicly available playlist datasets: the 30Music~\cite{30music2015} and AotM-2011~\cite{mcfee2012hypergraph} dataset.
-The Million Song Dataset~\cite{msd2011} serves as an underlying dataset where songs in all playlists are intersected.
-It also provides a few song features which will be described later in this section.
-Million Song Dataset (MSD) is a collection of one million songs, where each song is described by its metadata 
-(\eg song title, artist name, year of release) and a number of precomputed audio features from the Echo Nest\footnote{http://the.echonest.com}.
+%We make use of 
+%We use
+We evaluate on 
+two publicly available playlist datasets: the 30Music~\cite{30music2015} and 
+the AotM-2011~\cite{mcfee2012hypergraph} dataset.
+The Million Song Dataset (MSD)~\cite{msd2011} serves as an underlying dataset where songs in all playlists 
+are intersected; additionally, song and artist information in the MSD are used to compute song features.
+%Additionally, song metadata (\eg song title, artist name, year of release) and precomputed audio features 
+%in MSD are employed to compute song features.
+
+ 
+%It also provides a few song features which will be described later in this section.
+%Million Song Dataset (MSD) is a collection of one million songs, where each song is described by its metadata 
+%(\eg song title, artist name, year of release) and a number of precomputed audio features from the Echo Nest\footnote{http://the.echonest.com}.
 %It also provides acoustic features computed from a sample section of audio file of each song. % more description
 
 
@@ -34,7 +45,8 @@ AotM-2011 & 114,428 & 84,710    & 14,182  & 15,698  & 10.1           & 6.0      
 \input{tab_stats}
 
 \noindent
-{\bf 30Music Dataset} is a collection of listening events and playlists retrieved from Last.fm\footnote{https://www.last.fm}.
+{\bf 30Music Dataset} is a collection of listening events and user-generated
+playlists retrieved from Last.fm.\footnote{https://www.last.fm}
 We first intersect the playlists data with songs in the MSD, 
 %leveraging the Last.fm dataset~\cite{lastfmdataset} which matched songs from Last.fm with those in the MSD, 
 then filter out playlists with less than 5 songs.
@@ -43,75 +55,107 @@ This results in about 17K playlists over 45K songs from 8K users.
 \noindent
 {\bf AotM-2011 Dataset} is a collection of playlists shared by Art of the Mix\footnote{http://www.artofthemix.org} 
 users during the period from 1998 to 2011. Songs in playlists have been matched to those in the MSD.
-We filtered out playlists with less than 5 songs, which results in roughly 84K playlists over 114K songs from 14K users.
-%
-Table~\ref{tab:stats_pldata} summarises the %two 
+%We filter out playlists with less than 5 songs, which results in 
+It contains 
+roughly 84K playlists over 114K songs from 14K users
+after filtering out playlists with less than 5 songs.
+
+Table~\ref{tab:stats_pldata} summarises the two 
 playlist datasets used in this work.
+See Appendix for more details.
 
 
-\subsubsection{Features}
+%\subsubsection{Features}
+\subsection{Features}
+
 % of songs used in the experiments include metadata, audio data, genre and artist information, as well as song and 
-Song metadata, audio data, genre and artist information, as well as song and 
-artist popularity (\ie the number of occurrences of all songs from the artist in training set)
+Song metadata, audio data, genre and artist information, as well as song popularity
+(\ie the accumulated playcount of the song in training set)
+and artist popularity 
+(\ie the accumulated playcount of all songs from the artist in training set)
 are encoded as features.
 %
-The metadata of songs (\eg duration, year of release) and audio features (\eg loudness, mode, tempo) are provided by the MSD.
+The metadata of songs (\eg duration, year of release) and audio features (\eg loudness, mode, tempo) are from the MSD.
+%provided by the MSD.
 We use genre data from the Top-MAGD genre dataset~\cite{schindler2012facilitating}
 and tagtraum genre annotations for the MSD~\cite{schreiber2015improving} via one-hot encoding.
-If the genre data of a song is not available, we apply the mean imputation using genre counts of other songs in the training set.
+%If the genre data of a song is not available, 
+If the genre of a song is unknown, 
+we apply mean imputation using genre counts of songs in the training set.
 To encode artist information as features,
-we trained a word2vec\footnote{https://github.com/dav/word2vec} model using sequences of artist identifiers in playlists.
-
+we create a sequence of artist identifiers for each playlist in training set, and train
+%we trained 
+a word2vec\footnote{https://github.com/dav/word2vec} model that learns embeddings of artists.
+% of artist identifiers in training playlists.
+%
 We assume no popularity information is available for newly released songs,
-thus song popularity is used as a feature only in the \emph{cold playlists} and \emph{cold users} settings.
+therefore song popularity is not a feature in the \emph{cold songs} setting.
+%thus song popularity is used as a feature only in the \emph{cold playlists} and \emph{cold users} settings.
 %In the task of recommending new songs to extend existing playlists (setting (i)), where song popularity is not available,
 %we use artist popularity (we use the number of occurrences of all songs from a artist in training playlists as a proxy of her popularity).
-Finally, we add a constant feature (with value $1$) for each song to account for bias.
+Finally, we add a constant feature (with value $1.0$) for each song to account for bias.
 
 
 
 
 \subsection{Experimental setup}
 
-We describe how playlists in the two datasets are split into training and test set for the three cold-start settings,
-and the features of songs used to learn the multitask objective, as well as baseline approaches and evaluation metrics.
+We split the two playlist datasets into training and test set, %for each of the three cold-start settings,
+evaluate the test set performance of the proposed method,
+and compare it against
+%and compare the test set performance of the proposed method with that of 
+several baseline approaches
+%and compare the proposed multitask learning method with several baseline approaches
+in each of the three cold-start settings.
+
+%We describe how playlists in the two datasets are split into training and test set for the three cold-start settings,
+%and the features of songs used to learn the multitask objective, as well as baseline approaches and evaluation metrics.
 
 \subsubsection{Dataset split}
-For the task of recommending songs to form new playlists for existing users (\ie the \emph{cold playlists} setting),
+%For the task of recommending songs to form new playlists for existing users (\ie the \emph{cold playlists} setting),
+In the \emph{cold playlists} setting,
 %To empirically evaluate the performance of our proposed recommendation approaches for existing users,
-we hold playlists from about 20\% users in both datasets for test, and all other playlists are used for training.
-The test set is formed by sampling playlists where each song has been included in at least five playlists among the whole dataset.
-We also make sure each song in the test set also appears in the training set,
-and all users in the test set also have a number of playlists in the training set.
+we hold a portion of the playlists from about 20\% users in both datasets for test, 
+and all other playlists are used for training.
+The test set is formed by sampling playlists where each song has been included in 
+at least five playlists among the whole dataset.
+We also make sure each song in the test set appears in the training set,
+and all users in the test set have a few %a number of 
+playlists in the training set.
 %This results in a test set with about 2.1K playlists from 1.6K users in 30Music dataset,
 %and a test set with about 9.2K playlists from 2.7K users in AotM-2011 dataset.
-The statistics of this training/test split are shown in Table~\ref{tab:stats1}.
+%The statistics of this training/test split are shown in Table~\ref{tab:stats1}.
+Table~\ref{tab:stats1} summarises this split. %training and test split. % of the two playlist datasets. 
 
-To empirically evaluate the performance of recommending new songs to extend existing playlists (\ie the \emph{cold songs} setting),
-we hold 5K of the latest released songs in the 30Music dataset. 
-%This results in about 8K playlists with songs in both the training and test set.
-In the AotM-2011 dataset where more songs are available, we hold 10K of the latest released songs.
-%This leads to about 19K playlists with songs in both the training and test set.
-We remove playlists where all songs have been held for test. %are removed from both the training and test set.
-Table~\ref{tab:stats0} summarises the statistics of this training/test split.
-
-To evaluate the task of recommending songs for new users to form playlists (\ie the \emph{cold users} setting),
+In the \emph{cold users} setting,
+%To evaluate the task of recommending songs for new users to form playlists (\ie the \emph{cold users} setting),
 %To evaluate the performance of music recommendation approaches for new users,
-we sampled 30\% of all users and hold all their playlists in both datasets.
-Similarly, we require songs in the test set also exist in the training set,
-a user will thus not be included in the test set if holding all of her playlists breaks this requirement.
+we sample 30\% users and hold all of their playlists in both datasets.
+Similarly, we require songs in the test set appear in the training set,
+and a user will thus not be used for test %included in the test set 
+if holding all of her playlists breaks this requirement.
 %This results in a test set with about 3.4K playlists from 2.4K users in 30Music dataset,
 %and a test set with about 8.2K playlists from 4.2K users in AotM-2011 dataset.
-Table~\ref{tab:stats2} describes the statistics of this training/test split.
+Table~\ref{tab:stats2} describes the statistics of this split. %training and test split.
 
+%To empirically evaluate the performance of recommending new songs to extend existing playlists (\ie the \emph{cold songs} setting),
+In the \emph{cold songs} setting,
+we hold 5K of the latest released songs in the 30Music dataset,
+and 10K of the latest released songs in the AotM-2011 dataset where more songs are available.
+%This results in about 8K playlists with songs in both the training and test set.
+%In the AotM-2011 dataset where more songs are available, we hold 10K of the latest released songs.
+%This leads to about 19K playlists with songs in both the training and test set.
+We remove playlists where all songs have been held for test. %are removed from both the training and test set.
+Table~\ref{tab:stats0} shows the statistics of this split. %training and test split.
 
 
 %\input{fig_hr}
 
 
 \subsubsection{Baselines}
-We compare the performance of our proposed approach (\ie MTC) % (referred as {\it Multitask Classification}) 
-with a number of baseline methods in the three cold-start settings:
+We compare the performance of our proposed method (\ie MTC) % (referred as {\it Multitask Classification}) 
+with the following %a number of 
+baseline approaches in each of the three cold-start settings:
 %for the task of recommending music to form playlists:
 \begin{itemize}
 \item The {\it Popularity Ranking} (PopRank) method scores a song using only its popularity in the training set.
@@ -121,31 +165,49 @@ with a number of baseline methods in the three cold-start settings:
 \item The {\it Same Artists - Greatest Hits} (SAGH)~\cite{mcfee2012million} method scores a song
       by its popularity if the artist of the song appears in the given user's playlists (in training set);
       otherwise the song is scored zero.
-      In the {\it cold songs} setting, this method considers only songs from artists appeared in the given playlist,
-      and score them using the corresponding artist popularity.
+      In the {\it cold songs} setting, this method only considers songs from artists that appear in the given playlist,
+      and score a song using the popularity of the corresponding artist.
 %      Similarly, we replace song popularity with artist popularity in the \emph{cold songs} setting.
 \item The {\it Collocated Artists - Greatest Hits} (CAGH)~\cite{bonnin2013evaluating} method is a variant of SAGH.
       It scores a song using its popularity, but weighted by the frequency of the collocation between the artist of the song
-      and artists appeared in the given user's playlists (in training set).
-      In the \emph{cold users} setting, we use the 10 most popular artists instead of artists in the user's listening history.
-      The \emph{cold songs} setting is addressed in the same way as in SAGH.
+      and artists that appear in the given user's playlists (in training set).
+      In the \emph{cold users} setting, we use the 10 most popular artists instead of artists 
+      in the user's listening history, and the \emph{cold songs} setting is addressed in the same way as in SAGH.
+%      The \emph{cold songs} setting is addressed in the same way as in SAGH.
 %      as required by this method.
 %\item The {\it Logistic Regression} baseline is specific for the \emph{cold songs} setting, where we independently learn 
 %      a logistic regression classifier for each playlist, which is used to classify whether we should add each new song to 
 %      this playlist\footnote{This method is also known as binary relevance in multi-label classification.}.
-\item The three variants of Matrix Factorisation (MF), which first learn latent representations of songs, playlists or users
-      through MF, then score each song by the dot product of the song and the corresponding playlist or user latent factors.
-      Recommendations are made as per our method described in Section~\ref{sec:method}.
-      In the \emph{cold songs} setting, latent representations of songs/playlists are learnt by factorising the song-playlist matrix  
-      To obtain the representations of new songs, we learn a two-layer neural network (multilayer perceptron, MLP) to map song 
-      content features to the corresponding latent representations~\cite{Gantner:2010,van2013deep}, and call this method MF+MLP. 
-      In the \emph{cold playlists} setting, we factorise the song-user play-count matrix using the weighted matrix factorisation (WMF) 
-      algorithm~\cite{hu2008collaborative,van2013deep} to learn the latent representations of songs and users.
-      Similarly, latent representations of songs and users are learned using WMF in the \emph{cold users} setting, however, the latent 
-      factor of a new user is approximated by the mean factors of the $k$ nearest neighbours (in terms of cosine similarity of user 
-      attributes\footnote{User attributes include age, gender, country of the user, the number of playlists from her account, as well as 
-      her total play counts and subscription type, these attributes are only available in the 30Music dataset. We choose $k=100$.}) 
-      in training set, and we refer this method as WMF+kNN.
+\item A variant of Matrix Factorisation (MF), which first learn the latent factors of songs, playlists
+      or users through MF, then score each song by the dot product of the corresponding latent factors.
+      Recommendations are made as per the proposed method.
+      In the \emph{cold playlists} setting, we factorise the song-user playcount matrix using the 
+      weighted matrix factorisation (WMF) algorithm~\cite{hu2008collaborative}, which learns the 
+      latent factors of songs and users.
+      In the \emph{cold users} setting, we first learn the latent factors of songs and users using WMF,
+      then approximate the latent factors of a new user by the average latent factors of the $k$
+      nearest neighbours\footnote{We choose $k=100$}
+      (in terms of cosine similarity of user attributes, \eg age, gender and country) in training set.
+      We call this method WMF+kNN.
+      In the \emph{cold songs} setting, we factorise the song-playlist matrix to learn the latent factors of 
+      songs and playlists, which are then used to train a neural network to map song content features 
+      to the corresponding latent factors~\cite{Gantner:2010,van2013deep}.
+	  We can then obtain the latent factors of a new song as long as its content features are available.
+      We call this method MF+MLP. 
+%
+%\item The three variants of Matrix Factorisation (MF), which first learn latent representations of songs, playlists or users
+%      through MF, then score each song by the dot product of the song and the corresponding playlist or user latent factors.
+%      Recommendations are made as per our method described in Section~\ref{sec:method}.
+%      In the \emph{cold songs} setting, latent representations of songs/playlists are learnt by factorising the song-playlist matrix  
+%      To obtain the representations of new songs, we learn a two-layer neural network (multilayer perceptron, MLP) to map song 
+%      content features to the corresponding latent representations~\cite{Gantner:2010,van2013deep}, and call this method MF+MLP. 
+%      In the \emph{cold playlists} setting, we factorise the song-user play-count matrix using the weighted matrix factorisation (WMF) 
+%      algorithm~\cite{hu2008collaborative,van2013deep} to learn the latent representations of songs and users.
+%      Similarly, latent representations of songs and users are learned using WMF in the \emph{cold users} setting, however, the latent 
+%      factor of a new user is approximated by the mean factors of the $k$ nearest neighbours (in terms of cosine similarity of user 
+%      attributes\footnote{User attributes include age, gender, country of the user, the number of playlists from her account, as well as 
+%      her total play counts and subscription type, these attributes are only available in the 30Music dataset. We choose $k=100$.}) 
+%      in training set, and we refer this method as WMF+kNN.
 \end{itemize}
 
 
@@ -157,6 +219,7 @@ with a number of baseline methods in the three cold-start settings:
 
 
 \subsubsection{Evaluation}
+
 We evaluate the performance of all approaches using two accuracy metrics that have been adopted 
 in playlist recommendation tasks:
 HitRate@K~\cite{hariri2012context} and Area under the ROC curve (AUC)~\cite{manning2008introIR}.
