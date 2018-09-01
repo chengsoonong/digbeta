@@ -202,14 +202,14 @@ and the shared weights $\bmu$.
 %The regularisation terms in our multitask learning objective can thus be summarised as
 %Formally, 
 The regularisation term in our multitask learning objective is
-\begin{equation}
-\label{eq:reg}
+\begin{equation*}
+%\label{eq:reg}
 \Omega(\upthetabm) 
 = \lambda_1 \sum_{u=1}^U \|\alphabm_u\|_2^2 
 %  + \lambda_2 \sum_{u=1}^U \sum_{i \in P_u} \|\betabm_i\|_1 
   + \lambda_2 \sum_{i=1}^N \|\betabm_i\|_1 
   + \lambda_3 \| \bmu \|_1,
-\end{equation}
+\end{equation*}
 % where we add an L2 regularisation term to penalise large values in user representations,
 % and constants $\lambda_1, \lambda_2, \lambda_3 \in \R_+$.
 where constants $\lambda_1, \lambda_2, \lambda_3 \in \R_+$,
@@ -329,18 +329,19 @@ To achieve this, we optimise the multitask learning objective by minimising a bi
 in particular, we minimises the number of songs not in a training playlist but ranked above the lowest 
 ranked song in it.\footnote{This is known as the Bottom-Push loss~\cite{rudin2009p} in the bipartite ranking literature.}
 The loss of the affinity function $f$ for playlist $i$ from user $u$ is defined as
-\begin{equation}
-\label{eq:loss}
-\resizebox{.9\columnwidth}{!}{$
+\begin{equation*}
+%\label{eq:loss}
+\resizebox{\columnwidth}{!}{$
 \Delta_f(u, i) 
 = \displaystyle \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \llb \min_{m: y_m^i = 1} f(m, u, i) \le f(m', u, i) \rrb,
 $}
-\end{equation}
+\end{equation*}
 where $M_-^i$ is the number of songs not in playlist $i$,
 binary variable $y_m^i$ denotes whether song $m$ appears in playlist $i$,
 and $\llb \cdot \rrb$ is the indicator function that represents the 0/1 loss.
 
-The empirical risk when employing the bipartite ranking loss~(\ref{eq:loss}) is
+The empirical risk when employing the bipartite ranking loss %~(\ref{eq:loss}) is
+$\Delta_f(u, i)$ is
 \vspace{-1em}
 \begin{equation}
 \label{eq:risk_rank}
@@ -407,7 +408,8 @@ the 0/1 loss with one of its convex surrogate $\ell$,
 %\label{eq:exploss}
 \resizebox{\columnwidth}{!}{$
 \displaystyle 
-\Delta_f(u, i) \le \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \exp \left(f(m', u, i) - \min_{m: y_m^i = 1} f(m, u, i) \right).
+\Delta_f(u, i) \le 
+\frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \!\! \exp \left(f(m', u, i) - \!\! \min_{m: y_m^i = 1} f(m, u, i) \right).
 $}
 \end{equation*}
 
@@ -449,18 +451,20 @@ and
 transform problem (\ref{eq:obj}) with empirical risk $R_{\uptheta}^{\textsc{rank}}$ into a convex constrained optimisation problem %by 
 %introducing slack variables $\xi_i, \, i \in P_u, \, u \in \{1,\dots,U\}$,
 %\vspace{-.5em}
-\begin{equation}
-\label{eq:expobj_cons}
-\resizebox{.888\linewidth}{!}{$\displaystyle
+\begin{equation*}
+%\label{eq:expobj_cons}
+%\resizebox{.888\linewidth}{!}{$\displaystyle
+\resizebox{\columnwidth}{!}{$\displaystyle
 \begin{aligned}
 \min_{\upthetabm} \ \, & 
-\Omega(\upthetabm) + \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \exp \left( f(m', u, i) - \xi_i \right) \\
+\Omega(\upthetabm) 
++ \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \!\! \exp \left( f(m', u, i) - \xi_i \right) \\
 s.t. \ \, & 
 \xi_i \le f(m, u, i), \\
-& u \in \{1,\dots,U\}, \ i \in P_u, \ m \in \{1,\dots,M\} \ \text{and} \ y_m^i = 1,
+& u \in \{1,\dots,U\}, \ i \in P_u, \ m \in \{1,\dots,M\}, \ y_m^i = 1, %\text{and} \ y_m^i = 1,
 \end{aligned}
 $}
-\end{equation}
+\end{equation*}
 %
 %One may observe that the objective of problem~(\ref{eq:expobj_cons}) is convex but not differentiable due to 
 %the L$_1$ regularisation terms in $\Omega(\upthetabm)$.
@@ -520,34 +524,35 @@ which remains challenging when {\small $N$} is large.
 An alternative approach to deal with the \emph{min} function in $\Delta_f(u, i)$ 
 is approximating it using the well known Log-sum-exp approximation 
 of the \emph{max} function~\cite[p. 72]{boyd2004convex},
-\begin{equation}
-\label{eq:minappox}
-\resizebox{.88\columnwidth}{!}{$
+\begin{equation*}
+%\label{eq:minappox}
+%\resizebox{.88\columnwidth}{!}{$
   \displaystyle \min_j z_j 
 = \displaystyle -\max_j (-z_j) 
 = \displaystyle -\lim_{p \to +\infty} \frac{1}{p} \log \sum_j \exp(-p z_j),
-$}
-\end{equation}
+%$}
+\end{equation*}
 which allows us to approximate the empirical risk $R_{\upthetabm}^{\textsc{rank}}$ (with the exponential surrogate)
 by $\widetilde R_{\upthetabm}^{\textsc{rank}}$ defined as
-\begin{equation}
-\label{eq:rankapprox}
-\resizebox{.888\columnwidth}{!}{$
+\begin{equation*}
+%\label{eq:rankapprox}
+%\resizebox{.888\columnwidth}{!}{$
+\resizebox{\columnwidth}{!}{$
 \begin{aligned}
 \widetilde R_{\upthetabm}^{\textsc{rank}}(f, \DCal)
 = \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \left[
-  \sum_{m: y_m^i = 1} \Big[ \delta_f(m, u, i) \Big]^p \right]^\frac{1}{p},
+  \sum_{m: y_m^i = 1} \Big[ \delta_f(m, u, i) \Big]^p \right]^\frac{1}{p} \!\! ,
 %  \sum_{m': y_{m'}^i = 0} 
 %  \exp(-(f(m, u, i) - f(m', u, i))) \right)^p \right)^\frac{1}{p}.
 \end{aligned}
 $}
-\end{equation}
+\end{equation*}
 where hyper-parameter $p \in \R_+$ and
 $$
-\resizebox{.88\columnwidth}{!}{$
-\displaystyle
-\delta_f(m, u, i) = \!\!\! \sum_{m': y_{m'}^i = 0} \!\!\! \exp(-(f(m, u, i) - f(m', u, i))).
-$}
+%\resizebox{.88\columnwidth}{!}{$
+%\displaystyle
+\delta_f(m, u, i) = \!\! \sum_{m': y_{m'}^i = 0} \!\! \exp(-(f(m, u, i) - f(m', u, i))).
+%$}
 $$
 
 
@@ -611,13 +616,13 @@ We swap the positives and negatives in the P-Classification loss~\cite{ertekin20
 This results in a classification risk:
 \begin{equation}
 \label{eq:clfrisk}
-\resizebox{.888\linewidth}{!}{$\displaystyle
+\resizebox{\columnwidth}{!}{$\displaystyle
 \begin{aligned}
-R_{\upthetabm}^{\textsc{mtc}}
+R_{\upthetabm}^{\textsc{mtc}}(f, \DCal)
 = \frac{1}{N} \sum_{u=1}^U 
 & \sum_{i \in P_u} \Bigg(
-  \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} \exp(-p f(m, u, i)) \\
-& \hspace{2em}  + \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \exp(f(m', u, i)) \Bigg).
+  \frac{1}{p M_+^i} \sum_{m: y_m^i = 1} \!\! \exp(-p f(m, u, i)) \\
+& \hspace{2em}  + \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \!\! \exp(f(m', u, i)) \Bigg).
 \end{aligned}
 $}
 \end{equation}
@@ -668,7 +673,7 @@ since classification loss can be optimised more efficiently in general~\cite{ert
 %with the classification risk $R_{\upthetabm}^{\textsc{mtc}}$:
 \begin{equation}
 \label{eq:expobj_clf}
-\min_\upthetabm \ \Omega(\upthetabm) + R_{\upthetabm}^{\textsc{mtc}}.
+\min_\upthetabm \ \Omega(\upthetabm) + R_{\upthetabm}^{\textsc{mtc}}(f, \DCal).
 \end{equation}
 
 %The objective in problem~(\ref{eq:expobj_clf}) is convex but not differentiable due to the L$_1$ regularisation terms in $\Omega(\upthetabm)$.
