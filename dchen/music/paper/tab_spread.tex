@@ -1,9 +1,8 @@
-\begin{table}[!t]
+\begin{table*}[!t]
 \caption{Spread for playlist recommendation in three cold-start settings, \emph{moderate} values are preferable.}
 \label{tab:spread}
-\resizebox{\columnwidth}{!}{
-%\resizebox{\textwidth}{!}{
-\setlength\tabcolsep{2pt}
+\resizebox{\textwidth}{!}{
+%\setlength\tabcolsep{2pt}
 \begin{tabular}{lcccclcccclcccc}
 \toprule 
 \multicolumn{3}{c}{Cold Playlists} &&& \multicolumn{3}{c}{Cold Users} &&& \multicolumn{3}{c}{Cold Songs} \\ 
@@ -11,26 +10,26 @@
 Method & 30Music & AotM-2011 &&& Method & 30Music & AotM-2011 &&& Method & 30Music & AotM-2011 \\ 
 \cmidrule{1-3} \cmidrule{6-8} \cmidrule{11-13}
 %\midrule
-PopRank & {\large\: 9.8} & {\large  10.5} \rule{0pt}{9pt} &&&  
-PopRank & {\large\: 9.8} & {\large  10.5} \rule{0pt}{9pt} &&&  
-PopRank & {\large   7.4} & {\large   7.8} \rule{0pt}{9pt} \\
-%                                      
-CAGH    & {\large\: 5.8} & {\large\: 2.3} \rule{0pt}{9pt} &&&  
-CAGH    & {\large\: 4.2} & {\large\: 5.3} \rule{0pt}{9pt} &&&  
-CAGH    & {\large   4.3} & {\large   4.6} \rule{0pt}{9pt} \\
-%                                      
-SAGH    & {\large  10.3} & {\large  10.4} \rule{0pt}{9pt} &&&  
-SAGH    & {\large  10.0} & {\large  10.7} \rule{0pt}{9pt} &&&  
-SAGH    & {\large   6.5} & {\large   5.9} \rule{0pt}{9pt} \\
+PopRank & \: 9.8 &   10.5  &&&  
+PopRank & \: 9.8 &   10.5  &&&  
+PopRank &    7.4 &    7.8  \\
+%                                    
+CAGH    & \: 5.8 & \: 2.3  &&&  
+CAGH    & \: 4.2 & \: 5.3  &&&  
+CAGH    &    4.3 &    4.6  \\
+%                                    
+SAGH    &   10.3 &   10.4  &&&  
+SAGH    &   10.0 &   10.7  &&&  
+SAGH    &    6.5 &    5.9  \\
 %
-WMF     & {\large  10.7} & {\large  11.6} \rule{0pt}{9pt} &&&  
-WMF+kNN & {\large  10.7} & N/A            \rule{0pt}{9pt} &&&
-MF+MLP  & {\large   8.5} & {\large   9.2} \rule{0pt}{9pt} \\
+WMF     &   10.7 &   11.6  &&&  
+WMF+kNN &   10.7 & N/A     &&&
+MF+MLP  &    8.5 &    9.2  \\
 %
-MTC     & {\large\: 9.4} & {\large  10.4} \rule{0pt}{9pt} &&&  
-MTC     & {\large\: 9.9} & {\large  11.4} \rule{0pt}{9pt} &&&  
-MTC     & {\large   7.9} & {\large   8.3} \rule{0pt}{9pt} \\
+MTC     & \: 9.4 &   10.4  &&&  
+MTC     & \: 9.9 &   11.4  &&&  
+MTC     &    7.9 &    8.3  \\
 \bottomrule
 \end{tabular}
 }
-\end{table}
+\end{table*}
