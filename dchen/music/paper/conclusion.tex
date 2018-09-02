@@ -7,12 +7,15 @@ as well as shared weights from user-curated playlists,
 which allows us to form new personalised playlists for an existing user, %in the cold playlists setting,
 produce playlists for a new user, %in the cold users setting, 
 and extend users' playlists with newly released songs. %in the cold songs setting.
-We optimise the parameters of the multitask learning method by minimising a bipartite ranking loss
-that encourages songs in a playlist to be ranked higher than those are not,
-and an equivalence between bipartite ranking and binary classification further enables the efficient 
+We optimise the parameters (\ie weights) %of the multitask learning method 
+by minimising a bipartite ranking loss
+that encourages songs in a playlist to be ranked higher than those are not.
+%and 
+An equivalence between bipartite ranking and binary classification further enables efficient 
 approximation of optimal parameters.
-Empirical evaluations on two real playlist datasets demonstrate the effectiveness of the proposed
-method in recommending playlists in cold-start settings.
+Empirical evaluations on two real playlist datasets demonstrate the effectiveness of the proposed method 
+%in recommending playlists in cold-start settings.
+for cold-start playlist recommendation.
 %
 %We investigate the problem of recommending playlists to users in cold-start settings.
 %In the {\it cold songs} setting, we recommend newly released songs to extend existing playlists;
@@ -30,12 +33,16 @@ method in recommending playlists in cold-start settings.
 % which we leave as future work.
 % In particular, 
 For future work, we would like to explore 
-auxiliary data sources (\eg music information shared on social media) and additional features for songs and users 
-(\eg lyrics, user profiles), % as well as the sequential order of songs in playlist %which could 
+auxiliary data sources (\eg music information shared on social media) and additional features of songs and users 
+(\eg lyrics, user profiles) % as well as the sequential order of songs in playlist %which could 
+to make better recommendations.
 %provide additional information to 
-which could potentially help make better recommendations.
+%which could potentially help make better recommendations
+%which might help make better recommendations.
 Further, non-linear models such as deep neural networks have been shown to work extremely well in a wide range of tasks,
-and the linear model with sparse parameters in this work would likely be more compact if non-linear objective were adopted.
+and the proposed linear model with sparse parameters %in this work 
+%would likely 
+could be more compact if non-linear objective were adopted.
 
 % Finally, as a remark, we want to mention the challenge of evaluating the recommended results.
 % While metrics in information retrieval are commonly employed, recommender system is more like a generative process
