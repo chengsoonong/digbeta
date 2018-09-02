@@ -4,6 +4,31 @@
 \section{Empirical results}
 \input{dataset_hist}
 \input{tab_stats}
+
+It is believed that
+useful recommendations need to include previously unknown items~\cite{herlocker2004evaluating,zhang2012auralist}.
+%and this 
+This ability can be measured by \emph{Novelty},
+$$
+\text{Novelty@K} = \frac{1}{U} \sum_{u=1}^U \frac{1}{|P_u|} \sum_{m \in S_K} \frac{-\log_2 pop_m}{K},
+$$
+where $S_K$ is the set of top-$K$ recommendations and $pop_m$ is the popularity of song $m$.
+Intuitively, the more popular a song is, 
+%an average user 
+a user is more likely to be familiar with it,
+therefore less novel. %to the user.
+%
+%On the other hand,
+\emph{Spread}, however, is used to measure the ability of an algorithm to spread its attention across all possible songs.
+It is defined as the entropy of the distribution of all songs, %possible songs to recommend,
+$$
+\text{Spread} = -\sum_{m=1}^M P(m) \log P(m),
+$$
+where $P(m)$ denotes the probability of song $m$ being recommended,
+which is computed from the scores of all possible songs using the softmax function.
+
+
+
 \input{fig_hr_h}
 \input{fig_nov_h}
 %\input{eval_per_user}
