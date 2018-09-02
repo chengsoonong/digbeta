@@ -196,10 +196,12 @@ baseline approaches in each of the three cold-start settings:
       weighted matrix factorisation (WMF) algorithm~\cite{hu2008collaborative}, which learns the 
       latent factors of songs and users.
       In the \emph{cold users} setting, we first learn the latent factors of songs and users using WMF,
-      then approximate the latent factors of a new user by the average latent factors of the $k$ (\eg, 100)
+      then approximate the latent factors of a new user by the average latent factors of the $k$ (\eg 100)
       nearest neighbours %\footnote{We choose $k=100$}
       (in terms of cosine similarity of user attributes, \eg age, gender and country) in training set.
       We call this method WMF+kNN.
+      \footnote{This method does not apply to the AotM-2011 dataset in the cold users setting,
+      since such user attributes (\eg age, gender and country) are not available in the dataset.}
       In the \emph{cold songs} setting, we factorise the song-playlist matrix to learn the latent factors of 
       songs and playlists, which are then used to train a neural network to map song content features 
       to the corresponding latent factors~\cite{Gantner:2010,van2013deep}.
@@ -232,8 +234,8 @@ in playlist recommendation tasks:
 We further adopt two beyond-accuracy metrics: %\ie
 \emph{Novelty}~\cite{zhang2012auralist,schedl2017} and \emph{Spread}~\cite{kluver2014evaluating},
 which are specifically tailored to recommender systems.
-Unlike the accuracy metrics, where higher values indicate better performance,
-\emph{moderate} values of Novelty and Spread are usually preferable~\cite{kluver2014evaluating,schedl2017}.
+%Unlike the accuracy metrics, where higher values indicate better performance,
+%\emph{moderate} values of Novelty and Spread are usually preferable~\cite{kluver2014evaluating,schedl2017}.
 %
 %R-Precision (RPREC) is the number of correctly recommended songs in the top-$n$ recommendation over $n$,
 %where $n$ is the number of songs in the ground truth playlist.
@@ -258,24 +260,13 @@ has been cast as a sequence of classification problems~\cite{ben2017groove}.
 It is believed that
 useful recommendations need to include previously unknown items~\cite{herlocker2004evaluating,zhang2012auralist}.
 %and this 
-This ability can be measured by \emph{Novelty},
-$$
-\text{Novelty@K} = \frac{1}{U} \sum_{u=1}^U \frac{1}{|P_u|} \sum_{m \in S_K} \frac{-\log_2 pop_m}{K},
-$$
-where $S_K$ is the set of top-$K$ recommendations and $pop_m$ is the popularity of song $m$.
-Intuitively, the more popular a song is, 
-%an average user 
-a user is more likely to be familiar with it,
-therefore less novel. %to the user.
+This ability can be measured by \emph{Novelty}.
+It is based on the assumption that, intuitively, the more popular a song is, 
+a user is more likely to be familiar with it, therefore less novel.
 %
-%On the other hand,
 \emph{Spread}, however, is used to measure the ability of an algorithm to spread its attention across all possible songs.
-It is defined as the entropy of the distribution of all songs, %possible songs to recommend,
-$$
-\text{Spread} = -\sum_{m=1}^M P(m) \log P(m),
-$$
-where $P(m)$ denotes the probability of song $m$ being recommended,
-which is computed from the scores of all possible songs using the softmax function.
+It is defined as the entropy of the distribution of all songs.
+See Appendix for more details of these beyond-accuracy metrics.
 
 
 \subsection{Results and discussion}
@@ -283,7 +274,7 @@ which is computed from the scores of all possible songs using the softmax functi
 \begin{figure}[!t]
     \centering
     \includegraphics[width=\columnwidth]{fig/hr1.pdf}
-    \caption{Hit rates of recommendation in the \emph{cold songs} setting,
+    \caption{Hit rate of recommendation in the \emph{cold songs} setting,
 \emph{higher} values indicate better performance.}
     \label{fig:hr1}
 \end{figure}
@@ -303,28 +294,54 @@ which is consistent with previous discoveries~\cite{mcfee2012million,bonnin2013e
 and the reason is believed to be the long-tailed distribution of songs in
 playlists~\cite{cremonesi2010performance,bonnin2013evaluating}.
 The Matrix Factorisation variant does not perform well in the cold playlists setting,
-but it performance reasonably well in the cold users setting when a few attributes of new users are available
-\footnote{The WMF+kNN method does not apply to the AotM-2011 dataset in the cold users setting,
-since no user attributes is available in this dataset.}
-(\eg on the 30Music dataset),
+but it performs reasonably well in the cold users setting when a few attributes of new users are available
+(\eg in the 30Music dataset),
 and it works particularly well in the cold songs setting where both song metadata and audio features are available 
 for new songs.
 Lastly, the proposed method MTC is the best performing method in all three cold-start settings on both datasets.
 Interestingly, it achieve the same performance as PopRank in the cold users setting on the AotM-2011 dataset,
 which suggests that MTC might degenerate to simply rank songs according to the popularity when making recommendation
-for new users; however, when a few simple attributes of a new user is available (\eg on the 30Music dataset), 
-it can improve the recommendation by exploiting information learned from existing users.
+for new users; however, when a few simple attributes of a new user is available (\eg in the 30Music dataset), 
+it can improve the recommendations by exploiting information learned from existing users.
 
 
-Figure~\ref{fig:hr3} shows the hit rates of all methods in the \emph{cold playlists} setting
-when the number of recommendations $K$ varies from 5 to 1000.
-%It is not surprising that 
-As expected, the hit rates of all methods improves as the number of recommendations increases,
-We can also see that methods which use both song popularity and artist information outperform PopRank
-(except SAGH when $K$ is greater than 300).
-This is different from what we observed in Table~\ref{tab:auc},
-which suggest artist information is likely helpful to improve recall.
-Similar observations can be obtained in the cold users and cold songs setting, see Appendix for details. 
+Figure~\ref{fig:hr1} shows the hit rate of all methods in the \emph{cold songs} setting
+when the number of recommendations (\ie the number of recommended new songs) $K$ varies from 5 to 1000.
+As expected, the performance of all methods improve when the number of recommendations increases.
+Further, we observe that learning based approaches (\ie MTC and MF+MLP) always perform better than 
+% ranking based on artist information
+other baselines that use only artist information.
+%This demonstrates the effectiveness of learning from existing playlists for recommending new songs.
+PopRank %that simply ranks new songs according to popularity of the corresponding artist
+works surprisingly well, 
+it even outperforms CAGH which exploits artist collocations on the 30Music dataset.
+The fact that CAGH always performs better than SAGH confirms that artist collocation is helpful
+for music recommendation.
+Lastly, MTC outperforms all other methods by a big margin on both datasets,
+which demonstrates the effectiveness of the proposed approach for recommending new songs.
+
+%We also observe that MTC %the multitask learning method proposed in this paper 
+%improves over baseline approaches in the \emph{cold playlists} setting,
+%and in the \emph{cold users} setting as well if a few user attributes are available,
+
+We also observe that MTC improves over baselines in the \emph{cold playlists}
+and \emph{cold users} setting (when simple attributes of new users are available),
+although the margin is not as big as that in the \emph{cold songs} setting.
+See Appendix for details.
+%although the improvement is not as big as that in the \emph{cold songs} settings.
+
+%Interestingly, the CAGH method always performs better than SAGH, which may suggest that
+%artist collocation is more informative that 
+
+%Figure~\ref{fig:hr3} shows the hit rates of all methods in the \emph{cold playlists} setting
+%when the number of recommendations $K$ varies from 5 to 1000.
+%%It is not surprising that 
+%As expected, the hit rates of all methods improves as the number of recommendations increases,
+%We can also see that methods which use both song popularity and artist information outperform PopRank
+%(except SAGH when $K$ is greater than 300).
+%This is different from what we observed in Table~\ref{tab:auc},
+%which suggest artist information is likely helpful to improve recall.
+%Similar observations can be obtained in the cold users and cold songs setting, see Appendix for details. 
 
 
 %\begin{table*}[!t]
@@ -341,33 +358,75 @@ Similar observations can be obtained in the cold users and cold songs setting, s
 %\end{table*}
 
 
-\subsubsection{Novelty and spread}
+%\subsubsection{Novelty and spread}
+\subsubsection{Beyond accuracy}
 
-We can see from Table~\ref{tab:spread} that both PopRank and MTC can similarly spread the attention across 
-all possible songs in all three cold-start settings. 
-In the cold songs setting, CAGH and SAGH focus on songs from artists in users' listening history and similar artists, 
-which explains the relative low spread values.
-However, in the cold playlists and cold users settings, SAGH improves its attention spreading due to the set of songs 
-it focuses on is significantly bigger (\ie songs from all artists in users' previous playlists and the top-10 
-most popular artists, respectively).
-Surprisingly, CAGH remains focuses on a relatively small set of songs in both settings.
-Lastly, the Matrix Factorisation variants can generally spread the attention cross 
-all possible songs comparably well.
+%Unlike the accuracy metrics, 
+Note that, unlike AUC and hit rate,
+where higher values indicate better performance,
+\emph{moderate} values of Spread and Novelty are usually preferable~\cite{kluver2014evaluating,schedl2017}.
 
-From Figure~\ref{fig:nov1} we can see that PopRank achieves the lowest Novelty,
-which is not surprising given the definition of Novelty.
-The Novelty of SAGH increases dramatically when the number of recommendations is larger than 30 or 50, 
-the reason could be the average numbers of songs from an artist is around between 30 and 50 
-as shown in Table~\ref{tab:stats_pldata}, and SAGH simply recommends random
-songs from artists that do not appear in users' listening history.
-All other methods achieve moderate Novelty and hence perform better for recommending new songs.
+Table~\ref{tab:spread} shows the performance of all recommendation approaches in terms of \emph{Spread}.
+In the \emph{cold songs} setting, CAGH and SAGH focus on songs from artists in users' listening history and similar artists, 
+which explains the relative low \emph{Spread}.
+However, in the \emph{cold playlists} and \emph{cold users} settings, 
+SAGH improves its attention spreading due to the set of songs it focuses on is significantly bigger 
+(\ie songs from all artists in users' previous playlists and songs from the 10 most popular artists, respectively).
+Surprisingly, CAGH remains focusing on a relatively small set of songs in both settings.
+Lastly, in all three cold-start settings, the MF variants have the highest \emph{Spread},
+while both PopRank and MTC have (similar) moderate \emph{Spread},
+which is considered better. %to have better performance.
 
-Similar observations can be obtained from Figure~\ref{fig:nov3} for the cold playlists recommendation.
-However, there are two differences: 
-(i) the Novelty of SAGH increases less dramatically due to the set of songs being considered are from
-all artists of users' previous playlists; 
-(ii) the proposed method MTC achieves lower Novelty (in general) than CAGH and WMF, 
-which indicates that MTC trends to prefer popular songs to form new playlists for existing users.
+
+%We can see from Table~\ref{tab:spread} that both PopRank and MTC can similarly spread the attention across 
+%all possible songs in all three cold-start settings. 
+%In the cold songs setting, CAGH and SAGH focus on songs from artists in users' listening history and similar artists, 
+%which explains the relative low spread values.
+%However, in the cold playlists and cold users settings, SAGH improves its attention spreading due to the set of songs 
+%it focuses on is significantly bigger (\ie songs from all artists in users' previous playlists and the top-10 
+%most popular artists, respectively).
+%Surprisingly, CAGH remains focuses on a relatively small set of songs in both settings.
+%Lastly, the Matrix Factorisation variants can generally spread the attention cross 
+%all possible songs comparably well.
+
+
+Figure~\ref{fig:nov3} shows the \emph{Novelty} of all methods in the cold playlists setting.
+We can see that PopRank has the lowest \emph{Novelty},
+which is not surprising given the definition of \emph{Novelty} (see Appendix).
+Both SAGH and CAGH start with low \emph{Novelty} and grow when the number of recommended songs increase,
+%Interestingly, SAGH grows much faster compared  CAGH
+but the \emph{Novelty} of CAGH saturates much earlier than that of SAGH.
+The reason could be that,
+when the number of recommendations is larger than the total number of songs from artists in a user' previous playlists,
+SAGH will simply recommend songs randomly (which are more likely to be novel)
+while CAGH will recommend songs from artists that are similar to those in a user' previous playlists
+(which are probably less novel).
+Further, MTC achieves lower \emph{Novelty} (in general) than CAGH and WMF, 
+which indicates that MTC trends to recommend popular songs to form new playlists. %for existing users.
+%To conclude, 
+MTC and CAGH have moderate \emph{Novelty} on both datasets,
+and therefore perform better than other approaches.
+
+The proposed approach also achieves moderate \emph{Novelty} in the cold songs setting.
+%but performs similar to PopRank in the cold users setting.
+However, in the cold user setting, the MF variant and CAGH have moderate \emph{Novelty},
+which are preferred. See Appendix for details.
+
+
+%From Figure~\ref{fig:nov1} we can see that PopRank achieves the lowest Novelty,
+%which is not surprising given the definition of Novelty.
+%The Novelty of SAGH increases dramatically when the number of recommendations is larger than 30 or 50, 
+%the reason could be the average numbers of songs from an artist is around between 30 and 50 
+%as shown in Table~\ref{tab:stats_pldata}, and SAGH simply recommends random
+%songs from artists that do not appear in users' listening history.
+%All other methods achieve moderate Novelty and hence perform better for recommending new songs.
+%
+%Similar observations can be obtained from Figure~\ref{fig:nov3} for the cold playlists recommendation.
+%However, there are two differences: 
+%(i) the Novelty of SAGH increases less dramatically due to the set of songs being considered are from
+%all artists of users' previous playlists; 
+%(ii) the proposed method MTC achieves lower Novelty (in general) than CAGH and WMF, 
+%which indicates that MTC trends to prefer popular songs to form new playlists for existing users.
 
 %It is interesting to see that, the MTC and PopRank perform identically in the cold users setting~(Figure~\ref{fig:nov4}),
 %which provides more evidence that MTC degenerates to rank songs according to popularity.
@@ -380,7 +439,9 @@ which indicates that MTC trends to prefer popular songs to form new playlists fo
     \includegraphics[width=\columnwidth]{fig/nov3.pdf}
     \caption{Novelty of recommendation in the \emph{cold playlists} setting,
 \emph{moderate} values are preferable.}
+    \label{fig:nov3}
 \end{figure}
+
 
 %\begin{figure}[!t]
 %    \centering
