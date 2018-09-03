@@ -23,7 +23,7 @@ The four evaluation metrics used in this work are:
       \text{Novelty@K} = \frac{1}{U} \sum_{u=1}^U \frac{1}{|P_u|} \sum_{m \in S_K} \frac{-\log_2 pop_m}{K},
       $$
       where $S_K$ is the set of top-$K$ recommendations and $pop_m$ is the popularity of song $m$.
-      Intuitively, the more popular a song is, a user is more likely to be familiar with it, therefore less novel.
+      Intuitively, the more popular a song is, the more likely a user is to be familiar with it, and therefore the less likely to be novel.
 \item \emph{Spread} measures the ability of a recommender system to spread its attention across all possible items.
       It is defined as the entropy of the distribution of all songs,
       $$
@@ -61,10 +61,10 @@ The four evaluation metrics used in this work are:
 \end{figure}
 
 The histograms of the number of playlists per user as well as song popularity 
-(\ie the number of occurrences of a song in all playlists)
+%(\ie the number of occurrences of a song in all playlists)
 of the two datasets are shown in Figure~\ref{fig:hist_pluser} and Figure~\ref{fig:hist_songpop},
 respectively.
-We can see from Figure~\ref{fig:hist_pluser} and \ref{fig:hist_songpop} that both the number
+We can see from Figure~\ref{fig:hist_pluser} and Figure~\ref{fig:hist_songpop} that both the number
 of playlists per user and song popularity follow a long-tailed distribution, which imposes further challenge to the learning task 
 as the amount of data is very limited for users (or songs) at the tail.
 
@@ -140,13 +140,13 @@ Table~\ref{tab:stats3}, Table~\ref{tab:stats4}, and Table~\ref{tab:stats1}, resp
     \begin{minipage}{0.45\textwidth}
         \centering
         \includegraphics[width=\linewidth]{fig/hr3.pdf}
-        \caption{Hit rate of recommendation in the \emph{cold playlists} setting, \emph{higher} values indicate better performance.}
+        \caption{Hit rate of recommendation in the \emph{cold playlists} setting. \emph{Higher} values indicate better performance.}
         \label{fig:hr3}
     \end{minipage}\hspace{15pt}
     \begin{minipage}{0.45\textwidth}
         \centering
         \includegraphics[width=\linewidth]{fig/hr4.pdf}
-        \caption{Hit rate of recommendation in the \emph{cold users} setting, \emph{higher} values indicate better performance.}
+        \caption{Hit rate of recommendation in the \emph{cold users} setting. \emph{Higher} values indicate better performance.}
         \label{fig:hr4}
     \end{minipage}
 \end{figure*}
@@ -156,13 +156,13 @@ Table~\ref{tab:stats3}, Table~\ref{tab:stats4}, and Table~\ref{tab:stats1}, resp
     \begin{minipage}{0.45\textwidth}
         \centering
         \includegraphics[width=\columnwidth]{fig/nov4.pdf}
-        \caption{Novelty of recommendation in the \emph{cold users} setting, \emph{moderate} values are preferable.}
+        \caption{Novelty of recommendation in the \emph{cold users} setting. \emph{Moderate} values are preferable.}
         \label{fig:nov4}
     \end{minipage}\hspace{15pt}
     \begin{minipage}{0.45\textwidth}
         \centering
         \includegraphics[width=\columnwidth]{fig/nov1.pdf}
-        \caption{Novelty of recommendation in the \emph{cold songs} setting, \emph{moderate} values are preferable.}
+        \caption{Novelty of recommendation in the \emph{cold songs} setting. \emph{Moderate} values are preferable.}
         \label{fig:nov1}
     \end{minipage}
 \end{figure*}

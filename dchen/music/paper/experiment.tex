@@ -75,7 +75,7 @@ and artist popularity
 (\ie the accumulated playcount of all songs from the artist in the training set)
 are encoded as features.
 %
-The metadata of songs (\eg duration, year of release) and audio features (\eg loudness, mode, tempo) are from the MSD.
+The metadata of songs (\eg duration, year of release) and pre-computed audio features (\eg loudness, mode, tempo) are from the MSD.
 %provided by the MSD.
 We use genre data from the Top-MAGD genre dataset~\cite{schindler2012facilitating}
 and tagtraum genre annotations for the MSD~\cite{schreiber2015improving} via one-hot encoding.
@@ -261,8 +261,8 @@ has been cast as a sequence of classification problems~\cite{ben2017groove}.
 It is believed that
 useful recommendations need to include previously unknown items~\cite{herlocker2004evaluating,zhang2012auralist}.
 %and this 
-This ability can be measured by \emph{Novelty}.
-It is based on the assumption that, intuitively, the more popular a song is, 
+This ability can be measured by \emph{Novelty},
+which is based on the assumption that, intuitively, the more popular a song is, 
 the more likely a user is to be familiar with it, and therefore the less likely to be novel.
 %a user is more likely to be familiar with it, therefore less novel.
 %
@@ -412,7 +412,7 @@ and therefore perform better than other approaches.
 
 The proposed approach also achieves moderate \emph{Novelty} in the cold songs setting.
 %but performs similar to PopRank in the cold users setting.
-However, in the cold user setting, the MF variant and CAGH have moderate \emph{Novelty},
+However, in the cold users setting, the MF variant and CAGH have moderate \emph{Novelty},
 which are therefore preferred. See Appendix for details.
 
 

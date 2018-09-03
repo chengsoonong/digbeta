@@ -63,7 +63,7 @@ we efficiently approximate an optimal solution by minimising an unconstrained cl
 %We are interested in recommending playlists in three cold-start scenarios,
 %as shown in Figure~\ref{fig:setting}
 %Figure~\ref{fig:setting} shows the three cold-start scenarios that we investigate in this paper.
-Figure~\ref{fig:setting} shows the three cold-start scenarios for playlist recommendation 
+Figure~\ref{fig:setting} illustrates the three cold-start scenarios for playlist recommendation 
 that we study in this paper:
 \begin{enumerate}[(a)]
 %\item Cold playlists, where we recommend a set of songs to form a new personalised playlist for an existing user;
@@ -132,7 +132,7 @@ into three components
 \end{equation}
 where $\alphabm_u$ are weights for user $u$,
 $\betabm_i$ are weights specific for playlist $i$, %(from user $u$),
-and $\bmu$ are the weights shared by all users.
+and $\bmu$ are the weights shared by all users (and playlists).
 % information propagation
 This decomposition allows us to learn the user weights $\alphabm_u$ using all her
 playlists, and exploit all training playlists when learning the shared weights $\bmu$.
@@ -276,7 +276,7 @@ r_m^{(b)} = \bmu^\top \x_m.
 
 Lastly, %to extend an existing playlist $i$ from user $u$ (\ie the \emph{cold songs} setting),
 in the \emph{cold songs} setting where we are given a specific playlist $i$ from user $u$,
-we therefore can score song $m$ using both user weights and playlists weights, \ie
+we therefore can score song $m$ using both user weights and playlist weights, \ie
 \vspace{-.3em}
 \begin{equation}
 \label{eq:cs}
@@ -465,7 +465,7 @@ transform problem (\ref{eq:obj}) with empirical risk $R_{\uptheta}^{\textsc{rank
 + \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \!\! \exp \left( f(m', u, i) - \xi_i \right) \\
 s.t. \ \, & 
 \xi_i \le f(m, u, i), \\
-& u \in \{1,\dots,U\}, \ i \in P_u, \ m \in \{1,\dots,M\}, \ y_m^i = 1. %\text{and} \ y_m^i = 1,
+& u \in \{1,\dots,U\}, \ i \in P_u, \ m \in \{1,\dots,M\} \text{and} \ y_m^i = 1.
 \end{aligned}
 $}
 \end{equation*}
