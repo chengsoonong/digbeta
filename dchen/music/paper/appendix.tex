@@ -1,34 +1,61 @@
-\input{notation}
+\appendix
+\begin{center}
+  {\Large\bf Appendix to ``Cold-start Playlist Recommendation with Multitask Learning''}
+\end{center}
+\rule{0pt}{50pt}
+
+
+%\section{Proof}
 \input{clf2rank}
 
-\section{Empirical results}
+
+\clearpage
+\newpage
+
+\section{Evaluation metrics}
+The four evaluation metrics used in this work are:
+\begin{itemize}
+\item \emph{HitRate@K}, which is also known as Recall@K, is the number of correctly recommended songs amongst the top-$K$ recommendations over
+      the number of songs in the observed playlist.
+\item \emph{Area under the ROC curve} (AUC), which is the probability that a positive instance is ranked higher than a negative instance (on average).
+\item \emph{Novelty} measures the ability of a recommender system to suggest previously unknown (\ie novel) items,
+      $$
+      \text{Novelty@K} = \frac{1}{U} \sum_{u=1}^U \frac{1}{|P_u|} \sum_{m \in S_K} \frac{-\log_2 pop_m}{K},
+      $$
+      where $S_K$ is the set of top-$K$ recommendations and $pop_m$ is the popularity of song $m$.
+      Intuitively, the more popular a song is, a user is more likely to be familiar with it, therefore less novel.
+\item \emph{Spread} measures the ability of a recommender system to spread its attention across all possible items.
+      It is defined as the entropy of the distribution of all songs,
+      $$
+      \text{Spread} = -\sum_{m=1}^M P(m) \log P(m),
+      $$
+      where $P(m)$ denotes the probability of song $m$ being recommended,
+      which is computed from the scores of all possible songs using the softmax function in this work.
+\end{itemize}
+
+
+\clearpage
+\newpage
+
+\section{Dataset}
 \input{dataset_hist}
+
+The training and test split of the two playlist datasets in the three cold-start settings are shown in 
+Table~\ref{tab:stats3}, Table~\ref{tab:stats4}, and Table~\ref{tab:stats1}, respectively.
 \input{tab_stats}
 
-It is believed that
-useful recommendations need to include previously unknown items~\cite{herlocker2004evaluating,zhang2012auralist}.
-%and this 
-This ability can be measured by \emph{Novelty},
-$$
-\text{Novelty@K} = \frac{1}{U} \sum_{u=1}^U \frac{1}{|P_u|} \sum_{m \in S_K} \frac{-\log_2 pop_m}{K},
-$$
-where $S_K$ is the set of top-$K$ recommendations and $pop_m$ is the popularity of song $m$.
-Intuitively, the more popular a song is, 
-%an average user 
-a user is more likely to be familiar with it,
-therefore less novel. %to the user.
-%
-%On the other hand,
-\emph{Spread}, however, is used to measure the ability of an algorithm to spread its attention across all possible songs.
-It is defined as the entropy of the distribution of all songs, %possible songs to recommend,
-$$
-\text{Spread} = -\sum_{m=1}^M P(m) \log P(m),
-$$
-where $P(m)$ denotes the probability of song $m$ being recommended,
-which is computed from the scores of all possible songs using the softmax function.
 
+\clearpage
+\newpage
 
-
+\section{Empirical results}
 \input{fig_hr_h}
 \input{fig_nov_h}
 %\input{eval_per_user}
+
+
+\clearpage
+\newpage
+
+%\section{Notations}
+\input{notation}

@@ -14,15 +14,15 @@ $D$        &  $\in$  &  $\Z^+$            & The number of features for each song
 $M$        &  $\in$  &  $\Z^+$            & The number of songs, indexed by $m, m' \in \{1,\dots,M\}$ \\
 $N$        &  $\in$  &  $\Z^+$            & The total number of playlists from all users \\
 $U$        &  $\in$  &  $\Z^+$            & The number of users, indexed by $u \in \{1,\dots,U\}$ \\
-$P_u$      &         &                    & The set of playlists from user $u$, indexed by $i \in P_u$ \\
-$\alphabm_u$   &  $\in$  &  $\R^D$         & The weights of user $u$ \\
-$\betabm_i$  &  $\in$  &  $\R^D$         & The weights of playlist $i$ from user $u$, $i \in P_u$ \\
+$P_u$      &         &                    & The set of indices of playlists from user $u$ \\
+$\alphabm_u$   &  $\in$  &  $\R^D$        & The weights of user $u$ \\
+$\betabm_i$  &  $\in$  &  $\R^D$          & The weights of playlist $i$ from user $u$, $i \in P_u$ \\
 $\bmu$     &  $\in$  &  $\R^D$            & The weights shared by all users \\
 $\w_{u,i}$ &  $\in$  &  $\R^D$            & The weights of playlist $i$ from user $u$, $\w_{u,i} = \alphabm_u + \betabm_i + \bmu$ \\
-$\Y$       &  $\in$  &  $\R^{M \times N}$ & The matrix of binary labels that indicating if a song is in a playlist \\
+%$\Y$       &  $\in$  &  $\R^{M \times N}$ & The matrix of binary labels that indicating if a song is in a playlist \\
 $y_m^i$    &  $\in$  &  $\R^D$            & The positive binary label $y_m^i = 1$, \ie song $m$ in playlist $i$ \\
 $y_{m'}^i$ &  $\in$  &  $\R^D$            & The negative binary label $y_{m'}^i = 0$, \ie song $m'$ not in playlist $i$ \\
-$\X$       &  $\in$  &  $\R^{M \times D}$ & The matrix of features of all songs \\
+%$\X$       &  $\in$  &  $\R^{M \times D}$ & The matrix of features of all songs \\
 $\x_m$     &  $\in$  &  $\R^D$            & The feature vector of song $m$ \\
 $\x_{m'}$  &  $\in$  &  $\R^D$            & The feature vector of song $m'$ \\
 \bottomrule
