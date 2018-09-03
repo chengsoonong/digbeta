@@ -1,7 +1,8 @@
 %\section{Multitask learning for cold-start playlist recommendation}
 %\section{Multitask learning for playlist recommendation}
 %\section{Recommending playlists via multitask learning}
-\section{Recommending playlist via multitask learning}
+\section{Multitask learning for recommending playlists}
+%\section{Recommending playlist via multitask learning}
 %\section{Playlist recommendation via multitask learning}
 \label{sec:method}
 
@@ -13,7 +14,7 @@
 %- constrained optimisation formulation
 %- unconstrained optimisation of classification loss
 
-We first describe the three cold-start settings considered in the paper,
+We first describe the three cold-start settings considered in this paper,
 %In this section, 
 %we introduce a multitask objective that supports the three cold-start settings described in Section~\ref{sec:problem}. 
 %we describe a multitask learning method that works in all three cold-start settings introduced in previous sections.
@@ -22,7 +23,7 @@ then formulate
 playlist recommendation as a multitask learning problem, 
 where each task involves recommending a set of songs given a user or playlist.
 We propose to optimise a bipartite ranking loss that encourages songs in a playlist
-to be ranked higher than those are not.
+to be ranked higher than those that are not.
 %
 This results in a convex %constrained 
 optimisation problem with an enormous number of constraints.
@@ -91,7 +92,9 @@ of newly released songs as well as all playlists from existing users.
 \subsection{Multitask learning objective}
 
 %Suppose we are given 
-Given a dataset $\DCal$ with $N$ playlists from $U$ users, 
+%Given 
+Suppose we have
+a dataset $\DCal$ with $N$ playlists from $U$ users, 
 where songs in every playlist are from a music collection with $M$ songs.
 %We further assume 
 Assume each user has at least one playlist, and each song in the collection 
@@ -177,7 +180,7 @@ The learning task is to minimise the empirical risk of affinity function $f$ on 
 where $\Omega(\upthetabm)$ is a regularisation term and $R_\upthetabm(f, \DCal)$ denotes the empirical risk
 of $f$ on $\DCal$.
 We call the objective in problem~(\ref{eq:obj}) the {\it multitask learning objective},
-since it jointly learns from multiple tasks where each one involves recommending a set of songs 
+since we jointly learn from multiple tasks where each one involves recommending a set of songs 
 given a user or playlist.
 
 
@@ -188,7 +191,7 @@ and the shared weights $\bmu$ are sparse %that shared by all users are sparse
 %of different users are generally different,
 %we assume they nonetheless share a small number of weights in their representations.
 To impose these assumptions, we apply L$_1$ regularisation to encourage sparsity %sparse representations 
-of playlists weights $\betabm_i$ %from the same user
+of the playlists weights $\betabm_i$ %from the same user
 and the shared weights $\bmu$.
 %as well as sparse weights that shared by all users.
 %we regularise the weights of playlists from the same user as well as the weights shared by all users.
@@ -325,9 +328,9 @@ and develop methods to optimise the multitask learning objective.
 
 \subsection{Constrained optimisation with ranking loss}
 
-We aim to rank songs that are likely in a playlist above those unlikely when making a recommendation.
-To achieve this, we optimise the multitask learning objective by minimising a bipartite ranking loss,
-in particular, we minimises the number of songs not in a training playlist but ranked above the lowest 
+We aim to rank songs that are likely in a playlist above those that are unlikely when making a recommendation.
+To achieve this, we optimise the multitask learning objective by minimising a bipartite ranking loss.
+In particular, we minimise the number of songs not in a training playlist but ranked above the lowest 
 ranked song in it.\footnote{This is known as the Bottom-Push loss~\cite{rudin2009p} in the bipartite ranking literature.}
 The loss of the affinity function $f$ for playlist $i$ from user $u$ is defined as
 \begin{equation*}
@@ -403,7 +406,7 @@ with the empirical risk $R_{\uptheta}^{\textsc{rank}}$,
 namely, the non-differentiable 0/1 loss and the \emph{min} function in %$R_{\upthetabm}^{\textsc{rank}}$.
 $\Delta_f(u, i)$.
 To address these challenges, we first upper-bound %replace 
-the 0/1 loss with one of its convex surrogate $\ell$,
+the 0/1 loss with one of its convex surrogates, % $\ell$,
 \eg the exponential loss $\ell(f, y) = e^{-fy}$,
 \begin{equation*}
 %\label{eq:exploss}
@@ -454,7 +457,7 @@ transform problem (\ref{eq:obj}) with empirical risk $R_{\uptheta}^{\textsc{rank
 %\vspace{-.5em}
 \begin{equation*}
 %\label{eq:expobj_cons}
-%\resizebox{.888\linewidth}{!}{$\displaystyle
+%\resizebox{.9\linewidth}{!}{$\displaystyle
 \resizebox{\columnwidth}{!}{$\displaystyle
 \begin{aligned}
 \min_{\upthetabm} \ \, & 
@@ -462,41 +465,47 @@ transform problem (\ref{eq:obj}) with empirical risk $R_{\uptheta}^{\textsc{rank
 + \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \!\! \exp \left( f(m', u, i) - \xi_i \right) \\
 s.t. \ \, & 
 \xi_i \le f(m, u, i), \\
-& u \in \{1,\dots,U\}, \ i \in P_u, \ m \in \{1,\dots,M\}, \ y_m^i = 1, %\text{and} \ y_m^i = 1,
+& u \in \{1,\dots,U\}, \ i \in P_u, \ m \in \{1,\dots,M\}, \ y_m^i = 1. %\text{and} \ y_m^i = 1,
 \end{aligned}
 $}
 \end{equation*}
-%
+
 %One may observe that the objective of problem~(\ref{eq:expobj_cons}) is convex but not differentiable due to 
 %the L$_1$ regularisation terms in $\Omega(\upthetabm)$.
 %Nonetheless, we can use its sub-gradient.
 %Further, 
 %where the number of constraints is in problem~(\ref{eq:expobj_cons}) is
-with
+%with
+Note that the number of constraints in the above optimisation problem is
 $
-\sum_{u=1}^U \sum_{i \in P_u} \sum_{m=1}^M \, \llb y_m^i \!= \!1 \rrb
+\sum_{u=1}^U \sum_{i \in P_u} \sum_{m=1}^M \, \llb y_m^i \!= \!1 \rrb,
 $
-constraints,
+%constraints,
 %in other words, %the number of constraints equals 
 %\ie \red{the total number of songs played in all playlists.}
-\ie the accumulated playcount of all songs.
-Asymptotically, it is of order {\small $O(\widebar{L} N)$} where {\small $\widebar{L}$} 
-is the average playlist length (\ie the number of songs in a playlist) in training set,
-which is typically less than $100$.
+\ie the accumulated playcount of all songs,
+which is of order {\small $O(\widebar{L} N)$} asymptotically, where {\small $\widebar{L}$} 
+is the average number of songs in playlists, and is typically less than $100$.
+%Asymptotically, the number of constraints %it 
+%is of order {\small $O(\widebar{L} N)$} where {\small $\widebar{L}$} 
+%is the average playlist length (\ie the number of songs in a playlist) in the training set.
+%which is typically less than $100$.
 % number of songs in playlists.
 %Although {\small $\widebar{L}$} is dataset dependent, and is typically less than $100$,
 However,
-the total number of playlists {\small $N$} can be very large in production systems 
+%the total 
+the number of playlists {\small $N$} can be enormous %very large 
+in production systems 
 (\eg Spotify hosts more than $2$ billion playlists\footnote{https://newsroom.spotify.com/companyinfo}),
-which imposes significant challenge in optimisation. 
+which imposes a significant challenge in optimisation. 
 %which may cause significant challenge in optimisation. 
 %which imposes significant challenge when optimising problem~(\ref{eq:expobj_cons}).
 %
-This issue could be alleviated by applying the cutting-plane~\cite{avriel2003nonlinear} method or the sub-gradient method,
-unfortunately, we find both methods converge extremely slowly for this problem in practice.
+This issue could be alleviated by applying the cutting-plane~\cite{avriel2003nonlinear} method or the sub-gradient method.
+Unfortunately, we find both methods converge extremely slowly for this problem in practice.
 In particular, the cutting plane method is required to solve 
 a constrained optimisation problem with at least {\small $N$} constraints in each iteration, 
-which remains challenging when {\small $N$} is large.
+which remains challenging. %when {\small $N$} is large.
 
 %We want to mention two techniques that can be employed to alleviate this issue:
 %the cutting-plane~\cite{avriel2003nonlinear} method and the sub-gradient method.
@@ -611,7 +620,7 @@ $$
 
 
 Inspired by the connections between bipartite ranking and binary classification~\cite{ertekin2011equivalence,menon2016bipartite},
-and observe that $\widetilde R_{\upthetabm}^{\textsc{rank}}$ can be transformed into the standard P-Norm Push loss~\cite{rudin2009p} 
+and further observe that $\widetilde R_{\upthetabm}^{\textsc{rank}}$ can be transformed into the standard P-Norm Push loss~\cite{rudin2009p} 
 by simply swapping the positives {\small $\{m: y_m^i = 1\}$} and negatives {\small $\{m': y_{m'}^i = 0\}$}. % define P-Norm Push first?
 We swap the positives and negatives in the P-Classification loss~\cite{ertekin2011equivalence} while taking care of signs.
 This results in a classification risk:
@@ -667,7 +676,7 @@ if we swap the positives and negatives.
 
 By Lemma~\ref{lm:rank2clf}, %parameters of the multitask learning objective can be optimised by
 we can optimise the parameters of the multitask learning objective by 
-solving an (convex) unconstrained optimisation problem:\footnote{We choose not to directly optimise 
+solving a (convex) unconstrained optimisation problem:\footnote{We choose not to directly optimise 
 the empirical risk $\widetilde R_{\uptheta}^{\textsc{rank}}$, which involves the P-Norm Push loss, %(which is also a bipartite ranking loss)
 since classification loss can be optimised more efficiently in general~\cite{ertekin2011equivalence}.}
 %We can therefore create an unconstrained optimisation problem %using the classification risk $R_\textsc{mtc}$:
@@ -684,7 +693,7 @@ Problem~(\ref{eq:expobj_clf}) can be efficiently optimised using the
 Orthant-Wise Limited-memory Quasi-Newton (OWL-QN) algorithm~\cite{andrew2007scalable},
 an L-BFGS variant that can address L$_1$ regularisation effectively.
 
-We refer the approach that solves problem~(\ref{eq:expobj_clf}) as \emph{Multitask Classification} (MTC). % in experiment.
+We refer to the approach that solves problem~(\ref{eq:expobj_clf}) as \emph{Multitask Classification} (MTC). % in experiment.
 As a remark, optimal solutions of problem (\ref{eq:expobj_clf}) are not necessarily the optimal solutions 
 of problem $\min_\upthetabm \ \Omega(\upthetabm) + \widetilde R_{\upthetabm}^{\textsc{rank}}$ due to regularisation. %the regularisation terms.
 However, when parameters $\upthetabm$ are small (which is generally the case when using regularisation), the two objectives 
