@@ -1,0 +1,14 @@
+pdfjam main.pdf 1-8 --letterpaper -o coldstart-body.pdf
+pdfjam main.pdf 9-  --letterpaper -o coldstart-supp.pdf
+
+zip coldstart-supp.zip coldstart-supp.pdf
+
+echo ""
+echo "MOVING TO INITIAL SUBMISSION"
+echo ""
+
+rm -rf initial_submission
+mkdir initial_submission
+mv *coldstart*.pdf initial_submission/
+mv *.zip initial_submission/
+ls -alt initial_submission
