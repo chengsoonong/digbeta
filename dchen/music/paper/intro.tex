@@ -51,16 +51,28 @@ which leads to challenges in standard supervised learning.
 % and the majority of songs only appear in a few playlists~\cite{bonnin2013evaluating}.
 % This is consistent with discoveries in~\cite{bonnin2013evaluating,jannach2015beyond,bonnin2015automated}
 
-We first study the problem of recommending %a set of songs to form %a new playlist for a user
+We formulate playlist recommendation as a multitask learning problem.
+Firstly, we study the setting of recommending %a set of songs to form %a new playlist for a user
 personalised playlists for a user
 %We learn the preference of the given user from her existing playlists,
 by exploiting the (implicit) preference %of the given user 
 from her existing playlists.
 Since we do not have any contextual information about the new playlist, 
 we call this setting \emph{cold playlists}.
+We find that learning from a user's existing playlists %can significantly 
+improves the accuracy of recommendation compared to 
+suggesting popular songs from familiar artists.
+%sophisticated baselines that employ song, artist or user information.
 %
 We further consider the setting of \emph{cold users} (\ie new users),
-where we recommend playlists for new users. %by learning from playlists of existing users.
+where we recommend playlists for new users %by learning from playlists of existing users
+given playlists from existing users.
+We find it challenging to improve recommendations beyond simply ranking songs according to their popularity 
+if we know nothing except the identifier of the new user, %about the user,
+which is consistent with previous 
+discoveries~\cite{mcfee2012million,bonnin2013evaluating,bonnin2015automated}.
+However, improvement can still be achieved if we know a few simple attributes (\eg age, gender, country etc.)
+of the new users.
 %
 %This motivates us to exploit the (implicit) user preference from her existing playlists,
 %which leads to the \emph{cold playlists} setting,
@@ -73,34 +85,12 @@ where we recommend playlists for new users. %by learning from playlists of exist
 %This results in the \emph{cold songs} setting,
 %where we recommend a set of newly released songs to extend users' existing playlists. %from users.
 %
-Lastly, we investigate the problem of recommending newly released songs (\ie \emph{cold songs}) to extend users' existing playlists. 
+Lastly, we investigate the setting of recommending newly released songs (\ie \emph{cold songs}) 
+to extend users' existing playlists. 
 %We call this setting \emph{cold songs}.
-
-
-We propose a novel multitask learning method that %to %which can 
-%deals with 
-can handle
-all three cold-start settings for playlist recommendation.
-%It aims to 
-It learns to rank songs that are likely to be in a playlist %that could end up being in a playlist %for the given user 
-above those unlikely to be chosen. %by minimising a bipartite ranking loss.
-
-
-
-\emph{cold playlists}
-We find that learning from a user's existing playlists %can significantly 
-improves the accuracy of recommendation.
-
-
-\emph{cold users}
-We find it challenging to improve recommendations beyond simply ranking songs according to their popularity 
-if we know nothing about the user, which is consistent with previous 
-discoveries~\cite{mcfee2012million,bonnin2013evaluating,bonnin2015automated}.
-However, improvement can still be achieved if we know a few simple attributes (\eg age, gender, country etc.)
-of the new users.
-
-\emph{cold songs}
-We find that songs in a playlist are especially helpful in guiding the process of adding new songs to a given playlist.
+We find that the set of songs in a playlist are particularly %especially 
+helpful in guiding %the process of adding new songs to the given playlist
+the selection of new songs to be added to the given playlist.
 
 % The challenge of this task, besides those brought by cold-start settings, is two-fold:
 % \begin{enumerate}[(i)]
@@ -122,21 +112,32 @@ We find that songs in a playlist are especially helpful in guiding the process o
 % In this paper, we propose a novel multitask learning method for playlist recommendation in cold-start settings.
 We propose a novel multitask learning method that %to %which can 
 %deals with 
-can handle
-all three cold-start settings for playlist recommendation.
+can deal with %handle
+playlist recommendation in all three cold-start settings.
+It optimises a bipartite ranking loss~\cite{Freund:2003,Agarwal:2005}
+that encourages songs in a playlist to be ranked higher than those that are not.
+This results in a convex optimisation problem with an enormous number of constraints.
+Inspired by an equivalence between bipartite ranking and binary classification,
+we efficiently approximate an optimal solution of the constrained objective 
+by minimising an unconstrained classification loss.
+%all three cold-start settings for playlist recommendation.
 %It aims to 
-It learns to rank songs that are likely to be in a playlist %that could end up being in a playlist %for the given user 
-above those unlikely to be chosen. %by minimising a bipartite ranking loss.
+%It optimises a bipartite ranking loss that 
+%encourages songs that are likely to be in a playlist to be ranked higher than those unlikely to be chosen. 
+%encourages ranking songs that are likely to be in a playlist above those unlikely to be chosen. 
+%
+%It learns to rank songs that are likely to be in a playlist %that could end up being in a playlist %for the given user 
+%above those unlikely to be chosen by minimising a bipartite ranking loss.
 %
 %To learn the parameters, 
-We optimise the multitask learning objective by formulating %solving 
+%We optimise the multitask learning objective by formulating %solving 
 %which involves 
-a constrained convex optimisation problem.
-To avoid dealing with an enormous number of constraints,
-we approximate an optimal solution %of the multitask learning objective
-by minimising an unconstrained objective 
-inspired by an equivalence %relationship 
-between bipartite ranking and binary classification.
+%a convex constrained optimisation problem.
+%To avoid dealing with an enormous number of constraints,
+%we approximate an optimal solution %of the multitask learning objective
+%by minimising an unconstrained objective 
+%inspired by an equivalence %relationship 
+%between bipartite ranking and binary classification.
 %
 %we approximate an optimal solution of the multitask learning objective by minimising an unconstrained classification loss.
 %we show how one can approximate the multitask objective to avoid dealing with a large number of constraints.

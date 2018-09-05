@@ -20,9 +20,12 @@ The four evaluation metrics used in this work are:
 \item \emph{Area under the ROC curve} (AUC), which is the probability that a positive instance is ranked higher than a negative instance (on average).
 \item \emph{Novelty} measures the ability of a recommender system to suggest previously unknown (\ie novel) items,
       $$
-      \text{Novelty@K} = \frac{1}{U} \sum_{u=1}^U \frac{1}{|P_u|} \sum_{m \in S_K} \frac{-\log_2 pop_m}{K},
+      \text{Novelty@K} 
+      = \frac{1}{U} \sum_{u=1}^U \frac{1}{|P_u^\textsc{test}|} \sum_{i \in P_u^\textsc{test}} \sum_{m \in S_K^i} 
+        \frac{-\log_2 pop_m}{K},
       $$
-      where $S_K$ is the set of top-$K$ recommendations and $pop_m$ is the popularity of song $m$.
+      where $P_u^\textsc{test}$ is the (indices of) test playlists from user $u$, 
+      $S_K^i$ is the set of top-$K$ recommendations for test playlist $i$ and $pop_m$ is the popularity of song $m$.
       Intuitively, the more popular a song is, the more likely a user is to be familiar with it, and therefore the less likely to be novel.
 \item \emph{Spread} measures the ability of a recommender system to spread its attention across all possible items.
       It is defined as the entropy of the distribution of all songs,
@@ -30,7 +33,7 @@ The four evaluation metrics used in this work are:
       \text{Spread} = -\sum_{m=1}^M P(m) \log P(m),
       $$
       where $P(m)$ denotes the probability of song $m$ being recommended,
-      which is computed from the scores of all possible songs using the softmax function in this work.
+      which is computed from the scores of all possible songs using the \emph{softmax} function in this work.
 \end{itemize}
 
 
@@ -81,11 +84,11 @@ Table~\ref{tab:stats3}, Table~\ref{tab:stats4}, and Table~\ref{tab:stats1}, resp
     \label{tab:stats3}
     \begin{tabular}{lrrcrr}
         \toprule
-        \multirow{2}{*}{Dataset}  & \multicolumn{2}{c}{Playlists} && \multicolumn{2}{c}{Users} \\ \cmidrule{2-3} \cmidrule{5-6}
-                                  & Train & Test && Train & Test \\
+        \multirow{2}{*}{Dataset}  & \multicolumn{2}{c}{Training Set} && \multicolumn{2}{c}{Test Set} \\ \cmidrule{2-3} \cmidrule{5-6}
+                                  & Playlists & Users && Playlists & Users \\
         \midrule
-        30Music   & 15,262 & 2,195 &&  8,070 & 1,644 \\
-        AotM-2011 & 75,477 & 9,233 && 14,182 & 2,722 \\
+        30Music   & 15,262 &  8,070 && 2,195  & 1,644 \\
+        AotM-2011 & 75,477 & 14,182 && 9,233  & 2,722 \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -96,11 +99,11 @@ Table~\ref{tab:stats3}, Table~\ref{tab:stats4}, and Table~\ref{tab:stats1}, resp
     \label{tab:stats4}
     \begin{tabular}{lrrcrr}
         \toprule
-        \multirow{2}{*}{Dataset}  & \multicolumn{2}{c}{Users} && \multicolumn{2}{c}{Playlists} \\ \cmidrule{2-3} \cmidrule{5-6}
-                                  & Train & Test && Train & Test \\
+        \multirow{2}{*}{Dataset}  & \multicolumn{2}{c}{Training Set} && \multicolumn{2}{c}{Test Set} \\ \cmidrule{2-3} \cmidrule{5-6}
+                                  & Users & Playlists && Users & Playlists \\
         \midrule
-        30Music   & 5,649 & 2,420 && 14,067 & 3,390 \\
-        AotM-2011 & 9,928 & 4,254 && 76,450 & 8,260 \\
+        30Music   & 5,649 & 14,067 && 2,420 & 3,390 \\
+        AotM-2011 & 9,928 & 76,450 && 4,254 & 8,260 \\
         \bottomrule
     \end{tabular}
 \end{table}
@@ -111,11 +114,11 @@ Table~\ref{tab:stats3}, Table~\ref{tab:stats4}, and Table~\ref{tab:stats1}, resp
     \label{tab:stats1}
     \begin{tabular}{lrrcrr}
         \toprule
-        \multirow{2}{*}{Dataset}  & \multicolumn{2}{c}{Songs} && \multicolumn{2}{c}{Playlists} \\ \cmidrule{2-3} \cmidrule{5-6}
-                                  & Train & Test && Train & Test \\
+        \multirow{2}{*}{Dataset}  & \multicolumn{2}{c}{Training Set} && \multicolumn{2}{c}{Test Set} \\ \cmidrule{2-3} \cmidrule{5-6}
+                                  & Songs & Playlists && Songs & Playlists \\
         \midrule
-        30Music   & 40,468  & 5,000  && 17,342  & 8,215 \\
-        AotM-2011 & 104,428 & 10,000 && 84,646  & 19,504 \\
+        30Music   & 40,468  & 17,342 && 5,000  & 8,215 \\
+        AotM-2011 & 104,428 & 84,646 && 10,000 & 19,504 \\
         \bottomrule
     \end{tabular}
 \end{table}

@@ -14,18 +14,28 @@
 %- constrained optimisation formulation
 %- unconstrained optimisation of classification loss
 
-We first describe the three cold-start settings considered in this paper,
+We first define the three cold-start settings considered in this paper,
 %In this section, 
 %we introduce a multitask objective that supports the three cold-start settings described in Section~\ref{sec:problem}. 
 %we describe a multitask learning method that works in all three cold-start settings introduced in previous sections.
 %We consider %the problem of 
-and formulate
-playlist recommendation as a multitask learning problem, 
-where each task involves recommending a set of songs given a user or playlist.
-We then discuss how one can efficiently optimise the multitask learning objective.
+then introduce the multitask learning objective 
+and show how the problem of cold-start playlist recommendation can be handled.
+%by applying a multitask learning method. % in the three cold-start settings.
+%and show how the problem of playlist recommendation can be handled 
+%by applying a multitask learning method in the three cold-start settings.
+%multitask learning method can be employed to recommend 
+%and show how one can apply the multitask learning approach to recommend
+%playlists in the three cold-start settings.
+We discuss the challenge in optimising the multitask learning objective
+via convex constrained optimisation
+and show how one can efficiently approximate an optimal solution by minimising
+an unconstrained objective.
+%formulate playlist recommendation as a multitask learning problem, 
+%where each task involves recommending a set of songs given a user or playlist.
+% how to make recommendation in each of the three cold-start settings.
+%We then discuss how one can efficiently optimise the multitask learning objective.
 
-\clearpage
-\newpage
 
 %We propose to optimise a bipartite ranking loss that encourages songs in a playlist
 %to be ranked higher than those that are not.
@@ -68,7 +78,7 @@ We then discuss how one can efficiently optimise the multitask learning objectiv
 %We are interested in recommending playlists in three cold-start scenarios,
 %as shown in Figure~\ref{fig:setting}
 %Figure~\ref{fig:setting} shows the three cold-start scenarios that we investigate in this paper.
-Figure~\ref{fig:setting} illustrates the three cold-start scenarios for playlist recommendation 
+Figure~\ref{fig:setting} illustrates the three cold-start settings for playlist recommendation 
 that we study in this paper:
 \begin{enumerate}[(a)]
 %\item Cold playlists, where we recommend a set of songs to form a new personalised playlist for an existing user;
@@ -84,6 +94,7 @@ that we study in this paper:
 %
 \item Cold songs, where we recommend newly released songs to extend users' existing playlists.
 \end{enumerate}
+
 In the \emph{cold playlists} setting, a target user (\ie the one for whom we recommend playlists)
 maintains a number of playlists that can be exploited by the learning algorithm.
 In the \emph{cold users} setting, however, we may only know a few simple attributes of a new user
@@ -196,7 +207,7 @@ and the shared weights $\bmu$ are sparse %that shared by all users are sparse
 %of different users are generally different,
 %we assume they nonetheless share a small number of weights in their representations.
 To impose these assumptions, we apply $\ell_1$ regularisation to encourage sparsity %sparse representations 
-of the playlists weights $\betabm_i$ %from the same user
+of the playlist weights $\betabm_i$ %from the same user
 and the shared weights $\bmu$.
 %as well as sparse weights that shared by all users.
 %we regularise the weights of playlists from the same user as well as the weights shared by all users.
@@ -232,7 +243,7 @@ We specify the empirical risk $R_{\uptheta}(f, \DCal)$ later.
 Once parameters $\uptheta$ have been learned, 
 we make a recommendation by first scoring each song according to available information (\eg an existing user or playlist),
 %(\eg an existing playlist, an existing user or a new user),
-then form or extend a playlist by either taking the top-K scored songs or sampling songs with probabilities proportional to their scores.
+then form or extend a playlist by either taking the top-$K$ scored songs or sampling songs with probabilities proportional to their scores.
 %
 Specifically, %to recommend a new playlist for an existing user (\ie the \emph{cold playlists} setting),
 in the \emph{cold playlists} setting where the target user $u$ is known,
@@ -245,11 +256,14 @@ r_m^{(a)} = (\alphabm_u + \bmu)^\top \x_m.
 %\hat f(m, u, \cdot) = (\alphabm_u + \bmu)^\top \x_m.
 \end{equation}
 
-Further, in the \emph{cold users} setting where a few simple attributes of the new user are available,
+Further, in the \emph{cold users} setting where %a few 
+simple attributes of the new user are available,
 we approximate the weights of the new user using the average weights of similar existing users
-(\eg users whose attribute vector is similar to that of the new user in terms of cosine similarity)
+(\eg in terms of cosine similarity of user attributes)
+%(\eg users whose attribute vector is similar to that of the new user in terms of cosine similarity)
 and score song $m$ as
-\vspace{-1.5em}
+%\vspace{-1.5em}
+\vspace{-.8em}
 \begin{equation}
 \label{eq:cu}
 r_m^{(b)} = \left( \frac{1}{|\UCal|} \sum_{u \in \UCal} \alphabm_u + \bmu \right)^\top \x_m,
@@ -258,7 +272,7 @@ r_m^{(b)} = \left( \frac{1}{|\UCal|} \sum_{u \in \UCal} \alphabm_u + \bmu \right
 where $\UCal$ is the set of (\eg 10) existing users that are most similar to the new user.
 On the other hand, if we know nothing about the new user except her identifier,
 we can simply score song $m$ using the shared weights, \ie
-\vspace{-.3em}
+%\vspace{-.3em}
 \begin{equation}
 \label{eq:cu2}
 r_m^{(b)} = \bmu^\top \x_m.
@@ -282,7 +296,7 @@ r_m^{(b)} = \bmu^\top \x_m.
 Lastly, %to extend an existing playlist $i$ from user $u$ (\ie the \emph{cold songs} setting),
 in the \emph{cold songs} setting where we are given a specific playlist $i$ from user $u$,
 we therefore can score song $m$ using both user weights and playlist weights, \ie
-\vspace{-.3em}
+%\vspace{-.3em}
 \begin{equation}
 \label{eq:cs}
 r_m^{(c)} = (\alphabm_u + \betabm_i + \bmu)^\top \x_m.
