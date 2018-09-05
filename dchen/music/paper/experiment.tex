@@ -295,16 +295,21 @@ Further, PopRank is one of the best performing methods in the cold users setting
 which is consistent with previous discoveries~\cite{mcfee2012million,bonnin2013evaluating,bonnin2015automated}.
 The reason is believed to be the long-tailed distribution of songs in
 playlists~\cite{cremonesi2010performance,bonnin2013evaluating}.
+%
 The MF variant does not perform well in the cold playlists setting,
 but it performs reasonably well in the cold users setting when attributes of new users are available
 (\eg in the 30Music dataset),
 and it works particularly well in the cold songs setting where both song metadata and audio features are available 
 for new songs.
-Lastly, MTC is the best performing method in all three cold-start settings on both datasets.
+
+Lastly, 
+MTC is the (tied) best performing method in all three cold-start settings on both datasets.
 Interestingly, it achieves the same performance as PopRank in the cold users setting on the AotM-2011 dataset,
-which suggests that MTC might degenerate to simply ranking songs according to popularity when making recommendation
+which suggests that MTC might degenerate to simply ranking songs according to popularity when making recommendations
 for new users; however, when attributes of new users are available, %(\eg in the 30Music dataset), 
-it can improve recommendations by exploiting information learned from existing users.
+it can improve 
+%recommendations 
+by exploiting information learned from existing users.
 
 
 Figure~\ref{fig:hr1} shows the hit rate of all methods in the cold songs setting

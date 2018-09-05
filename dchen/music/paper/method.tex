@@ -19,16 +19,21 @@ We first describe the three cold-start settings considered in this paper,
 %we introduce a multitask objective that supports the three cold-start settings described in Section~\ref{sec:problem}. 
 %we describe a multitask learning method that works in all three cold-start settings introduced in previous sections.
 %We consider %the problem of 
-then formulate
+and formulate
 playlist recommendation as a multitask learning problem, 
 where each task involves recommending a set of songs given a user or playlist.
-We propose to optimise a bipartite ranking loss that encourages songs in a playlist
-to be ranked higher than those that are not.
+We then discuss how one can efficiently optimise the multitask learning objective.
+
+\clearpage
+\newpage
+
+%We propose to optimise a bipartite ranking loss that encourages songs in a playlist
+%to be ranked higher than those that are not.
 %
-This results in a convex %constrained 
-optimisation problem with an enormous number of constraints.
-By exploiting an equivalence between bipartite ranking and binary classification,
-we efficiently approximate an optimal solution by minimising an unconstrained classification loss.
+%This results in a convex %constrained 
+%optimisation problem with an enormous number of constraints.
+%By exploiting an equivalence between bipartite ranking and binary classification,
+%we efficiently approximate an optimal solution by minimising an unconstrained classification loss.
 
 %We exploit an equivalence between bipartite ranking and binary classification to 
 %avoid dealing with an enormous number of constraints 
@@ -190,7 +195,7 @@ and the shared weights $\bmu$ are sparse %that shared by all users are sparse
 %and although the weights %representations 
 %of different users are generally different,
 %we assume they nonetheless share a small number of weights in their representations.
-To impose these assumptions, we apply L$_1$ regularisation to encourage sparsity %sparse representations 
+To impose these assumptions, we apply $\ell_1$ regularisation to encourage sparsity %sparse representations 
 of the playlists weights $\betabm_i$ %from the same user
 and the shared weights $\bmu$.
 %as well as sparse weights that shared by all users.
@@ -217,7 +222,7 @@ The regularisation term in our multitask learning objective is
 % where we add an L2 regularisation term to penalise large values in user representations,
 % and constants $\lambda_1, \lambda_2, \lambda_3 \in \R_+$.
 where constants $\lambda_1, \lambda_2, \lambda_3 \in \R_+$,
-and the L$_2$ regularisation term is to penalise large values in user weights. %representations.
+and the $\ell_2$ regularisation term is to penalise large values in user weights. %representations.
 We specify the empirical risk $R_{\uptheta}(f, \DCal)$ later.
 
 
@@ -407,7 +412,7 @@ namely, the non-differentiable 0/1 loss and the \emph{min} function in %$R_{\upt
 $\Delta_f(u, i)$.
 To address these challenges, we first upper-bound %replace 
 the 0/1 loss with one of its convex surrogates, % $\ell$,
-\eg the exponential loss $\ell(f, y) = e^{-fy}$,
+\eg the exponential loss $\llb z \le 0 \rrb \le e^{-z}$,
 \begin{equation*}
 %\label{eq:exploss}
 \resizebox{\columnwidth}{!}{$
@@ -465,13 +470,13 @@ transform problem (\ref{eq:obj}) with empirical risk $R_{\uptheta}^{\textsc{rank
 + \frac{1}{N} \sum_{u=1}^U \sum_{i \in P_u} \frac{1}{M_-^i} \sum_{m': y_{m'}^i = 0} \!\! \exp \left( f(m', u, i) - \xi_i \right) \\
 s.t. \ \, & 
 \xi_i \le f(m, u, i), \\
-& u \in \{1,\dots,U\}, \ i \in P_u, \ m \in \{1,\dots,M\} \text{and} \ y_m^i = 1.
+& u \in \{1,\dots,U\}, \ i \in P_u, \ m \in \{1,\dots,M\} \, \text{and} \ y_m^i = 1.
 \end{aligned}
 $}
 \end{equation*}
 
 %One may observe that the objective of problem~(\ref{eq:expobj_cons}) is convex but not differentiable due to 
-%the L$_1$ regularisation terms in $\Omega(\upthetabm)$.
+%the $\ell_1$ regularisation terms in $\Omega(\upthetabm)$.
 %Nonetheless, we can use its sub-gradient.
 %Further, 
 %where the number of constraints is in problem~(\ref{eq:expobj_cons}) is
@@ -620,7 +625,7 @@ $$
 
 
 Inspired by the connections between bipartite ranking and binary classification~\cite{ertekin2011equivalence,menon2016bipartite},
-and further observe that $\widetilde R_{\upthetabm}^{\textsc{rank}}$ can be transformed into the standard P-Norm Push loss~\cite{rudin2009p} 
+we further observe that $\widetilde R_{\upthetabm}^{\textsc{rank}}$ can be transformed into the standard P-Norm Push loss~\cite{rudin2009p} 
 by simply swapping the positives {\small $\{m: y_m^i = 1\}$} and negatives {\small $\{m': y_{m'}^i = 0\}$}. % define P-Norm Push first?
 We swap the positives and negatives in the P-Classification loss~\cite{ertekin2011equivalence} while taking care of signs.
 This results in a classification risk:
@@ -686,18 +691,20 @@ since classification loss can be optimised more efficiently in general~\cite{ert
 \min_\upthetabm \ \Omega(\upthetabm) + R_{\upthetabm}^{\textsc{mtc}}(f, \DCal).
 \end{equation}
 
-%The objective in problem~(\ref{eq:expobj_clf}) is convex but not differentiable due to the L$_1$ regularisation terms in $\Omega(\upthetabm)$.
+%The objective in problem~(\ref{eq:expobj_clf}) is convex but not differentiable due to the $\ell_1$ regularisation terms in $\Omega(\upthetabm)$.
 %However, it can be efficiently solved using the Orthant-Wise Limited-memory Quasi-Newton (OWL-QN)~\cite{andrew2007scalable} L-BFGS variant.
 %The objective in problem~(\ref{eq:expobj_clf}) is convex and can be efficiently optimised using the 
 Problem~(\ref{eq:expobj_clf}) can be efficiently optimised using the
 Orthant-Wise Limited-memory Quasi-Newton (OWL-QN) algorithm~\cite{andrew2007scalable},
-an L-BFGS variant that can address L$_1$ regularisation effectively.
+an L-BFGS variant that can address $\ell_1$ regularisation effectively.
 
 We refer to the approach that solves problem~(\ref{eq:expobj_clf}) as \emph{Multitask Classification} (MTC). % in experiment.
 As a remark, optimal solutions of problem (\ref{eq:expobj_clf}) are not necessarily the optimal solutions 
 of problem $\min_\upthetabm \ \Omega(\upthetabm) + \widetilde R_{\upthetabm}^{\textsc{rank}}$ due to regularisation. %the regularisation terms.
-However, when parameters $\upthetabm$ are small (which is generally the case when using regularisation), the two objectives 
-can nonetheless approximate each other well. %within an acceptable level.
+%However, when the $\ell_1$ and $\ell_2$ norms of parameters $\upthetabm$ are small (which is generally the case when using regularisation), 
+%the two objectives can nonetheless approximate each other well. %within an acceptable level.
+However, when parameters $\upthetabm$ are small (which is generally the case when using regularisation),
+optimal solutions of the two objectives can nonetheless approximate each other well.
 
 
 %\cheng{Explain in words why one is ranking, and the other one classification.}
