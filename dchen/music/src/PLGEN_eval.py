@@ -6,7 +6,7 @@ import numpy as np
 from scipy.sparse import issparse
 # from sklearn.metrics.pairwise import cosine_similarity
 # from tools import calc_RPrecision_HitRate
-from tools import calc_metrics, diversity, softmax
+from tools import calc_metrics, softmax  # diversity
 
 TOPs = [5, 10, 20, 30, 50, 100, 200, 300, 500, 700, 1000]
 
@@ -54,7 +54,11 @@ for u in range(U):
 assert np.all(clf.pl2u == pl2u[:Y_train.shape[1]])
 
 if task == 4 and dataset == '30music':
-    train_user2index, test_user2index, cosine_similarities = pkl.load(gzip.open('%s/user_sim.pkl.gz' % data_dir, 'rb'))
+    # a different way to index user here
+    pldata = pkl.load(gzip.open('%s/playlists_train_test_s4.pkl.gz' % data_dir, 'rb'))
+    test_playlists = pldata['test_playlists']
+    assert len(test_playlists) == Y_test.shape[1]
+    _, test_user2index, cosine_similarities = pkl.load(gzip.open('%s/user_sim.pkl.gz' % data_dir, 'rb'))
     k = 10
 
 rps = []
@@ -62,9 +66,10 @@ hitrates = {top: [] for top in TOPs}
 aucs = []
 spreads = []
 novelties = {top: dict() for top in TOPs}
+ptops = []
 # diversities = []
-artist_diversities = {top: [] for top in TOPs}
-genre_diversities = {top: [] for top in TOPs}
+# artist_diversities = {top: [] for top in TOPs}
+# genre_diversities = {top: [] for top in TOPs}
 np.random.seed(0)
 offset = Y_train.shape[1]
 for j in range(Y_test.shape[1]):
@@ -73,19 +78,23 @@ for j in range(Y_test.shape[1]):
         sys.stdout.flush()
     y_true = Y_test[:, j].A.reshape(-1)
     assert y_true.sum() > 0
-    u = pl2u[j + offset]
     if task == 3:
+        u = pl2u[j + offset]
         wj = clf.V[u, :] + clf.mu
         y_pred = np.dot(X, wj).reshape(-1)
     else:
         if dataset == '30music':
+            u = test_playlists[j][1]
             if u not in test_user2index:
                 continue
             uix = test_user2index[u]
             neighbour_ix = np.argpartition(cosine_similarities[uix, :].reshape(-1), -k)[-k:]  # indices of kNN
             wj = clf.V[neighbour_ix, :].mean(axis=0).reshape(-1) + clf.mu
-            y_pred = np.dot(X, wj).reshape(-1) 
+            # neighbour_weights = cosine_similarities[uix, neighbour_ix]
+            # wj = np.dot(neighbour_weights / neighbour_weights.sum(), clf.V[neighbour_ix, :]) + clf.mu
+            y_pred = np.dot(X, wj).reshape(-1)
         else:
+            u = pl2u[j + offset]
             y_pred = np.dot(X, clf.mu).reshape(-1)
 
     # rp, hr_dict = calc_RPrecision_HitRate(y_true, y_pred, tops=TOPs)
@@ -108,18 +117,27 @@ for j in range(Y_test.shape[1]):
         except KeyError:
             novelties[top][u] = [nov]
 
+    # PTop: (#pos ranked above the top-ranked negative) / #pos
+    assert y_true.dtype == np.bool
+    npos = y_true.sum()
+    assert npos > 0
+    negIx = (1 - y_true).astype(np.bool)
+    negMax = y_pred[negIx].max()
+    pt = (y_pred[y_true] > negMax).sum() / npos
+    ptops.append(pt)
+
     # compute diversity@100
     # csd = 1. / cosine_similarity(X[sortix[:100], :])
     # diversities.append((csd.sum() - np.trace(csd)) / (100 * 99))
 
     # artist/genre diversity
-    for top in TOPs:
-        artist_vec = np.array([song2artist[index2song[ix]] if index2song[ix] in song2artist
-                               else str(np.random.rand()) for ix in sortix[:top]])
-        genre_vec = np.array([song2genre[index2song[ix]] if index2song[ix] in song2genre
-                              else str(np.random.rand()) for ix in sortix[:top]])
-        artist_diversities[top].append(diversity(artist_vec))
-        genre_diversities[top].append(diversity(genre_vec))
+    # for top in TOPs:
+    #     artist_vec = np.array([song2artist[index2song[ix]] if index2song[ix] in song2artist
+    #                            else str(np.random.rand()) for ix in sortix[:top]])
+    #     genre_vec = np.array([song2genre[index2song[ix]] if index2song[ix] in song2genre
+    #                           else str(np.random.rand()) for ix in sortix[:top]])
+    #     artist_diversities[top].append(diversity(artist_vec))
+    #     genre_diversities[top].append(diversity(genre_vec))
 
 print('\n%d, %d' % (len(rps), Y_test.shape[1]))
 perf = {dataset: {'Test': {'R-Precision': np.mean(rps),
@@ -127,14 +145,18 @@ perf = {dataset: {'Test': {'R-Precision': np.mean(rps),
                            'AUC': np.mean(aucs),
                            'Spread': np.mean(spreads),
                            'Novelty': {t: np.mean([np.mean(novelties[t][u]) for u in novelties[t]]) for t in TOPs},
-                           'Artist-Diversity': {top: np.mean(artist_diversities[top]) for top in TOPs},
-                           'Genre-Diversity': {top: np.mean(genre_diversities[top]) for top in TOPs}},
+                           'PTop': np.mean(ptops),
+                           # 'Artist-Diversity': {top: np.mean(artist_diversities[top]) for top in TOPs},
+                           # 'Genre-Diversity': {top: np.mean(genre_diversities[top]) for top in TOPs}},
+                           },
                   'Test_All': {'R-Precision': rps,
                                'Hit-Rate': {top: hitrates[top] for top in TOPs},
                                'AUC': aucs,
                                'Spread': spreads,
                                'Novelty': novelties,
-                               'Artist-Diversity': artist_diversities,
-                               'Genre-Diversity': genre_diversities}}}
+                               'PTop': ptops,
+                               # 'Artist-Diversity': artist_diversities,
+                               # 'Genre-Diversity': genre_diversities}}}
+                               }}}
 pkl.dump(perf, open(fperf, 'wb'))
 print(perf[dataset]['Test'])
