@@ -101,8 +101,8 @@ Finally, we add a constant feature (with value $1.0$) for each song to account f
 
 \subsection{Experimental setup}
 
-We split the two playlist datasets into training and test sets, %for each of the three cold-start settings,
-evaluate the test set performance of the proposed method,
+We first split the two playlist datasets into training and test sets, %for each of the three cold-start settings,
+then evaluate the test set performance of the proposed method,
 and compare it against
 %and compare the test set performance of the proposed method with that of 
 several baseline approaches
@@ -407,7 +407,7 @@ but the \emph{Novelty} of CAGH saturates much earlier than that of SAGH.
 The reason could be that,
 when the number of recommendations is larger than the total number of songs from artists in a user's previous playlists,
 SAGH will simply recommend songs randomly (which are likely to be novel)
-while CAGH will recommend songs from artists that are similar to those in a user's previous playlists
+while CAGH will recommend songs from artists that are similar to those in the user's previous playlists
 %(which are probably less novel).
 (which could be comparably less novel).
 Further, MTC achieves lower \emph{Novelty} than WMF and CAGH, 

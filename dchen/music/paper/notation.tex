@@ -10,8 +10,10 @@ We introduce notations in Table~\ref{tab:notation}.
 \begin{tabular}{llll}
 \toprule
 \multicolumn{3}{l}{\textbf{Notation}} & \textbf{Description} \\ \midrule
-$D$        &  $\in$  &  $\Z^+$            & The number of features for each song \\
+$D$        &  $\in$  &  $\Z^+ \rule{10pt}{0pt}$  & The number of features for each song \\
 $M$        &  $\in$  &  $\Z^+$            & The number of songs, indexed by $m, m' \in \{1,\dots,M\}$ \\
+$M_+^i$    &  $\in$  &  $\Z^+$            & The number of songs in playlist $i$ \\
+$M_-^i$    &  $\in$  &  $\Z^+$            & The number of songs not in playlist $i$, \ie $M_-^i = M - M_+^i$ \\
 $N$        &  $\in$  &  $\Z^+$            & The total number of playlists from all users \\
 $U$        &  $\in$  &  $\Z^+$            & The number of users, indexed by $u \in \{1,\dots,U\}$ \\
 $P_u$      &         &                    & The set of indices of playlists from user $u$ \\
