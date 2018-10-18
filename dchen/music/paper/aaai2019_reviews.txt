@@ -1,0 +1,152 @@
+##### Reviewer #1
+
+1. [Summary] Please summarize the main claims/contributions of the paper in your own words.
+
+   This  paper studies the problem of palylist recommendation in music, with a  focus on addressing the cold-start problem (clod user, clod songs, and  clod lists). Latent factor style models with ranking objective function are proposed and evaluated in two publicly available playlist datasets:  the 30Music and the AotM-2011 dataset. 
+
+2. [Relevance] Is this paper relevant to an AI audience?
+
+   Relevant to researchers in subareas only
+
+3. [Significance] Are the results significant?
+
+   Not significant
+
+4. [Novelty] Are the problems or approaches novel?
+
+   Somewhat novel or somewhat incremental
+
+5. [Soundness] Is the paper technically sound?
+
+   Technically sound
+
+6. [Evaluation] Are claims well-supported by theoretical analysis or experimental results?
+
+   Somewhat weak
+
+7. [Clarity] Is the paper well-organized and clearly written?
+
+   Satisfactory
+
+8. [Detailed Comments] Please elaborate on your assessments and provide constructive feedback.
+
+   This  paper studies the problem of palylist recommendation in music, with a  focus on addressing the cold-start problem (clod user, clod songs, and  clod lists). Latent factor style models with ranking objective function  are proposed and evaluated in two publicly available playlist datasets:  the 30Music and the AotM-2011 dataset. 
+
+   Somehow, the technical  contribution is not impressive: obviously based on latent factor ranking  models. The baselines such as MF+MLP is point-wised method? How about  the comparisons to ranking based methods? 
+
+9. [QUESTIONS FOR THE AUTHORS] Please provide questions for authors to address during the author feedback period.
+
+   The baselines such as MF+MLP is point-wised method? How about the comparisons to ranking based methods? 
+
+10. [OVERALL SCORE]
+
+    5 - Marginally below threshold
+
+11. [CONFIDENCE]
+
+    Reviewer is knowledgeable in the area
+
+
+
+##### Reviewer #2
+
+1. [Summary] Please summarize the main claims/contributions of the paper in your own words.
+
+   The  problem “Information Overload”, which is caused by the development and  popularization of the Internet, makes personalized recommendation more  important and useful to many online services including online music  streaming service. This paper first formulates playlist recommendation  as a multitask learning problem. Then it defines three cold-start  settings: cold playlists, cold users and cold songs. Finally, this paper  proposes a novel multitask learning method to deal with the three  cold-start problems. The authors claim that the proposed approach  performs well for cold-start playlist recommendation on the two real  playlist datasets.
+
+2. [Relevance] Is this paper relevant to an AI audience?
+
+   Relevant to researchers in subareas only
+
+3. [Significance] Are the results significant?
+
+   Significant
+
+4. [Novelty] Are the problems or approaches novel?
+
+   Novel
+
+5. [Soundness] Is the paper technically sound?
+
+   Technically sound
+
+6. [Evaluation] Are claims well-supported by theoretical analysis or experimental results?
+
+   Sufficient
+
+7. [Clarity] Is the paper well-organized and clearly written?
+
+   Good
+
+8. [Detailed Comments] Please elaborate on your assessments and provide constructive feedback.
+
+   The  work described in this paper is interesting, I look forward the authors  presenting and discussing their work in the conference, and I recommend  accepting it.
+
+9. [QUESTIONS FOR THE AUTHORS] Please provide questions for authors to address during the author feedback period.
+
+   In  my opinion, the cold playlists is an extension of the cold songs in  some sense, therefore, should the cold playlists be defined as a single  setting? In addition, I think that the cold playlists is a  classification problem, since playlists could be built based on the  information carried or delivered by songs with different classification  rules. So, here is my second confusion: is the cold playlists really  needed?
+
+10. [OVERALL SCORE]
+
+    6 - Marginally above threshold
+
+11. [CONFIDENCE]
+
+    Reviewer is knowledgeable in the area
+
+##### Reviewer #3
+
+1. [Summary] Please summarize the main claims/contributions of the paper in your own words.
+
+   This  paper proposes a method to deal with three cold-start scenarios by  minimizing a bipartite ranking loss, and convert constrained  optimization problem into an unconstrained optimization problem with  classification loss.
+
+2. [Relevance] Is this paper relevant to an AI audience?
+
+   Likely to be of interest to a large proportion of the community
+
+3. [Significance] Are the results significant?
+
+   Moderately significant
+
+4. [Novelty] Are the problems or approaches novel?
+
+   Somewhat novel or somewhat incremental
+
+5. [Soundness] Is the paper technically sound?
+
+   Technically sound
+
+6. [Evaluation] Are claims well-supported by theoretical analysis or experimental results?
+
+   Somewhat weak
+
+7. [Clarity] Is the paper well-organized and clearly written?
+
+   Good
+
+8. [Detailed Comments] Please elaborate on your assessments and provide constructive feedback.
+
+   This  paper proposes a method to deal with three cold-start scenarios by  minimizing a bipartite ranking loss, and convert constrained  optimization problem into an unconstrained optimization problem with  classification loss. However, I'm not sure whether Eq.(3) should be  called "multitask learning objective". It is obviously just something  similar to the multiclass classification problem, where we can recommend  multiple songs instead of one song. It is confusing since at first I  thought the paper is learning different tasks jointly. 
+
+   The  proposed method is not actually specifically solving the cold-start  problem in recommendation. The decomposition of user/artist/global  weights and the use of item factor considerring the item features, in  order to incorporate more side information to solve the cold-start  problem, are actually not new.
+
+   In my opinion, what is novel here  in this paper is that it proposes to use bipartite ranking loss, which  is then transformed into binary classification loss, to solve a general  recommendation problem.
+
+   The related works are far from being  comprehensive for cold-start problem. Maybe the authors only focus on  cold-start problem in playlist recommendation. However, there should be a  lot of other papers trying to solve the cold-start problem in general  in more recent years. To name a few, 
+   Volkovs, Maksims, Guangwei Yu,  and Tomi Poutanen. "DropoutNet: Addressing Cold Start in Recommender  Systems." Advances in Neural Information Processing Systems. 2017.
+   Saveski,  Martin, and Amin Mantrach. "Item cold-start recommendations: learning  local collective embeddings." Proceedings of the 8th ACM Conference on  Recommender systems. ACM, 2014.
+   Maybe the authors are trying to only consider factorization model?
+
+   From  my experience, the baseline methods included in the experiments are  also not strong. Many good algorithms dealing with cold-start problem  for recommendation are not compared. Are the authors only consider the  baseline methods that are specifically for playlist recommendation?
+
+9. [QUESTIONS FOR THE AUTHORS] Please provide questions for authors to address during the author feedback period.
+
+   Are there more recent works related to the cold-start problem and suitable for comparison in the experiments?
+
+10. [OVERALL SCORE]
+
+    6 - Marginally above threshold
+
+11. [CONFIDENCE]
+
+    Reviewer is knowledgeable in the area
