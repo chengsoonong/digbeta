@@ -13,5 +13,5 @@ uv sync
 ## Run
 
 ```bash
-uv run marimo edit notebook.py
+uv run marimo edit --watch notebook.py
 ```
