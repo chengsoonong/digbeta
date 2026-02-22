@@ -28,7 +28,7 @@ def _():
 
 @app.cell
 def _(mo):
-    pdb_id_input = mo.ui.text(value="1CRN", label="PDB ID")
+    pdb_id_input = mo.ui.text(value="1ACJ", label="PDB ID")
     pdb_id_input
     return (pdb_id_input,)
 
@@ -45,19 +45,44 @@ def _(mo, np, pdb_id_input):
     with urllib.request.urlopen(url) as resp:
         pdb_data = resp.read().decode("utf-8")
 
-    # Extract unique residue numbers from ATOM records
-    residue_numbers = sorted(
-        {
-            int(line[22:26])
-            for line in pdb_data.splitlines()
-            if line.startswith("ATOM")
-        }
-    )
+    # Catalytic triad of acetylcholinesterase (chain A)
+    catalytic_triad = {("A", 200), ("A", 440), ("A", 327)}  # Ser200, His440, Glu327
+
+    # Parse CA atom coordinates per residue (chain, resnum) -> (x, y, z)
+    ca_coords = {}
+    residue_set = set()
+    for line in pdb_data.splitlines():
+        if not line.startswith("ATOM"):
+            continue
+        chain = line[21]
+        resi = int(line[22:26])
+        residue_set.add(resi)
+        atom_name = line[12:16].strip()
+        if atom_name == "CA":
+            x, y, z = float(line[30:38]), float(line[38:46]), float(line[46:54])
+            ca_coords[(chain, resi)] = np.array([x, y, z])
+
+    residue_numbers = sorted(residue_set)
     n_residues = len(residue_numbers)
 
-    # Placeholder: random importance scores (replace with real data)
-    rng = np.random.default_rng(42)
-    importance = rng.uniform(0, 1, size=n_residues)
+    # Get catalytic triad CA positions
+    triad_positions = [ca_coords[key] for key in catalytic_triad if key in ca_coords]
+
+    # Score each residue by proximity to catalytic triad
+    decay_radius = 10.0  # Angstroms
+    importance = np.zeros(n_residues)
+    for i, resi in enumerate(residue_numbers):
+        # Check if this residue is in the triad (any chain)
+        if any((ch, resi) in catalytic_triad for ch in "A"):
+            importance[i] = 1.0
+            continue
+        # Find CA coord for this residue (prefer chain A)
+        coord = ca_coords.get(("A", resi))
+        if coord is None:
+            continue
+        min_dist = min(np.linalg.norm(coord - tp) for tp in triad_positions)
+        if min_dist < decay_radius:
+            importance[i] = max(0.0, 1.0 - min_dist / decay_radius)
 
     # Map importance to colors (blue=low, red=high)
     def importance_to_hex(val):
@@ -82,7 +107,10 @@ def _(mo, np, pdb_id_input):
         f'<iframe srcdoc="{_html.escape(raw_html)}" '
         f'width="820" height="520" style="border:none;"></iframe>'
     )
-    info = mo.md(f"**{pdb_id}** — {n_residues} residues, colored by importance (blue=low, red=high)")
+    info = mo.md(
+        f"**{pdb_id}** — {n_residues} residues, colored by proximity to catalytic triad "
+        f"(Ser200, His440, Glu327). Red=catalytic site, blue=distant."
+    )
     mo.vstack([info, viewer_iframe])
     return
 
