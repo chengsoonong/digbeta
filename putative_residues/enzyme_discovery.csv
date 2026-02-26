@@ -1,0 +1,4 @@
+Task	Pretrained only	HEV only	UCB only	HEV ? UCB	Pre ? HEV	Pre ? UCB	All three	Total Pre	Total HEV	Total UCB	Random ? task	Total unique (task)
+Overall activity	34	12	11	32	0	1	6	41	50	50	5	96
+Thermal stability	41	21	23	21	3	1	5	50	50	50	4	115
+Octanoate specificity	36	15	22	21	7	0	7	50	50	50	10	108
